@@ -1,88 +1,115 @@
-# Azure AI Solutions Quick Start Template <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;"/>
+# Streamlining Prior Authorization with Azure AI <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;vertical-align:sub;"/>
 
-Welcome to the Azure AI Solutions Quick Start Template! This repository is designed to be a rapid launchpad for your Azure AI projects. Whether you're working in an enterprise or academic environment, this template integrates best practices to ensure a smooth development journey from start to finish.
+![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
+![AI](https://img.shields.io/badge/AI-enthusiast-7F52FF.svg)
+![GitHub stars](https://img.shields.io/github/stars/pablosalvador10/gbbai-azure-ai-capacity?style=social)
+![Issues](https://img.shields.io/github/issues/pablosalvador10/gbbai-azure-ai-capacity)
+![License](https://img.shields.io/github/license/pablosalvador10/gbbai-azure-ai-capacity)
 
-## 💼 Using this Template: Your Gateway to Advanced AI Development & Collaboration!
+Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors (insurance companies) before delivering specific treatments or medications. While essential for cost control and care management, the process has become inefficient, creating substantial delays, administrative overheads, and negative outcomes for all stakeholders—providers, payors, and patients.
 
-- **🔄 Development Workflow**: Get to know our optimized workflow, designed to foster effective collaboration and a focus on product-centric development. See our [CONTRIBUTING GUIDE](./CONTRIBUTING.md) for more details.
+![alt text](utils\images\prior_auth_flow.png)
 
-- **🚀 Advanced AI Development Process**: Understand the specifics of managing Azure AI projects, from issue reporting to pull requests, while adhering to best practices in advanced feature development and complex system troubleshooting.
+### 🔍 Identifying Challenges and Leveraging Opportunities
 
-- **🔍 Testing & QA for AI Systems**: Learn about the importance of rigorous testing in AI projects and discover efficient development and testing techniques tailored for AI systems with tools like Jupyter Notebooks and `%%ipytest`.
+Let's uncover the daily pain points faced by providers and payors, and understand the new landscape for Prior Authorization (PA) with the upcoming 2026 regulations.
 
-- **🔢 Version & Branching Strategies for AI Projects**: Get to know our versioning system and explore the project’s branching strategy, which ensures smooth transitions between development, staging, and production, especially for AI-driven applications.
+<details>
+<summary>📊 Understanding the Burden for Payors and Providers</summary>
 
-- To stay updated with the latest developments and document significant changes to this project, please refer to [CHANGELOG.md](CHANGELOG.md).
+<div style="max-height: 400px; overflow-y: auto;">
 
-## Requirements
+### ⏳ Time and Cost Implications for Providers and Payors
 
-> Modify as needed by project 
+**Providers:**
+- **41 Requests per Week:** Physicians handle an average of 41 PA requests per week, consuming around 13 hours, equivalent to two business days [1].
+- **High Administrative Burden:** 88% of physicians report a high or extremely high administrative burden due to PA processes [1].
 
-### Setting Up Azure AI Services
+**Payors:**
+- **Manual Processing Costs:** Up to 75% of PA tasks are manual or partially manual, costing around $3.14 per transaction [2].
+- **Automation Benefits:** AI can reduce processing costs by up to 40%, cutting manual tasks and reducing expenses to just pennies per request in high-volume cases [2][3].
 
-- Azure OpenAI Service: You need to create an Azure OpenAI service instance and obtain the API key. [start here](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
-- Azure Speech AI Service: Required for speech-to-text conversion. Set up the service and get the subscription key and region. [start here](https://azure.microsoft.com/en-us/products/ai-services/ai-speech)
-- Azure Language Service: Necessary for language understanding and intent recognition.[start here](https://azure.microsoft.com/en-us/products/ai-services/ai-language)
+### 🚨 Impact on Patient Outcomes and Delays
 
-### Configuration Env variables
+**Providers:**
+- **Treatment Delays:** 93% of physicians report that prior authorization delays access to necessary care, leading to treatment abandonment in 82% of cases [1].
+- **Mortality Risk:** Even a one-week delay in critical treatments like cancer increases mortality risk by 1.2–3.2% [3].
 
-We will now use environment variables to store our configuration. This is a more secure practice as it prevents sensitive data from being accidentally committed and pushed to version control systems.
+**Payors:**
+- **Improved Approval Accuracy:** AI automation reduces errors by up to 75%, ensuring more accurate and consistent approvals [2].
+- **Faster Turnaround Times:** AI-enabled systems reduce PA decision-making from days to just hours, leading to improved member satisfaction and reduced costs [3].
 
-Create a `.env` file in your project root and add the following variables:
+### ⚙️ Operational Inefficiencies and Automation Potential
 
-```env
-# Your Azure Speech Service subscription key
-SPEECH_KEY=<Your_Azure_Speech_Service_Subscription_Key>
+**Providers:**
+- **Transparency Issues:** Providers often lack real-time insight into PA requirements, resulting in treatment delays. AI integration with EHRs can provide real-time updates, improving transparency and reducing bottlenecks [2].
 
-# Your Azure Speech Service region
-SPEECH_REGION=<Your_Azure_Speech_Service_Region>
+**Payors:**
+- **High-Volume Auto-Approvals:** AI-based systems can automatically approve low-risk cases, reducing call volumes by 10–15% and improving operational efficiency [2][3].
+- **Efficiency Gains:** AI automation can save 7–10 minutes per case, compounding savings for payors [3].
 
-# Your Azure Machine Learning workspace key
-INTENT_KEY=<Your_Azure_Machine_Learning_Workspace_Key>
+### 📊 Key Statistics: AI’s Impact on PA
 
-# Your Azure OpenAI API key
-OPENAI_KEY=<Your_Azure_OpenAI_API_Key>
+- 40% cost reduction for payors in high-volume cases using AI automation [3].
+- 15–20% savings in call handle time through AI-driven processes [2].
+- 75% of manual tasks can be automated [2].
+- 88% of physicians report high administrative burdens due to PA [1].
+- 93% of physicians report that PA delays patient care [1].
 
-# The model used for chat
-CHAT_MODEL=<Your_Chat_Model>
+### References
 
-# The model used for completions
-COMPLETION_MODEL=<Your_Completion_Model>
+1. American Medical Association, "Prior Authorization Research Reports" [link](https://www.ama-assn.org/practice-management/prior-authorization/prior-authorization-research-reports)
+2. Sagility Health, "Transformative AI to Revamp Prior Authorizations" [link](https://sagilityhealth.com/news/transformative-ai-to-revamp-prior-authorizations/)
+3. McKinsey, "AI Ushers in Next-Gen Prior Authorization in Healthcare" [link](https://www.mckinsey.com/industries/healthcare/our-insights/ai-ushers-in-next-gen-prior-authorization-in-healthcare)
 
-# The base URL for the OpenAI API
-OPENAI_API_BASE=<Your_OpenAI_API_Base_URL>
+</div>
 
-# The version of the OpenAI API
-OPENAI_API_VERSION=<Your_OpenAI_API_Version>
+</details>
 
-# Your Azure Storage connection string
-AZURE_STORAGE_CONNECTION_STRING=<Your_Azure_Storage_Connection_String>
-``` 
+<details>
+<summary>🏛️ Impact of CMS (Centers for Medicare & Medicaid Services) New Regulations</summary>
 
-`SPEECH_KEY` and `SPEECH_REGION` are used for the Azure Speech Service.
-`INTENT_KEY` is used for the Azure Machine Learning workspace.
-`OPENAI_KEY`, `CHAT_MODEL`, `COMPLETION_MODEL`, `OPENAI_API_BASE`, and `OPENAI_API_VERSION` are used for the Azure OpenAI API.
-`AZURE_STORAGE_CONNECTION_STRING` is used for Azure Storage.
+### 🏛️ Impact of CMS (Centers for Medicare & Medicaid Services) New Regulations
 
-> 📌 Note Remember not to commit the .env file to your version control system. Add it to your .gitignore file to prevent it from being tracked.
+**Real-Time Data Exchange:** The new regulations mandate that payors use APIs based on HL7 FHIR standards to facilitate real-time data exchange. This will allow healthcare providers to receive quicker PA decisions—within 72 hours for urgent cases and 7 days for standard requests. Immediate access to PA determinations will dramatically reduce delays, ensuring that patients get the necessary care faster. For AI-driven solutions, this real-time data will enable enhanced decision-making capabilities, streamlining the interaction between payors and providers.
 
-## 🌲 Project Tree Structure
+**Transparency in Decision-Making:** Payors will now be required to provide detailed explanations for PA decisions, including reasons for denial, through the Prior Authorization API. This will foster greater transparency, which has been a longstanding issue in the PA process. For AI solutions, this transparency can be leveraged to improve algorithms that predict authorization outcomes, thereby reducing manual reviews and cutting down on administrative burdens. The transparency also enhances trust between providers and payors, reducing disputes over PA decisions.
 
-```markdown
-📂 gbbai-azure-ai-template
-┣ 📂 notebooks <- For development, EDA, and quick testing (Jupyter notebooks for analysis and development).
-┣ 📂 src <- Houses main source code for data processing, feature engineering, modeling, inference, and evaluation.
-┣ 📂 test <- Runs unit and integration tests for code validation and QA.
-┣ 📂 utils <- Contains utility functions and shared code used throughout the project.
-┣ 📜 .env.sample <- Sample environment variables file. Replace with your own.
-┣ 📜 .pre-commit-config.yaml <- Config for pre-commit hooks ensuring code quality and consistency.
-┣ 📜 01-workshop.ipynb <- Jupyter notebook for the workshop.
-┣ 📜 CHANGELOG.md <- Logs project changes, updates, and version history.
-┣ 📜 USAGE.md <- Guidelines for using this template.
-┣ 📜 environment.yaml <- Conda environment configuration.
-┣ 📜 Makefile <- Simplifies common development tasks and commands.
-┣ 📜 pyproject.toml <- Configuration file for build system requirements and packaging-related metadata.
-┣ 📜 README.md <- Overview, setup instructions, and usage details of the project.
-┣ 📜 requirements-codequality.txt <- Requirements for code quality tools and libraries.
-┣ 📜 requirements.txt <- General project dependencies.
-```
+</details>
+
+---
+
+## 🤖👩‍⚕️ PRISM - Streamlined Prior Authorization for Providers
+
+PRISM – **P**rior **R**equest **I**ntelligent **S**ystem for **M**edical Authorization is a comprehensive solution designed to optimize the Prior Authorization (PA) process for healthcare providers. By leveraging advanced AI and automation, PRISM ensures faster, more accurate PA decisions, reducing administrative burdens and improving patient care.
+
+### What is PRISM?
+
+PRISM stands for:
+- **P**rior: Focusing on the authorization process before treatment.
+- **R**equest: Streamlining the PA request process.
+- **I**ntelligent: Leveraging AI to enhance decision-making.
+- **S**ystem: Implementing a systematic approach to PA processes.
+- **M**edical Authorization: Ensuring accurate and efficient PA approvals.
+
+By integrating these core principles, PRISM transforms the PA process, making it more efficient and provider-friendly.
+
+## 🏢🤖 PAwise – Streamlined Prior Authorization Request Decisions for Payors
+
+PAWISE – **P**rior **A**uthorization **W**orkflow for **I**ntelligent **S**ystematic **E**fficiency is designed to reflect a streamlined, AI-powered process that makes the workflow around prior authorization both smart and efficient, reducing delays and improving accuracy in decision-making (approvals and denials).
+
+### What is PAwise?
+
+PAWISE stands for:
+- **P**rior: Focusing on the authorization process before treatment.
+- **A**uthorization: Ensuring accurate and efficient PA approvals.
+- **W**orkflow: Streamlining the PA workflow to reduce administrative burdens.
+- **I**ntelligent: Leveraging AI to enhance decision-making.
+- **S**ystematic: Implementing a systematic approach to PA processes.
+- **E**fficiency: Improving overall operational efficiency in the PA process.
+
+By integrating these core principles, PAWISE transforms the PA process for payors, making it more efficient and accurate.
+
+### Disclaimer
+> [!IMPORTANT]
+> This software is provided for demonstration purposes only. It is not intended to be relied upon for any purpose. The creators of this software make no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability or availability with respect to the software or the information, products, services, or related graphics contained in the software for any purpose. Any reliance you place on such information is therefore strictly at your own risk.
