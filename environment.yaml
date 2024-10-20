@@ -1,0 +1,11 @@
+name: my-template-environment
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.9
+  - pip
+  - pip:
+    - -r requirements.txt
+    - -r requirements-codequality.txt
+    - -r requirements-pipelines.txt

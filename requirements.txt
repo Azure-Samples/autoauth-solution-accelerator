@@ -1,0 +1,17 @@
+# core DS development
+numpy==1.26.0
+pandas==2.1.1
+matplotlib==3.8.0
+scikit-learn==1.3.1
+scipy==1.11.3
+seaborn==0.13.0
+ipython
+
+# core azure ai development
+promptflow 
+promptflow-tools
+azureml-sdk
+azure-core==1.29.5
+azure-mgmt-authorization==4.0.0
+
+#more specialized packages ai azure services -> https://azure.github.io/azure-sdk/releases/latest/all/python.html

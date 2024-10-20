@@ -1,0 +1,66 @@
+[build-system]
+requires = ["flit_core >=2,<4"]
+build-backend = "flit_core.buildapi"
+
+[project]
+name = "example-project"
+authors = [
+  {name = "Pablo Salvador", email = "pablosalvadorlopez11@gmail.com"}
+]
+description = "An example project demonstrating pyproject.toml"
+readme = "README.md"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3.8"
+]
+requires-python = ">=3.8,<4.0"
+dynamic = ["version"]
+
+[project.optional-dependencies]
+extras = [
+  "optional_package_1",
+  "optional_package_2"
+]
+
+[project.urls]
+homepage = "https://example.com"
+repository = "https://github.com/username/example-project"
+documentation = "https://example.com/docs"
+
+[tool.flit.metadata]
+module = "example_project"
+author-email = "john.doe@example.com"
+
+[tool.flit.scripts]
+example-script = "example_project:main"
+
+[tool.bandit]
+exclude_dirs = ["tests/"]
+tests = ["B201", "B301"]
+skips = ["B101", "B601"]
+
+[tool.black]
+line-length = 88
+
+[tool.mypy]
+ignore_missing_imports = true
+files = "src/"
+exclude = "utils|tests"
+
+[tool.ruff]
+line-length = 124
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+max-line-length = 124
+
+[tool.pytest]
+addopts = "-vv --cov=. --cov-report xml:/tmp/coverage.xml --cov-report html:/tmp/coverage_html --cov-report term-missing"
+log_cli = true
+norecursedirs = ".git __pycache__ docs"
+log_format = "%(asctime)s - %(levelname)-8s %(message)s (%(filename)s:%(funcName)s:%(lineno)d)"
+log_level = "info"

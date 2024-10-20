@@ -1,0 +1,447 @@
+************* Module Command line
+Command line:1:0: W0012: Unknown option value for '-d', expected a valid pylint message and got 'isable=logging-fstring-interpolation' (unknown-option-value)
+************* Module pipelines.training.components
+pipelines/training/components.py:108:0: C0301: Line too long (123/100) (line-too-long)
+pipelines/training/components.py:288:0: C0303: Trailing whitespace (trailing-whitespace)
+pipelines/training/components.py:291:31: C0303: Trailing whitespace (trailing-whitespace)
+pipelines/training/components.py:292:0: C0303: Trailing whitespace (trailing-whitespace)
+pipelines/training/components.py:295:0: C0303: Trailing whitespace (trailing-whitespace)
+pipelines/training/components.py:297:0: C0303: Trailing whitespace (trailing-whitespace)
+pipelines/training/components.py:298:0: C0301: Line too long (129/100) (line-too-long)
+pipelines/training/components.py:300:0: C0303: Trailing whitespace (trailing-whitespace)
+pipelines/training/components.py:302:0: C0303: Trailing whitespace (trailing-whitespace)
+pipelines/training/components.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+pipelines/training/components.py:11:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+pipelines/training/components.py:18:0: C0115: Missing class docstring (missing-class-docstring)
+pipelines/training/components.py:18:0: R0903: Too few public methods (0/2) (too-few-public-methods)
+pipelines/training/components.py:25:8: W0613: Unused argument 'ctx' (unused-argument)
+pipelines/training/components.py:65:0: R0913: Too many arguments (9/5) (too-many-arguments)
+pipelines/training/components.py:65:0: R0914: Too many local variables (21/15) (too-many-locals)
+pipelines/training/components.py:124:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+pipelines/training/components.py:132:28: E1124: Argument 'estimator' passed by position and keyword in constructor call (redundant-keyword-arg)
+pipelines/training/components.py:160:12: C0103: Variable name "X_train_res" doesn't conform to snake_case naming style (invalid-name)
+pipelines/training/components.py:163:12: C0103: Variable name "X_train" doesn't conform to snake_case naming style (invalid-name)
+pipelines/training/components.py:163:21: C0103: Variable name "X_test" doesn't conform to snake_case naming style (invalid-name)
+pipelines/training/components.py:171:8: C0103: Variable name "X_train" doesn't conform to snake_case naming style (invalid-name)
+pipelines/training/components.py:171:17: C0103: Variable name "X_test" doesn't conform to snake_case naming style (invalid-name)
+pipelines/training/components.py:201:0: R0913: Too many arguments (6/5) (too-many-arguments)
+pipelines/training/components.py:201:0: R0914: Too many local variables (20/15) (too-many-locals)
+pipelines/training/components.py:225:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+pipelines/training/components.py:262:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+pipelines/training/components.py:264:4: C0103: Variable name "X_train" doesn't conform to snake_case naming style (invalid-name)
+pipelines/training/components.py:264:13: C0103: Variable name "X_test" doesn't conform to snake_case naming style (invalid-name)
+pipelines/training/components.py:291:0: C0116: Missing function or method docstring (missing-function-docstring)
+pipelines/training/components.py:326:4: E1123: Unexpected keyword argument 'obj' in function call (unexpected-keyword-arg)
+pipelines/training/components.py:326:4: E1120: No value for argument 'ctx' in function call (no-value-for-parameter)
+************* Module utils
+pipelines/configs/churn_prediction/utils.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+************* Module pipelines.feature_engineering.components
+pipelines/feature_engineering/components.py:75:0: C0301: Line too long (107/100) (line-too-long)
+pipelines/feature_engineering/components.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+pipelines/feature_engineering/components.py:15:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+pipelines/feature_engineering/components.py:21:0: C0115: Missing class docstring (missing-class-docstring)
+pipelines/feature_engineering/components.py:21:0: R0903: Too few public methods (0/2) (too-few-public-methods)
+pipelines/feature_engineering/components.py:28:8: W0613: Unused argument 'ctx' (unused-argument)
+pipelines/feature_engineering/components.py:78:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+pipelines/feature_engineering/components.py:132:4: E1123: Unexpected keyword argument 'obj' in function call (unexpected-keyword-arg)
+pipelines/feature_engineering/components.py:132:4: E1120: No value for argument 'ctx' in function call (no-value-for-parameter)
+************* Module utils.ml_logging
+utils/ml_logging.py:65:0: C0301: Line too long (121/100) (line-too-long)
+utils/ml_logging.py:77:0: C0301: Line too long (105/100) (line-too-long)
+utils/ml_logging.py:98:0: C0301: Line too long (113/100) (line-too-long)
+utils/ml_logging.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+utils/ml_logging.py:16:8: W0212: Access to a protected member _log of a client class (protected-access)
+utils/ml_logging.py:97:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/ml_logging.py:101:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/ml_logging.py:108:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/ml_logging.py:110:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+utils/ml_logging.py:111:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+************* Module src.training.evaluation
+src/training/evaluation.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/training/evaluation.py:9:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+src/training/evaluation.py:15:33: C0103: Argument name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/evaluation.py:15:0: W0102: Dangerous default value [] as argument (dangerous-default-value)
+src/training/evaluation.py:35:20: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+src/training/evaluation.py:36:25: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+src/training/evaluation.py:47:4: C0103: Argument name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/evaluation.py:49:4: C0103: Argument name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/evaluation.py:45:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/training/evaluation.py:67:4: W0105: String statement has no effect (pointless-string-statement)
+src/training/evaluation.py:112:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/evaluation.py:113:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/evaluation.py:114:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/evaluation.py:115:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/evaluation.py:116:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/evaluation.py:117:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/evaluation.py:125:4: C0103: Argument name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/evaluation.py:127:4: C0103: Argument name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/evaluation.py:122:0: R0913: Too many arguments (7/5) (too-many-arguments)
+src/training/evaluation.py:122:0: R0914: Too many local variables (21/15) (too-many-locals)
+src/training/evaluation.py:154:8: W0632: Possible unbalanced tuple unpacking with sequence defined at line 82: left side has 6 labels, right side has 0 values (unbalanced-tuple-unpacking)
+************* Module src.training.models_refitting
+src/training/models_refitting.py:14:0: C0303: Trailing whitespace (trailing-whitespace)
+src/training/models_refitting.py:22:0: C0301: Line too long (113/100) (line-too-long)
+src/training/models_refitting.py:50:0: C0301: Line too long (106/100) (line-too-long)
+src/training/models_refitting.py:67:0: C0303: Trailing whitespace (trailing-whitespace)
+src/training/models_refitting.py:68:0: C0303: Trailing whitespace (trailing-whitespace)
+src/training/models_refitting.py:97:0: C0303: Trailing whitespace (trailing-whitespace)
+src/training/models_refitting.py:100:0: C0303: Trailing whitespace (trailing-whitespace)
+src/training/models_refitting.py:103:0: C0304: Final newline missing (missing-final-newline)
+src/training/models_refitting.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/training/models_refitting.py:8:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+src/training/models_refitting.py:13:0: C0115: Missing class docstring (missing-class-docstring)
+src/training/models_refitting.py:84:8: C0103: Attribute name "X" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_refitting.py:41:18: C0103: Variable name "ModelClass" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_refitting.py:48:35: C0103: Variable name "BaseClass" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_refitting.py:63:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_refitting.py:81:8: C0103: Variable name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_refitting.py:81:17: C0103: Variable name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_refitting.py:103:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_refitting.py:84:8: W0201: Attribute 'X' defined outside __init__ (attribute-defined-outside-init)
+src/training/models_refitting.py:85:8: W0201: Attribute 'y' defined outside __init__ (attribute-defined-outside-init)
+************* Module src.training.utils
+src/training/utils.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/training/utils.py:11:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+src/training/utils.py:18:33: C0103: Argument name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/utils.py:18:0: W0102: Dangerous default value [] as argument (dangerous-default-value)
+src/training/utils.py:38:20: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+src/training/utils.py:39:25: C0209: Formatting a regular string which could be an f-string (consider-using-f-string)
+src/training/utils.py:49:29: C0103: Argument name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/utils.py:49:47: C0103: Argument name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/utils.py:49:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/training/utils.py:95:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:96:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:97:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:98:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:99:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:100:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:134:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:140:4: C0103: Variable name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/utils.py:141:4: C0103: Variable name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/utils.py:145:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:152:4: C0103: Argument name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/utils.py:153:4: C0103: Argument name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/utils.py:151:0: R0913: Too many arguments (6/5) (too-many-arguments)
+src/training/utils.py:178:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:192:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:195:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:198:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/utils.py:201:4: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+************* Module src.training.models_training
+src/training/models_training.py:126:0: C0303: Trailing whitespace (trailing-whitespace)
+src/training/models_training.py:145:0: C0303: Trailing whitespace (trailing-whitespace)
+src/training/models_training.py:214:0: C0301: Line too long (105/100) (line-too-long)
+src/training/models_training.py:279:0: C0301: Line too long (106/100) (line-too-long)
+src/training/models_training.py:355:0: C0301: Line too long (119/100) (line-too-long)
+src/training/models_training.py:394:0: C0305: Trailing newlines (trailing-newlines)
+src/training/models_training.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/training/models_training.py:15:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+src/training/models_training.py:59:8: C0103: Attribute name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:61:8: C0103: Attribute name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:21:0: R0902: Too many instance attributes (8/7) (too-many-instance-attributes)
+src/training/models_training.py:46:8: C0103: Argument name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:48:8: C0103: Argument name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:41:4: R0913: Too many arguments (8/5) (too-many-arguments)
+src/training/models_training.py:66:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:78:4: W0102: Dangerous default value {} as argument (dangerous-default-value)
+src/training/models_training.py:78:4: R0913: Too many arguments (6/5) (too-many-arguments)
+src/training/models_training.py:103:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:128:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:136:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:141:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:158:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:160:12: R1705: Unnecessary "else" after "return", remove the "else" and de-indent the code inside it (no-else-return)
+src/training/models_training.py:162:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:166:16: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:172:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:178:4: R0913: Too many arguments (7/5) (too-many-arguments)
+src/training/models_training.py:202:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:213:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:218:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:228:8: C0103: Argument name "X" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:224:4: R0913: Too many arguments (6/5) (too-many-arguments)
+src/training/models_training.py:259:8: C0103: Variable name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:259:17: C0103: Variable name "X_test" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:291:8: C0103: Variable name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:294:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:295:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:302:8: C0103: Variable name "X_train_res" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:304:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:305:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:332:8: C0103: Variable name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:335:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:336:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:339:8: C0103: Variable name "X_train_res" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:341:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:342:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/training/models_training.py:350:8: C0103: Argument name "X_train" doesn't conform to snake_case naming style (invalid-name)
+src/training/models_training.py:346:4: R0913: Too many arguments (6/5) (too-many-arguments)
+src/training/models_training.py:391:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+************* Module src.utils
+src/utils.py:40:0: C0301: Line too long (121/100) (line-too-long)
+src/utils.py:124:0: C0304: Final newline missing (missing-final-newline)
+src/utils.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/utils.py:7:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+src/utils.py:28:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:31:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:34:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:37:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:43:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:62:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:65:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:67:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:80:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:83:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:86:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:100:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:103:13: R1714: Consider merging these comparisons with 'in' by using 'file_extension in ('.excel', '.xlsx')'. Use a set instead if elements are hashable. (consider-using-in)
+src/utils.py:114:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:117:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/utils.py:121:0: C0116: Missing function or method docstring (missing-function-docstring)
+************* Module src.scoring.inference
+src/scoring/inference.py:19:0: C0301: Line too long (115/100) (line-too-long)
+src/scoring/inference.py:43:0: C0303: Trailing whitespace (trailing-whitespace)
+src/scoring/inference.py:107:0: C0303: Trailing whitespace (trailing-whitespace)
+src/scoring/inference.py:109:0: C0303: Trailing whitespace (trailing-whitespace)
+src/scoring/inference.py:111:0: C0303: Trailing whitespace (trailing-whitespace)
+src/scoring/inference.py:117:0: C0303: Trailing whitespace (trailing-whitespace)
+src/scoring/inference.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/scoring/inference.py:4:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+src/scoring/inference.py:40:21: E1101: Instance of 'ModelInference' has no '_load_model' member (no-member)
+src/scoring/inference.py:52:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/scoring/inference.py:55:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/scoring/inference.py:58:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/scoring/inference.py:115:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/scoring/inference.py:130:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/scoring/inference.py:133:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/scoring/inference.py:137:12: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/scoring/inference.py:118:4: R1710: Either all return statements in a function should return an expression, or none of them should. (inconsistent-return-statements)
+src/scoring/inference.py:5:0: C0411: third party import "from omegaconf import OmegaConf" should be placed before "from utils.ml_logging import get_logger" (wrong-import-order)
+src/scoring/inference.py:6:0: C0411: third party import "from sklearn.utils import all_estimators" should be placed before "from utils.ml_logging import get_logger" (wrong-import-order)
+src/scoring/inference.py:5:0: W0611: Unused OmegaConf imported from omegaconf (unused-import)
+src/scoring/inference.py:6:0: W0611: Unused all_estimators imported from sklearn.utils (unused-import)
+************* Module src.feature_engineering.etl
+src/feature_engineering/etl.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/feature_engineering/etl.py:3:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+src/feature_engineering/etl.py:30:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+src/feature_engineering/etl.py:50:8: W1203: Use lazy % formatting in logging functions (logging-fstring-interpolation)
+************* Module src.feature_engineering.model_specific_transformations
+src/feature_engineering/model_specific_transformations.py:1:0: C0114: Missing module docstring (missing-module-docstring)
+src/feature_engineering/model_specific_transformations.py:5:0: E0611: No name 'ml_logging' in module 'utils' (no-name-in-module)
+src/feature_engineering/model_specific_transformations.py:1:0: R0801: Similar lines in 2 files
+==pipelines.feature_engineering.components:[81:119]
+==src.scoring.inference:[69:107]
+            transform_log_features = [
+                "Credit_Limit",
+                "Avg_Open_To_Buy",
+                "Total_Amt_Chng_Q4_Q1",
+                "Total_Trans_Amt",
+                "Total_Ct_Chng_Q4_Q1",
+                "Avg_Utilization_Ratio",
+            ]
+            df = log_transform_features(df, transform_log_features)
+
+            transform_categorical_features = ["Gender", "Attrition_Flag"]
+            df = encode_categorical_features(df, transform_categorical_features)
+
+            transform_one_hot_encoding_features = ["Card_Category", "Marital_Status"]
+            df = apply_one_hot_encoding(df, transform_one_hot_encoding_features)
+
+            replace_struct = {
+                "Attrition_Flag": {"Existing Customer": 0, "Attrited Customer": 1},
+                "Education_Level": {
+                    "Doctorate": 5,
+                    "Post-Graduate": 4,
+                    "Graduate": 3,
+                    "College": 2,
+                    "High School": 1,
+                    "Unknown": 0,
+                    "Uneducated": -1,
+                },
+                "Income_Category": {
+                    "$120K +": 4,
+                    "$80K - $120K": 3,
+                    "$60K - $80K": 2,
+                    "$40K - $60K": 1,
+                    "Unknown": 0,
+                    "Less than $40K": -1,
+                },
+            }
+            df = replace_values(df, replace_struct)
+ (duplicate-code)
+src/feature_engineering/model_specific_transformations.py:1:0: R0801: Similar lines in 2 files
+==src.training.evaluation:[84:147]
+==src.training.utils:[67:119]
+    pred_train = model.predict(X_train)
+    pred_test = model.predict(X_test)
+
+    # Accuracy
+    train_acc = model.score(X_train, y_train)
+    test_acc = model.score(X_test, y_test)
+
+    # Recall
+    train_recall = metrics.recall_score(y_train, pred_train)
+    test_recall = metrics.recall_score(y_test, pred_test)
+
+    # Precision
+    train_precision = metrics.precision_score(y_train, pred_train)
+    test_precision = metrics.precision_score(y_test, pred_test)
+
+    score_list.extend(
+        (
+            train_acc,
+            test_acc,
+            train_recall,
+            test_recall,
+            train_precision,
+            test_precision,
+        )
+    )
+
+    if log_scores:
+        logger.info(f"Accuracy on training set : {train_acc}")
+        logger.info(f"Accuracy on test set : {test_acc}")
+        logger.info(f"Recall on training set : {train_recall}")
+        logger.info(f"Recall on test set : {test_recall}")
+        logger.info(f"Precision on training set : {train_precision}")
+        logger.info(f"Precision on test set : {test_precision}")
+
+    return score_list
+
+
+def generate_comparison_frame(
+    models: List[Any],
+    model_names: List[str],
+    X_train: np.ndarray,
+    y_train: np.ndarray,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    log_scores: bool = True,
+) -> pd.DataFrame:
+    """
+    Generate a comparison DataFrame for given models based on their metrics.
+
+    Parameters:
+    models (List[ClassifierMixin]): A list of trained sklearn models.
+    model_names (List[str]): A list of names corresponding to the models.
+    X_train (array): Training set.
+    y_train (array): Training set labels.
+    X_test (array): Test set.
+    y_test (array): Test set labels.
+    log_scores (bool): Flag to log the scores. Default is True.
+
+    Returns:
+    pd.DataFrame: A DataFrame with Train and Test Accuracy, Recall, and Precision for each model.
+    """
+
+    # Initializing empty lists to store metrics (duplicate-code)
+src/feature_engineering/model_specific_transformations.py:1:0: R0801: Similar lines in 2 files
+==src.training.evaluation:[11:81]
+==src.training.utils:[13:64]
+logger = get_logger()
+
+
+@log_function_call("Training - evaluation")
+def make_confusion_matrix(model, X_test, y_actual, labels=[1, 0]):
+    """
+    Generate confusion matrix for the fitted model.
+
+    Parameters:
+    model (Model): Classifier to predict values of X_test.
+    X_test (array): Test set.
+    y_actual (array): Ground truth.
+    labels (list): List of labels to create confusion matrix.
+
+    Returns:
+    None
+    """
+    y_predict = model.predict(X_test)
+    cm = metrics.confusion_matrix(y_actual, y_predict, labels=labels)
+    df_cm = pd.DataFrame(
+        cm,
+        index=[f"Actual - {label}" for label in labels],
+        columns=[f"Predicted - {label}" for label in labels],
+    )
+    group_counts = ["{0:0.0f}".format(value) for value in cm.flatten()]
+    group_percentages = ["{0:.2%}".format(value) for value in cm.flatten() / np.sum(cm)]
+    labels = [f"{v1}\n{v2}" for v1, v2 in zip(group_counts, group_percentages)]
+    labels = np.asarray(labels).reshape(2, 2)
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(df_cm, annot=labels, fmt="")
+    plt.ylabel("True label")
+    plt.xlabel("Predicted label")
+
+
+@log_function_call("Training - evaluation")
+def get_metrics_score(model, X_train, y_train, X_test, y_test, log_scores=True):
+    """
+    Calculate different metric scores of the model - Accuracy, Recall, and Precision.
+
+    Parameters:
+    model (Model): Classifier to predict values of X.
+    X_train (array): Training set.
+    y_train (array): Training set labels.
+    X_test (array): Test set.
+    y_test (array): Test set labels.
+    log_scores (bool): Flag to log the scores. Default is True.
+
+    Returns:
+    list: List containing metric scores.
+    """
+    # defining an empty list to store train and test results (duplicate-code)
+src/feature_engineering/model_specific_transformations.py:1:0: R0801: Similar lines in 2 files
+==src.training.evaluation:[153:160]
+==src.training.utils:[83:90]
+        (
+            train_acc,
+            test_acc,
+            train_recall,
+            test_recall,
+            train_precision,
+            test_precision, (duplicate-code)
+src/feature_engineering/model_specific_transformations.py:1:0: R0801: Similar lines in 2 files
+==pipelines.feature_engineering.components:[17:57]
+==pipelines.training.components:[14:85]
+logger = get_logger()
+
+
+class Context:
+    def __init__(self, cfg: DictConfig):
+        self.cfg = cfg
+
+
+@click.group()
+@click.pass_context
+def cli(ctx) -> None:
+    """Execute before every command."""
+    logger.info("Executing the pipeline component...")
+
+
+@cli.command()
+@click.pass_context
+@click.option(
+    "-p", "--input_path", type=str, default=None, help="Path to the data file"
+)
+@click.option(
+    "-o",
+    "--output_path",
+    type=str,
+    default=None,
+    help="Directory to save datasets",
+)
+@click.option("-dt", "--date", type=str, default=None, help="Date to save datasets")
+def run_feature_engineering(
+    ctx: click.Context,
+    input_path: Optional[str],
+    output_path: Optional[str],
+    date: Optional[str],
+) -> None:
+    """
+    Run feature engineering process, save resulting datasets to specified directory.
+    """
+    cfg = ctx.obj.cfg
+
+    # Validate and/or set default values from the configuration (duplicate-code)
+
+------------------------------------------------------------------
+Your code has been rated at 5.79/10 (previous run: 6.73/10, -0.94)

@@ -1,0 +1,63 @@
+name: Code Quality and Tests 🚀
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+
+jobs:
+  quality-checks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code 🛎️
+        uses: actions/checkout@v2
+
+      - name: Setup Conda 🔧
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          environment-file: speech-ai-azure-services  # Create an environment.yml file
+          activate-environment: 
+          auto-activate-base: false
+
+      - name: Activate Conda Node 🔧
+        run: |
+          conda list
+          conda install -c anaconda click
+          pip install -r requirements-codequality.txt
+          pip install -r requirements.txt
+
+      - name: Setup Node 🔧
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+
+      - name: Run isort Check 🧹
+        run: isort --check-only --profile black .
+
+      - name: Run Black Check 🌚
+        run: black --check .
+
+      - name: Run flake8 ✅
+        run: flake8 . --max-line-length=124
+
+      - name: Run ruff Check 🧼
+        run: ruff --fix --exit-non-zero-on-fix .
+
+      - name: Run interrogate Check 🔍
+        run: interrogate src -v -i --fail-under=60 -e '**/__init__.py'
+
+      - name: Bandit Security Linter Check 🔒
+        run: bandit -c pyproject.toml -r .
+
+      - name: Run Pytest 🧪
+        run: pytest tests/
+
+  deployment:
+    name: deploy
+    runs-on: ubuntu-latest
+    needs: quality-checks
+    steps:
+      - name: Deploy to production
+        run: echo deploying
