@@ -1,0 +1,33 @@
+id: template_chat_flow
+name: Template Chat Flow
+environment:
+  python_requirements_txt: requirements.txt
+inputs:
+  chat_history:
+    type: list
+    is_chat_history: true
+  question:
+    type: string
+    is_chat_input: true
+    default: "Detailed me how to debug UltraFLEXplus ? What programming lenguage
+      should I use ? "
+outputs:
+  answer:
+    type: string
+    reference: ${test_chat.output}
+    is_chat_output: true
+nodes:
+- name: test
+  type: llm
+  source:
+    type: code
+    path: test.jinja2
+  inputs: {}
+- name: Azure_OpenAI_GPT_4_Turbo_with_Vision_1j91
+  type: custom_llm
+  source:
+    type: package_with_prompt
+    tool: promptflow.tools.aoai_gpt4v.AzureOpenAI.chat
+    path: Azure_OpenAI_GPT_4_Turbo_with_Vision_1j91.jinja2
+  inputs:
+    connection: aoai-ai-factory-eus2-dev

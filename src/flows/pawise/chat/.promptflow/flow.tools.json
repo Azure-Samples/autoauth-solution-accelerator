@@ -1,0 +1,698 @@
+{
+  "package": {
+    "promptflow.tools.azure_content_safety.analyze_text": {
+      "module": "promptflow.tools.azure_content_safety",
+      "function": "analyze_text",
+      "inputs": {
+        "connection": {
+          "type": [
+            "AzureContentSafetyConnection"
+          ]
+        },
+        "hate_category": {
+          "default": "medium_sensitivity",
+          "enum": [
+            "disable",
+            "low_sensitivity",
+            "medium_sensitivity",
+            "high_sensitivity"
+          ],
+          "type": [
+            "string"
+          ]
+        },
+        "self_harm_category": {
+          "default": "medium_sensitivity",
+          "enum": [
+            "disable",
+            "low_sensitivity",
+            "medium_sensitivity",
+            "high_sensitivity"
+          ],
+          "type": [
+            "string"
+          ]
+        },
+        "sexual_category": {
+          "default": "medium_sensitivity",
+          "enum": [
+            "disable",
+            "low_sensitivity",
+            "medium_sensitivity",
+            "high_sensitivity"
+          ],
+          "type": [
+            "string"
+          ]
+        },
+        "text": {
+          "type": [
+            "string"
+          ]
+        },
+        "violence_category": {
+          "default": "medium_sensitivity",
+          "enum": [
+            "disable",
+            "low_sensitivity",
+            "medium_sensitivity",
+            "high_sensitivity"
+          ],
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "name": "Content Safety (Text Analyze)",
+      "description": "Use Azure Content Safety to detect harmful content.",
+      "type": "python",
+      "deprecated_tools": [
+        "content_safety_text.tools.content_safety_text_tool.analyze_text"
+      ],
+      "package": "promptflow-tools",
+      "package_version": "1.4.0"
+    },
+    "promptflow.tools.embedding.embedding": {
+      "name": "Embedding",
+      "description": "Use Open AI's embedding model to create an embedding vector representing the input text.",
+      "type": "python",
+      "module": "promptflow.tools.embedding",
+      "function": "embedding",
+      "inputs": {
+        "connection": {
+          "type": [
+            "AzureOpenAIConnection",
+            "OpenAIConnection"
+          ]
+        },
+        "deployment_name": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "connection",
+          "enabled_by_type": [
+            "AzureOpenAIConnection"
+          ],
+          "capabilities": {
+            "completion": false,
+            "chat_completion": false,
+            "embeddings": true
+          },
+          "model_list": [
+            "text-embedding-ada-002",
+            "text-search-ada-doc-001",
+            "text-search-ada-query-001"
+          ]
+        },
+        "model": {
+          "type": [
+            "string"
+          ],
+          "enabled_by": "connection",
+          "enabled_by_type": [
+            "OpenAIConnection"
+          ],
+          "enum": [
+            "text-embedding-ada-002",
+            "text-search-ada-doc-001",
+            "text-search-ada-query-001"
+          ],
+          "allow_manual_entry": true
+        },
+        "input": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "package": "promptflow-tools",
+      "package_version": "1.4.0"
+    }
+  },
+  "code": {
+    "chat.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        },
+        "question": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "chat.jinja2"
+    },
+    "../../../gbb_ai/promptflow_utils/components/content_safety/extract_suggested_action.py": {
+      "type": "python",
+      "inputs": {
+        "safety_result": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "../../../gbb_ai/promptflow_utils/components/content_safety/extract_suggested_action.py",
+      "function": "my_python_tool"
+    },
+    "Alert_prompt.jinja2": {
+      "type": "prompt",
+      "inputs": {
+        "text": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "Alert_prompt.jinja2"
+    },
+    "alert_prompt.jinja2": {
+      "type": "prompt",
+      "inputs": {
+        "input_text": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "alert_prompt.jinja2"
+    },
+    "llm_response.jinja2": {
+      "type": "llm",
+      "source": "llm_response.jinja2"
+    },
+    "../../../gbb_ai/promptflow_utils/components/cosmosdb/cosmos_db_store_inputs.py": {
+      "type": "python",
+      "inputs": {
+        "chat_id": {
+          "type": [
+            "string"
+          ]
+        },
+        "input_str": {
+          "type": [
+            "string"
+          ]
+        },
+        "cosmos_database": {
+          "type": [
+            "string"
+          ]
+        },
+        "cosmos_container": {
+          "type": [
+            "string"
+          ]
+        },
+        "client": {
+          "type": [
+            "object"
+          ],
+          "default": "<CosmosClient [https://azurecosmos-db-serverless.documents.azure.com:443/]>"
+        },
+        "user_id": {
+          "type": [
+            "string"
+          ]
+        },
+        "safety_target": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "description": "Send a string to a specified Cosmos DB container.\n\nArgs:\n    chat_id (str): The chat ID associated with the string to be sent.\n    user_id (str, optional): The user ID associated with the string to be sent. If not provided, an 8-digit random ID will be generated.\n    input_str (str): The string to be sent.\n    cosmos_database (str): The name of the Cosmos DB database.\n    cosmos_container (str): The name of the Cosmos DB container.\n    client (CosmosClient, optional): The Cosmos DB client. Defaults to the globally defined client.\n    safety_target_alert (str, optional): A string indicating the safety target alert being triggered. Defaults to None.\n\nReturns:\n    str: A message indicating the result of the operation.",
+      "source": "../../../gbb_ai/promptflow_utils/components/cosmosdb/cosmos_db_store_inputs.py",
+      "function": "send_to_cosmos_db"
+    },
+    "../../../gbb_ai/promptflow_utils/components/entraid/generate_id.py": {
+      "type": "python",
+      "description": "Generate an 8-digit unique value.\n\nReturns:\n    str: An 8-digit unique value.",
+      "source": "../../../gbb_ai/promptflow_utils/components/entraid/generate_id.py",
+      "function": "generate_unique_id"
+    },
+    "chat_llm.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "internal_context": {
+          "type": [
+            "string"
+          ]
+        },
+        "web_context": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_input": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "chat_llm.jinja2"
+    },
+    "../../../gbb_ai/promptflow_utils/components/bing_search/web_search.py": {
+      "type": "python",
+      "inputs": {
+        "query": {
+          "type": [
+            "string"
+          ]
+        },
+        "refine_query": {
+          "type": [
+            "string"
+          ]
+        },
+        "count": {
+          "type": [
+            "int"
+          ],
+          "default": "10"
+        }
+      },
+      "description": "Fetch the top 'count' search results from the Bing Search API.\n\nArgs:\n    query (str): The search query.\n    refine_query (str): Additional parameters to refine the search query.\n    count (int, optional): The number of top results to return. Defaults to 10.\n\nReturns:\n    List[Dict[str, str]]: The top 'count' search results, each represented as a dictionary containing the source, content, and time published.",
+      "source": "../../../gbb_ai/promptflow_utils/components/bing_search/web_search.py",
+      "function": "get_search_results"
+    },
+    "prompt_engineering.jinja2": {
+      "type": "prompt",
+      "inputs": {
+        "input": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "prompt_engineering.jinja2"
+    },
+    "../../../gbb_ai/promptflow_utils/components/bing_search/format_reason_context.py": {
+      "type": "python",
+      "inputs": {
+        "data": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "description": "Receives a list of dictionaries with a specific format and returns a list of dictionaries \nwith only 'content' and 'question' keys.\n\nParameters:\ndata (list of dict): List of dictionaries with keys 'source', 'content', 'time_published', and 'question'.\n\nReturns:\nlist of dict: Transformed list with dictionaries containing only 'content' and 'question'.",
+      "source": "../../../gbb_ai/promptflow_utils/components/bing_search/format_reason_context.py",
+      "function": "filter_and_transform_data"
+    },
+    "grounding_llm.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "text": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "grounding_llm.jinja2"
+    },
+    "grounding_llm_variant_1.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "text": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "grounding_llm_variant_1.jinja2"
+    },
+    "prompt_engineering_variant_1.jinja2": {
+      "type": "prompt",
+      "inputs": {
+        "input": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "prompt_engineering_variant_1.jinja2"
+    },
+    "../../../gbb_ai/promptflow_utils/components/azure_search/azure_search_semantic.py": {
+      "type": "python",
+      "inputs": {
+        "index_name": {
+          "type": [
+            "string"
+          ]
+        },
+        "search_query": {
+          "type": [
+            "string"
+          ]
+        },
+        "search_vector": {
+          "type": [
+            "object"
+          ]
+        },
+        "top": {
+          "type": [
+            "int"
+          ],
+          "default": "5"
+        },
+        "query_language": {
+          "type": [
+            "string"
+          ],
+          "default": "en-us"
+        }
+      },
+      "description": "Search for the k best results in an Azure Cognitive Search index.\n\nArgs:\n    index_name (str): The name of the Azure Cognitive Search index.\n    search_query (str): The search query.\n    search_vector (List[float]): The search vector represented as a list of floats.\n    top (int, optional): The number of top results to return. Defaults to 5.\n    query_language (str, optional): The language of the query. Defaults to \"en-us\".\n\nReturns:\n    List[str]: The top k search results.",
+      "source": "../../../gbb_ai/promptflow_utils/components/azure_search/azure_search_semantic.py",
+      "function": "search_k_best_results"
+    },
+    "generate_embedding.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "text": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "generate_embedding.jinja2"
+    },
+    "../../../gbb_ai/promptflow_utils/components/azure_search/procces_semantic_search_content.py": {
+      "type": "python",
+      "inputs": {
+        "result": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "description": "Process the results from a search query in an Azure Cognitive Search index.\n\nArgs:\n    result (SearchItemPaged): The results from a search query.\n\nReturns:\n    List[Dict[str, str]]: A list of dictionaries, where each dictionary contains the content and source of a document.",
+      "source": "../../../gbb_ai/promptflow_utils/components/azure_search/procces_semantic_search_content.py",
+      "function": "process_search_results"
+    },
+    "../../../../../../src/gbb_ai/promptflow_utils/components/entraid/generate_id.py": {
+      "type": "python",
+      "description": "Generate an 8-digit unique value.\n\nReturns:\n    str: An 8-digit unique value.",
+      "source": "../../../../../../src/gbb_ai/promptflow_utils/components/entraid/generate_id.py",
+      "function": "generate_unique_id"
+    },
+    "../../../../../../src/gbb_ai/promptflow_utils/components/content_safety/extract_suggested_action.py": {
+      "type": "python",
+      "inputs": {
+        "safety_result": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "../../../../../../src/gbb_ai/promptflow_utils/components/content_safety/extract_suggested_action.py",
+      "function": "my_python_tool"
+    },
+    "../../../../../../src/gbb_ai/promptflow_utils/components/cosmosdb/cosmos_db_store_inputs.py": {
+      "type": "python",
+      "inputs": {
+        "chat_id": {
+          "type": [
+            "string"
+          ]
+        },
+        "input_str": {
+          "type": [
+            "string"
+          ]
+        },
+        "cosmos_database": {
+          "type": [
+            "string"
+          ]
+        },
+        "cosmos_container": {
+          "type": [
+            "string"
+          ]
+        },
+        "client": {
+          "type": [
+            "object"
+          ],
+          "default": "<CosmosClient [https://azurecosmos-db-serverless.documents.azure.com:443/]>"
+        },
+        "user_id": {
+          "type": [
+            "string"
+          ]
+        },
+        "safety_target": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "description": "Send a string to a specified Cosmos DB container.\n\nArgs:\n    chat_id (str): The chat ID associated with the string to be sent.\n    user_id (str, optional): The user ID associated with the string to be sent. If not provided, an 8-digit random ID will be generated.\n    input_str (str): The string to be sent.\n    cosmos_database (str): The name of the Cosmos DB database.\n    cosmos_container (str): The name of the Cosmos DB container.\n    client (CosmosClient, optional): The Cosmos DB client. Defaults to the globally defined client.\n    safety_target_alert (str, optional): A string indicating the safety target alert being triggered. Defaults to None.\n\nReturns:\n    str: A message indicating the result of the operation.",
+      "source": "../../../../../../src/gbb_ai/promptflow_utils/components/cosmosdb/cosmos_db_store_inputs.py",
+      "function": "send_to_cosmos_db"
+    },
+    "../../../../../../src/gbb_ai/promptflow_utils/components/bing_search/web_search.py": {
+      "type": "python",
+      "inputs": {
+        "query": {
+          "type": [
+            "string"
+          ]
+        },
+        "refine_query": {
+          "type": [
+            "string"
+          ]
+        },
+        "count": {
+          "type": [
+            "int"
+          ],
+          "default": "10"
+        }
+      },
+      "description": "Fetch the top 'count' search results from the Bing Search API.\n\nArgs:\n    query (str): The search query.\n    refine_query (str): Additional parameters to refine the search query.\n    count (int, optional): The number of top results to return. Defaults to 10.\n\nReturns:\n    List[Dict[str, str]]: The top 'count' search results, each represented as a dictionary containing the source, content, and time published.",
+      "source": "../../../../../../src/gbb_ai/promptflow_utils/components/bing_search/web_search.py",
+      "function": "get_search_results"
+    },
+    "../../../../../../src/gbb_ai/promptflow_utils/components/bing_search/format_reason_context.py": {
+      "type": "python",
+      "inputs": {
+        "data": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "description": "Receives a list of dictionaries with a specific format and returns a list of dictionaries \nwith only 'content' and 'question' keys.\n\nParameters:\ndata (list of dict): List of dictionaries with keys 'source', 'content', 'time_published', and 'question'.\n\nReturns:\nlist of dict: Transformed list with dictionaries containing only 'content' and 'question'.",
+      "source": "../../../../../../src/gbb_ai/promptflow_utils/components/bing_search/format_reason_context.py",
+      "function": "filter_and_transform_data"
+    },
+    "../../../../../../src/gbb_ai/promptflow_utils/components/azure_search/azure_search_semantic.py": {
+      "type": "python",
+      "inputs": {
+        "index_name": {
+          "type": [
+            "string"
+          ]
+        },
+        "search_query": {
+          "type": [
+            "string"
+          ]
+        },
+        "search_vector": {
+          "type": [
+            "object"
+          ]
+        },
+        "top": {
+          "type": [
+            "int"
+          ],
+          "default": "5"
+        },
+        "query_language": {
+          "type": [
+            "string"
+          ],
+          "default": "en-us"
+        }
+      },
+      "description": "Search for the k best results in an Azure Cognitive Search index.\n\nArgs:\n    index_name (str): The name of the Azure Cognitive Search index.\n    search_query (str): The search query.\n    search_vector (List[float]): The search vector represented as a list of floats.\n    top (int, optional): The number of top results to return. Defaults to 5.\n    query_language (str, optional): The language of the query. Defaults to \"en-us\".\n\nReturns:\n    List[str]: The top k search results.",
+      "source": "../../../../../../src/gbb_ai/promptflow_utils/components/azure_search/azure_search_semantic.py",
+      "function": "search_k_best_results"
+    },
+    "chat_llm_variant_1.jinja2": {
+      "type": "llm",
+      "inputs": {
+        "internal_context": {
+          "type": [
+            "string"
+          ]
+        },
+        "web_context": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_history": {
+          "type": [
+            "string"
+          ]
+        },
+        "chat_input": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "source": "chat_llm_variant_1.jinja2"
+    },
+    "../../../../src/promptflow_utils/components/entraid/generate_id.py": {
+      "type": "python",
+      "description": "Generate an 8-digit unique value.\n\nReturns:\n    str: An 8-digit unique value.",
+      "source": "../../../../src/promptflow_utils/components/entraid/generate_id.py",
+      "function": "generate_unique_id"
+    },
+    "../../../../src/promptflow_utils/components/content_safety/extract_suggested_action.py": {
+      "type": "python",
+      "inputs": {
+        "safety_result": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "source": "../../../../src/promptflow_utils/components/content_safety/extract_suggested_action.py",
+      "function": "my_python_tool"
+    },
+    "../../../../src/promptflow_utils/components/cosmosdb/cosmos_db_store_inputs.py": {
+      "type": "python",
+      "inputs": {
+        "chat_id": {
+          "type": [
+            "string"
+          ]
+        },
+        "input_str": {
+          "type": [
+            "string"
+          ]
+        },
+        "cosmos_database": {
+          "type": [
+            "string"
+          ]
+        },
+        "cosmos_container": {
+          "type": [
+            "string"
+          ]
+        },
+        "client": {
+          "type": [
+            "object"
+          ],
+          "default": "<CosmosClient [https://azurecosmos-db-serverless.documents.azure.com:443/]>"
+        },
+        "user_id": {
+          "type": [
+            "string"
+          ]
+        },
+        "safety_target": {
+          "type": [
+            "string"
+          ]
+        }
+      },
+      "description": "Send a string to a specified Cosmos DB container.\n\nArgs:\n    chat_id (str): The chat ID associated with the string to be sent.\n    user_id (str, optional): The user ID associated with the string to be sent. If not provided, an 8-digit random ID will be generated.\n    input_str (str): The string to be sent.\n    cosmos_database (str): The name of the Cosmos DB database.\n    cosmos_container (str): The name of the Cosmos DB container.\n    client (CosmosClient, optional): The Cosmos DB client. Defaults to the globally defined client.\n    safety_target_alert (str, optional): A string indicating the safety target alert being triggered. Defaults to None.\n\nReturns:\n    str: A message indicating the result of the operation.",
+      "source": "../../../../src/promptflow_utils/components/cosmosdb/cosmos_db_store_inputs.py",
+      "function": "send_to_cosmos_db"
+    },
+    "../../../../src/promptflow_utils/components/bing_search/web_search.py": {
+      "type": "python",
+      "inputs": {
+        "query": {
+          "type": [
+            "string"
+          ]
+        },
+        "refine_query": {
+          "type": [
+            "string"
+          ]
+        },
+        "count": {
+          "type": [
+            "int"
+          ],
+          "default": "10"
+        }
+      },
+      "description": "Fetch the top 'count' search results from the Bing Search API.\n\nArgs:\n    query (str): The search query.\n    refine_query (str): Additional parameters to refine the search query.\n    count (int, optional): The number of top results to return. Defaults to 10.\n\nReturns:\n    List[Dict[str, str]]: The top 'count' search results, each represented as a dictionary containing the source, content, and time published.",
+      "source": "../../../../src/promptflow_utils/components/bing_search/web_search.py",
+      "function": "get_search_results"
+    },
+    "../../../../src/promptflow_utils/components/bing_search/format_reason_context.py": {
+      "type": "python",
+      "inputs": {
+        "data": {
+          "type": [
+            "object"
+          ]
+        }
+      },
+      "description": "Receives a list of dictionaries with a specific format and returns a list of dictionaries \nwith only 'content' and 'question' keys.\n\nParameters:\ndata (list of dict): List of dictionaries with keys 'source', 'content', 'time_published', and 'question'.\n\nReturns:\nlist of dict: Transformed list with dictionaries containing only 'content' and 'question'.",
+      "source": "../../../../src/promptflow_utils/components/bing_search/format_reason_context.py",
+      "function": "filter_and_transform_data"
+    },
+    "../../../../src/promptflow_utils/components/azure_search/azure_search_semantic.py": {
+      "type": "python",
+      "inputs": {
+        "index_name": {
+          "type": [
+            "string"
+          ]
+        },
+        "search_query": {
+          "type": [
+            "string"
+          ]
+        },
+        "search_vector": {
+          "type": [
+            "object"
+          ]
+        },
+        "top": {
+          "type": [
+            "int"
+          ],
+          "default": "5"
+        },
+        "query_language": {
+          "type": [
+            "string"
+          ],
+          "default": "en-us"
+        }
+      },
+      "description": "Search for the k best results in an Azure Cognitive Search index.\n\nArgs:\n    index_name (str): The name of the Azure Cognitive Search index.\n    search_query (str): The search query.\n    search_vector (List[float]): The search vector represented as a list of floats.\n    top (int, optional): The number of top results to return. Defaults to 5.\n    query_language (str, optional): The language of the query. Defaults to \"en-us\".\n\nReturns:\n    List[str]: The top k search results.",
+      "source": "../../../../src/promptflow_utils/components/azure_search/azure_search_semantic.py",
+      "function": "search_k_best_results"
+    }
+  }
+}

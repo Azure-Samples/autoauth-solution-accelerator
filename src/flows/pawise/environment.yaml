@@ -1,0 +1,12 @@
+name: promplflow-copilot-rag
+channels:
+  - conda-forge
+  - defaults
+  - jupyter
+dependencies:
+  - python=3.9
+  - pip
+  - ipykernel
+  - pip:
+    - -r ../../../requirements-codequality.txt
+    - -r requirements.txt

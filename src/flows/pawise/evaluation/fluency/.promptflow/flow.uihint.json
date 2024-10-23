@@ -1,0 +1,11 @@
+{
+  "nodes": {
+    "fluency_score": {
+      "variant_0": {
+        "inputs": {
+          "chat_history": []
+        }
+      }
+    }
+  }
+}

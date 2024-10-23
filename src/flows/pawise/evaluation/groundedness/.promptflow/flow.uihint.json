@@ -1,0 +1,12 @@
+{
+  "nodes": {
+    "groundedness_score": {
+      "variant_0": {
+        "inputs": {
+          "question": [],
+          "chat_history": []
+        }
+      }
+    }
+  }
+}

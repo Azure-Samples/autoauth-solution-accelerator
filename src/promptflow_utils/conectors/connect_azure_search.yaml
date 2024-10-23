@@ -1,0 +1,6 @@
+$schema: https://azuremlschemas.azureedge.net/promptflow/latest/CognitiveSearchConnection.schema.json
+name: "<user-input>"
+type: cognitive_search # snake case
+api_key: "<user-input>" # Don't replace the '<user-input>' placeholder. The application will prompt you to enter a value when it runs.
+api_base: "endpoint"
+api_version: "2023-07-01-Preview"

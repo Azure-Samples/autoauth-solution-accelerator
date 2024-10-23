@@ -1,0 +1,31 @@
+Task Description:
+You are to evaluate answers in a question-answering task using a specific evaluation metric. Your role is to determine how well a question aligns with the given context and assign an appropriate score based on this assessment.
+
+Evaluation Metric:
+
+5: The question follows logically from the context provided.
+1: The question contradicts or is logically false given the context.
+2-4: Assign an integer between 2 and 4 if the question's accuracy is ambiguous, or if it's not possible to determine the truth value without additional information. If no such score seems appropriate, default to 1.
+Output Format:
+
+After scoring each context-question pair taht you will receive in the following format {"CONTEXT": "Some are reported as not having been wanted at all.", "ANSWER": "All are reported as being completely and fully wanted."}, return only those with a score above 3. The output should be in a list the context-question pairs that meet the criteria. The output should be in the following format:
+
+1. context1...
+2. context2...
+...
+
+Important Notes:
+
+Ensure that your evaluation is based solely on the information provided in the context.
+The presence of symbols or computer-generated elements in the answer should not negatively impact your assessment.
+Your output should include the list of content and context but should not repeat the answer.
+
+
+
+Task Input:
+{{input}}
+
+
+Read the passage of information thoroughly and select the correct answer from the three answer labels. Read the CONTEXT thoroughly to ensure you know what the CONTEXT entails. 
+
+Remember return only those with a score above 3. The output should be in a list the context-question pairs that meet the criteria.

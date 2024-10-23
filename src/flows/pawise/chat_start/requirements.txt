@@ -1,0 +1,10 @@
+azure-cognitiveservices-search-websearch
+promptflow 
+promptflow-tools
+azure-cosmos
+azure-search-documents==11.4.0b10
+azure-ai-contentsafety
+bs4
+langchain
+matplotlib
+plotly

@@ -13,3 +13,10 @@ pandas
 pyarrow
 aiohttp
 backoff
+promptflow
+promptflow-tools
+PyPDF2
+azure-ai-documentintelligence==1.0.0b3
+langchain==0.1.0
+langchain-community==0.0.10
+langchain-core==0.1.8

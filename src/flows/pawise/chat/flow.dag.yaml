@@ -1,0 +1,143 @@
+id: template_chat_flow
+name: Template Chat Flow
+environment:
+  python_requirements_txt: requirements.txt
+inputs:
+  chat_history:
+    type: list
+    is_chat_history: true
+  question:
+    type: string
+    is_chat_input: true
+    default: "Detailed me how to debug UltraFLEXplus ? What programming lenguage
+      should I use ? "
+outputs:
+  answer:
+    type: string
+    reference: ${chat_llm.output}
+    is_chat_output: true
+nodes:
+- name: generate_chat_id
+  type: python
+  source:
+    type: code
+    path: ../../../../src/promptflow_utils/components/entraid/generate_id.py
+  inputs: {}
+- name: content_safety
+  type: python
+  source:
+    type: package
+    tool: promptflow.tools.azure_content_safety.analyze_text
+  inputs:
+    connection: control_safety_dev_eastus
+    hate_category: high_sensitivity
+    self_harm_category: high_sensitivity
+    sexual_category: high_sensitivity
+    text: ${inputs.question}
+    violence_category: high_sensitivity
+- name: extract_suggest_actions
+  type: python
+  source:
+    type: code
+    path: ../../../../src/promptflow_utils/components/content_safety/extract_suggested_action.py
+  inputs:
+    safety_result: ${content_safety.output}
+- name: store_input_cosmos_db
+  type: python
+  source:
+    type: code
+    path: ../../../../src/promptflow_utils/components/cosmosdb/cosmos_db_store_inputs.py
+  inputs:
+    chat_id: ${generate_chat_id.output}
+    safety_target: ${content_safety.output}
+    user_id: None
+    input_str: ${inputs.question}
+    cosmos_container: Teradyne
+    cosmos_database: chat-promptflow
+  aggregation: false
+- name: grounding_bing
+  type: python
+  source:
+    type: code
+    path: ../../../../src/promptflow_utils/components/bing_search/web_search.py
+  inputs:
+    query: ${inputs.question}
+    refine_query: (site:teradyne.com OR related:similar sites OR site:wikipedia.org)
+    count: 5
+- name: prepare_output_grounding
+  type: python
+  source:
+    type: code
+    path: ../../../../src/promptflow_utils/components/bing_search/format_reason_context.py
+  inputs:
+    data: ${grounding_bing.output}
+- name: prompt_engineering
+  type: prompt
+  source:
+    type: code
+    path: prompt_engineering_variant_1.jinja2
+  inputs:
+    input: ${prepare_output_grounding.output}
+- name: grounding_llm
+  use_variants: true
+- name: generate_embedding
+  type: python
+  source:
+    type: package
+    tool: promptflow.tools.embedding.embedding
+  inputs:
+    connection: open_ai_connection_dev_eastus
+    input: ${inputs.question}
+- name: search_top_k_content
+  type: python
+  source:
+    type: code
+    path: ../../../../src/promptflow_utils/components/azure_search/azure_search_semantic.py
+  inputs:
+    index_name: index-teradyne-web
+    search_query: ${inputs.question}
+    search_vector: ${generate_embedding.output}
+- name: chat_llm
+  type: llm
+  source:
+    type: code
+    path: chat_llm.jinja2
+  inputs:
+    deployment_name: foundational-canadaeast-gpt4-32k
+    max_tokens: 5000
+    chat_history: ${inputs.chat_history}
+    chat_input: ${inputs.question}
+    internal_context: ${search_top_k_content.output}
+    web_context: ${grounding_llm.output}
+  connection: aoai_connection_dev_canadaeast
+  api: chat
+node_variants:
+  grounding_llm:
+    default_variant_id: variant_0
+    variants:
+      variant_0:
+        node:
+          type: llm
+          source:
+            type: code
+            path: grounding_llm.jinja2
+          inputs:
+            deployment_name: foundational-instruct
+            max_tokens: 3000
+            text: ${prompt_engineering.output}
+            temperature: 0.8
+          connection: open_ai_connection_dev_eastus
+          api: completion
+      variant_1:
+        node:
+          type: llm
+          source:
+            type: code
+            path: grounding_llm_variant_1.jinja2
+          inputs:
+            deployment_name: foundational-instruct
+            max_tokens: 3000
+            text: ${prompt_engineering.output}
+            temperature: 0.8
+          connection: open_ai_connection_dev_eastus
+          api: completion

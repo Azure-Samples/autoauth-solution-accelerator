@@ -1,0 +1,179 @@
+id: QnA_combined_eval
+name: QnA Combined Evaluation
+environment:
+  python_requirements_txt: requirements.txt
+inputs:
+  chat_history:
+    type: list
+    default: []
+  question:
+    type: string
+    default: "Detailed me how to debug UltraFLEXplus ? What lenguage should I use ? "
+  context:
+    type: string
+    default: The UltraWaveMX53, UltraWaveMX44, UltraWaveMX20-D16 and UltraWaveMX8
+      are Teradyne’s MX family of instruments for mmWave frequencies. These
+      instruments extend the UltraWave24 capability for full test coverage of
+      WiFi, LTE, Ultra-wideband and 5G standards for frequencies below 52.6 GHz.
+      Existing UltraWave24 customers can upgrade their systems with a single
+      slot instrument that does not require reconfiguration of the test system.
+      They can continue to use existing device interface boards (DIBs) and
+      production interface docking compatibility for their existing
+      applications. The MX family of instruments targets RF and IF interfaces
+      for both 5G IF transceiver and 5G RF beamformer device coverage. And they
+      support characterization and production device testing for probe, package,
+      module and over-the-air applications. A patented active thermal control
+      within the instrument guarantees temperature stability to ensure that
+      high-performance specifications are met in the engineering and production
+      e
+  answer:
+    type: string
+    default: "Debugging UltraFLEXplus involves the use of Teradyne's award-winning
+      IG-XL software. This software simplifies the test program development
+      process for the UltraFLEX family of testers. It provides a powerful and
+      user-friendly graphical environment to aid engineers in rapidly creating
+      fully operational test programs, significantly reducing program
+      development and debugging time.\\n\\nThe IG-XL software is designed to
+      tackle multisite complexity, and it can automatically convert single site
+      test programs to multisite, which helps speed up time to market while
+      reducing testing costs.\\n\\nAs for the language to use, while the sources
+      do not specify a coding language, the software’s graphical environment
+      focus suggests the utilization of visual scripting or any proprietary
+      language that the software supports. This allows test engineers to
+      concentrate on actual testing instead of writing codes for the
+      tester.\\n\\nPlease check the official IG-XL software documentation or
+      contact Teradyne support for the specific programming language to be
+      used.\\n\\n(Source: https://www.teradyne.com/resources/ig-xl-software/)
+      😊"
+outputs:
+  gpt_coherence:
+    type: object
+    reference: ${coherence_concat_scores.output.gpt_coherence}
+  gpt_fluency:
+    type: object
+    reference: ${fluency_concat_scores.output.gpt_fluency}
+  gpt_groundedness:
+    type: object
+    reference: ${groundedness_concat_scores.output.gpt_groundedness}
+  gpt_relevance:
+    type: object
+    reference: ${relevance_concat_scores.output.gpt_relevance}
+nodes:
+- name: coherence_score
+  type: llm
+  source:
+    type: code
+    path: coherence/coherence_score.jinja2
+  inputs:
+    chat_history: ${inputs.chat_history}
+    question: ${inputs.question}
+    answer: ${inputs.answer}
+    max_tokens: 256
+    deployment_name: foundational-canadaeast-gpt4
+    temperature: 0
+  connection: aoai_connection_dev_canadaeast
+  api: chat
+- name: coherence_concat_scores
+  type: python
+  source:
+    type: code
+    path: coherence/concat_scores.py
+  inputs:
+    coherence_score: ${coherence_score.output}
+- name: coherence_aggregate_variants_results
+  type: python
+  source:
+    type: code
+    path: coherence/aggregate_variants_results.py
+  inputs:
+    results: ${coherence_concat_scores.output}
+  aggregation: true
+- name: fluency_score
+  type: llm
+  source:
+    type: code
+    path: fluency/fluency_score.jinja2
+  inputs:
+    chat_history: ${inputs.chat_history}
+    question: ${inputs.question}
+    answer: ${inputs.answer}
+    max_tokens: 256
+    deployment_name: foundational-canadaeast-gpt4
+    temperature: 0
+  connection: aoai_connection_dev_canadaeast
+  api: chat
+- name: fluency_concat_scores
+  type: python
+  source:
+    type: code
+    path: fluency/concat_scores.py
+  inputs:
+    fluency_score: ${fluency_score.output}
+- name: fluency_aggregate_variants_results
+  type: python
+  source:
+    type: code
+    path: fluency/aggregate_variants_results.py
+  inputs:
+    results: ${fluency_concat_scores.output}
+  aggregation: true
+- name: groundedness_score
+  type: llm
+  source:
+    type: code
+    path: groundedness/groundedness_score.jinja2
+  inputs:
+    chat_history: ${inputs.chat_history}
+    context: ${inputs.context}
+    answer: ${inputs.answer}
+    max_tokens: 256
+    deployment_name: foundational-canadaeast-gpt4
+    temperature: 0
+    question: ${inputs.question}
+  connection: aoai_connection_dev_canadaeast
+  api: chat
+- name: groundedness_concat_scores
+  type: python
+  source:
+    type: code
+    path: groundedness/concat_scores.py
+  inputs:
+    groundesness_score: ${groundedness_score.output}
+- name: groundedness_aggregate_variants_results
+  type: python
+  source:
+    type: code
+    path: groundedness/aggregate_variants_results.py
+  inputs:
+    results: ${groundedness_concat_scores.output}
+  aggregation: true
+- name: relevance_score
+  type: llm
+  source:
+    type: code
+    path: relevance/relevance_score.jinja2
+  inputs:
+    chat_history: ${inputs.chat_history}
+    question: ${inputs.question}
+    context: ${inputs.context}
+    answer: ${inputs.answer}
+    max_tokens: 256
+    deployment_name: foundational-canadaeast-gpt4
+    temperature: 0
+  connection: aoai_connection_dev_canadaeast
+  api: chat
+- name: relevance_concat_scores
+  type: python
+  source:
+    type: code
+    path: relevance/concat_scores.py
+  inputs:
+    relevance_score: ${relevance_score.output}
+- name: relevance_aggregate_variants_results
+  type: python
+  source:
+    type: code
+    path: relevance/aggregate_variants_results.py
+  inputs:
+    results: ${relevance_concat_scores.output}
+  aggregation: true

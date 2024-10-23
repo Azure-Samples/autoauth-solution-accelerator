@@ -1,0 +1,3769 @@
+{
+  "flow_runs": [
+    {
+      "run_id": "de1b7d8b-b5e7-45a5-8764-844b494dfe3d_0",
+      "status": "Completed",
+      "error": null,
+      "inputs": {
+        "chat_history": [
+          {
+            "inputs": {
+              "question": "Hi there - how are you doing ? "
+            },
+            "outputs": {
+              "answer": [
+                "",
+                "Hello",
+                "!",
+                " I'm",
+                " just",
+                " a",
+                " computer",
+                " program",
+                ",",
+                " so",
+                " I",
+                " don't",
+                " have",
+                " feelings",
+                ",",
+                " but",
+                " I'm",
+                " here",
+                " and",
+                " ready",
+                " to",
+                " help",
+                " you",
+                ".",
+                " How",
+                " can",
+                " I",
+                " assist",
+                " you",
+                " today",
+                "?",
+                ""
+              ]
+            }
+          },
+          {
+            "inputs": {
+              "question": "Great"
+            },
+            "outputs": {
+              "answer": [
+                "",
+                "I'm",
+                " glad",
+                " to",
+                " hear",
+                " that",
+                "!",
+                " How",
+                " can",
+                " I",
+                " assist",
+                " you",
+                " today",
+                "?",
+                ""
+              ]
+            }
+          }
+        ],
+        "question": "exit()"
+      },
+      "output": {
+        "answer": [
+          "",
+          "It",
+          " seems",
+          " like",
+          " you",
+          " might",
+          " be",
+          " trying",
+          " to",
+          " exit",
+          " the",
+          " conversation",
+          ".",
+          " If",
+          " you",
+          " have",
+          " any",
+          " other",
+          " questions",
+          " or",
+          " need",
+          " further",
+          " assistance",
+          ",",
+          " feel",
+          " free",
+          " to",
+          " ask",
+          ".",
+          " Otherwise",
+          ",",
+          " have",
+          " a",
+          " great",
+          " day",
+          "!",
+          ""
+        ]
+      },
+      "metrics": null,
+      "request": null,
+      "parent_run_id": "de1b7d8b-b5e7-45a5-8764-844b494dfe3d",
+      "root_run_id": "de1b7d8b-b5e7-45a5-8764-844b494dfe3d",
+      "source_run_id": null,
+      "flow_id": "template_chat_flow",
+      "start_time": "2024-10-20T23:12:34.112913Z",
+      "end_time": "2024-10-20T23:12:34.552187Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "flow",
+          "node_name": "flow",
+          "type": "Flow",
+          "start_time": 1729483954.112913,
+          "end_time": 1729483954.552187,
+          "children": [
+            {
+              "name": "AzureOpenAI.chat",
+              "type": "Function",
+              "inputs": {
+                "prompt": "\nsystem:\nYou are a helpful assistant.\n\n{% for item in chat_history %}\nuser:\n{{item.inputs.question}}\nassistant:\n{{item.outputs.answer}}\n{% endfor %}\n\nuser:\n{{question}}\n",
+                "deployment_name": "gpt-4o-global-standard-us2",
+                "chat_history": [
+                  {
+                    "inputs": {
+                      "question": "Hi there - how are you doing ? "
+                    },
+                    "outputs": {
+                      "answer": [
+                        "",
+                        "Hello",
+                        "!",
+                        " I'm",
+                        " just",
+                        " a",
+                        " computer",
+                        " program",
+                        ",",
+                        " so",
+                        " I",
+                        " don't",
+                        " have",
+                        " feelings",
+                        ",",
+                        " but",
+                        " I'm",
+                        " here",
+                        " and",
+                        " ready",
+                        " to",
+                        " help",
+                        " you",
+                        ".",
+                        " How",
+                        " can",
+                        " I",
+                        " assist",
+                        " you",
+                        " today",
+                        "?",
+                        ""
+                      ]
+                    }
+                  },
+                  {
+                    "inputs": {
+                      "question": "Great"
+                    },
+                    "outputs": {
+                      "answer": [
+                        "",
+                        "I'm",
+                        " glad",
+                        " to",
+                        " hear",
+                        " that",
+                        "!",
+                        " How",
+                        " can",
+                        " I",
+                        " assist",
+                        " you",
+                        " today",
+                        "?",
+                        ""
+                      ]
+                    }
+                  }
+                ],
+                "question": "exit()",
+                "_inputs_to_escape": [
+                  "chat_history",
+                  "question"
+                ],
+                "stream": true
+              },
+              "output": [
+                "",
+                "It",
+                " seems",
+                " like",
+                " you",
+                " might",
+                " be",
+                " trying",
+                " to",
+                " exit",
+                " the",
+                " conversation",
+                ".",
+                " If",
+                " you",
+                " have",
+                " any",
+                " other",
+                " questions",
+                " or",
+                " need",
+                " further",
+                " assistance",
+                ",",
+                " feel",
+                " free",
+                " to",
+                " ask",
+                ".",
+                " Otherwise",
+                ",",
+                " have",
+                " a",
+                " great",
+                " day",
+                "!",
+                ""
+              ],
+              "start_time": 1729483954.114921,
+              "end_time": 1729483954.546983,
+              "error": null,
+              "children": [
+                {
+                  "name": "openai_chat",
+                  "type": "LLM",
+                  "inputs": {
+                    "model": "gpt-4o-global-standard-us2",
+                    "messages": [
+                      {
+                        "role": "system",
+                        "content": "You are a helpful assistant."
+                      },
+                      {
+                        "role": "user",
+                        "content": "Hi there - how are you doing ?"
+                      },
+                      {
+                        "role": "assistant",
+                        "content": "<promptflow.tracing._trace.TracedIterator object at 0x000002A559872980>"
+                      },
+                      {
+                        "role": "user",
+                        "content": "Great"
+                      },
+                      {
+                        "role": "assistant",
+                        "content": "<promptflow.tracing._trace.TracedIterator object at 0x000002A55B4B55A0>"
+                      },
+                      {
+                        "role": "user",
+                        "content": "exit()"
+                      }
+                    ],
+                    "temperature": 1.0,
+                    "top_p": 1.0,
+                    "n": 1,
+                    "stream": true,
+                    "presence_penalty": 0.0,
+                    "frequency_penalty": 0.0,
+                    "user": ""
+                  },
+                  "output": [
+                    {
+                      "id": "",
+                      "choices": [],
+                      "created": 0,
+                      "model": "",
+                      "object": "",
+                      "service_tier": null,
+                      "system_fingerprint": null,
+                      "usage": null,
+                      "prompt_filter_results": [
+                        {
+                          "prompt_index": 0,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "jailbreak": {
+                              "filtered": false,
+                              "detected": false
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": "",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": "assistant",
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {}
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": "It",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " seems",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " like",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " you",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " might",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " be",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " trying",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " to",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " exit",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " the",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " conversation",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": ".",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " If",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " you",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " have",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " any",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " other",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " questions",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " or",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " need",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " further",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " assistance",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": ",",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " feel",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " free",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " to",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " ask",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": ".",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " Otherwise",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": ",",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " have",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " a",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " great",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": " day",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": "!",
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": null,
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {
+                            "hate": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "self_harm": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "sexual": {
+                              "filtered": false,
+                              "severity": "safe"
+                            },
+                            "violence": {
+                              "filtered": false,
+                              "severity": "safe"
+                            }
+                          }
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    },
+                    {
+                      "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                      "choices": [
+                        {
+                          "delta": {
+                            "content": null,
+                            "function_call": null,
+                            "refusal": null,
+                            "role": null,
+                            "tool_calls": null
+                          },
+                          "finish_reason": "stop",
+                          "index": 0,
+                          "logprobs": null,
+                          "content_filter_results": {}
+                        }
+                      ],
+                      "created": 1729465954,
+                      "model": "gpt-4o-2024-05-13",
+                      "object": "chat.completion.chunk",
+                      "service_tier": null,
+                      "system_fingerprint": "fp_67802d9a6d",
+                      "usage": null
+                    }
+                  ],
+                  "start_time": 1729483954.120008,
+                  "end_time": 1729483954.546983,
+                  "error": null,
+                  "children": [],
+                  "node_name": null,
+                  "parent_id": "393b79fc-ade6-41fc-b47c-fa7dac783b84",
+                  "id": "461eb808-8b1e-4174-b576-71d2f40a2e98",
+                  "function": "openai.resources.chat.completions.Completions.create",
+                  "system_metrics": {
+                    "prompt_tokens": 92,
+                    "completion_tokens": 0,
+                    "total_tokens": 92
+                  }
+                }
+              ],
+              "node_name": "test_chat",
+              "parent_id": "",
+              "id": "393b79fc-ade6-41fc-b47c-fa7dac783b84",
+              "function": "AzureOpenAI.chat",
+              "system_metrics": {
+                "prompt_tokens": 92,
+                "completion_tokens": 0,
+                "total_tokens": 92
+              }
+            }
+          ],
+          "system_metrics": {
+            "duration": 0.439274,
+            "prompt_tokens": 92,
+            "completion_tokens": 0,
+            "total_tokens": 92
+          },
+          "inputs": {
+            "chat_history": [
+              {
+                "inputs": {
+                  "question": "Hi there - how are you doing ? "
+                },
+                "outputs": {
+                  "answer": [
+                    "",
+                    "Hello",
+                    "!",
+                    " I'm",
+                    " just",
+                    " a",
+                    " computer",
+                    " program",
+                    ",",
+                    " so",
+                    " I",
+                    " don't",
+                    " have",
+                    " feelings",
+                    ",",
+                    " but",
+                    " I'm",
+                    " here",
+                    " and",
+                    " ready",
+                    " to",
+                    " help",
+                    " you",
+                    ".",
+                    " How",
+                    " can",
+                    " I",
+                    " assist",
+                    " you",
+                    " today",
+                    "?",
+                    ""
+                  ]
+                }
+              },
+              {
+                "inputs": {
+                  "question": "Great"
+                },
+                "outputs": {
+                  "answer": [
+                    "",
+                    "I'm",
+                    " glad",
+                    " to",
+                    " hear",
+                    " that",
+                    "!",
+                    " How",
+                    " can",
+                    " I",
+                    " assist",
+                    " you",
+                    " today",
+                    "?",
+                    ""
+                  ]
+                }
+              }
+            ],
+            "question": "exit()"
+          },
+          "output": {
+            "answer": []
+          },
+          "error": null
+        }
+      ],
+      "name": "",
+      "description": "",
+      "tags": null,
+      "system_metrics": {
+        "duration": 0.439274,
+        "prompt_tokens": 92,
+        "completion_tokens": 0,
+        "total_tokens": 92
+      },
+      "result": {
+        "answer": [
+          "",
+          "It",
+          " seems",
+          " like",
+          " you",
+          " might",
+          " be",
+          " trying",
+          " to",
+          " exit",
+          " the",
+          " conversation",
+          ".",
+          " If",
+          " you",
+          " have",
+          " any",
+          " other",
+          " questions",
+          " or",
+          " need",
+          " further",
+          " assistance",
+          ",",
+          " feel",
+          " free",
+          " to",
+          " ask",
+          ".",
+          " Otherwise",
+          ",",
+          " have",
+          " a",
+          " great",
+          " day",
+          "!",
+          ""
+        ]
+      },
+      "upload_metrics": false,
+      "otel_trace_id": "0xdb6f697a620e857c5cafe420efa2697b",
+      "message_format": "basic"
+    }
+  ],
+  "node_runs": [
+    {
+      "node": "test_chat",
+      "flow_run_id": "de1b7d8b-b5e7-45a5-8764-844b494dfe3d",
+      "run_id": "de1b7d8b-b5e7-45a5-8764-844b494dfe3d_test_chat_0",
+      "status": "Completed",
+      "inputs": {
+        "deployment_name": "gpt-4o-global-standard-us2",
+        "chat_history": "[{'inputs': {'question': 'Hi there - how are you doing ? '}, 'outputs': {'answer': <promptflow.tracing._trace.TracedIterator object at 0x000002A559872980>}}, {'inputs': {'question': 'Great'}, 'outputs': {'answer': <promptflow.tracing._trace.TracedIterator object at 0x000002A55B4B55A0>}}]",
+        "question": "exit()",
+        "_inputs_to_escape": [
+          "chat_history",
+          "question"
+        ]
+      },
+      "output": [
+        "",
+        "It",
+        " seems",
+        " like",
+        " you",
+        " might",
+        " be",
+        " trying",
+        " to",
+        " exit",
+        " the",
+        " conversation",
+        ".",
+        " If",
+        " you",
+        " have",
+        " any",
+        " other",
+        " questions",
+        " or",
+        " need",
+        " further",
+        " assistance",
+        ",",
+        " feel",
+        " free",
+        " to",
+        " ask",
+        ".",
+        " Otherwise",
+        ",",
+        " have",
+        " a",
+        " great",
+        " day",
+        "!",
+        ""
+      ],
+      "metrics": null,
+      "error": null,
+      "parent_run_id": "de1b7d8b-b5e7-45a5-8764-844b494dfe3d_0",
+      "start_time": "2024-10-20T23:12:34.114921Z",
+      "end_time": "2024-10-20T23:12:34.550425Z",
+      "index": 0,
+      "api_calls": [
+        {
+          "name": "AzureOpenAI.chat",
+          "type": "Function",
+          "inputs": {
+            "prompt": "\nsystem:\nYou are a helpful assistant.\n\n{% for item in chat_history %}\nuser:\n{{item.inputs.question}}\nassistant:\n{{item.outputs.answer}}\n{% endfor %}\n\nuser:\n{{question}}\n",
+            "deployment_name": "gpt-4o-global-standard-us2",
+            "chat_history": [
+              {
+                "inputs": {
+                  "question": "Hi there - how are you doing ? "
+                },
+                "outputs": {
+                  "answer": [
+                    "",
+                    "Hello",
+                    "!",
+                    " I'm",
+                    " just",
+                    " a",
+                    " computer",
+                    " program",
+                    ",",
+                    " so",
+                    " I",
+                    " don't",
+                    " have",
+                    " feelings",
+                    ",",
+                    " but",
+                    " I'm",
+                    " here",
+                    " and",
+                    " ready",
+                    " to",
+                    " help",
+                    " you",
+                    ".",
+                    " How",
+                    " can",
+                    " I",
+                    " assist",
+                    " you",
+                    " today",
+                    "?",
+                    ""
+                  ]
+                }
+              },
+              {
+                "inputs": {
+                  "question": "Great"
+                },
+                "outputs": {
+                  "answer": [
+                    "",
+                    "I'm",
+                    " glad",
+                    " to",
+                    " hear",
+                    " that",
+                    "!",
+                    " How",
+                    " can",
+                    " I",
+                    " assist",
+                    " you",
+                    " today",
+                    "?",
+                    ""
+                  ]
+                }
+              }
+            ],
+            "question": "exit()",
+            "_inputs_to_escape": [
+              "chat_history",
+              "question"
+            ],
+            "stream": true
+          },
+          "output": [
+            "",
+            "It",
+            " seems",
+            " like",
+            " you",
+            " might",
+            " be",
+            " trying",
+            " to",
+            " exit",
+            " the",
+            " conversation",
+            ".",
+            " If",
+            " you",
+            " have",
+            " any",
+            " other",
+            " questions",
+            " or",
+            " need",
+            " further",
+            " assistance",
+            ",",
+            " feel",
+            " free",
+            " to",
+            " ask",
+            ".",
+            " Otherwise",
+            ",",
+            " have",
+            " a",
+            " great",
+            " day",
+            "!",
+            ""
+          ],
+          "start_time": 1729483954.114921,
+          "end_time": 1729483954.546983,
+          "error": null,
+          "children": [
+            {
+              "name": "openai_chat",
+              "type": "LLM",
+              "inputs": {
+                "model": "gpt-4o-global-standard-us2",
+                "messages": [
+                  {
+                    "role": "system",
+                    "content": "You are a helpful assistant."
+                  },
+                  {
+                    "role": "user",
+                    "content": "Hi there - how are you doing ?"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "<promptflow.tracing._trace.TracedIterator object at 0x000002A559872980>"
+                  },
+                  {
+                    "role": "user",
+                    "content": "Great"
+                  },
+                  {
+                    "role": "assistant",
+                    "content": "<promptflow.tracing._trace.TracedIterator object at 0x000002A55B4B55A0>"
+                  },
+                  {
+                    "role": "user",
+                    "content": "exit()"
+                  }
+                ],
+                "temperature": 1.0,
+                "top_p": 1.0,
+                "n": 1,
+                "stream": true,
+                "presence_penalty": 0.0,
+                "frequency_penalty": 0.0,
+                "user": ""
+              },
+              "output": [
+                {
+                  "id": "",
+                  "choices": [],
+                  "created": 0,
+                  "model": "",
+                  "object": "",
+                  "service_tier": null,
+                  "system_fingerprint": null,
+                  "usage": null,
+                  "prompt_filter_results": [
+                    {
+                      "prompt_index": 0,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "jailbreak": {
+                          "filtered": false,
+                          "detected": false
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ]
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": "",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": "assistant",
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {}
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": "It",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " seems",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " like",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " you",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " might",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " be",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " trying",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " to",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " exit",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " the",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " conversation",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": ".",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " If",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " you",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " have",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " any",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " other",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " questions",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " or",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " need",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " further",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " assistance",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": ",",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " feel",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " free",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " to",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " ask",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": ".",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " Otherwise",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": ",",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " have",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " a",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " great",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": " day",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": "!",
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": null,
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {
+                        "hate": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "self_harm": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "sexual": {
+                          "filtered": false,
+                          "severity": "safe"
+                        },
+                        "violence": {
+                          "filtered": false,
+                          "severity": "safe"
+                        }
+                      }
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                },
+                {
+                  "id": "chatcmpl-AKZO6YZ83o0bnypAdsHhREAcxPl3u",
+                  "choices": [
+                    {
+                      "delta": {
+                        "content": null,
+                        "function_call": null,
+                        "refusal": null,
+                        "role": null,
+                        "tool_calls": null
+                      },
+                      "finish_reason": "stop",
+                      "index": 0,
+                      "logprobs": null,
+                      "content_filter_results": {}
+                    }
+                  ],
+                  "created": 1729465954,
+                  "model": "gpt-4o-2024-05-13",
+                  "object": "chat.completion.chunk",
+                  "service_tier": null,
+                  "system_fingerprint": "fp_67802d9a6d",
+                  "usage": null
+                }
+              ],
+              "start_time": 1729483954.120008,
+              "end_time": 1729483954.546983,
+              "error": null,
+              "children": [],
+              "node_name": null,
+              "parent_id": "393b79fc-ade6-41fc-b47c-fa7dac783b84",
+              "id": "461eb808-8b1e-4174-b576-71d2f40a2e98",
+              "function": "openai.resources.chat.completions.Completions.create",
+              "system_metrics": {
+                "prompt_tokens": 92,
+                "completion_tokens": 0,
+                "total_tokens": 92
+              }
+            }
+          ],
+          "node_name": "test_chat",
+          "parent_id": "",
+          "id": "393b79fc-ade6-41fc-b47c-fa7dac783b84",
+          "function": "AzureOpenAI.chat",
+          "system_metrics": {
+            "prompt_tokens": 92,
+            "completion_tokens": 0,
+            "total_tokens": 92
+          }
+        }
+      ],
+      "cached_run_id": null,
+      "cached_flow_run_id": null,
+      "logs": {
+        "stdout": "",
+        "stderr": ""
+      },
+      "system_metrics": {
+        "prompt_tokens": 92,
+        "completion_tokens": 0,
+        "total_tokens": 92,
+        "duration": 0.435504
+      },
+      "result": "<promptflow.tracing._trace.TracedIterator object at 0x000002A5598EA170>",
+      "message_format": "basic"
+    }
+  ]
+}
