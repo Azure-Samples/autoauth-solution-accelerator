@@ -1,5 +1,5 @@
 PYTHON_INTERPRETER = python3
-CONDA_ENV ?= my-template-environment
+CONDA_ENV ?= pa-ai-env
 export PYTHONPATH=$(PWD):$PYTHONPATH;
 
 # Target for setting up pre-commit and pre-push hooks
@@ -73,6 +73,14 @@ activate_conda_env:
 remove_conda_env:
 	@echo "Removing conda environment"
 	conda env remove --name $(CONDA_ENV)
+
+
+# Target to run the Streamlit app locally
+run_streamlit:
+	streamlit run src/app/Home.py --server.enableXsrfProtection False
+
+streamlite_conf: 
+	streamlit config show
 
 run_pylint:
 	@echo "Running linter"
