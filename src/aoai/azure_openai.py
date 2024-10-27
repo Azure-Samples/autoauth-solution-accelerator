@@ -124,51 +124,6 @@ class AzureOpenAIManager:
                 "One or more OpenAI API setup variables are empty. Please review your environment variables and `SETTINGS.md`"
             )
 
-    def generate_completion_response(
-        self,
-        query: str,
-        temperature: float = 0.5,
-        max_tokens: int = 100,
-        model_name: Optional[str] = None,
-        top_p: float = 1.0,
-        **kwargs,
-    ) -> Optional[str]:
-        """
-        Generates a text completion using Azure OpenAI's Foundation models.
-
-        :param query: The input text query for the model.
-        :param temperature: Controls randomness in the output. Default to 0.5.
-        :param max_tokens: Maximum number of tokens to generate. Defaults to 100.
-        :param model_name: The name of the AI model to use. Defaults to None.
-        :param top_p: The cumulative probability cutoff for token selection. Defaults to 1.0.
-
-        :return: The generated text or None if an error occurs.
-        """
-        try:
-            response = self.openai_client.completions.create(
-                model=model_name or self.completion_model_name,
-                prompt=query,
-                temperature=temperature,
-                max_tokens=max_tokens,
-                top_p=top_p,
-                **kwargs,
-            )
-
-            completion = response.choices[0].text.strip()
-            logger.info(f"Generated completion: {completion}")
-            return completion
-
-        except openai.APIConnectionError as e:
-            logger.error("API Connection Error: The server could not be reached.")
-            logger.error(f"Error details: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            return None, None
-        except Exception as e:
-            logger.error("Unexpected Error: An unexpected error occurred during contextual response generation.")
-            logger.error(f"Error details: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            return None, None
-
     async def async_generate_chat_completion_response(
         self,
         conversation_history: List[Dict[str, str]],
@@ -282,27 +237,6 @@ class AzureOpenAIManager:
             logger.error(f"Error details: {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             return None, None 
-
-    def build_message_content(query: str, image_urls: List[str] = None) -> List[Dict[str, Any]]:
-        """
-        Builds the content for the message by combining text and image URLs.
-        
-        :param query: The user's query text.
-        :param image_urls: A list of image URLs to be included in the message.
-        :return: A list of dictionaries with structured content for text and image URLs.
-        """
-        message_content = [{"type": "text", "text": query}]
-        
-        if image_urls:
-            for image_url in image_urls:
-                message_content.append(
-                    {
-                        "type": "image_url",
-                        "image_url": {"url": image_url}
-                    }
-                )
-        return message_content
-
 
     async def generate_chat_response(
             self,
@@ -589,97 +523,3 @@ class AzureOpenAIManager:
             logger.error(f"Error details: {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             return None, None
-
-    def call_azure_openai_chat_completions_api(
-        self, body: dict = None, api_version: str = "2023-11-01"
-    ):
-        """
-        Calls the Azure OpenAI API with the given parameters.
-
-        :param body (dict): The body of the request for "post" method. Defaults to None.
-        :param api_version (str): The API version to use. Defaults to "2023-11-01".
-
-        :return: The status code and response from the API call, along with rate limit headers.
-        """
-        url = f"{self.azure_endpoint}/openai/deployments/{self.chat_model_name}/chat/completions?api-version={api_version}"
-        headers = {
-            "Content-Type": "application/json",
-            "api-key": self.api_key,
-        }
-
-        with requests.Session() as session:
-            session.headers.update(headers)
-
-            try:
-                response = session.post(url, json=body)
-                response.raise_for_status()  # Raises HTTPError for bad responses
-            except requests.ConnectionError as e:
-                logger.error("The server could not be reached")
-                logger.error(e.__cause__)
-                return None, None, {}
-            except requests.HTTPError as e:
-                logger.error(
-                    "A 429 status code was received; we should back off a bit."
-                )
-                return response.status_code, e.response.json(), {}
-            except Exception as err:
-                logger.error(f"An error occurred: {err}")
-                return None, None, {}
-
-        # Extract rate limit headers and usage details
-        rate_limit_headers = extract_rate_limit_and_usage_info(response)
-        return response.status_code, response.json(), rate_limit_headers
-
-    def analyze_chat_completion_token_count_results(
-        self, conversations: List[List[Dict[str, Any]]], model: str, api_version: Optional[str] = "2024-02-01"
-    ) -> Tuple[List[Dict[str, Any]], int, int]:
-        """
-        Analyze a list of conversations to compare the estimated token counts against actual values.
-        This function is intended to analyze results from Azure OpenAI's chat completion API.
-
-        :param conversations: A list of conversation prompts.
-        :param model: The name of the model used for token estimation.
-
-        :return: A tuple containing the analysis results, total estimated tokens, and total actual tokens.
-        """
-        analysis_results = []
-        total_estimated = 0
-        total_actual = 0
-
-        for conversation in conversations:
-            body = {
-                "max_tokens": 24,
-                "temperature": 1,
-                "top_p": 1,
-                "user": "",
-                "n": 1,
-                "presence_penalty": 0,
-                "frequency_penalty": 0,
-                "messages": conversation,
-            }
-
-            (
-                status_code,
-                response,
-                rate_limit_info,
-            ) = self.call_azure_openai_chat_completions_api(
-                body=body, api_version=api_version
-            )
-
-            if status_code != 200:
-                print(f"API call failed for conversation: {json.dumps(conversation)}")
-                continue
-
-            estimated_tokens = self.tokenizer.estimate_tokens_azure_openai(
-                conversation, model
-            )
-            actual_tokens = rate_limit_info["prompt-tokens"]
-
-            analysis_results.append(
-                {"estimated_tokens": estimated_tokens, "actual_tokens": actual_tokens}
-            )
-
-            total_estimated += estimated_tokens
-            total_actual += actual_tokens
-
-        return analysis_results, total_estimated, total_actual
