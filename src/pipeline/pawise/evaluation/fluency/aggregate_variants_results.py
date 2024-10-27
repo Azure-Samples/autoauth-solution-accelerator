@@ -1,5 +1,5 @@
 from typing import List
-from flows import tool, log_metric
+from pipeline import tool, log_metric
 import numpy as np
 
 

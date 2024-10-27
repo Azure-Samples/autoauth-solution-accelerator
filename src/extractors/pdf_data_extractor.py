@@ -4,12 +4,12 @@ from PyPDF2 import PdfFileReader
 import glob
 import os
 import tempfile
-from typing import Optional
+from typing import Optional, List
 from urllib.parse import urlparse
 
 import fitz
 
-from src.extractors.blob_data_extractor import AzureBlobDataExtractor
+from src.storage.blob_helper import AzureBlobManager
 from utils.ml_logging import get_logger
 
 logger = get_logger()
@@ -107,43 +107,61 @@ class PDFHelper:
             )
             return None
 
+
 class OCRHelper:
     """
     Class for OCR functionalities, particularly extracting images from PDF files.
     """
 
-    def __init__(self, container_name: Optional[str] = None):
+    def __init__(
+        self,
+        storage_account_name: Optional[str] = None,
+        container_name: Optional[str] = None,
+        account_key: Optional[str] = None,
+    ):
         """
-        Initialize the OCRHelper with a container name.
-        Args:
-            container_name (str): Name of the Azure Blob Storage container.
-        """
-        self.blob_manager = None
-        if container_name:
-            self.init_blob_manager(container_name)
+        Initialize the OCRHelper with an optional AzureBlobManager.
 
-    def init_blob_manager(self, container_name: str) -> None:
-        """
-        Initialize the AzureBlobManager with a container name.
         Args:
-            container_name (str): Name of the Azure Blob Storage container.
+            storage_account_name (Optional[str]): Name of the Azure Storage account.
+            container_name (Optional[str]): Name of the Azure Blob Storage container.
+            account_key (Optional[str]): Storage account key for authentication.
         """
-        self.blob_manager = AzureBlobDataExtractor(container_name)
+        if storage_account_name and container_name and account_key:
+            self.blob_manager = AzureBlobManager(
+                storage_account_name=storage_account_name,
+                container_name=container_name,
+                account_key=account_key,
+            )
+        else:
+            self.blob_manager = None
 
     def extract_images_from_pdf(self, input_path: str, output_path: str) -> None:
         """
-        Extracts pages from a PDF file or a folder of PDF files and saves them as pictures.
+        Extracts pages from a PDF file or a folder of PDF files and saves them as images.
+
         Args:
-            input_path (str): Path to the PDF file or folder of PDF files.
-            output_path (str): Path to the folder where the pictures will be saved.
+            input_path (str): Path or URL to the PDF file or folder of PDF files.
+            output_path (str): Path to the folder where the images will be saved.
         """
         is_url = urlparse(input_path).scheme in ["http", "https"]
 
         if is_url:
             logger.info(f"Input path is a URL: {input_path}")
-            with tempfile.TemporaryDirectory() as temp_dir:
-                self.blob_manager.download_files_to_folder(input_path, temp_dir)
-                self._process_pdf_path(temp_dir, output_path)
+            if self.blob_manager:
+                with tempfile.TemporaryDirectory() as temp_dir:
+                    # Download the blob to the temporary directory
+                    blob_name = urlparse(input_path).path.lstrip('/')
+                    local_file_path = os.path.join(temp_dir, os.path.basename(blob_name))
+                    self.blob_manager.download_blob_to_file(
+                        remote_blob_path=blob_name,
+                        local_file_path=local_file_path
+                    )
+                    # Process the downloaded file
+                    self._process_pdf_path(local_file_path, output_path)
+            else:
+                logger.error("BlobManager is not initialized. Cannot handle URL input.")
+                raise Exception("BlobManager is not initialized. Cannot handle URL input.")
         else:
             logger.info(f"Input path is a local file or directory: {input_path}")
             self._process_pdf_path(input_path, output_path)
@@ -151,6 +169,7 @@ class OCRHelper:
     def _process_pdf_path(self, input_path: str, output_path: str) -> None:
         """
         Processes a PDF file or all PDF files in a directory.
+
         Args:
             input_path (str): Path to the PDF file or directory containing PDF files.
             output_path (str): Path to save the extracted images.
@@ -161,10 +180,12 @@ class OCRHelper:
             self._process_single_pdf(input_path, output_path)
         else:
             logger.error("The input path is neither a valid PDF file nor a directory.")
+            raise ValueError("The input path is neither a valid PDF file nor a directory.")
 
     def _process_pdf_directory(self, directory_path: str, output_path: str) -> None:
         """
-        Processes all PDF files in a directory and its subdirectories, and saves each page as an image.
+        Processes all PDF files in a directory and its subdirectories, saving each page as an image.
+
         Args:
             directory_path (str): Directory containing PDF files.
             output_path (str): Directory where the images will be saved.
@@ -175,13 +196,15 @@ class OCRHelper:
             logger.info(f"Processing file: {file_path}")
             self._process_single_pdf(file_path, output_path)
 
-    def _find_all_pdfs(self, directory_path: str) -> list:
+    def _find_all_pdfs(self, directory_path: str) -> List[str]:
         """
         Recursively finds all PDF files in a directory and its subdirectories.
+
         Args:
             directory_path (str): Directory to search for PDF files.
+
         Returns:
-            list: List of paths to PDF files.
+            List[str]: List of paths to PDF files.
         """
         pdf_files = []
         for root, _, files in os.walk(directory_path):
@@ -193,6 +216,7 @@ class OCRHelper:
     def _process_single_pdf(self, file_path: str, output_path: str) -> None:
         """
         Processes a single PDF file and saves each page as an image.
+
         Args:
             file_path (str): Path to the PDF file.
             output_path (str): Directory where the images will be saved.

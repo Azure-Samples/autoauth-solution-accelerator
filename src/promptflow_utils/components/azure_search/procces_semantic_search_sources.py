@@ -2,7 +2,7 @@ import logging
 from typing import Dict, List
 
 from azure.search.documents._paging import SearchItemPaged
-from flows import tool
+from pipeline import tool
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

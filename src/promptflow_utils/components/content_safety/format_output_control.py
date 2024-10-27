@@ -1,4 +1,4 @@
-from flows import tool
+from pipeline import tool
 
 GENERIC_ANSWER_OUTPUT = "LLM OUTPUT is deemed inappropriate and will be recorded. Please retry. Please contact your administrator for further assistance."
 GENERIC_ANSWER_INPUT = "Your Input is deemed inappropriate and will be recorded. Please correct your language. Administrator will reach out for further assistance."

@@ -1,4 +1,4 @@
-from src.aoai.azure_openai import AzureOpenAIManager
+from src.aoai.azure_helper import AzureOpenAIManager
 from azure.core.credentials import AzureKeyCredential
 
 from typing import Optional

@@ -18,7 +18,7 @@ from azure.search.documents.models import (
 from azure.storage.blob import BlobServiceClient
 from colorama import Fore, Style, init
 
-from src.aoai.azure_openai import AzureOpenAIManager
+from src.aoai.azure_helper import AzureOpenAIManager
 from app.components.prompts import (
     SYSTEM_PROMPT_NER,
     SYSTEM_PROMPT_PRIOR_AUTH,

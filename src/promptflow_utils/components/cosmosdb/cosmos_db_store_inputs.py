@@ -6,7 +6,7 @@ from datetime import datetime
 from azure.core.exceptions import AzureError
 from azure.cosmos import CosmosClient
 from dotenv import load_dotenv
-from flows import tool
+from pipeline import tool
 from typing import Optional
 
 # Set up logging

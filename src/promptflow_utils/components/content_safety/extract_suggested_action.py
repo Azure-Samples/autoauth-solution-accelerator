@@ -1,4 +1,4 @@
-from flows import tool
+from pipeline import tool
 from typing import Dict
 
 @tool

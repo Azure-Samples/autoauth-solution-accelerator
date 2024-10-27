@@ -4,6 +4,7 @@ import tempfile
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Union
+from urllib.parse import urlparse
 
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 from azure.core.credentials import AzureNamedKeyCredential
@@ -92,6 +93,27 @@ class AzureBlobManager:
         self._create_container_if_not_exists()
         logger.info(f"Container changed to {new_container_name}")
 
+    def _parse_blob_url(self, blob_url: str) -> Dict[str, str]:
+        """
+        Parses a blob URL and extracts the storage account name, container name, and blob name.
+
+        Args:
+            blob_url (str): The full URL to the blob.
+
+        Returns:
+            Dict[str, str]: A dictionary containing 'storage_account', 'container_name', and 'blob_name'.
+        """
+        parsed_url = urlparse(blob_url)
+        storage_account = parsed_url.netloc.split('.')[0]
+        path_parts = parsed_url.path.lstrip('/').split('/')
+        container_name = path_parts[0]
+        blob_name = '/'.join(path_parts[1:])
+        return {
+            'storage_account': storage_account,
+            'container_name': container_name,
+            'blob_name': blob_name
+        }
+
     def upload_files(
         self,
         local_path: str,
@@ -141,7 +163,7 @@ class AzureBlobManager:
         Downloads a blob from Azure Blob Storage to a local file.
 
         Args:
-            remote_blob_path (str): The path to the blob in the container.
+            remote_blob_path (str): The path to the blob in the container or the full blob URL.
             local_file_path (str): The local file path where the blob will be saved.
         """
         if not self.container_client:
@@ -149,11 +171,22 @@ class AzureBlobManager:
             return
 
         try:
-            blob_client = self.container_client.get_blob_client(remote_blob_path)
+            # Check if remote_blob_path is a URL
+            if remote_blob_path.startswith("http"):
+                blob_info = self._parse_blob_url(remote_blob_path)
+                if blob_info['storage_account'] != self.storage_account_name:
+                    raise ValueError("Blob URL points to a different storage account.")
+                if blob_info['container_name'] != self.container_name:
+                    self.change_container(blob_info['container_name'])
+                blob_name = blob_info['blob_name']
+            else:
+                blob_name = remote_blob_path
+
+            blob_client = self.container_client.get_blob_client(blob_name)
             os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
             with open(local_file_path, "wb") as download_file:
                 download_file.write(blob_client.download_blob().readall())
-            logger.info(f"Downloaded blob '{remote_blob_path}' to '{local_file_path}'.")
+            logger.info(f"Downloaded blob '{blob_name}' to '{local_file_path}'.")
         except Exception as e:
             logger.error(f"Failed to download blob '{remote_blob_path}': {e}")
 
@@ -162,7 +195,7 @@ class AzureBlobManager:
         Downloads a blob from Azure Blob Storage and returns its content as bytes.
 
         Args:
-            remote_blob_path (str): The path to the blob in the container.
+            remote_blob_path (str): The path to the blob in the container or the full blob URL.
 
         Returns:
             Optional[bytes]: The content of the blob as bytes, or None if an error occurred.
@@ -172,9 +205,20 @@ class AzureBlobManager:
             return None
 
         try:
-            blob_client = self.container_client.get_blob_client(remote_blob_path)
+            # Check if remote_blob_path is a URL
+            if remote_blob_path.startswith("http"):
+                blob_info = self._parse_blob_url(remote_blob_path)
+                if blob_info['storage_account'] != self.storage_account_name:
+                    raise ValueError("Blob URL points to a different storage account.")
+                if blob_info['container_name'] != self.container_name:
+                    self.change_container(blob_info['container_name'])
+                blob_name = blob_info['blob_name']
+            else:
+                blob_name = remote_blob_path
+
+            blob_client = self.container_client.get_blob_client(blob_name)
             blob_data = blob_client.download_blob().readall()
-            logger.info(f"Downloaded blob '{remote_blob_path}' as bytes.")
+            logger.info(f"Downloaded blob '{blob_name}' as bytes.")
             return blob_data
         except Exception as e:
             logger.error(f"Failed to download blob '{remote_blob_path}': {e}")
@@ -185,7 +229,7 @@ class AzureBlobManager:
         Downloads all blobs from a specified folder in Azure Blob Storage to a local directory.
 
         Args:
-            remote_folder_path (str): The path to the folder within the blob container.
+            remote_folder_path (str): The path to the folder within the blob container or the full URL.
             local_folder_path (str): The local directory to which the files will be downloaded.
         """
         if not self.container_client:
@@ -193,6 +237,15 @@ class AzureBlobManager:
             return
 
         try:
+            # Check if remote_folder_path is a URL
+            if remote_folder_path.startswith("http"):
+                blob_info = self._parse_blob_url(remote_folder_path)
+                if blob_info['storage_account'] != self.storage_account_name:
+                    raise ValueError("Blob URL points to a different storage account.")
+                if blob_info['container_name'] != self.container_name:
+                    self.change_container(blob_info['container_name'])
+                remote_folder_path = blob_info['blob_name']
+
             # Ensure remote folder path ends with '/'
             if not remote_folder_path.endswith("/"):
                 remote_folder_path += "/"
@@ -214,7 +267,7 @@ class AzureBlobManager:
         Retrieves metadata of a blob in Azure Blob Storage.
 
         Args:
-            remote_blob_path (str): The path to the blob in the container.
+            remote_blob_path (str): The path to the blob in the container or the full blob URL.
 
         Returns:
             Optional[Dict[str, Any]]: Dictionary containing metadata of the blob, or None if an error occurred.
@@ -224,7 +277,18 @@ class AzureBlobManager:
             return None
 
         try:
-            blob_client = self.container_client.get_blob_client(remote_blob_path)
+            # Check if remote_blob_path is a URL
+            if remote_blob_path.startswith("http"):
+                blob_info = self._parse_blob_url(remote_blob_path)
+                if blob_info['storage_account'] != self.storage_account_name:
+                    raise ValueError("Blob URL points to a different storage account.")
+                if blob_info['container_name'] != self.container_name:
+                    self.change_container(blob_info['container_name'])
+                blob_name = blob_info['blob_name']
+            else:
+                blob_name = remote_blob_path
+
+            blob_client = self.container_client.get_blob_client(blob_name)
             blob_properties = blob_client.get_blob_properties()
 
             metadata = {
@@ -235,7 +299,7 @@ class AzureBlobManager:
                 "etag": blob_properties.etag,
                 "metadata": blob_properties.metadata,
             }
-            logger.info(f"Retrieved metadata for blob '{remote_blob_path}'.")
+            logger.info(f"Retrieved metadata for blob '{blob_name}'.")
             return metadata
         except Exception as e:
             logger.error(f"Failed to get metadata for blob '{remote_blob_path}': {e}")
@@ -299,7 +363,7 @@ class AzureBlobManager:
         Retrieves a BlobClient for a specific blob.
 
         Args:
-            remote_blob_path (str): The path to the blob in the container.
+            remote_blob_path (str): The path to the blob in the container or the full blob URL.
 
         Returns:
             BlobClient: The BlobClient object for the specified blob.
@@ -307,4 +371,16 @@ class AzureBlobManager:
         if not self.container_client:
             logger.error("Container client is not initialized.")
             raise ValueError("Container client is not initialized.")
-        return self.container_client.get_blob_client(remote_blob_path)
+
+        # Check if remote_blob_path is a URL
+        if remote_blob_path.startswith("http"):
+            blob_info = self._parse_blob_url(remote_blob_path)
+            if blob_info['storage_account'] != self.storage_account_name:
+                raise ValueError("Blob URL points to a different storage account.")
+            if blob_info['container_name'] != self.container_name:
+                self.change_container(blob_info['container_name'])
+            blob_name = blob_info['blob_name']
+        else:
+            blob_name = remote_blob_path
+
+        return self.container_client.get_blob_client(blob_name)

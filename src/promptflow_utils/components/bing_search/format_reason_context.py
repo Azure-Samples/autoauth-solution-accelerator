@@ -1,4 +1,4 @@
-from flows import tool
+from pipeline import tool
 
 @tool
 def filter_and_transform_data(data):

@@ -1,4 +1,4 @@
-from flows import tool
+from pipeline import tool
 import numpy as np
 import re
 

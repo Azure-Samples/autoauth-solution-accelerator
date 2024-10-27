@@ -1,6 +1,6 @@
 import uuid
 
-from flows import tool
+from pipeline import tool
 
 
 @tool

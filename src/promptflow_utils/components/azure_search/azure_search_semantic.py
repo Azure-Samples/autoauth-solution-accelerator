@@ -8,7 +8,7 @@ from azure.search.documents import SearchClient
 from azure.search.documents.models import RawVectorQuery
 from azure.search.documents._paging import SearchItemPaged
 from dotenv import load_dotenv
-from flows import tool
+from pipeline import tool
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

@@ -3,7 +3,7 @@ import logging
 import os 
 from typing import List, Dict
 from dotenv import load_dotenv
-from flows import tool
+from pipeline import tool
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)

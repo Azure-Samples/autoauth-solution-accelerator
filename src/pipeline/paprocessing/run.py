@@ -1,8 +1,7 @@
 import os
 import asyncio
 import urllib.parse
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import dotenv
 from azure.core.credentials import AzureKeyCredential
@@ -13,8 +12,9 @@ from azure.search.documents.models import (
     QueryType,
     VectorizableTextQuery,
 )
+from src.pipeline.paprocessing.helpers import find_all_files
 from colorama import Fore, init
-from src.aoai.azure_openai import AzureOpenAIManager
+from src.aoai.azure_helper import AzureOpenAIManager
 from app.components.prompts import (
     SYSTEM_PROMPT_NER,
     SYSTEM_PROMPT_PRIOR_AUTH,
@@ -141,10 +141,10 @@ class PAProcessingPipeline:
         self.azure_blob_storage_account_name = azure_blob_storage_account_name
         self.azure_blob_storage_account_key = azure_blob_storage_account_key
         self.document_intelligence_client = AzureDocumentIntelligenceManager(
-            azure_endpoint=azure_document_intelligence_endpoint, 
+            azure_endpoint=azure_document_intelligence_endpoint,
             azure_key=azure_document_intelligence_key
         )
-        # Initialize CosmosDBManager and AzureBlobManager if local is False
+        # Initialize CosmosDBManager and AzureBlobManager
         self.blob_manager = AzureBlobManager(
             storage_account_name=self.azure_blob_storage_account_name,
             account_key=self.azure_blob_storage_account_key,
@@ -160,7 +160,6 @@ class PAProcessingPipeline:
             self.temp_dir = f"{self.container_name}/{self.case_id}"
         else:
             self.cosmos_db_manager = None
-            self.blob_manager = None
             self.temp_dir = os.path.join(temp_dir_base_path, self.case_id)
             os.makedirs(self.temp_dir, exist_ok=True)
 
@@ -261,26 +260,24 @@ class PAProcessingPipeline:
         Returns:
             str: The extracted text from the document.
         """
-        document_intelligence_client = AzureDocumentIntelligenceManager()
         try:
+            # Parse the blob URL
             parsed_url = urllib.parse.urlparse(blob_url)
-            blob_name = parsed_url.path.lstrip('/')
-            container_name = parsed_url.netloc.split('.')[0]
+            path_parts = parsed_url.path.lstrip('/').split('/')
+            container_name = path_parts[0]
+            blob_name = '/'.join(path_parts[1:])
+            
+            # Ensure the blob manager is using the correct container
+            self.blob_manager.change_container(container_name)
 
-            if self.local:           
-                blob_content = self.blob_manager.download_blob_to_bytes(blob_name)
-                if blob_content is None:
-                    raise Exception(f"Failed to download blob {blob_name}")
-                logger.info(f"Blob content downloaded successfully from {blob_url}")
-            else:
-                self.blob_manager.change_container(container_name)
-                blob_content = self.blob_manager.download_blob_to_bytes(blob_name)
-                if blob_content is None:
-                    raise Exception(f"Failed to download blob {blob_name}")
-                logger.info(f"Blob content downloaded successfully from {blob_url}")
+            # Download the blob content
+            blob_content = self.blob_manager.download_blob_to_bytes(blob_name)
+            if blob_content is None:
+                raise Exception(f"Failed to download blob '{blob_name}'")
+            logger.info(f"Blob content downloaded successfully from {blob_url}")
 
             # Analyze the document
-            policy_text = document_intelligence_client.analyze_document(
+            policy_text = self.document_intelligence_client.analyze_document(
                 document_input=blob_content,
                 model_type="prebuilt-layout",
                 output_format="markdown",
@@ -292,31 +289,6 @@ class PAProcessingPipeline:
             return ""
 
 
-    def find_all_files(
-        self, root_folder: str, extensions: Union[List[str], str]
-    ) -> List[str]:
-        """
-        Recursively find all files with specified extensions under the root folder.
-
-        Args:
-            root_folder (str): The root folder to search for files.
-            extensions (Union[List[str], str]): List of file extensions to search for.
-
-        Returns:
-            List[str]: List of full paths to the found files.
-        """
-        if isinstance(extensions, str):
-            extensions = [extensions]
-
-        files_list = []
-        root_folder_path = Path(root_folder).resolve()
-
-        for root, _, files in os.walk(root_folder_path):
-            for file in files:
-                if any(file.lower().endswith(f".{ext}") for ext in extensions):
-                    files_list.append(str(Path(root) / file))
-        logger.info(f"Found {len(files_list)} files with extensions {extensions}")
-        return files_list
 
     def store_output(self, data: Dict[str, Any], step: str) -> None:
         """
@@ -364,19 +336,17 @@ class PAProcessingPipeline:
                 logger.error("CosmosDBManager is not initialized.")
                 return {}
 
-    async def process_documents_flow(self, input_dir: str) -> None:
+    async def run(self, uploaded_files: List[str]) -> None:
         """
         Process documents as per the pipeline flow and store the outputs.
 
         Args:
-            input_dir (str): Directory containing files to process.
+            uploaded_files (List[str]): List of file paths or URLs to process.
         """
-        uploaded_files = self.find_all_files(input_dir, ["pdf"])
-
         if uploaded_files:
             try:
                 temp_dir = self.process_uploaded_files(uploaded_files)
-                image_files = self.find_all_files(temp_dir, ["png"])
+                image_files = find_all_files(temp_dir, ["png"])
 
                 # Generate AI response for NER
                 logger.info(Fore.CYAN + "\nAnalyzing clinical information...")
@@ -399,12 +369,13 @@ class PAProcessingPipeline:
                         Fore.CYAN + "Expanding query and searching for policy..."
                     )
                     api_response_query = await self.azure_openai_client.generate_chat_response(
-                    query=prompt_query_expansion,
-                    system_message_content=SYSTEM_PROMPT_QUERY_EXPANSION,
-                    image_paths=image_files,
-                    conversation_history=[],
-                    response_format="json_object",
-                    max_tokens=3000,)
+                        query=prompt_query_expansion,
+                        system_message_content=SYSTEM_PROMPT_QUERY_EXPANSION,
+                        image_paths=image_files,
+                        conversation_history=[],
+                        response_format="json_object",
+                        max_tokens=3000,
+                    )
 
                     # Store query expansion response
                     self.store_output(api_response_query, step="query_expansion")
@@ -431,12 +402,7 @@ class PAProcessingPipeline:
                             logger.info(
                                 Fore.CYAN + "Generating final determination..."
                             )
-                            api_response_final = await self.generate_ai_response(
-                                user_prompt_pa,
-                                SYSTEM_PROMPT_PRIOR_AUTH,
-                                image_files,
-                            )
-                            await self.azure_openai_client.generate_chat_response(
+                            api_response_final = await self.azure_openai_client.generate_chat_response(
                                 query=user_prompt_pa,
                                 system_message_content=SYSTEM_PROMPT_PRIOR_AUTH,
                                 conversation_history=[],
@@ -476,65 +442,65 @@ class PAProcessingPipeline:
                 logger.error(f"Document processing failed: {e}")
                 self.store_output({"error": str(e)}, step="error")
         else:
-            logger.info(Fore.RED + "No files found in the input directory.")
+            logger.info(Fore.RED + "No files provided for processing.")
 
-async def main():
-    """
-    Main function to run the application.
+    async def main():
+        """
+        Main function to run the application.
 
-    This function initializes the processing pipeline and starts the document processing.
-    """
-    try:
-        # Load configuration
-        azure_openai_chat_deployment_id = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
-        azure_ai_search_service_endpoint = os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT")
-        azure_ai_search_index_name = os.getenv("AZURE_AI_SEARCH_INDEX_NAME")
-        azure_ai_search_admin_key = os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")
-        azure_blob_container_name = os.getenv("AZURE_BLOB_CONTAINER_NAME")
-        cosmos_db_endpoint = os.getenv("AZURE_COSMOSDB_ENDPOINT")
-        cosmos_db_key = os.getenv("AZURE_COSMOSDB_KEY")
-        cosmos_db_database_name = os.getenv("AZURE_COSMOSDB_DATABASE")
-        cosmos_db_container_name = os.getenv("AZURE_COSMOSDB_CONTAINER")
+        This function initializes the processing pipeline and starts the document processing.
+        """
+        try:
+            # Load configuration
+            azure_openai_chat_deployment_id = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
+            azure_search_service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
+            azure_search_index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
+            azure_search_admin_key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
+            azure_blob_container_name = os.getenv("AZURE_BLOB_CONTAINER_NAME")
+            cosmos_db_endpoint = os.getenv("AZURE_COSMOSDB_ENDPOINT")
+            cosmos_db_key = os.getenv("AZURE_COSMOSDB_KEY")
+            cosmos_db_database_name = os.getenv("AZURE_COSMOSDB_DATABASE")
+            cosmos_db_container_name = os.getenv("AZURE_COSMOSDB_CONTAINER")
 
-        # Determine if running in local or remote mode
-        local_mode = True  # Set to True for local mode, False for remote mode
+            # Determine if running in local or remote mode
+            local_mode = True  # Set to True for local mode, False for remote mode
 
-        # Initialize the processing pipeline
-        pipeline = PAProcessingPipeline(
-            azure_openai_chat_deployment_id=azure_openai_chat_deployment_id,
-            azure_ai_search_service_endpoint=azure_ai_search_service_endpoint,
-            azure_ai_search_index_name=azure_ai_search_index_name,
-            azure_ai_search_admin_key=azure_ai_search_admin_key,
-            azure_blob_container_name=azure_blob_container_name,
-            local=local_mode,
-            cosmos_db_endpoint=cosmos_db_endpoint,
-            cosmos_db_key=cosmos_db_key,
-            cosmos_db_database_name=cosmos_db_database_name,
-            cosmos_db_container_name=cosmos_db_container_name,
-        )
-
-        # Ask the user for the directory of files to process
-        input_dir = input(
-            Fore.GREEN
-            + "Enter the path to the directory containing files to process: "
-        )
-
-        # Process documents asynchronously
-        await pipeline.process_documents_flow(input_dir)
-
-        # Retrieve and display the conversation history
-        conversation_history = pipeline.get_conversation_history()
-        final_response = conversation_history.get("final_determination", {}).get("data", {}).get("final_determination")
-        if final_response:
-            print(
-                Fore.MAGENTA + "\nFinal Determination:\n" + final_response
+            # Initialize the processing pipeline
+            pipeline = PAProcessingPipeline(
+                azure_openai_chat_deployment_id=azure_openai_chat_deployment_id,
+                azure_search_service_endpoint=azure_search_service_endpoint,
+                azure_search_index_name=azure_search_index_name,
+                azure_search_admin_key=azure_search_admin_key,
+                azure_blob_container_name=azure_blob_container_name,
+                local=local_mode,
+                cosmos_db_endpoint=cosmos_db_endpoint,
+                cosmos_db_key=cosmos_db_key,
+                cosmos_db_database_name=cosmos_db_database_name,
+                cosmos_db_container_name=cosmos_db_container_name,
             )
-        else:
-            print(Fore.RED + "No final determination available.")
 
-    except Exception as e:
-        logger.error(f"Application encountered an error: {e}")
+            # Ask the user for the list of files to process
+            input_files = input(
+                Fore.GREEN
+                + "Enter the paths or URLs to the files to process, separated by commas: "
+            )
+            uploaded_files = [path.strip() for path in input_files.split(',') if path.strip()]
 
+            # Process documents asynchronously
+            await pipeline.process_documents_flow(uploaded_files)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+            # Retrieve and display the conversation history
+            conversation_history = pipeline.get_conversation_history()
+            final_response = conversation_history.get("final_determination", {}).get("data", {}).get("final_determination")
+            if final_response:
+                print(
+                    Fore.MAGENTA + "\nFinal Determination:\n" + final_response
+                )
+            else:
+                print(Fore.RED + "No final determination available.")
+
+        except Exception as e:
+            logger.error(f"Application encountered an error: {e}")
+
+    if __name__ == "__main__":
+        asyncio.run(main())
