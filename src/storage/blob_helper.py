@@ -1,62 +1,103 @@
 import os
 import fnmatch
-from typing import Optional, Callable
-from azure.storage.blob import BlobServiceClient, ContainerClient
-from azure.identity import DefaultAzureCredential
+import tempfile
+from io import BytesIO
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
+
+from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
+from azure.core.credentials import AzureNamedKeyCredential
+from dotenv import load_dotenv
+
 from utils.ml_logging import get_logger
 
-class AzureBlobUploader:
+# Initialize logger
+logger = get_logger()
+
+
+class AzureBlobManager:
     """
-    A class for uploading files to Azure Blob Storage with optional filtering
-    and the ability to specify a remote folder path.
+    A class for managing interactions with Azure Blob Storage.
+
+    Provides functionalities to upload and download blobs, handle various file formats,
+    and manage blob metadata.
+
+    Attributes:
+        storage_account_name (str): Name of the Azure Storage account.
+        container_name (str): Name of the blob container.
+        account_key (str): Storage account key for authentication.
+        blob_service_client (BlobServiceClient): Azure Blob Service Client.
+        container_client (ContainerClient): Azure Container Client specific to the container.
     """
 
     def __init__(
         self,
-        connection_string: str,
-        container_name: str,
-        use_user_identity: bool = True
+        storage_account_name: Optional[str] = None,
+        container_name: Optional[str] = None,
+        account_key: Optional[str] = None,
     ):
         """
-        Initializes the AzureBlobUploader with Azure Blob Storage connection details.
+        Initialize the AzureBlobManager.
 
         Args:
-            connection_string (str): Azure Blob Storage connection string.
-            container_name (str): Name of the blob container.
-            use_user_identity (bool, optional): Use user identity for authentication. Defaults to True.
+            storage_account_name (Optional[str]): Name of the Azure Storage account.
+            container_name (Optional[str]): Name of the blob container.
+            account_key (Optional[str]): Storage account key for authentication.
         """
-        self.connection_string = connection_string
-        self.container_name = container_name
-        self.use_user_identity = use_user_identity
+        try:
+            load_dotenv()
+            self.storage_account_name = storage_account_name or os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
+            self.container_name = container_name or os.getenv("AZURE_BLOB_CONTAINER_NAME")
+            self.account_key = account_key or os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
 
-        # Set up logging
-        self.logger = get_logger()
+            if not self.storage_account_name:
+                raise ValueError("Storage account name must be provided either as a parameter or in the .env file.")
+            if not self.container_name:
+                raise ValueError("Container name must be provided either as a parameter or in the .env file.")
+            if not self.account_key:
+                raise ValueError("Storage account key must be provided either as a parameter or in the .env file.")
 
-        # Initialize the BlobServiceClient
-        credential = DefaultAzureCredential() if self.use_user_identity else None
-        self.blob_service_client = BlobServiceClient.from_connection_string(
-            conn_str=self.connection_string,
-            credential=credential,
-        )
-        self.container_client = self.blob_service_client.get_container_client(self.container_name)
-        self._create_container_if_not_exists()
+            # Initialize the BlobServiceClient with the account key
+            credential = AzureNamedKeyCredential(self.storage_account_name, self.account_key)
+            self.blob_service_client = BlobServiceClient(
+                account_url=f"https://{self.storage_account_name}.blob.core.windows.net",
+                credential=credential,
+            )
+            self.container_client = self.blob_service_client.get_container_client(self.container_name)
+            self._create_container_if_not_exists()
+
+        except Exception as e:
+            logger.error(f"Error initializing AzureBlobManager: {e}")
+            raise
 
     def _create_container_if_not_exists(self) -> None:
         """
         Creates the blob container if it does not already exist.
         """
-        if not self.container_client.exists():
+        if self.container_client and not self.container_client.exists():
             self.container_client.create_container()
-            self.logger.info(f"Created container '{self.container_name}'.")
+            logger.info(f"Created container '{self.container_name}'.")
         else:
-            self.logger.info(f"Container '{self.container_name}' already exists.")
+            logger.info(f"Container '{self.container_name}' already exists or not specified.")
+
+    def change_container(self, new_container_name: str) -> None:
+        """
+        Changes the Azure Blob Storage container.
+
+        Args:
+            new_container_name (str): The name of the new container.
+        """
+        self.container_name = new_container_name
+        self.container_client = self.blob_service_client.get_container_client(new_container_name)
+        self._create_container_if_not_exists()
+        logger.info(f"Container changed to {new_container_name}")
 
     def upload_files(
         self,
         local_path: str,
         remote_path: str = "",
         file_filter: Optional[Callable[[str], bool]] = None,
-        overwrite: bool = False
+        overwrite: bool = False,
     ) -> None:
         """
         Uploads files from a local directory to Azure Blob Storage, with optional filtering
@@ -70,6 +111,10 @@ class AzureBlobUploader:
                 Should return True for files to upload. Defaults to None.
             overwrite (bool, optional): Whether to overwrite existing blobs. Defaults to False.
         """
+        if not self.container_client:
+            logger.error("Container client is not initialized.")
+            return
+
         for root, _, files in os.walk(local_path):
             for file_name in files:
                 file_path = os.path.join(root, file_name)
@@ -87,9 +132,137 @@ class AzureBlobUploader:
                 if overwrite or not blob_client.exists():
                     with open(file_path, "rb") as data:
                         blob_client.upload_blob(data, overwrite=overwrite)
-                    self.logger.info(f"Uploaded '{blob_name}' to blob storage.")
+                    logger.info(f"Uploaded '{blob_name}' to blob storage.")
                 else:
-                    self.logger.info(f"Blob '{blob_name}' already exists. Skipping upload.")
+                    logger.info(f"Blob '{blob_name}' already exists. Skipping upload.")
+
+    def download_blob_to_file(self, remote_blob_path: str, local_file_path: str) -> None:
+        """
+        Downloads a blob from Azure Blob Storage to a local file.
+
+        Args:
+            remote_blob_path (str): The path to the blob in the container.
+            local_file_path (str): The local file path where the blob will be saved.
+        """
+        if not self.container_client:
+            logger.error("Container client is not initialized.")
+            return
+
+        try:
+            blob_client = self.container_client.get_blob_client(remote_blob_path)
+            os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+            with open(local_file_path, "wb") as download_file:
+                download_file.write(blob_client.download_blob().readall())
+            logger.info(f"Downloaded blob '{remote_blob_path}' to '{local_file_path}'.")
+        except Exception as e:
+            logger.error(f"Failed to download blob '{remote_blob_path}': {e}")
+
+    def download_blob_to_bytes(self, remote_blob_path: str) -> Optional[bytes]:
+        """
+        Downloads a blob from Azure Blob Storage and returns its content as bytes.
+
+        Args:
+            remote_blob_path (str): The path to the blob in the container.
+
+        Returns:
+            Optional[bytes]: The content of the blob as bytes, or None if an error occurred.
+        """
+        if not self.container_client:
+            logger.error("Container client is not initialized.")
+            return None
+
+        try:
+            blob_client = self.container_client.get_blob_client(remote_blob_path)
+            blob_data = blob_client.download_blob().readall()
+            logger.info(f"Downloaded blob '{remote_blob_path}' as bytes.")
+            return blob_data
+        except Exception as e:
+            logger.error(f"Failed to download blob '{remote_blob_path}': {e}")
+            return None
+
+    def download_blobs_to_folder(self, remote_folder_path: str, local_folder_path: str) -> None:
+        """
+        Downloads all blobs from a specified folder in Azure Blob Storage to a local directory.
+
+        Args:
+            remote_folder_path (str): The path to the folder within the blob container.
+            local_folder_path (str): The local directory to which the files will be downloaded.
+        """
+        if not self.container_client:
+            logger.error("Container client is not initialized.")
+            return
+
+        try:
+            # Ensure remote folder path ends with '/'
+            if not remote_folder_path.endswith("/"):
+                remote_folder_path += "/"
+
+            blobs_list = self.container_client.list_blobs(name_starts_with=remote_folder_path)
+            for blob in blobs_list:
+                relative_path = os.path.relpath(blob.name, remote_folder_path).replace("/", os.sep)
+                local_file_path = os.path.join(local_folder_path, relative_path)
+                os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+
+                self.download_blob_to_file(blob.name, local_file_path)
+                logger.info(f"Downloaded {blob.name} to {local_file_path}")
+
+        except Exception as e:
+            logger.error(f"An error occurred while downloading files: {e}")
+
+    def get_blob_metadata(self, remote_blob_path: str) -> Optional[Dict[str, Any]]:
+        """
+        Retrieves metadata of a blob in Azure Blob Storage.
+
+        Args:
+            remote_blob_path (str): The path to the blob in the container.
+
+        Returns:
+            Optional[Dict[str, Any]]: Dictionary containing metadata of the blob, or None if an error occurred.
+        """
+        if not self.container_client:
+            logger.error("Container client is not initialized.")
+            return None
+
+        try:
+            blob_client = self.container_client.get_blob_client(remote_blob_path)
+            blob_properties = blob_client.get_blob_properties()
+
+            metadata = {
+                "name": blob_client.blob_name,
+                "size": blob_properties.size,
+                "content_type": blob_properties.content_settings.content_type,
+                "last_modified": blob_properties.last_modified.isoformat(),
+                "etag": blob_properties.etag,
+                "metadata": blob_properties.metadata,
+            }
+            logger.info(f"Retrieved metadata for blob '{remote_blob_path}'.")
+            return metadata
+        except Exception as e:
+            logger.error(f"Failed to get metadata for blob '{remote_blob_path}': {e}")
+            return None
+
+    def list_blobs(self, prefix: str = "") -> List[str]:
+        """
+        Lists all blobs in the container, optionally filtered by a prefix.
+
+        Args:
+            prefix (str, optional): Filter blobs whose names begin with this prefix. Defaults to "".
+
+        Returns:
+            List[str]: List of blob names.
+        """
+        if not self.container_client:
+            logger.error("Container client is not initialized.")
+            return []
+
+        try:
+            blobs = self.container_client.list_blobs(name_starts_with=prefix)
+            blob_names = [blob.name for blob in blobs]
+            logger.info(f"Listed {len(blob_names)} blobs with prefix '{prefix}'.")
+            return blob_names
+        except Exception as e:
+            logger.error(f"Failed to list blobs with prefix '{prefix}': {e}")
+            return []
 
     @staticmethod
     def filter_by_extension(extension: str) -> Callable[[str], bool]:
@@ -120,3 +293,18 @@ class AzureBlobUploader:
         def filter_func(file_path: str) -> bool:
             return fnmatch.fnmatch(os.path.basename(file_path), name_pattern)
         return filter_func
+
+    def get_blob_client(self, remote_blob_path: str) -> BlobClient:
+        """
+        Retrieves a BlobClient for a specific blob.
+
+        Args:
+            remote_blob_path (str): The path to the blob in the container.
+
+        Returns:
+            BlobClient: The BlobClient object for the specified blob.
+        """
+        if not self.container_client:
+            logger.error("Container client is not initialized.")
+            raise ValueError("Container client is not initialized.")
+        return self.container_client.get_blob_client(remote_blob_path)

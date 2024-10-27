@@ -33,13 +33,13 @@ class AzureBlobDataExtractor:
         """
         try:
             load_dotenv()
-            connect_str = os.getenv("BLOB_CONNECTION_STRING")
+            connect_str = os.getenv("AZURE_BLOB_CONNECTION_STRING")
             if connect_str is None:
                 logger.error(
-                    "BLOB_CONNECTION_STRING not found in environment variables."
+                    "AZURE_BLOB_CONNECTION_STRING not found in environment variables."
                 )
                 raise EnvironmentError(
-                    "BLOB_CONNECTION_STRING not found in environment variables."
+                    "AZURE_BLOB_CONNECTION_STRING not found in environment variables."
                 )
             self.container_name = container_name
             self.blob_service_client = BlobServiceClient.from_connection_string(

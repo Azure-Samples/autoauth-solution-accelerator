@@ -15,7 +15,7 @@ from utils.ml_logging import get_logger
 logger = get_logger()
 
 
-class CosmosDBIndexer:
+class CosmosDBManager:
     def __init__(
         self,
         endpoint_url: Optional[str] = None,
