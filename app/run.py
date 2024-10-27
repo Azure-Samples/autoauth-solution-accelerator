@@ -19,9 +19,10 @@ from azure.storage.blob import BlobServiceClient
 from colorama import Fore, Style, init
 
 from src.aoai.azure_openai import AzureOpenAIManager
-from app.utils.prompts import (
+from app.components.prompts import (
     SYSTEM_PROMPT_NER,
     SYSTEM_PROMPT_PRIOR_AUTH,
+    SYSTEM_PROMPT_QUERY_EXPANSION,
     create_prompt_pa,
     create_prompt_query_expansion,
     USER_PROMPT_NER,
@@ -39,8 +40,20 @@ logger = get_logger()
 # Load environment variables
 dotenv.load_dotenv(".env")
 
-# Import the CosmosDBIndexer and generate_unique_id functions
-from cosmosdb_indexer import CosmosDBIndexer, generate_unique_id
+# Generate a unique ID for the case
+import uuid
+
+def generate_unique_id() -> str:
+    """
+    Generate an 8-character unique ID.
+
+    Returns:
+        str: An 8-character unique value.
+    """
+    unique_id = str(uuid.uuid4())
+    eight_char_unique_value = unique_id[:8]
+    return eight_char_unique_value
+
 
 # Initialize session state variables
 session_state = {
@@ -54,14 +67,17 @@ session_state = {
     ),
     "container_name": "pre-auth-policies",
     "conversation_id": generate_unique_id(),
-    "cosmos_indexer": CosmosDBIndexer(
-        endpoint_url=os.getenv("AZURE_COSMOSDB_ENDPOINT"),
-        credential_id=os.getenv("AZURE_COSMOSDB_KEY"),
-        database_name=os.getenv("AZURE_COSMOSDB_DATABASE"),
-        container_name=os.getenv("AZURE_COSMOSDB_CONTAINER"),
-    ),
+    "conversation_history": {},
 }
 
+# Correctly set the temp_dir as a string
+session_state['temp_dir'] = os.path.join(
+    r"C:\Users\pablosal\Desktop\gbb-ai-hls-factory-prior-auth\utils\temp",
+    session_state["conversation_id"]
+)
+
+# Ensure the temp_dir exists
+os.makedirs(session_state['temp_dir'], exist_ok=True)
 
 def locate_policy(api_response_gpt4o: Dict[str, Any]) -> str:
     """
@@ -108,7 +124,7 @@ def process_uploaded_files(uploaded_files: List[str]) -> str:
     ocr_data_extractor_helper = OCRHelper(
         container_name=session_state["container_name"]
     )
-    temp_dir = tempfile.mkdtemp()
+    temp_dir = session_state['temp_dir']
 
     try:
         for file_path in uploaded_files:
@@ -120,7 +136,7 @@ def process_uploaded_files(uploaded_files: List[str]) -> str:
         return temp_dir
     except Exception as e:
         logger.error(f"Failed to process files: {e}")
-        return ""
+        return temp_dir
 
 
 def get_policy_text_from_blob(blob_url: str) -> str:
@@ -142,8 +158,9 @@ def get_policy_text_from_blob(blob_url: str) -> str:
             container=container_name, blob=blob_name
         )
         blob_content = blob_client.download_blob().readall()
+        logger.info(f"Blob content downloaded successfully from {blob_url}")
     except Exception as e:
-        logger.error(f"Failed to download blob content: {e}")
+        logger.error(f"Failed to download blob content from {blob_url}: {e}")
         return ""
 
     try:
@@ -152,9 +169,10 @@ def get_policy_text_from_blob(blob_url: str) -> str:
             model_type="prebuilt-layout",
             output_format="markdown",
         )
+        logger.info(f"Document analyzed successfully for blob {blob_url}")
         return policy_text.content
     except Exception as e:
-        logger.error(f"Failed to analyze document: {e}")
+        logger.error(f"Failed to analyze document for blob {blob_url}: {e}")
         return ""
 
 
@@ -181,7 +199,7 @@ def find_all_files(root_folder: str, extensions: Union[List[str], str]) -> List[
 
 
 async def generate_ai_response(
-    user_prompt: str, system_prompt: str, image_paths: List[str]
+    user_prompt: str, system_prompt: str, image_paths: List[str] = None, response_format: str = 'json_object'
 ) -> Dict[str, Any]:
     """
     Generate AI response using OpenAI's API.
@@ -200,28 +218,13 @@ async def generate_ai_response(
             image_paths=image_paths,
             conversation_history=[],
             max_tokens=3000,
+            response_format=response_format
+
         )
         return response
     except Exception as e:
         logger.error(f"Error generating AI response: {e}")
         return {}
-
-
-def store_output_to_cosmos(data: Dict[str, Any], step: str) -> None:
-    """
-    Store the given data into Azure Cosmos DB.
-
-    :param data: The data to store.
-    :param step: The step identifier to categorize the data.
-    """
-    # Add the conversation ID and step to the data
-    data_to_store = {
-        "conversation_id": session_state["conversation_id"],
-        "step": step,
-        "data": data,
-    }
-    # Index the data into Cosmos DB
-    session_state["cosmos_indexer"].index_data([data_to_store], id_key="conversation_id")
 
 
 def chat_interface() -> None:
@@ -237,6 +240,45 @@ def chat_interface() -> None:
     conversation_history: List[Dict[str, str]] = []
 
     try:
+        # Allow the user to input the directory up to three times
+        max_attempts = 3
+        attempts = 0
+
+        while attempts < max_attempts:
+            try:
+                # Ask the user for the directory of files to process
+                input_dir = input(
+                    Fore.GREEN + "Enter the path to the directory containing files to process: "
+                )
+                process_documents_flow(input_dir)
+
+                # If processing is successful, break out of the loop
+                print(Fore.GREEN + "Documents processed successfully.")
+                break
+            except Exception as e:
+                # Increment the attempt counter
+                attempts += 1
+
+                # Print the error message
+                print(Fore.RED + f"Error: {e}")
+
+                # If the maximum number of attempts is reached, print a message and exit
+                if attempts == max_attempts:
+                    print(Fore.RED + "Maximum number of attempts reached. Exiting.")
+                    return
+
+        # After processing, display the final determination
+        final_response = session_state["conversation_history"].get("final_determination")
+        if final_response:
+            print(
+                Fore.MAGENTA
+                + "\nFinal Determination:\n"
+                + final_response.get("data", "")
+            )
+        else:
+            print(Fore.RED + "No final determination available.")
+
+        print(Fore.CYAN + "\nYou can now interact with the assistant.")
         while True:
             user_input = input(Fore.GREEN + "You: ")
             if user_input.lower() == "exit":
@@ -245,8 +287,8 @@ def chat_interface() -> None:
 
             conversation_history.append({"role": "user", "content": user_input})
 
-            # Store user input to Cosmos DB
-            store_output_to_cosmos({"user_input": user_input}, step="user_input")
+            # Store user input in session state
+            store_output_in_memory({"user_input": user_input}, step="user_input")
 
             # Process user input and generate AI response
             ai_response = asyncio.run(
@@ -258,19 +300,12 @@ def chat_interface() -> None:
             )
 
             ai_content = ai_response.get("response", {}).get("text", "")
-            print(Fore.YELLOW + "Prior Auth Specialist: " + ai_content)
+            print(Fore.YELLOW + "Assistant: " + ai_content)
 
             conversation_history.append({"role": "assistant", "content": ai_content})
 
-            # Store AI response to Cosmos DB
-            store_output_to_cosmos({"ai_response": ai_content}, step="ai_response")
-
-            # Check if user wants to process documents
-            if "process documents" in user_input.lower():
-                input_dir = input(
-                    Fore.GREEN + "Enter the path to the directory containing files: "
-                )
-                process_documents_flow(input_dir)
+            # Store AI response in session state
+            store_output_in_memory({"ai_response": ai_content}, step="ai_response")
     except KeyboardInterrupt:
         print(Fore.CYAN + "\nChat session ended by user.")
     except Exception as e:
@@ -279,15 +314,11 @@ def chat_interface() -> None:
 
 def process_documents_flow(input_dir: str) -> None:
     """
-    Process documents as per the pipeline flow and display the final analysis.
+    Process documents as per the pipeline flow and store the outputs in memory.
 
     :param input_dir: Directory containing files to process.
     """
-    uploaded_files = [
-        str(Path(input_dir) / f)
-        for f in os.listdir(input_dir)
-        if os.path.isfile(Path(input_dir) / f)
-    ]
+    uploaded_files = find_all_files(input_dir, ["pdf"])
 
     if uploaded_files:
         try:
@@ -303,8 +334,8 @@ def process_documents_flow(input_dir: str) -> None:
                 )
             )
 
-            # Store NER response to Cosmos DB
-            store_output_to_cosmos(api_response_gpt4o, step="NER_response")
+            # Store NER response in memory
+            store_output_in_memory(api_response_gpt4o, step="NER_response")
 
             clinical_info = api_response_gpt4o["response"].get("Clinical Information")
             if clinical_info:
@@ -316,21 +347,24 @@ def process_documents_flow(input_dir: str) -> None:
                 api_response_search = asyncio.run(
                     generate_ai_response(
                         system_prompt_query_expansion,
-                        SYSTEM_PROMPT_NER,
-                        pa_files_images,
+                        SYSTEM_PROMPT_QUERY_EXPANSION,
+                        None,
                     )
                 )
 
-                # Store query expansion response to Cosmos DB
-                store_output_to_cosmos(api_response_search, step="query_expansion")
+                # Store query expansion response in memory
+                store_output_in_memory(api_response_search, step="query_expansion")
 
                 # Locate the policy
                 policy_location = locate_policy(api_response_search)
-                if policy_location != "No results found" and policy_location != "Error locating policy":
+                if (
+                    policy_location != "No results found"
+                    and policy_location != "Error locating policy"
+                ):
                     policy_text = get_policy_text_from_blob(policy_location)
 
-                    # Store policy text to Cosmos DB
-                    store_output_to_cosmos(
+                    # Store policy text in memory
+                    store_output_in_memory(
                         {"policy_location": policy_location, "policy_text": policy_text},
                         step="policy_retrieval",
                     )
@@ -344,37 +378,52 @@ def process_documents_flow(input_dir: str) -> None:
                                 user_prompt_pa,
                                 SYSTEM_PROMPT_PRIOR_AUTH,
                                 pa_files_images,
+                                response_format='text'
                             )
                         )
-                        final_response = api_response_final.get("response", {}).get(
-                            "text", ""
+                        print(
+                            Fore.MAGENTA + "\nFinal Determination:\n" + api_response_final["response"]
                         )
-                        print(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
 
-                        # Store final determination to Cosmos DB
-                        store_output_to_cosmos(
-                            {"final_determination": final_response}, step="final_determination"
+                        # Store final determination in memory
+                        store_output_in_memory(
+                            {"final_determination": api_response_final["response"]},
+                            step="final_determination",
                         )
                     else:
                         print(Fore.RED + "Policy text not found.")
-                        store_output_to_cosmos(
+                        store_output_in_memory(
                             {"error": "Policy text not found."}, step="error"
                         )
                 else:
                     print(Fore.RED + "Policy not found.")
-                    store_output_to_cosmos(
+                    store_output_in_memory(
                         {"error": "Policy not found."}, step="error"
                     )
             else:
                 print(Fore.RED + "Clinical Information not found in AI response.")
-                store_output_to_cosmos(
+                store_output_in_memory(
                     {"error": "Clinical Information not found."}, step="error"
                 )
         except Exception as e:
             logger.error(f"Document processing failed: {e}")
-            store_output_to_cosmos({"error": str(e)}, step="error")
+            store_output_in_memory({"error": str(e)}, step="error")
     else:
         print(Fore.RED + "No files found in the input directory.")
+
+
+def store_output_in_memory(data: Dict[str, Any], step: str) -> None:
+    """
+    Store the given data in the conversation history dictionary.
+
+    :param data: The data to store.
+    :param step: The step identifier to categorize the data.
+    """
+    conversation_id = session_state["conversation_id"]
+    if conversation_id not in session_state["conversation_history"]:
+        session_state["conversation_history"][conversation_id] = {}
+
+    session_state["conversation_history"][conversation_id][step] = {"data": data}
 
 
 def main() -> None:

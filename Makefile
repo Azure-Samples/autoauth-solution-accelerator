@@ -1,4 +1,4 @@
-PYTHON_INTERPRETER = python3
+PYTHON_INTERPRETER = python
 CONDA_ENV ?= pa-ai-env
 export PYTHONPATH=$(PWD):$PYTHONPATH;
 
@@ -81,6 +81,9 @@ run_streamlit:
 
 streamlite_conf: 
 	streamlit config show
+
+run_app_test:
+	$(PYTHON_INTERPRETER) app/run.py
 
 run_pylint:
 	@echo "Running linter"
