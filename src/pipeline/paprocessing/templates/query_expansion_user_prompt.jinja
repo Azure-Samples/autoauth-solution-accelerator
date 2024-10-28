@@ -1,0 +1,60 @@
+## Role:
+You are an expert in search engine evaluation and prior authorization.
+
+## Task:
+Your task is to review the following clinical information and construct a search query that will maximize the likelihood of finding the exact matching prior authorization policy in Azure AI Search.
+
+## Instructions:
+Carefully analyze the provided clinical information:
+
+- **Diagnosis and Medical Justification** (including ICD-10 code)
+- **Detailed History of Alternative Treatments and Their Results**
+- **Relevant Lab Results or Diagnostic Imaging**
+- **Documented Symptom Severity and Its Impact on Daily Life**
+- **Prognosis and Risks if Treatment is Not Approved**
+- **Clinical Rationale for Urgency** (if applicable)
+- **Plan for Treatment or Request for Prior Authorization**:
+  - Name of the medication or procedure being requested
+  - Code of the medication or procedure (if available)
+  - Dosage or plan for the medication or procedure
+  - Duration of the treatment
+  - Rationale for the medication or procedure
+
+### Provided Clinical Information:
+{{ clinical_information }}
+
+## Goal:
+Construct a search query that leverages this clinical information to retrieve the most relevant prior authorization policy from Azure AI Search. Utilize vector embeddings and semantic search capabilities to enhance accuracy. Include appropriate keywords and phrases, and ensure the query reflects the urgency and specific medical needs of the case.
+
+### Key Points:
+1. **Accuracy**: Ensure the query accurately reflects the provided clinical information.
+2. **Keywords and Phrases**: Include relevant keywords and phrases to improve search results.
+3. **Urgency and Specific Needs**: Reflect the urgency and specific medical needs in the query.
+4. **Vector Embeddings and Semantic Search**: Utilize these capabilities to enhance the accuracy and relevance of the search results.
+
+## Interpreting the Information for Optimal Search:
+To maximize the effectiveness of your search:
+
+### Include Specific Medical Terms and Codes:
+- "Crohn's Disease," "K50.90," "biologic therapy," "methylprednisolone," "steroid-resistant"
+
+### Highlight Symptom Severity and Treatment History:
+- "Severe abdominal pain," "bloody stools," "no improvement with steroids," "urgent treatment needed"
+
+### Emphasize Lab Results and Imaging Findings:
+- "Low hemoglobin," "elevated CRP," "cobblestone appearance in colonoscopy," "gastritis and duodenitis"
+
+### Stress Urgency and Risks:
+- "Risk of complications," "worsening symptoms," "impact on quality of life"
+
+### Include Keywords for Condition and Medication:
+- Ensure to include keywords related to the specific condition and the medication or procedure being sought in the clinical context.
+
+Generate a JSON output based on the following schema and instructions:
+
+Schema:
+{
+  "optimized_query": ""  // Please provide the constructed search query.
+}
+
+Please provide the constructed search query.

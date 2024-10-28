@@ -1,0 +1,31 @@
+## Patient Information:
+- **Patient Name**: {{ patient_name }}
+- **Patient Date of Birth**: {{ patient_dob }}
+- **Patient ID**: {{ patient_id }}
+- **Patient Address**: {{ patient_address }}
+- **Patient Phone Number**: {{ patient_phone }}
+
+## Clinical Information:
+- **Diagnosis and Medical Justification**: {{ diagnosis }}
+- **Detailed History of Alternative Treatments and Their Results**: {{ treatment_history }}
+- **Relevant Lab Results or Diagnostic Imaging**: {{ lab_results }}
+- **Documented Symptom Severity and Its Impact on Daily Life**: {{ symptom_severity }}
+- **Prognosis and Risks if Treatment is Not Approved**: {{ prognosis }}
+- **Clinical Rationale for Urgency**: {{ urgency_rationale }}
+- **Plan for Treatment or Request for Prior Authorization**:
+  - **Medication or Procedure**: {{ medication_or_procedure }}
+  - **Code**: {{ code }}
+  - **Dosage or Plan**: {{ dosage }}
+  - **Duration**: {{ duration }}
+  - **Rationale**: {{ rationale }}
+
+## Policy Text:
+{{ policy_text }}
+
+## Decision:
+Based on the provided policy text, patient information, and clinical information, decide if the prior authorization request should be:
+1. **Approved**: If the request meets the policy criteria.
+2. **Denied**: If the request does not meet the policy criteria.
+3. **Needs More Information**: If additional information is required to make a decision.
+
+Please provide your decision along with a brief explanation.

@@ -136,13 +136,16 @@ class OCRHelper:
         else:
             self.blob_manager = None
 
-    def extract_images_from_pdf(self, input_path: str, output_path: str) -> None:
+    def extract_images_from_pdf(self, input_path: str, output_path: str) -> str:
         """
         Extracts pages from a PDF file or a folder of PDF files and saves them as images.
 
         Args:
             input_path (str): Path or URL to the PDF file or folder of PDF files.
             output_path (str): Path to the folder where the images will be saved.
+
+        Returns:
+            str: Path to the directory containing the extracted images.
         """
         is_url = urlparse(input_path).scheme in ["http", "https"]
 
@@ -165,6 +168,8 @@ class OCRHelper:
         else:
             logger.info(f"Input path is a local file or directory: {input_path}")
             self._process_pdf_path(input_path, output_path)
+
+        return output_path
 
     def _process_pdf_path(self, input_path: str, output_path: str) -> None:
         """

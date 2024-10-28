@@ -1,7 +1,8 @@
 import os
-import asyncio
-import urllib.parse
-from typing import Any, Dict, List, Optional
+import yaml
+import tempfile
+import shutil
+from typing import Any, Dict, List, Optional, Union
 
 import dotenv
 from azure.core.credentials import AzureKeyCredential
@@ -14,117 +15,64 @@ from azure.search.documents.models import (
 )
 from src.pipeline.paprocessing.helpers import find_all_files
 from colorama import Fore, init
-from src.aoai.azure_helper import AzureOpenAIManager
-from app.components.prompts import (
-    SYSTEM_PROMPT_NER,
-    SYSTEM_PROMPT_PRIOR_AUTH,
-    SYSTEM_PROMPT_QUERY_EXPANSION,
-    create_prompt_pa,
-    create_prompt_query_expansion,
-    USER_PROMPT_NER,
-)
-from src.extractors.pdf_data_extractor import OCRHelper
+from src.aoai.aoai_helper import AzureOpenAIManager
+from src.pipeline.paprocessing.pdfhandler import OCRHelper
 from src.documentintelligence.document_intelligence_helper import AzureDocumentIntelligenceManager
 from src.entraid.generate_id import generate_unique_id
 from src.cosmosdb.cosmosdb_helper import CosmosDBManager
 from src.storage.blob_helper import AzureBlobManager
+from src.pipeline.paprocessing.prompt_manager import PromptManager
 from utils.ml_logging import get_logger
 
-# Initialize colorama and logger
 init(autoreset=True)
 logger = get_logger()
 
-# Load environment variables
 dotenv.load_dotenv(".env")
 
 class PAProcessingPipeline:
     """
     A class to handle the Prior Authorization Processing Pipeline.
-
-    Attributes:
-        azure_openai_client (AzureOpenAIManager): The Azure OpenAI client.
-        search_client (SearchClient): The Azure Search client.
-        container_name (str): The name of the Azure Blob Storage container.
-        temp_dir (str): The path to the temporary directory for storing processed files.
-        case_id (str): A unique ID for the case.
-        conversation_history (Dict[str, Any]): A dictionary to store the conversation history.
-        local (bool): Flag indicating whether operations are local or involve Azure services.
-        cosmos_db_manager (Optional[CosmosDBManager]): The CosmosDB manager for remote mode.
-        blob_manager (Optional[AzureBlobManager]): The Blob storage manager for remote mode.
-        document_intelligence_client (AzureDocumentIntelligenceManager): The Document Intelligence client.
     """
 
     def __init__(
         self,
-        azure_openai_chat_deployment_id: Optional[str] = None,
+        case_id: Optional[str] = None,
+        config_path: str = "src/pipeline/paprocessing/settings.yaml",
+        azure_openai_chat_deployment_id: Optional[str] = None, 
         azure_openai_key: Optional[str] = None,
         azure_search_service_endpoint: Optional[str] = None,
         azure_search_index_name: Optional[str] = None,
         azure_search_admin_key: Optional[str] = None,
-        azure_blob_container_name: str = "pre-auth-policies",
-        temp_dir_base_path: str = "utils/temp",
         azure_blob_storage_account_name: Optional[str] = None,
         azure_blob_storage_account_key: Optional[str] = None,
-        local: bool = True,
         azure_cosmos_db_endpoint: Optional[str] = None,
         azure_cosmos_db_key: Optional[str] = None,
         azure_cosmos_db_database_name: Optional[str] = None,
         azure_cosmos_db_container_name: Optional[str] = None,
         azure_document_intelligence_endpoint: Optional[str] = None,
         azure_document_intelligence_key: Optional[str] = None,
-        caseId: Optional[str] = None,
+        local: bool = False,
     ):
         """
         Initialize the PAProcessingPipeline with provided parameters or environment variables.
-
-        Args:
-            azure_openai_chat_deployment_id (Optional[str]): The Azure OpenAI Chat Deployment ID.
-            azure_openai_key (Optional[str]): The Azure OpenAI key.
-            azure_search_service_endpoint (Optional[str]): The Azure Search Service Endpoint.
-            azure_search_index_name (Optional[str]): The Azure Search Index Name.
-            azure_search_admin_key (Optional[str]): The Azure Search Admin Key.
-            azure_blob_container_name (str): The Azure Blob Storage Container Name.
-            temp_dir_base_path (str): The base path for the temporary directory.
-            azure_blob_storage_account_name(Optional[str]): The Azure Blob Storage Account Name.
-            azure_blob_storage_account_key(Optional[str]): The Azure Blob Storage Account Key.
-            local (bool): Flag indicating whether operations are local or involve Azure services.
-            azure_cosmos_db_endpoint (Optional[str]): The endpoint URL for Azure Cosmos DB.
-            azure_cosmos_db_key (Optional[str]): The access key for Azure Cosmos DB.
-            azure_cosmos_db_database_name (Optional[str]): The name of the Cosmos DB database.
-            azure_cosmos_db_container_name (Optional[str]): The name of the Cosmos DB container.
-            azure_document_intelligence_endpoint (Optional[str]): The endpoint URL for Azure Document Intelligence.
-            azure_document_intelligence_key (Optional[str]): The access key for Azure Document Intelligence.
-            case_id (Optional[str]): A unique ID for the case.
         """
-        # Load environment variables if not provided
-        if not azure_openai_chat_deployment_id:
-            azure_openai_chat_deployment_id = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
-        if not azure_openai_key:
-            azure_openai_key = os.getenv("AZURE_OPENAI_KEY")
-        if not azure_search_service_endpoint:
-            azure_search_service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
-        if not azure_search_index_name:
-            azure_search_index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
-        if not azure_search_admin_key:
-            azure_search_admin_key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
-        if not azure_blob_storage_account_name:
-            azure_blob_storage_account_name= os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
-        if not azure_blob_storage_account_key:
-            azure_blob_storage_account_key= os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
-        if not azure_cosmos_db_endpoint:
-            azure_cosmos_db_endpoint = os.getenv("AZURE_COSMOS_DB_ENDPOINT")
-        if not azure_cosmos_db_key:
-            azure_cosmos_db_key = os.getenv("AZURE_COSMOS_DB_KEY")
-        if not azure_cosmos_db_database_name:
-            azure_cosmos_db_database_name = os.getenv("AZURE_COSMOS_DB_DATABASE_NAME")
-        if not azure_cosmos_db_container_name:
-            azure_cosmos_db_container_name = os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME")
-        if not azure_document_intelligence_endpoint:
-            azure_document_intelligence_endpoint = os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
-        if not azure_document_intelligence_key:
-            azure_document_intelligence_key = os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
+        with open(config_path, 'r') as file:
+            config = yaml.safe_load(file)
 
-        # Initialize attributes
+        azure_openai_chat_deployment_id = azure_openai_chat_deployment_id or os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
+        azure_openai_key = azure_openai_key or os.getenv("AZURE_OPENAI_KEY")
+        azure_search_service_endpoint = azure_search_service_endpoint or os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
+        azure_search_index_name = azure_search_index_name or os.getenv("AZURE_SEARCH_INDEX_NAME")
+        azure_search_admin_key = azure_search_admin_key or os.getenv("AZURE_SEARCH_ADMIN_KEY")
+        azure_blob_storage_account_name = azure_blob_storage_account_name or os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
+        azure_blob_storage_account_key = azure_blob_storage_account_key or os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
+        azure_cosmos_db_endpoint = azure_cosmos_db_endpoint or os.getenv("AZURE_COSMOS_DB_ENDPOINT")
+        azure_cosmos_db_key = azure_cosmos_db_key or os.getenv("AZURE_COSMOS_DB_KEY")
+        azure_cosmos_db_database_name = azure_cosmos_db_database_name or os.getenv("AZURE_COSMOS_DB_DATABASE_NAME")
+        azure_cosmos_db_container_name = azure_cosmos_db_container_name or os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME")
+        azure_document_intelligence_endpoint = azure_document_intelligence_endpoint or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
+        azure_document_intelligence_key = azure_document_intelligence_key or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
+
         self.azure_openai_client = AzureOpenAIManager(
             completion_model_name=azure_openai_chat_deployment_id,
             api_key=azure_openai_key,
@@ -134,58 +82,44 @@ class PAProcessingPipeline:
             index_name=azure_search_index_name,
             credential=AzureKeyCredential(azure_search_admin_key),
         )
-        self.container_name = azure_blob_container_name
-        self.case_id = caseId if caseId else generate_unique_id()
-        self.conversation_history: Dict[str, Any] = {}
-        self.local = local
+        self.container_name = config['remote_blob_paths']['container_name']
+        self.remote_dir_base_path = config['remote_blob_paths']['remote_dir_base']
+        self.raw_uploaded_files = config['remote_blob_paths']['raw_uploaded_files']
+        self.processed_images = config['remote_blob_paths']['processed_images']
+        self.case_id = case_id if case_id else generate_unique_id()
         self.azure_blob_storage_account_name = azure_blob_storage_account_name
         self.azure_blob_storage_account_key = azure_blob_storage_account_key
+
         self.document_intelligence_client = AzureDocumentIntelligenceManager(
             azure_endpoint=azure_document_intelligence_endpoint,
             azure_key=azure_document_intelligence_key
         )
-        # Initialize CosmosDBManager and AzureBlobManager
         self.blob_manager = AzureBlobManager(
             storage_account_name=self.azure_blob_storage_account_name,
             account_key=self.azure_blob_storage_account_key,
             container_name=self.container_name,
         )
-        if not self.local:
-            self.cosmos_db_manager = CosmosDBManager(
-                endpoint_url=azure_cosmos_db_endpoint,
-                credential_id=azure_cosmos_db_key,
-                database_name=azure_cosmos_db_database_name,
-                container_name=azure_cosmos_db_container_name,
-            )
-            self.temp_dir = f"{self.container_name}/{self.case_id}"
-        else:
-            self.cosmos_db_manager = None
-            self.temp_dir = os.path.join(temp_dir_base_path, self.case_id)
-            os.makedirs(self.temp_dir, exist_ok=True)
+        self.cosmos_db_manager = CosmosDBManager(
+            endpoint_url=azure_cosmos_db_endpoint,
+            credential_id=azure_cosmos_db_key,
+            database_name=azure_cosmos_db_database_name,
+            container_name=azure_cosmos_db_container_name,
+        )
+        self.prompt_manager = PromptManager()
+        self.SYSTEM_PROMPT_NER = self.prompt_manager.get_prompt('ner_system_prompt.jinja')
+        self.USER_PROMPT_NER = self.prompt_manager.get_prompt('ner_user_prompt.jinja')
+        self.SYSTEM_PROMPT_QUERY_EXPANSION = self.prompt_manager.get_prompt('query_expansion_system_prompt.jinja')
+        self.SYSTEM_PROMPT_PRIOR_AUTH = self.prompt_manager.get_prompt('prior_auth_system_prompt.jinja')
 
-    def analyze_document(self, document_path: str) -> Dict[str, Any]:
-        """
-        Analyze a document using Azure Document Intelligence.
-
-        Args:
-            document_path (str): The path to the document to be analyzed.
-
-        Returns:
-            Dict[str, Any]: The analysis results.
-        """
-        with open(document_path, "rb") as document:
-            analysis_result = self.document_intelligence_client.analyze_document(document)
-        return analysis_result
+        self.remote_dir = f"{self.remote_dir_base_path}/{self.case_id}"
+        self.conversation_history: List[Dict[str, Any]] = []
+        self.results: Dict[str, Any] = {}
+        self.temp_dir = tempfile.mkdtemp()
+        self.local = local
 
     def locate_policy(self, api_response: Dict[str, Any]) -> str:
         """
         Locate the policy based on the optimized query from the AI response.
-
-        Args:
-            api_response (Dict[str, Any]): The AI response containing the optimized query.
-
-        Returns:
-            str: The location of the policy or a message indicating no results were found.
         """
         try:
             optimized_query = api_response["response"]["optimized_query"]
@@ -212,68 +146,82 @@ class PAProcessingPipeline:
         except Exception as e:
             logger.error(f"Error locating policy: {e}")
             return "Error locating policy"
+                
+    def upload_files_to_blob(self, uploaded_files: Union[str, List[str]], step: str) -> None:
+        """
+        Upload the given files to Azure Blob Storage.
+        """
+        if isinstance(uploaded_files, str):
+            uploaded_files = [uploaded_files]
+    
+        remote_files = []
+        for file_path in uploaded_files:
+            if os.path.isdir(file_path):
+                logger.warning(f"Skipping directory '{file_path}' as it cannot be uploaded as a file.")
+                continue
+    
+            try:
+                if file_path.startswith("http"):
+                    blob_info = self.blob_manager._parse_blob_url(file_path)
+                    destination_blob_path = f"{self.remote_dir}/{step}/{blob_info['blob_name']}"
+                    self.blob_manager.copy_blob(file_path, destination_blob_path)
+                    full_url = f"https://{self.azure_blob_storage_account_name}.blob.core.windows.net/{self.container_name}/{destination_blob_path}"
+                    logger.info(f"Copied blob from '{file_path}' to '{full_url}' in container '{self.blob_manager.container_name}'.")
+                    remote_files.append(full_url)
+                else:
+                    file_name = os.path.basename(file_path)
+                    destination_blob_path = f"{self.remote_dir}/{step}/{file_name}"
+                    self.blob_manager.upload_file(file_path, destination_blob_path, overwrite=True)
+                    full_url = f"https://{self.azure_blob_storage_account_name}.blob.core.windows.net/{self.container_name}/{destination_blob_path}"
+                    logger.info(f"Uploaded file '{file_path}' to blob '{full_url}' in container '{self.blob_manager.container_name}'.")
+                    remote_files.append(full_url)
+            except Exception as e:
+                logger.error(f"Failed to upload or copy file '{file_path}': {e}")
 
-    def process_uploaded_files(self, uploaded_files: List[str]) -> str:
+        if self.case_id not in self.results:
+            self.results[self.case_id] = {}
+        self.results[self.case_id][step] = remote_files
+        logger.info(f"All files processed for upload to Azure Blob Storage in container '{self.blob_manager.container_name}'.")
+
+    def process_uploaded_files(self, uploaded_files: Union[str, List[str]]) -> str:
         """
         Process uploaded files and extract images.
-
-        Args:
-            uploaded_files (List[str]): List of file paths to the uploaded files.
-
-        Returns:
-            str: Path to the directory containing processed images.
         """
-        ocr_helper = OCRHelper(container_name=self.container_name)
-        temp_dir = self.temp_dir
-
+        self.upload_files_to_blob(uploaded_files, step="raw_uploaded_files")
+        ocr_helper = OCRHelper(
+            storage_account_name=self.azure_blob_storage_account_name,
+            container_name=self.container_name,
+            account_key=self.azure_blob_storage_account_key,
+        )
         try:
             for file_path in uploaded_files:
                 logger.info(f"Processing file: {file_path}")
-                # For both local and remote, extract images locally
-                ocr_helper.extract_images_from_pdf(
-                    input_path=file_path, output_path=temp_dir
+                output_paths = ocr_helper.extract_images_from_pdf(
+                    input_path=file_path, output_path=self.temp_dir
                 )
+                if not output_paths:
+                    logger.warning(f"No images extracted from file '{file_path}'.")
+                    continue
 
-            logger.info(f"Files processed and images extracted to: {temp_dir}")
+                # Upload each extracted image individually
+                self.upload_files_to_blob(output_paths, step="processed_images")
+                logger.info(f"Images extracted and uploaded from: {self.temp_dir}")
 
-            if not self.local and self.blob_manager:
-                # Upload the extracted images to Azure Blob Storage
-                self.blob_manager.upload_files(
-                    local_path=temp_dir,
-                    remote_path=temp_dir,
-                    overwrite=True,
-                )
-                logger.info(f"Images uploaded to Azure Blob Storage at {temp_dir}")
-
-            return temp_dir
+            logger.info(f"Files processed and images extracted to: {self.temp_dir}")
+            return self.temp_dir
         except Exception as e:
             logger.error(f"Failed to process files: {e}")
-            return temp_dir
+            return self.temp_dir
 
     def get_policy_text_from_blob(self, blob_url: str) -> str:
         """
         Download the blob content from the given URL and extract text.
-
-        Args:
-            blob_url (str): The URL of the blob.
-
-        Returns:
-            str: The extracted text from the document.
         """
         try:
-            # Parse the blob URL
-            parsed_url = urllib.parse.urlparse(blob_url)
-            path_parts = parsed_url.path.lstrip('/').split('/')
-            container_name = path_parts[0]
-            blob_name = '/'.join(path_parts[1:])
-            
-            # Ensure the blob manager is using the correct container
-            self.blob_manager.change_container(container_name)
-
             # Download the blob content
-            blob_content = self.blob_manager.download_blob_to_bytes(blob_name)
+            blob_content = self.blob_manager.download_blob_to_bytes(blob_url)
             if blob_content is None:
-                raise Exception(f"Failed to download blob '{blob_name}'")
+                raise Exception(f"Failed to download blob from URL: {blob_url}")
             logger.info(f"Blob content downloaded successfully from {blob_url}")
 
             # Analyze the document
@@ -287,43 +235,39 @@ class PAProcessingPipeline:
         except Exception as e:
             logger.error(f"Failed to get policy text from blob {blob_url}: {e}")
             return ""
-
-
-
-    def store_output(self, data: Dict[str, Any], step: str) -> None:
+    
+    def log_output(self, data: Dict[str, Any], 
+                   conversation_history: Optional[List[Dict[str, Any]]] = None, 
+                   step: Optional[str] = None) -> None:
         """
         Store the given data either in memory or in Cosmos DB.
-
-        Args:
-            data (Dict[str, Any]): The data to store.
-            step (str): The step identifier to categorize the data.
         """
-        data_to_store = {
-            "case_id": self.case_id,
-            "step": step,
-            "data": data,
-        }
+        try:
+            # Ensure the case_id exists in results
+            if self.case_id not in self.results:
+                self.results[self.case_id] = {}
 
-        if self.local:
-            if self.case_id not in self.conversation_history:
-                self.conversation_history[self.case_id] = {}
-            self.conversation_history[self.case_id][step] = data_to_store
-        else:
-            # Use CosmosDBManager to index data
-            if self.cosmos_db_manager:
-                self.cosmos_db_manager.index_data([data_to_store], id_key="case_id")
+            # Update the results dictionary
+            if step is not None:
+                self.results[self.case_id][step] = data
             else:
-                logger.error("CosmosDBManager is not initialized.")
+                self.results[self.case_id].update(data)
+
+            # Update the conversation history
+            if conversation_history is not None:
+                self.conversation_history.extend(conversation_history)
+
+            logger.info(f"Data logged for step '{step}' in case '{self.case_id}'.")
+
+        except Exception as e:
+            logger.error(f"Failed to log output for step '{step}': {e}")
 
     def get_conversation_history(self) -> Dict[str, Any]:
         """
         Retrieve the conversation history.
-
-        Returns:
-            Dict[str, Any]: The conversation history dictionary.
         """
         if self.local:
-            return self.conversation_history.get(self.case_id, {})
+            return self.conversation_history
         else:
             if self.cosmos_db_manager:
                 query = f"SELECT * FROM c WHERE c.case_id = '{self.case_id}'"
@@ -336,171 +280,111 @@ class PAProcessingPipeline:
                 logger.error("CosmosDBManager is not initialized.")
                 return {}
 
+    def cleanup_temp_dir(self) -> None:
+        """
+        Cleans up the temporary directory used for processing files.
+        """
+        try:
+            if os.path.exists(self.temp_dir):
+                shutil.rmtree(self.temp_dir)
+                logger.info(f"Cleaned up temporary directory: {self.temp_dir}")
+        except Exception as e:
+            logger.error(f"Failed to clean up temporary directory '{self.temp_dir}': {e}")
+
+    async def analyze_clinical_information(self, image_files: List[str]) -> Dict[str, Any]:
+        """
+        Analyze clinical information using AI.
+        """
+        logger.info(Fore.CYAN + "\nAnalyzing clinical information...")
+        api_response_ner = await self.azure_openai_client.generate_chat_response(
+            query=self.USER_PROMPT_NER,
+            system_message_content=self.SYSTEM_PROMPT_NER,
+            image_paths=image_files,
+            conversation_history=[],
+            response_format="json_object",
+            max_tokens=3000,
+        )
+        self.log_output(api_response_ner['response'], api_response_ner['conversation_history'], step=None)
+        return api_response_ner
+
+    async def expand_query_and_search_policy(self, clinical_info: str) -> Dict[str, Any]:
+        """
+        Expand query and search for policy.
+        """
+        prompt_query_expansion = self.prompt_manager.create_prompt_query_expansion(clinical_info)
+        logger.info(Fore.CYAN + "Expanding query and searching for policy...")
+        api_response_query = await self.azure_openai_client.generate_chat_response(
+            query=prompt_query_expansion,
+            system_message_content=self.SYSTEM_PROMPT_QUERY_EXPANSION,
+            conversation_history=[],
+            response_format="json_object",
+            max_tokens=3000,
+        )
+
+        # Store query expansion response
+        self.log_output(api_response_query['response'], api_response_query['conversation_history'], step=None)
+        return api_response_query
+
+    async def generate_final_determination(self, clinical_info: str, policy_text: str) -> None:
+        """
+        Generate final determination using AI.
+        """
+        user_prompt_pa = self.prompt_manager.create_prompt_pa(clinical_info, policy_text)
+        logger.info(Fore.CYAN + "Generating final determination...")
+        api_response_determination = await self.azure_openai_client.generate_chat_response(
+            query=user_prompt_pa,
+            system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
+            conversation_history=[],
+            response_format="text",
+            max_tokens=3000,
+        )
+        final_response = api_response_determination["response"]
+        logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
+        self.log_output({"final_determination": final_response}, api_response_determination['conversation_history'], step=None)
+
     async def run(self, uploaded_files: List[str]) -> None:
         """
         Process documents as per the pipeline flow and store the outputs.
-
-        Args:
-            uploaded_files (List[str]): List of file paths or URLs to process.
         """
-        if uploaded_files:
-            try:
-                temp_dir = self.process_uploaded_files(uploaded_files)
-                image_files = find_all_files(temp_dir, ["png"])
-
-                # Generate AI response for NER
-                logger.info(Fore.CYAN + "\nAnalyzing clinical information...")
-                api_response_ner = await self.azure_openai_client.generate_chat_response(
-                    query=USER_PROMPT_NER,
-                    system_message_content=SYSTEM_PROMPT_NER,
-                    image_paths=image_files,
-                    conversation_history=[],
-                    response_format="json_object",
-                    max_tokens=3000,
-                )
-
-                # Store NER response
-                self.store_output(api_response_ner, step="NER_response")
-
-                clinical_info = api_response_ner["response"].get("Clinical Information")
-                if clinical_info:
-                    prompt_query_expansion = create_prompt_query_expansion(clinical_info)
-                    logger.info(
-                        Fore.CYAN + "Expanding query and searching for policy..."
-                    )
-                    api_response_query = await self.azure_openai_client.generate_chat_response(
-                        query=prompt_query_expansion,
-                        system_message_content=SYSTEM_PROMPT_QUERY_EXPANSION,
-                        image_paths=image_files,
-                        conversation_history=[],
-                        response_format="json_object",
-                        max_tokens=3000,
-                    )
-
-                    # Store query expansion response
-                    self.store_output(api_response_query, step="query_expansion")
-
-                    # Locate the policy
-                    policy_location = self.locate_policy(api_response_query)
-                    if policy_location not in ["No results found", "Error locating policy"]:
-                        policy_text = self.get_policy_text_from_blob(policy_location)
-
-                        # Store policy text
-                        self.store_output(
-                            {
-                                "policy_location": policy_location,
-                                "policy_text": policy_text,
-                            },
-                            step="policy_retrieval",
-                        )
-
-                        if policy_text:
-                            user_prompt_pa = create_prompt_pa(
-                                clinical_info, policy_text
-                            )
-                            # Generate final AI response
-                            logger.info(
-                                Fore.CYAN + "Generating final determination..."
-                            )
-                            api_response_final = await self.azure_openai_client.generate_chat_response(
-                                query=user_prompt_pa,
-                                system_message_content=SYSTEM_PROMPT_PRIOR_AUTH,
-                                conversation_history=[],
-                                response_format="text",
-                                max_tokens=3000,
-                            )
-                            final_response = api_response_final["response"]
-                            logger.info(
-                                Fore.MAGENTA
-                                + "\nFinal Determination:\n"
-                                + final_response
-                            )
-
-                            # Store final determination
-                            self.store_output(
-                                {"final_determination": final_response},
-                                step="final_determination",
-                            )
-                        else:
-                            logger.info(Fore.RED + "Policy text not found.")
-                            self.store_output(
-                                {"error": "Policy text not found."}, step="error"
-                            )
-                    else:
-                        logger.info(Fore.RED + "Policy not found.")
-                        self.store_output(
-                            {"error": "Policy not found."}, step="error"
-                        )
-                else:
-                    logger.info(
-                        Fore.RED + "Clinical Information not found in AI response."
-                    )
-                    self.store_output(
-                        {"error": "Clinical Information not found."}, step="error"
-                    )
-            except Exception as e:
-                logger.error(f"Document processing failed: {e}")
-                self.store_output({"error": str(e)}, step="error")
-        else:
+        if not uploaded_files:
             logger.info(Fore.RED + "No files provided for processing.")
+            return
 
-    async def main():
-        """
-        Main function to run the application.
-
-        This function initializes the processing pipeline and starts the document processing.
-        """
         try:
-            # Load configuration
-            azure_openai_chat_deployment_id = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
-            azure_search_service_endpoint = os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
-            azure_search_index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
-            azure_search_admin_key = os.getenv("AZURE_SEARCH_ADMIN_KEY")
-            azure_blob_container_name = os.getenv("AZURE_BLOB_CONTAINER_NAME")
-            cosmos_db_endpoint = os.getenv("AZURE_COSMOSDB_ENDPOINT")
-            cosmos_db_key = os.getenv("AZURE_COSMOSDB_KEY")
-            cosmos_db_database_name = os.getenv("AZURE_COSMOSDB_DATABASE")
-            cosmos_db_container_name = os.getenv("AZURE_COSMOSDB_CONTAINER")
+            temp_dir = self.process_uploaded_files(uploaded_files)
+            image_files = find_all_files(temp_dir, ["png"])
 
-            # Determine if running in local or remote mode
-            local_mode = True  # Set to True for local mode, False for remote mode
+            api_response_ner = await self.analyze_clinical_information(image_files)
+            clinical_info = api_response_ner["response"].get("Clinical Information")
 
-            # Initialize the processing pipeline
-            pipeline = PAProcessingPipeline(
-                azure_openai_chat_deployment_id=azure_openai_chat_deployment_id,
-                azure_search_service_endpoint=azure_search_service_endpoint,
-                azure_search_index_name=azure_search_index_name,
-                azure_search_admin_key=azure_search_admin_key,
-                azure_blob_container_name=azure_blob_container_name,
-                local=local_mode,
-                cosmos_db_endpoint=cosmos_db_endpoint,
-                cosmos_db_key=cosmos_db_key,
-                cosmos_db_database_name=cosmos_db_database_name,
-                cosmos_db_container_name=cosmos_db_container_name,
+            if not clinical_info:
+                logger.info(Fore.RED + "Clinical Information not found in AI response.")
+                return
+
+            api_response_query = await self.expand_query_and_search_policy(clinical_info)
+            policy_location = self.locate_policy(api_response_query)
+
+            if policy_location in ["No results found", "Error locating policy"]:
+                logger.info(Fore.RED + "Policy not found.")
+                return
+
+            policy_text = self.get_policy_text_from_blob(policy_location)
+
+            if not policy_text:
+                logger.info(Fore.RED + "Policy text not found.")
+                return
+
+            self.log_output(
+                {
+                    "policy_location": policy_location,
+                    "policy_text": policy_text,
+                },
+                step=None
             )
 
-            # Ask the user for the list of files to process
-            input_files = input(
-                Fore.GREEN
-                + "Enter the paths or URLs to the files to process, separated by commas: "
-            )
-            uploaded_files = [path.strip() for path in input_files.split(',') if path.strip()]
-
-            # Process documents asynchronously
-            await pipeline.process_documents_flow(uploaded_files)
-
-            # Retrieve and display the conversation history
-            conversation_history = pipeline.get_conversation_history()
-            final_response = conversation_history.get("final_determination", {}).get("data", {}).get("final_determination")
-            if final_response:
-                print(
-                    Fore.MAGENTA + "\nFinal Determination:\n" + final_response
-                )
-            else:
-                print(Fore.RED + "No final determination available.")
+            await self.generate_final_determination(api_response_ner['response'], policy_text)
 
         except Exception as e:
-            logger.error(f"Application encountered an error: {e}")
-
-    if __name__ == "__main__":
-        asyncio.run(main())
+            logger.error(f"Document processing failed: {e}")
+        finally:
+            self.cleanup_temp_dir()

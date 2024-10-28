@@ -1,0 +1,109 @@
+Given the following images from medical documents .pdf (including prior authorization forms, medical imaging results, lab results, and doctor notes):
+
+Please carefully analyze the provided images to extract the following information and present it in JSON format as key-value pairs:
+
+1. **Patient Information**:
+    - Patient Name
+    - Patient Date of Birth
+    - Patient ID (e.g., Cigna ID)
+    - Patient Address
+    - Patient Phone Number
+
+2. **Physician Information**:
+    - Physician Name
+    - Specialty
+    - Physician Contact (Office Phone, Fax, Address)
+
+3. **Clinical Information**:
+    - Diagnosis and medical justification (including ICD-10 code)
+    - Detailed history of alternative treatments and results
+    - Relevant lab results or diagnostic imaging
+    - Documented symptom severity and impact on daily life
+    - Prognosis and risk if treatment is not approved
+    - Clinical rationale for urgency (if applicable)
+    - Plan for Treatment or Request for Prior Authorization
+      - Name of the medication or procedure being requested
+      - Code of the medication or procedure (if available)
+      - Dosage or plan for the medication or procedure
+      - Duration of Doses or Days of Treatment
+      - Rationale for the medication or procedure
+
+Instructions:
+
+1. **Accuracy is Paramount**: Ensure all extracted information is accurate and directly supported by the provided text. Pay special attention to correcting any OCR errors or misinterpretations.
+
+2. **OCR Error Correction**: Be vigilant for common OCR mistakes, such as misread characters or numbers, and correct them based on context.
+
+3. **Formatting the JSON Output**:
+   - Use the exact field names as provided.
+   - If certain information is not available in the text, indicate it as "Not provided" in the JSON output.
+
+Generate a JSON output based on the following schema and instructions:
+
+Schema:
+{
+  "Patient Information": {
+    "Patient Name": "Value here", // if not available, mention "Not provided"
+    "Patient Date of Birth": "Value here", // if not available, mention "Not provided"
+    "Patient ID": "Value here", // if not available, mention "Not provided"
+    "Patient Address": "Value here", // if not available, mention "Not provided"
+    "Patient Phone Number": "Value here" // if not available, mention "Not provided"
+  },
+  "Physician Information": {
+    "Physician Name": "Value here", // if not available, mention "Not provided"
+    "Specialty": "Value here", // if not available, mention "Not provided"
+    "Physician Contact": {
+      "Office Phone": "Value here", // if not available, mention "Not provided"
+      "Fax": "Value here", // if not available, mention "Not provided"
+      "Office Address": "Value here" // if not available, mention "Not provided"
+    }
+  },
+  "Clinical Information": {
+    "Diagnosis and medical justification (including ICD-10 code)": "Value here", // if not available, mention "Not provided"
+    "Detailed history of alternative treatments and results": "Value here", // if not available, mention "Not provided"
+    "Relevant lab results or diagnostic imaging": "Value here", // if not available, mention "Not provided"
+    "Documented symptom severity and impact on daily life": "Value here", // if not available, mention "Not provided"
+    "Prognosis and risk if treatment is not approved": "Value here", // if not available, mention "Not provided"
+    "Clinical rationale for urgency (if applicable)": "Value here" // if not available, mention "Not provided"
+    "Plan for Treatment or Request for Prior Authorization": {
+      "Medication or Procedure": "Value here", // if not available, mention "Not provided"
+      "Code": "Value here", // if not available, mention "Not provided"
+      "Dosage": "Value here", // if not available, mention "Not provided"
+      "Duration": "Value here", // if not available, mention "Not provided"
+      "Rationale": "Value here" // if not available, mention "Not provided"
+      }
+  }
+}
+
+4. **Clarity and Professionalism**:
+    - Use clear and concise language appropriate for medical documentation.
+    - Maintain professional tone and terminology.
+
+5. **Multiple Entries Handling**:
+    - If multiple diagnoses, treatments, or lab results are present, list each entry separated by semicolons within the same field.
+
+6. **ICD-10 Codes**:
+    - Ensure that any ICD-10 codes are accurately extracted and correspond correctly to the diagnosis.
+    - If the ICD-10 code is missing but the diagnosis is present, you may look up the standard ICD-10 code that matches the diagnosis, if appropriate.
+
+7. **Lab Results and Imaging**:
+    - Include key findings, values, and any notable abnormalities.
+    - Mention the type of test and the date if available.
+
+8. **Symptom Severity and Impact**:
+    - Provide details on how the symptoms affect the patient's daily life, including any limitations or impairments.
+
+9. **Prognosis and Risks**:
+    - Clearly state the potential outcomes and risks if the treatment is not approved, as documented in the text.
+
+10. **Clinical Rationale for Urgency**:
+    - If applicable, explain why the treatment is urgent based on the clinical information provided.
+
+11. **Plan for Treatment or Request for Prior Authorization**:
+    - Clearly state the name of the medication or procedure being requested for the patient.
+    - Include the code of the medication or procedure if available.
+    - State the dosage or plan for the medication or procedure.
+    - Specify the duration of doses or days of treatment.
+    - Provide the rationale for the medication or procedure based on the clinical information provided.
+
+**Note**: This task involves critical clinical information extraction. Take your time to ensure all details are correctly interpreted and accurately transcribed from the OCR.

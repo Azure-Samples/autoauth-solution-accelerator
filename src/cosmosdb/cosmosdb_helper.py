@@ -33,8 +33,8 @@ class CosmosDBManager:
         """
         try:
             self.client = CosmosClient(
-                endpoint_url or os.getenv("AZURE_COSMOSDB_ENDPOINT"),
-                credential=credential_id or os.getenv("AZURE_COSMOSDB_KEY"),
+                endpoint_url or os.getenv("AZURE_COSMOS_DB_ENDPOINT"),
+                credential=credential_id or os.getenv("AZURE_COSMOS_DB_KEY"),
             )
         except Exception as e:
             raise ValueError("Failed to initialize CosmosClient") from e

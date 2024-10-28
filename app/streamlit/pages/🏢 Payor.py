@@ -4,7 +4,7 @@ import streamlit as st
 import asyncio
 import uuid
 from src.app.utils.benchmarkbuddy import configure_chatbot
-from src.aoai.azure_helper import AzureOpenAIManager
+from src.aoai.aoai_helper import AzureOpenAIManager
 import urllib.parse
 from azure.storage.blob import BlobServiceClient
 from src.ocr.document_intelligence import AzureDocumentIntelligenceManager
