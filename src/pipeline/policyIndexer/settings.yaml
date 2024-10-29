@@ -1,0 +1,86 @@
+azure_search:
+  index_name: "ai-policies-index"
+
+azure_search_indexer_settings:
+  azure_blob_storage_container_name: "pre-auth-policies"
+  blob_prefix: "policies_ocr"
+  use_ocr: true
+  add_page_numbers: true
+  indexer_name: "ai-policies-indexer"
+  skillset_name: "ai-policies-skillset"
+  data_source_name: "ai-policies-blob"
+  remote_document_path: "policies_ocr"
+
+vector_search:
+  algorithms:
+    - name: "myHnsw"
+      parameters:
+        m: 4
+        ef_construction: 400
+        ef_search: 500
+  profiles:
+    - name: "myHnswProfile"
+      algorithm_configuration_name: "myHnsw"
+      vectorizer_name: "myOpenAI"
+  vectorizers:
+    - vectorizer_name: "myOpenAI"
+
+skills:
+  ocr_skill:
+    description: "OCR skill to scan PDFs and other images with text"
+    context: "/document/normalized_images/*"
+    line_ending: "Space"
+    default_language_code: "en"
+    should_detect_orientation: true
+    inputs:
+      - name: "image"
+        source: "/document/normalized_images/*"
+    outputs:
+      - name: "text"
+        target_name: "text"
+      - name: "layoutText"
+        target_name: "layoutText"
+  split_skill:
+    description: "Split skill to chunk documents"
+    text_split_mode: "pages"
+    context: "/document/normalized_images/*"
+    maximum_page_length: 3000
+    page_overlap_length: 500
+    inputs:
+      - name: "text"
+        source: "/document/normalized_images/*/text"
+    outputs:
+      - name: "textItems"
+        target_name: "pages"
+  embedding_skill:
+    description: "Skill to generate embeddings via Azure OpenAI"
+    context: "/document/normalized_images/*/pages/*"
+    resource_url: "your_openai_endpoint"
+    deployment_name: "text-embedding-3-large"
+    model_name: "text-embedding-3-large"
+    dimensions: 3072
+    api_key: "your_openai_key"
+    inputs:
+      - name: "text"
+        source: "/document/normalized_images/*/pages/*"
+    outputs:
+      - name: "embedding"
+        target_name: "vector"
+  index_projections:
+    selectors:
+      - target_index_name: "ai-policies-index"
+        parent_key_field_name: "parent_id"
+        source_context: "/document/normalized_images/*/pages/*"
+        mappings:
+          - name: "chunk"
+            source: "/document/normalized_images/*/pages/*"
+          - name: "vector"
+            source: "/document/normalized_images/*/pages/*/vector"
+          - name: "parent_path"
+            source: "/document/metadata_storage_path"
+          - name: "title"
+            source: "/document/metadata_storage_name"
+          - name: "page_number"
+            source: "/document/normalized_images/*/pageNumber"
+    parameters:
+      projection_mode: "SKIP_INDEXING_PARENT_DOCUMENTS"
