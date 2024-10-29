@@ -19,7 +19,38 @@ from src.aoai.aoai_helper import AzureOpenAIManager
 from src.pipeline.paprocessing.pdfhandler import OCRHelper
 from src.documentintelligence.document_intelligence_helper import AzureDocumentIntelligenceManager
 from src.entraid.generate_id import generate_unique_id
-from src.cosmosdb.cosmosdb_helper import CosmosDBManager
+from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
+from src.storage.blob_helper import AzureBlobManager
+from src.pipeline.paprocessing.prompt_manager import PromptManager
+from utils.ml_logging import get_logger
+
+init(autoreset=True)
+logger = get_logger()
+
+dotenv.load_dotenv(".env")
+
+import os
+import yaml
+import tempfile
+import shutil
+from typing import Any, Dict, List, Optional, Union
+
+import dotenv
+from azure.core.credentials import AzureKeyCredential
+from azure.search.documents import SearchClient
+from azure.search.documents.models import (
+    QueryAnswerType,
+    QueryCaptionType,
+    QueryType,
+    VectorizableTextQuery,
+)
+from src.pipeline.paprocessing.helpers import find_all_files
+from colorama import Fore, init
+from src.aoai.aoai_helper import AzureOpenAIManager
+from src.pipeline.paprocessing.pdfhandler import OCRHelper
+from src.documentintelligence.document_intelligence_helper import AzureDocumentIntelligenceManager
+from src.entraid.generate_id import generate_unique_id
+from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
 from src.storage.blob_helper import AzureBlobManager
 from src.pipeline.paprocessing.prompt_manager import PromptManager
 from utils.ml_logging import get_logger
@@ -36,7 +67,7 @@ class PAProcessingPipeline:
 
     def __init__(
         self,
-        case_id: Optional[str] = None,
+        caseId: Optional[str] = None,
         config_path: str = "src/pipeline/paprocessing/settings.yaml",
         azure_openai_chat_deployment_id: Optional[str] = None, 
         azure_openai_key: Optional[str] = None,
@@ -45,10 +76,9 @@ class PAProcessingPipeline:
         azure_search_admin_key: Optional[str] = None,
         azure_blob_storage_account_name: Optional[str] = None,
         azure_blob_storage_account_key: Optional[str] = None,
-        azure_cosmos_db_endpoint: Optional[str] = None,
-        azure_cosmos_db_key: Optional[str] = None,
+        azure_cosmos_db_connection: Optional[str] = None,
         azure_cosmos_db_database_name: Optional[str] = None,
-        azure_cosmos_db_container_name: Optional[str] = None,
+        azure_cosmos_db_collection_name: Optional[str] = None,
         azure_document_intelligence_endpoint: Optional[str] = None,
         azure_document_intelligence_key: Optional[str] = None,
         local: bool = False,
@@ -66,10 +96,9 @@ class PAProcessingPipeline:
         azure_search_admin_key = azure_search_admin_key or os.getenv("AZURE_SEARCH_ADMIN_KEY")
         azure_blob_storage_account_name = azure_blob_storage_account_name or os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
         azure_blob_storage_account_key = azure_blob_storage_account_key or os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
-        azure_cosmos_db_endpoint = azure_cosmos_db_endpoint or os.getenv("AZURE_COSMOS_DB_ENDPOINT")
-        azure_cosmos_db_key = azure_cosmos_db_key or os.getenv("AZURE_COSMOS_DB_KEY")
+        azure_cosmos_db_connection = azure_cosmos_db_connection or os.getenv("AZURE_COSMOS_CONNECTION_STRING")
         azure_cosmos_db_database_name = azure_cosmos_db_database_name or os.getenv("AZURE_COSMOS_DB_DATABASE_NAME")
-        azure_cosmos_db_container_name = azure_cosmos_db_container_name or os.getenv("AZURE_COSMOS_DB_CONTAINER_NAME")
+        azure_cosmos_db_collection_name = azure_cosmos_db_collection_name or os.getenv("AZURE_COSMOS_DB_COLLECTION_NAME")
         azure_document_intelligence_endpoint = azure_document_intelligence_endpoint or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
         azure_document_intelligence_key = azure_document_intelligence_key or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
 
@@ -86,7 +115,7 @@ class PAProcessingPipeline:
         self.remote_dir_base_path = config['remote_blob_paths']['remote_dir_base']
         self.raw_uploaded_files = config['remote_blob_paths']['raw_uploaded_files']
         self.processed_images = config['remote_blob_paths']['processed_images']
-        self.case_id = case_id if case_id else generate_unique_id()
+        self.caseId = caseId if caseId else generate_unique_id()
         self.azure_blob_storage_account_name = azure_blob_storage_account_name
         self.azure_blob_storage_account_key = azure_blob_storage_account_key
 
@@ -99,11 +128,10 @@ class PAProcessingPipeline:
             account_key=self.azure_blob_storage_account_key,
             container_name=self.container_name,
         )
-        self.cosmos_db_manager = CosmosDBManager(
-            endpoint_url=azure_cosmos_db_endpoint,
-            credential_id=azure_cosmos_db_key,
+        self.cosmos_db_manager = CosmosDBMongoCoreManager(
+            connection_string=azure_cosmos_db_connection,
             database_name=azure_cosmos_db_database_name,
-            container_name=azure_cosmos_db_container_name,
+            collection_name=azure_cosmos_db_collection_name,
         )
         self.prompt_manager = PromptManager()
         self.SYSTEM_PROMPT_NER = self.prompt_manager.get_prompt('ner_system_prompt.jinja')
@@ -111,7 +139,7 @@ class PAProcessingPipeline:
         self.SYSTEM_PROMPT_QUERY_EXPANSION = self.prompt_manager.get_prompt('query_expansion_system_prompt.jinja')
         self.SYSTEM_PROMPT_PRIOR_AUTH = self.prompt_manager.get_prompt('prior_auth_system_prompt.jinja')
 
-        self.remote_dir = f"{self.remote_dir_base_path}/{self.case_id}"
+        self.remote_dir = f"{self.remote_dir_base_path}/{self.caseId}"
         self.conversation_history: List[Dict[str, Any]] = []
         self.results: Dict[str, Any] = {}
         self.temp_dir = tempfile.mkdtemp()
@@ -178,9 +206,9 @@ class PAProcessingPipeline:
             except Exception as e:
                 logger.error(f"Failed to upload or copy file '{file_path}': {e}")
 
-        if self.case_id not in self.results:
-            self.results[self.case_id] = {}
-        self.results[self.case_id][step] = remote_files
+        if self.caseId not in self.results:
+            self.results[self.caseId] = {}
+        self.results[self.caseId][step] = remote_files
         logger.info(f"All files processed for upload to Azure Blob Storage in container '{self.blob_manager.container_name}'.")
 
     def process_uploaded_files(self, uploaded_files: Union[str, List[str]]) -> str:
@@ -236,32 +264,6 @@ class PAProcessingPipeline:
             logger.error(f"Failed to get policy text from blob {blob_url}: {e}")
             return ""
     
-    def log_output(self, data: Dict[str, Any], 
-                   conversation_history: Optional[List[Dict[str, Any]]] = None, 
-                   step: Optional[str] = None) -> None:
-        """
-        Store the given data either in memory or in Cosmos DB.
-        """
-        try:
-            # Ensure the case_id exists in results
-            if self.case_id not in self.results:
-                self.results[self.case_id] = {}
-
-            # Update the results dictionary
-            if step is not None:
-                self.results[self.case_id][step] = data
-            else:
-                self.results[self.case_id].update(data)
-
-            # Update the conversation history
-            if conversation_history is not None:
-                self.conversation_history.extend(conversation_history)
-
-            logger.info(f"Data logged for step '{step}' in case '{self.case_id}'.")
-
-        except Exception as e:
-            logger.error(f"Failed to log output for step '{step}': {e}")
-
     def get_conversation_history(self) -> Dict[str, Any]:
         """
         Retrieve the conversation history.
@@ -270,7 +272,7 @@ class PAProcessingPipeline:
             return self.conversation_history
         else:
             if self.cosmos_db_manager:
-                query = f"SELECT * FROM c WHERE c.case_id = '{self.case_id}'"
+                query = f"SELECT * FROM c WHERE c.caseId = '{self.caseId}'"
                 results = self.cosmos_db_manager.execute_query(query)
                 if results:
                     return {item["step"]: item["data"] for item in results}
@@ -279,6 +281,77 @@ class PAProcessingPipeline:
             else:
                 logger.error("CosmosDBManager is not initialized.")
                 return {}
+            
+    def store_output(self) -> None:
+        """
+        Store the results into Cosmos DB, using the caseId as the unique identifier for upserts.
+        """
+        try:
+            if self.cosmos_db_manager:
+                case_data = self.results.get(self.caseId, {})
+                if case_data:
+                    data_item = case_data.copy()
+                    data_item['caseId'] = self.caseId
+                    query = {"caseId": self.caseId}
+                    self.cosmos_db_manager.upsert_document(data_item, query)
+                    logger.info(f"Results stored in Cosmos DB for caseId {self.caseId}")
+                else:
+                    logger.warning(f"No results to store for caseId {self.caseId}")
+            else:
+                logger.error("CosmosDBManager is not initialized.")
+        except Exception as e:
+            logger.error(f"Failed to store results in Cosmos DB: {e}")
+
+    def log_output(self, 
+                   data: Dict[str, Any], 
+                   conversation_history: List[str] = None, 
+                   step: Optional[str] = None) -> None:
+        """
+        Store the given data either in memory or in Cosmos DB. Uses the caseId as a partition key.
+        """
+        try:
+            if self.caseId not in self.results:
+                self.results[self.caseId] = {}
+
+            # Update the results dictionary based on the step
+            if step is not None:
+                self.results[self.caseId][step] = data
+            else:
+                self.results[self.caseId].update(data)
+
+            if conversation_history:
+                self.conversation_history.append(conversation_history)
+
+            logger.info(f"Data logged for case '{self.caseId}' at step '{step}'.")
+        except Exception as e:
+            logger.error(f"Failed to log output for case '{self.caseId}', step '{step}': {e}")
+
+    def store_output(self) -> None:
+        """
+        Store the results into Cosmos DB, using the caseId as the unique identifier for upserts.
+        """
+        try:
+            if self.cosmos_db_manager:
+                # Prepare the data item for upsert
+                case_data = self.results.get(self.caseId, {})
+                if case_data:
+                    # Add caseId to the document for partitioning
+                    data_item = case_data.copy()
+                    data_item['caseId'] = self.caseId
+
+                    # Define the query for upserting based on caseId
+                    query = {"caseId": self.caseId}
+
+                    # Upsert the data into Cosmos DB based on the caseId
+                    self.cosmos_db_manager.upsert_document(data_item, query)
+                    logger.info(f"Results stored in Cosmos DB for caseId {self.caseId}")
+                else:
+                    logger.warning(f"No results to store for caseId {self.caseId}")
+            else:
+                logger.error("CosmosDBManager is not initialized.")
+        except Exception as e:
+            logger.error(f"Failed to store results in Cosmos DB: {e}")
+
 
     def cleanup_temp_dir(self) -> None:
         """
@@ -388,3 +461,4 @@ class PAProcessingPipeline:
             logger.error(f"Document processing failed: {e}")
         finally:
             self.cleanup_temp_dir()
+            self.store_output()
