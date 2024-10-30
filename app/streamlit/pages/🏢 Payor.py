@@ -2,10 +2,10 @@
 import dotenv
 import streamlit as st
 import asyncio
+import tempfile
 import uuid
 from src.aoai.aoai_helper import AzureOpenAIManager
-from app.components.benchmarkbuddy import 
-from typing import List, Union
+from typing import List
 from utils.ml_logging import get_logger
 from pathlib import Path
 import os
@@ -22,8 +22,9 @@ logger = get_logger()
 dotenv.load_dotenv(".env")
 
 cosmosdbManager = CosmosDBMongoCoreManager(
-    database_name=os.getenv("AZURE_COSMOS_DATABASE_NAME"),
-    collection_name=os.getenv("AZURE_COSMOS_COLLECTION_NAME"),
+    connection_string=os.getenv("AZURE_COSMOS_CONNECTION_STRING"),
+    database_name=os.getenv("AZURE_COSMOS_DB_DATABASE_NAME"),
+    collection_name=os.getenv("AZURE_COSMOS_DB_COLLECTION_NAME"),
 )
 
 # Define session variables and initial values
@@ -44,7 +45,7 @@ initial_values = {
     "uploaded_files": [],
     "search_client": SearchClient(
         endpoint=os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT"),
-        index_name=os.getenv("AZURE_AI_SEARCH_INDEX_NAME"),
+        index_name=os.getenv("AZURE_SEARCH_INDEX_NAME"),
         credential=AzureKeyCredential(os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")),
     ),
     "pa_processing": PAProcessingPipeline(),
@@ -225,6 +226,20 @@ async def generate_ai_response(user_prompt: str, system_prompt: str, image_paths
         logger.error(f"Error generating AI response: {e}")
         return {}
 
+async def run_pipeline_with_spinner(uploaded_files):
+    with st.spinner("Processing... Please wait."):
+        await st.session_state["pa_processing"].run(uploaded_files)
+
+def save_uploaded_files(uploaded_files):
+    temp_dir = tempfile.mkdtemp()
+    file_paths = []
+    for uploaded_file in uploaded_files:
+        file_path = os.path.join(temp_dir, uploaded_file.name)
+        with open(file_path, "wb") as f:
+            f.write(uploaded_file.getbuffer())
+        file_paths.append(file_path)
+    return file_paths
+
 def main() -> None:
     """
     Main function to run the Streamlit app.
@@ -279,7 +294,8 @@ def main() -> None:
 
     if submit_to_ai and uploaded_files:
         with results_container:
-            st.session_state["pa_processing"].run_pipeline(uploaded_files)
+            uploaded_file_paths = save_uploaded_files(uploaded_files)
+            asyncio.run(run_pipeline_with_spinner(uploaded_file_paths))
             last_key = next(reversed(st.session_state["pa_processing"].results.keys()))
             query = {"caseId": last_key}
             document = cosmosdbManager.read_document(query)

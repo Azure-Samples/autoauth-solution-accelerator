@@ -55,10 +55,16 @@ class PromptManager:
         Returns:
             str: The rendered query expansion prompt.
         """
-        clinical_information = results.get("Clinical Information", "Not provided")
+        clinical_info = results.get("Clinical Information", {})
+        plan_info = clinical_info.get("Plan for Treatment or Request for Prior Authorization", {})
         return self.get_prompt(
             'query_expansion_user_prompt.jinja',
-            clinical_information=clinical_information
+            diagnosis=clinical_info.get("Diagnosis and medical justification (including ICD-10 code)", "Not provided"),
+            medication_or_procedure=plan_info.get("Medication or Procedure", "Not provided"),
+            code=plan_info.get("Code", "Not provided"),
+            dosage=plan_info.get("Dosage", "Not provided"),
+            duration=plan_info.get("Duration", "Not provided"),
+            rationale=plan_info.get("Rationale", "Not provided"),
         )
 
     def create_prompt_pa(self, results: Dict[str, Any], policy_text: str) -> str:

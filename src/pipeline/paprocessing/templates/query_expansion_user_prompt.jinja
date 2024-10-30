@@ -1,60 +1,82 @@
-## Role:
-You are an expert in search engine evaluation and prior authorization.
+##Role:
+You are an expert in optimizing prior authorization searches using query expansion techniques for clinical data.
 
-## Task:
-Your task is to review the following clinical information and construct a search query that will maximize the likelihood of finding the exact matching prior authorization policy in Azure AI Search.
+##Task:
+Your goal is to construct an optimized search query based on the provided Diagnosis and Medical Justification and Plan for Treatment or Request for Prior Authorization. Use query expansion to generate similar terms, synonyms, and related medical concepts, improving retrieval recall and ensuring accurate policy matching in Azure AI Search.
 
-## Instructions:
-Carefully analyze the provided clinical information:
+##Instructions:
 
-- **Diagnosis and Medical Justification** (including ICD-10 code)
-- **Detailed History of Alternative Treatments and Their Results**
-- **Relevant Lab Results or Diagnostic Imaging**
-- **Documented Symptom Severity and Its Impact on Daily Life**
-- **Prognosis and Risks if Treatment is Not Approved**
-- **Clinical Rationale for Urgency** (if applicable)
-- **Plan for Treatment or Request for Prior Authorization**:
-  - Name of the medication or procedure being requested
-  - Code of the medication or procedure (if available)
-  - Dosage or plan for the medication or procedure
-  - Duration of the treatment
-  - Rationale for the medication or procedure
+  1. **Focus on the Following Key Elements:**
 
-### Provided Clinical Information:
-{{ clinical_information }}
+  - **Diagnosis and Medical Justification:** {{ diagnosis }}
+  - **Plan for Treatment or Request for Prior Authorization:**
+    - **Medication or Procedure:** {{ medication_or_procedure }}
+    - **Code:** {{ code }}
+    - **Dosage or Plan:** {{ dosage }}
+    - **Duration:** {{ duration }}
+    - **Rationale:** {{ rationale }}
 
-## Goal:
-Construct a search query that leverages this clinical information to retrieve the most relevant prior authorization policy from Azure AI Search. Utilize vector embeddings and semantic search capabilities to enhance accuracy. Include appropriate keywords and phrases, and ensure the query reflects the urgency and specific medical needs of the case.
+  2. **Apply Query Expansion Techniques:**
+    - Generate alternative terms, synonyms, and related medical concepts for both the diagnosis and the medication/procedure.
+    - Include relevant medical codes (e.g., ICD-10, CPT) and any known synonyms or alternative names.
+    - Maximize recall by covering different ways the diagnosis or treatment might be described in medical policies.
 
-### Key Points:
-1. **Accuracy**: Ensure the query accurately reflects the provided clinical information.
-2. **Keywords and Phrases**: Include relevant keywords and phrases to improve search results.
-3. **Urgency and Specific Needs**: Reflect the urgency and specific medical needs in the query.
-4. **Vector Embeddings and Semantic Search**: Utilize these capabilities to enhance the accuracy and relevance of the search results.
+  3. Construct the Optimized Search Query:**
+    - Combine the key elements and expanded terms into a cohesive search query.
+    - Ensure the query remains focused and relevant to the specific case.
+    - Prioritize high recall while maintaining acceptable precision.
 
-## Interpreting the Information for Optimal Search:
-To maximize the effectiveness of your search:
+  4. **Handle Insufficient Information:**
 
-### Include Specific Medical Terms and Codes:
-- "Crohn's Disease," "K50.90," "biologic therapy," "methylprednisolone," "steroid-resistant"
+    - If relevant codes are not provided (e.g., ICD-10, CPT) but the Diagnosis and Medical Justification or Medication or Procedure is available, proceed with the available information.
+    - If either the Diagnosis and Medical Justification or the Medication or Procedure is completely missing, return the following message:
 
-### Highlight Symptom Severity and Treatment History:
-- "Severe abdominal pain," "bloody stools," "no improvement with steroids," "urgent treatment needed"
+    ```json
+    {
+      "optimized_query": "Need more information to construct the query."
+    }
+    ```
 
-### Emphasize Lab Results and Imaging Findings:
-- "Low hemoglobin," "elevated CRP," "cobblestone appearance in colonoscopy," "gastritis and duodenitis"
+  5. Provide the final query in a JSON object as shown:
+    ```
+    {
+      "optimized_query": "" // Add the constructed query here
+    }
+    ```
 
-### Stress Urgency and Risks:
-- "Risk of complications," "worsening symptoms," "impact on quality of life"
+##Example Query Construction:
 
-### Include Keywords for Condition and Medication:
-- Ensure to include keywords related to the specific condition and the medication or procedure being sought in the clinical context.
+**Key Elements:**
 
-Generate a JSON output based on the following schema and instructions:
+- **Diagnosis and Medical Justification:** Lennox-Gastaut Syndrome (ICD-10: Not provided)
+- **Medication or Procedure:** Epidiolex
+  - **Code:** Not provided
+  - **Dosage:** 100 mg/mL
+  - **Duration:** Take 2.5mg/kg/day divided in two doses for one week, then increase to 5mg/kg/day divided in two doses
+  - **Rationale:** Patient's seizures are worse in frequency and more varied in semiology despite trial of several AEDs
 
-Schema:
+**Constructed Search Query with Query Expansion:**
+```json
 {
-  "optimized_query": ""  // Please provide the constructed search query.
+  "optimized_query": "Prior authorization for Epidiolex for Lennox-Gastaut Syndrome. Related terms: LGS, severe epilepsy, cannabidiol, CBD oil, seizure medication, anti-epileptic drugs, AEDs."
 }
+```
 
-Please provide the constructed search query.
+##Output: Please generate a JSON output based on:
+
+**Key Elements:**
+- **Diagnosis and Medical Justification:** {{ diagnosis }}
+- **Plan for Treatment or Request for Prior Authorization:**
+  - **Medication or Procedure:** {{ medication_or_procedure }}
+  - **Code:** {{ code }}
+  - **Dosage or Plan:** {{ dosage }}
+  - **Duration:** {{ duration }}
+  - **Rationale:** {{ rationale }}
+
+
+**Constructed Search Query with Query Expansion:**
+```json
+{
+  "optimized_query": "" //add here the construcutue query 
+}
+```

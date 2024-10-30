@@ -170,6 +170,7 @@ class PAProcessingPipeline:
                 parent_path = first_result.get("parent_path", "Path not found")
                 return parent_path
             else:
+                logger.warning("No results found")
                 return "No results found"
         except Exception as e:
             logger.error(f"Error locating policy: {e}")
@@ -356,12 +357,14 @@ class PAProcessingPipeline:
         self.log_output(api_response_ner['response'], api_response_ner['conversation_history'], step=None)
         return api_response_ner
 
-    async def expand_query_and_search_policy(self, clinical_info: str) -> Dict[str, Any]:
+    async def expand_query_and_search_policy(self, clinical_info: Dict[str, Any]) -> Dict[str, Any]:
         """
         Expand query and search for policy.
         """
         prompt_query_expansion = self.prompt_manager.create_prompt_query_expansion(clinical_info)
         logger.info(Fore.CYAN + "Expanding query and searching for policy...")
+        logger.info(f"Input clinical information: {clinical_info}")
+        logger.info(f"Input clinical information: {prompt_query_expansion}")
         api_response_query = await self.azure_openai_client.generate_chat_response(
             query=prompt_query_expansion,
             system_message_content=self.SYSTEM_PROMPT_QUERY_EXPANSION,
@@ -369,17 +372,20 @@ class PAProcessingPipeline:
             response_format="json_object",
             max_tokens=3000,
         )
-
+    
         # Store query expansion response
         self.log_output(api_response_query['response'], api_response_query['conversation_history'], step=None)
+        logger.info(f"API response query: {api_response_query}")
+        
         return api_response_query
 
-    async def generate_final_determination(self, clinical_info: str, policy_text: str) -> None:
+    async def generate_final_determination(self, clinical_info: Dict[str, Any], policy_text: str) -> None:
         """
         Generate final determination using AI.
         """
         user_prompt_pa = self.prompt_manager.create_prompt_pa(clinical_info, policy_text)
         logger.info(Fore.CYAN + "Generating final determination...")
+        logger.info(f"Input clinical information: {user_prompt_pa}")
         api_response_determination = await self.azure_openai_client.generate_chat_response(
             query=user_prompt_pa,
             system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
@@ -404,7 +410,7 @@ class PAProcessingPipeline:
             image_files = find_all_files(temp_dir, ["png"])
 
             api_response_ner = await self.analyze_clinical_information(image_files)
-            clinical_info = api_response_ner["response"].get("Clinical Information")
+            clinical_info = api_response_ner["response"]
 
             if not clinical_info:
                 logger.info(Fore.RED + "Clinical Information not found in AI response.")
