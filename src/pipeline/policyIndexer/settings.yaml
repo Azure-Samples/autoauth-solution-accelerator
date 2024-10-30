@@ -55,11 +55,7 @@ skills:
   embedding_skill:
     description: "Skill to generate embeddings via Azure OpenAI"
     context: "/document/normalized_images/*/pages/*"
-    resource_url: "your_openai_endpoint"
-    deployment_name: "text-embedding-3-large"
-    model_name: "text-embedding-3-large"
     dimensions: 3072
-    api_key: "your_openai_key"
     inputs:
       - name: "text"
         source: "/document/normalized_images/*/pages/*"

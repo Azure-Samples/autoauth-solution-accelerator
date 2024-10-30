@@ -42,10 +42,13 @@ from azure.search.documents.indexes.models import (
     NativeBlobSoftDeleteDeletionDetectionPolicy
 )
 
+from azure.search.documents.indexes import SearchIndexerClient
+from azure.search.documents.indexes.models import SearchIndexerStatus
 from utils.ml_logging import get_logger
-import dotenv
+
 logger = get_logger()
 
+import dotenv
 dotenv.load_dotenv(".env")
 
 
@@ -479,7 +482,7 @@ class PolicyIndexingPipeline:
             logger.error(f"An unexpected error occurred: {e}")
             raise
 
-    def automate_indexing(self, local_document_path: str) -> None:
+    def indexing(self) -> None:
         """
         Orchestrate the entire indexing pipeline.
 
@@ -487,12 +490,119 @@ class PolicyIndexingPipeline:
             local_document_path (str): Local directory containing policy documents.
         """
         try:
-            self.upload_documents(local_document_path)
             self.create_data_source()
             self.create_index()
             self.create_skillset()
             self.create_indexer()
-            self.run_indexer()
         except Exception as e:
             logger.error(f"Indexing pipeline failed: {e}")
             raise
+
+class IndexerRunner:
+    """
+    A class to handle running the indexer in Azure Cognitive Search.
+    """
+
+    def __init__(self, indexer_name: str):
+        """
+        Initialize the IndexerRunner with configuration from a YAML file.
+
+        Args:
+            config_path (str): Path to the configuration YAML file.
+        """
+        load_dotenv(override=True)
+
+        self.endpoint: str = os.environ["AZURE_AI_SEARCH_SERVICE_ENDPOINT"]
+        search_admin_key: Optional[str] = os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")
+        self.credential: AzureKeyCredential = (
+            AzureKeyCredential(search_admin_key) if search_admin_key else DefaultAzureCredential()
+        )
+        self.indexer_name: str = indexer_name
+        self.indexer_client: SearchIndexerClient = SearchIndexerClient(
+            endpoint=self.endpoint, credential=self.credential
+        )
+
+    def run_indexer(self) -> None:
+        """
+        Run the indexer to start indexing documents.
+        """
+        try:
+            # Start the indexer
+            self.indexer_client.run_indexer(self.indexer_name)
+            logger.info(f"Indexer '{self.indexer_name}' has been started.")
+        except ResourceNotFoundError as e:
+            logger.error(f"Indexer '{self.indexer_name}' was not found: {e}")
+            raise
+        except HttpResponseError as e:
+            logger.error(f"Failed to run indexer: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"An unexpected error occurred: {e}")
+            raise
+
+    def check_indexer_status(self) -> Optional[SearchIndexerStatus]:
+        """
+        Check the status of the indexer.
+
+        Returns:
+            SearchIndexerStatus: The current status of the indexer.
+        """
+        try:
+            status = self.indexer_client.get_indexer_status(self.indexer_name)
+            return status
+        except ResourceNotFoundError as e:
+            logger.error(f"Indexer '{self.indexer_name}' was not found: {e}")
+            return None
+        except HttpResponseError as e:
+            logger.error(f"Failed to retrieve indexer status: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"An unexpected error occurred while checking indexer status: {e}")
+            return None
+
+    def monitor_indexer_status(self) -> None:
+        """
+        Periodically checks the indexer status every 10 seconds and logs the progress.
+        Continues until the indexer either succeeds or fails.
+        """
+        self.run_indexer()
+
+        while True:
+            status = self.check_indexer_status()
+
+            if status:
+                logger.info(f"Indexer Status: {status.status}")
+                logger.info(f"Last Run Time: {status.last_result.end_time}")
+                logger.info(f"Execution Status: {status.last_result.status}")
+
+                if status.status == "running":
+                    if status.last_result.status == "inProgress":
+                        logger.info("Indexer is still running... waiting for completion.")
+                    elif status.last_result.status == "success":
+                        logger.info(f"Indexer '{self.indexer_name}' completed successfully.")
+                        break
+                    elif status.last_result.status == "error":
+                        logger.error(f"Indexer '{self.indexer_name}' encountered errors: {status.last_result.errors}")
+                        break
+                    else:
+                        logger.warning(f"Indexer '{self.indexer_name}' has an unknown execution status: {status.last_result.status}")
+                        break
+                elif status.status == "success":
+                    logger.info(f"Indexer '{self.indexer_name}' completed successfully.")
+                    break
+                elif status.status == "transientFailure":
+                    logger.warning(f"Indexer '{self.indexer_name}' encountered a transient failure. Retrying automatically.")
+                elif status.status == "persistentFailure":
+                    logger.error(f"Indexer '{self.indexer_name}' encountered a persistent failure. Manual intervention needed.")
+                    break
+                elif status.status == "error":
+                    logger.error(f"Indexer '{self.indexer_name}' encountered an error: {status.last_result.errors}")
+                    break
+                else:
+                    logger.warning(f"Indexer '{self.indexer_name}' has an unknown status: {status.status}")
+                    break
+            else:
+                logger.error("Failed to retrieve indexer status.")
+                break
+
+            time.sleep(10)
