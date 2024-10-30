@@ -1,5 +1,5 @@
 remote_blob_paths:
-  container_name: "pre-auth"
+  container_name: "pre-auth-policies"
   raw_uploaded_files: "raw_attachments"
   processed_images: "processed_docs_images"
   remote_dir_base: "pa_proccesing_runs"

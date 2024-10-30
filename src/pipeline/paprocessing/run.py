@@ -91,9 +91,9 @@ class PAProcessingPipeline:
 
         azure_openai_chat_deployment_id = azure_openai_chat_deployment_id or os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
         azure_openai_key = azure_openai_key or os.getenv("AZURE_OPENAI_KEY")
-        azure_search_service_endpoint = azure_search_service_endpoint or os.getenv("AZURE_SEARCH_SERVICE_ENDPOINT")
+        azure_search_service_endpoint = azure_search_service_endpoint or os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT")
         azure_search_index_name = azure_search_index_name or os.getenv("AZURE_SEARCH_INDEX_NAME")
-        azure_search_admin_key = azure_search_admin_key or os.getenv("AZURE_SEARCH_ADMIN_KEY")
+        azure_search_admin_key = azure_search_admin_key or os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")
         azure_blob_storage_account_name = azure_blob_storage_account_name or os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
         azure_blob_storage_account_key = azure_blob_storage_account_key or os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
         azure_cosmos_db_connection = azure_cosmos_db_connection or os.getenv("AZURE_COSMOS_CONNECTION_STRING")
@@ -281,26 +281,6 @@ class PAProcessingPipeline:
             else:
                 logger.error("CosmosDBManager is not initialized.")
                 return {}
-            
-    def store_output(self) -> None:
-        """
-        Store the results into Cosmos DB, using the caseId as the unique identifier for upserts.
-        """
-        try:
-            if self.cosmos_db_manager:
-                case_data = self.results.get(self.caseId, {})
-                if case_data:
-                    data_item = case_data.copy()
-                    data_item['caseId'] = self.caseId
-                    query = {"caseId": self.caseId}
-                    self.cosmos_db_manager.upsert_document(data_item, query)
-                    logger.info(f"Results stored in Cosmos DB for caseId {self.caseId}")
-                else:
-                    logger.warning(f"No results to store for caseId {self.caseId}")
-            else:
-                logger.error("CosmosDBManager is not initialized.")
-        except Exception as e:
-            logger.error(f"Failed to store results in Cosmos DB: {e}")
 
     def log_output(self, 
                    data: Dict[str, Any], 
@@ -332,17 +312,13 @@ class PAProcessingPipeline:
         """
         try:
             if self.cosmos_db_manager:
-                # Prepare the data item for upsert
                 case_data = self.results.get(self.caseId, {})
                 if case_data:
-                    # Add caseId to the document for partitioning
                     data_item = case_data.copy()
                     data_item['caseId'] = self.caseId
 
-                    # Define the query for upserting based on caseId
                     query = {"caseId": self.caseId}
 
-                    # Upsert the data into Cosmos DB based on the caseId
                     self.cosmos_db_manager.upsert_document(data_item, query)
                     logger.info(f"Results stored in Cosmos DB for caseId {self.caseId}")
                 else:

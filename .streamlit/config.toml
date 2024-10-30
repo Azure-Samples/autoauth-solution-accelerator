@@ -1,6 +1,6 @@
 [theme]
-primaryColor="#FF4B4B"
-backgroundColor="#FFFFFF"
-secondaryBackgroundColor="#F0F2F6"
-textColor="#31333F"
+primaryColor="#1F77B4"  # A professional blue tone
+backgroundColor="#F7F9FC"  # A light, clean background color
+secondaryBackgroundColor="#E9EEF3"  # A subtle secondary background color
+textColor="#2C3E50"  # A dark, professional text color
 font="sans serif"

@@ -77,7 +77,7 @@ remove_conda_env:
 
 # Target to run the Streamlit app locally
 run_streamlit:
-	streamlit run src/app/Home.py --server.enableXsrfProtection False
+	streamlit run src/app/streamlit/Home.py --server.enableXsrfProtection False
 
 streamlite_conf: 
 	streamlit config show

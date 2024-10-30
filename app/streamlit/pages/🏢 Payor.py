@@ -3,30 +3,17 @@ import dotenv
 import streamlit as st
 import asyncio
 import uuid
-from src.app.utils.benchmarkbuddy import configure_chatbot
 from src.aoai.aoai_helper import AzureOpenAIManager
-import urllib.parse
-from azure.storage.blob import BlobServiceClient
-from src.ocr.document_intelligence import AzureDocumentIntelligenceManager
+from app.components.benchmarkbuddy import 
 from typing import List, Union
 from utils.ml_logging import get_logger
 from pathlib import Path
 import os
 from azure.search.documents import SearchClient
-from azure.search.documents.models import VectorizableTextQuery, QueryType, QueryCaptionType, QueryAnswerType
 from azure.core.credentials import AzureKeyCredential
-import tempfile
 import os
-from src.app.utils.prompts import (SYSTEM_PROMPT_NER, 
-                                   USER_PROMPT_NER,
-                                   SYSTEM_PROMPT_QUERY_EXPANSION,
-                                   create_prompt_query_expansion,
-                                   create_prompt_pa,
-                                   SYSTEM_PROMPT_PRIOR_AUTH
-                                   )
-                                   
-from src.app.utils.policy import POLICY
-from src.app.utils.determination import DETERMINATION
+from src.pipeline.paprocessing.run import PAProcessingPipeline
+from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager  # Ensure correct import paths
 
 # Set up logger
 logger = get_logger()
@@ -34,10 +21,13 @@ logger = get_logger()
 # Load environment variables if not already loaded
 dotenv.load_dotenv(".env")
 
-from src.extractors.pdf_data_extractor import OCRHelper
+cosmosdbManager = CosmosDBMongoCoreManager(
+    database_name=os.getenv("AZURE_COSMOS_DATABASE_NAME"),
+    collection_name=os.getenv("AZURE_COSMOS_COLLECTION_NAME"),
+)
 
 # Define session variables and initial values
-session_vars = ["conversation_history", "ai_response", "chat_history", "messages", "azure_openai_client_4o", "uploaded_files", "search_client"]
+session_vars = ["conversation_history", "ai_response", "chat_history", "messages", "azure_openai_client_4o", "uploaded_files", "search_client", "pa_processing", "cosmosdb_manager"]
 initial_values = {
     "conversation_history": [],
     "ai_response": "",
@@ -50,21 +40,21 @@ initial_values = {
             "content": "Hey, this is your AI assistant. Please look at the AI request submit and let's work together to make your content shine!",
         }
     ],
-    "azure_openai_client_4o": AzureOpenAIManager(completion_model_name='AZURE_OPENAI_CHAT_DEPLOYMENT_ID'),
+    "azure_openai_client_4o": AzureOpenAIManager(completion_model_name=os.getenv('AZURE_OPENAI_CHAT_DEPLOYMENT_ID')),
     "uploaded_files": [],
     "search_client": SearchClient(
-        endpoint=os.environ["AZURE_AI_SEARCH_SERVICE_ENDPOINT"],
-        index_name=os.environ["AZURE_AI_SEARCH_INDEX_NAME"],
-        credential=AzureKeyCredential(os.environ["AZURE_AI_SEARCH_ADMIN_KEY"]),
-    )
+        endpoint=os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT"),
+        index_name=os.getenv("AZURE_AI_SEARCH_INDEX_NAME"),
+        credential=AzureKeyCredential(os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")),
+    ),
+    "pa_processing": PAProcessingPipeline(),
+    "cosmosdb_manager": cosmosdbManager
 }
 
-# Initialize session state variables
 for var in session_vars:
     if var not in st.session_state:
         st.session_state[var] = initial_values.get(var, None)
 
-# Initialize session state variables
 for var in session_vars:
     if var not in st.session_state:
         st.session_state[var] = initial_values.get(var, None)
@@ -72,181 +62,7 @@ for var in session_vars:
 st.set_page_config(
     page_title="SmartPA",
     page_icon="✨",
-)
-
-def locate_policy(api_response_gpt4o: dict) -> str:
-    """
-    Locate the policy based on the optimized query from the AI response.
-
-    Args:
-        api_response_gpt4o (dict): The AI response containing the optimized query.
-
-    Returns:
-        str: The location of the policy or a message indicating no results were found.
-    """
-
-        # Initialize the search client if not already initialized
-    if "search_client" not in st.session_state:
-        st.session_state["search_client"] = SearchClient(
-            endpoint=os.environ["AZURE_AI_SEARCH_SERVICE_ENDPOINT"],
-            index_name=os.environ["AZURE_AI_SEARCH_INDEX_NAME"],
-            credential=AzureKeyCredential(os.environ["AZURE_AI_SEARCH_ADMIN_KEY"]),
-        )
-
-    search_client = st.session_state['search_client']
-
-    # Create the vector query
-    vector_query = VectorizableTextQuery(
-        text=api_response_gpt4o['response']['optimized_query'],
-        k_nearest_neighbors=5,
-        fields="vector",
-        weight=0.5
-    )
-
-    # Perform the search
-    results = search_client.search(
-        search_text=api_response_gpt4o['response']['optimized_query'],
-        vector_queries=[vector_query],
-        query_type=QueryType.SEMANTIC,
-        semantic_configuration_name='my-semantic-config',
-        query_caption=QueryCaptionType.EXTRACTIVE,
-        query_answer=QueryAnswerType.EXTRACTIVE,
-        top=5
-    )
-
-    # Extract the parent path from the first result
-    try:
-        first_result = next(iter(results))
-        parent_path = first_result.get('parent_path', 'Path not found')
-        return parent_path
-    except StopIteration:
-        return 'No results found'
-
-
-def process_uploaded_files(uploaded_files: List[st.runtime.uploaded_file_manager.UploadedFile]) -> str:
-    if "container_name" not in st.session_state:
-        st.session_state.container_name = "pre-auth-policies"
-    ocr_data_extractor_helper = OCRHelper(container_name=st.session_state.container_name)
-
-    try:
-        # Create a new folder with a random ID under the specified directory
-        base_temp_dir = "C:/Users/pablosal/Desktop/gbb-ai-hls-factory-prior-auth/utils/temp"
-        random_id = str(uuid.uuid4())
-        temp_dir = os.path.join(base_temp_dir, random_id)
-        os.makedirs(temp_dir, exist_ok=True)
-        logger.info(f"Created temporary directory at {temp_dir}")
-
-        for uploaded_file in uploaded_files:
-            try:
-                # Save the uploaded file to the temporary directory
-                file_path = os.path.join(temp_dir, uploaded_file.name)
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-                logger.info(f"Saved uploaded file to {file_path}")
-
-                # Extract images from the uploaded file
-                ocr_data_extractor_helper.extract_images_from_pdf(
-                    input_path=file_path, output_path=temp_dir
-                )
-                logger.info(f"Extracted images from {file_path}")
-
-            except Exception as e:
-                logger.error(f"Failed to process file {uploaded_file.name}: {e}")
-
-        return temp_dir
-
-    except Exception as e:
-        logger.error(f"Failed to create temporary directory or process files: {e}")
-        return ""
-
-def get_policy_text_from_blob(blob_url: str) -> str:
-    """
-    Download the blob content from the given URL and analyze the document to extract text.
-
-    Args:
-        blob_url (str): The URL of the blob.
-
-    Returns:
-        str: The extracted text from the document.
-    """
-    # Initialize the document intelligence client if not already initialized
-    if "document_intelligence_client" not in st.session_state:
-        st.session_state["document_intelligence_client"] = AzureDocumentIntelligenceManager()
-
-    document_intelligence_client = st.session_state["document_intelligence_client"]
-    try:
-        # Blob URL
-        blob_url = "https://storagefactoryeastus.blob.core.windows.net/pre-auth-policies/policies_ocr/001_inflammatory_Conditions.pdf"
-
-        # Parse the URL to extract the blob name
-        parsed_url = urllib.parse.urlparse(blob_url)
-        blob_name = '/'.join(parsed_url.path.split('/')[2:])  # Extract the blob name correctly
-
-        # Initialize the BlobServiceClient
-        blob_service_client = BlobServiceClient.from_connection_string(os.environ["BLOB_CONNECTION_STRING"])
-
-        # Extract the container name from the URL
-        container_name = parsed_url.path.split('/')[1]
-
-        # Log the container name and blob name for debugging
-        print(f"Container Name: {container_name}")
-        print(f"Blob Name: {blob_name}")
-    
-        blob_client = blob_service_client.get_blob_client(container=container_name, blob=blob_name)
-        blob_content = blob_client.download_blob().readall()
-        print("Blob content downloaded successfully.")
-    except Exception as e:
-        print(f"Failed to download blob content: {e}")
-        return POLICY
-
-    # Use the blob content with the document intelligence client
-    model_type = "prebuilt-layout"
-
-    try:
-        policy_text = document_intelligence_client.analyze_document(
-            document_input=blob_content,
-            model_type=model_type,
-            output_format="markdown",
-            features=["OCR_HIGH_RESOLUTION"],
-            # pages="1-4",
-        )
-        return policy_text.content
-    except Exception as e:
-        print(f"Failed to analyze document: {e}")
-        return POLICY
-
-def find_all_files(root_folder: str, extensions: Union[List[str], str]) -> List[str]:
-    """
-    Recursively finds all files with specified extensions under the specified root folder, including subfolders.
-
-    Args:
-        root_folder (str): The root folder to search for files.
-        extensions (Union[List[str], str]): A list of file extensions to search for (e.g., ['jpeg', 'jpg', 'png', 'pdf']).
-
-    Returns:
-        List[str]: A list of full paths to the found files.
-    """
-    if isinstance(extensions, str):
-        extensions = [extensions]
-
-    extensions = [ext.lower() for ext in extensions]
-    files_list = []
-    root_folder_path = Path(root_folder).resolve()
-
-    logger.info(f"Searching for files in: {root_folder_path}")
-    logger.info(f"File extensions to search for: {extensions}")
-
-    for root, _, files in os.walk(root_folder_path):
-        for file in files:
-            if any(file.lower().endswith(f".{ext}") for ext in extensions):
-                full_path = Path(root) / file
-                files_list.append(str(full_path.resolve()))
-                logger.info(f"Found file: {full_path.resolve()}")
-    
-    logger.info(f"Found {len(files_list)} files.")
-    logger.info(f"Files found: {files_list}")
-
-    return files_list
+)    
 
 def configure_sidebar():
     # Sidebar layout for initial submission
@@ -345,9 +161,6 @@ def initialize_chatbot() -> None:
         )
     prompt = st.chat_input("Ask away!", disabled=st.session_state.disable_chatbot)
     if prompt:
-        # prompt_ai_ready = prompt_message_ai_benchmarking_buddy_latency(
-        #     st.session_state["results"], prompt
-        # )
         prompt_ai_ready = ""
         st.session_state.messages.append({"role": "user", "content": prompt_ai_ready})
         st.session_state.chat_history.append({"role": "user", "content": prompt})
@@ -416,11 +229,12 @@ def main() -> None:
     """
     Main function to run the Streamlit app.
     """
-    #initialize_session_state(session_vars, initial_values)
     if "azure_openai_client_4o" not in st.session_state:
         st.session_state.azure_openai_client_4o = AzureOpenAIManager(completion_model_name='AZURE_OPENAI_CHAT_DEPLOYMENT_ID')
+    if "pa_processing" not in st.session_state:
+        st.session_state.pa_processing = PAProcessingPipeline()
+
     configure_sidebar()
-    # Create containers for displaying benchmark results
     results_container = st.container(border=True)
     uploaded_files = st.session_state.get("uploaded_files", [])
 
@@ -465,77 +279,34 @@ def main() -> None:
 
     if submit_to_ai and uploaded_files:
         with results_container:
-            with st.spinner("Processing files... 🤖"):
-                downloaded_folder = process_uploaded_files(uploaded_files)
-                if downloaded_folder:
-                    extensions = ['png']
-                    pa_files_images = find_all_files(downloaded_folder, extensions)
+            st.session_state["pa_processing"].run_pipeline(uploaded_files)
+            last_key = next(reversed(st.session_state["pa_processing"].results.keys()))
+            query = {"caseId": last_key}
+            document = cosmosdbManager.read_document(query)
+            if document:
+                # Create tabs for different sections
+                tab1, tab2, tab3, tab4 = st.tabs(["Clinical Information", "Final Determination", "Policy Location", "Raw Uploaded Files"])
 
-                    # Create a placeholder for the message
-                    message_placeholder = st.empty()
-                    message_placeholder.markdown("Summarizing Key clinical information and attachments... 📄✨")
-
-                    # Generate AI response
-                    api_response_gpt4o = asyncio.run(generate_ai_response(USER_PROMPT_NER, 
-                                                                          SYSTEM_PROMPT_NER, 
-                                                                          pa_files_images))
-
-                    # Clear the message
-                    message_placeholder.empty()
-                    
-                    if api_response_gpt4o:         
-                        SYSTEM_PROMPT_query_expansion = create_prompt_query_expansion(api_response_gpt4o['response']['Clinical Information'])
-                        api_response_search = asyncio.run(generate_ai_response(SYSTEM_PROMPT_query_expansion, 
-                                                                              SYSTEM_PROMPT_NER, 
-                                                                              pa_files_images))
-
-                        # Create a placeholder for the search message
-                        search_message_placeholder = st.empty()
-                        search_message_placeholder.markdown("Making a Decision... 🔍")
-                         # Locate the policy
-                        policy_location = locate_policy(api_response_search)
-                        policy_text = get_policy_text_from_blob(policy_location)
-                        # Clear the search message
-                        search_message_placeholder.empty()
-
-                    # if policy_text:
-                        
-                    #     USER_PROMPT_pa = create_prompt_pa(api_response_gpt4o['response']['Clinical Information'],
-                    #                                               policy_text)
-                    #     search_message_placeholder_2 = st.empty()
-                    #     search_message_placeholder_2.markdown("Making a Decision... 🔍")
-                    #     api_response_final = asyncio.run(generate_ai_response(USER_PROMPT_pa, 
-                    #                                                           SYSTEM_PROMPT_PRIOR_AUTH, 
-                    #                                                           pa_files_images,
-                    #                                                           response_format='text'))
-                    #     search_message_placeholder_2.empty()
-                    with results_container:
-                        # Display the response in a tabbed format
-                        response = api_response_gpt4o['response']
-                        tabs = st.tabs(["Patient Information", "Provider Information", "Clinical Information", "Policy", "Determination"])
-
-                        with tabs[0]:
-                            st.header("Patient Information")
-                            st.write(response['Patient Information'])
-
-                        with tabs[1]:
-                            st.header("Physician Information")
-                            st.write(response['Physician Information'])
-
-                        with tabs[2]:
-                            st.header("Clinical Information")
-                            st.write(response['Clinical Information'])
-
-                        with tabs[3]:
-                            st.header("Policy Information")
-                            if policy_text:
-                                st.markdown(f"**Policy Text (first 2000 characters)**:\n\n```markdown\n{policy_text[:2000]}\n```")
-                            st.markdown(f"**Policy Location**: {policy_location}")
-                        with tabs[4]:
-                            st.header("Determination")
-                            st.markdown(DETERMINATION)
-                else:
-                    st.write("Failed to process files.")
+                with tab1:
+                    st.header("Clinical Information")
+                    st.markdown(f"**Clinical Information:** {document.get('Clinical Information', 'N/A')}")
+                
+                with tab2:
+                    st.header("Final Determination")
+                    st.markdown(f"<div style='font-size: 18px; color: #1F77B4;'>{document.get('final_determination', 'N/A')}</div>", unsafe_allow_html=True)
+                
+                with tab3:
+                    st.header("Policy Location")
+                    st.markdown(f"**Policy Location:** {document.get('policy_location', 'N/A')}")
+                
+                with tab4:
+                    st.header("Raw Uploaded Files")
+                    raw_files = document.get('raw_uploaded_files', [])
+                    if raw_files:
+                        for file in raw_files:
+                            st.markdown(f"- {file}")
+                    else:
+                        st.markdown("No raw uploaded files found.") 
     else:
         st.info("Please upload files to analyze.")
         
@@ -559,8 +330,6 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    
-
     st.write(
         """
         <div style="text-align:center; font-size:30px; margin-top:10px;">
@@ -576,7 +345,6 @@ def main() -> None:
     if st.session_state.ai_response:
         pass
 
-   
 
 if __name__ == "__main__":
     main()
