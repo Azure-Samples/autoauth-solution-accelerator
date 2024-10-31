@@ -397,7 +397,7 @@ class PAProcessingPipeline:
         logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
         self.log_output({"final_determination": final_response}, api_response_determination['conversation_history'], step=None)
 
-    async def run(self, uploaded_files: List[str], streamlit: bool = False) -> None:
+    async def run(self, uploaded_files: List[str], streamlit: bool = False, caseId: str = None) -> None:
         """
         Process documents as per the pipeline flow and store the outputs.
         """
@@ -406,7 +406,8 @@ class PAProcessingPipeline:
             if streamlit:
                 st.error("No files provided for processing.")
             return
-
+        if caseId: 
+            self.caseId = caseId
         try:
             temp_dir = self.process_uploaded_files(uploaded_files)
             image_files = find_all_files(temp_dir, ["png"])

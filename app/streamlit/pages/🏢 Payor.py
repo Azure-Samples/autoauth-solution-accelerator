@@ -6,10 +6,11 @@ from src.aoai.aoai_helper import AzureOpenAIManager
 from typing import List
 from utils.ml_logging import get_logger
 import os
+from src.entraid.generate_id import generate_unique_id
 from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
 from src.pipeline.paprocessing.run import PAProcessingPipeline
-from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager  # Ensure correct import paths
+from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
 
 # Set up logger
 logger = get_logger()
@@ -73,9 +74,7 @@ st.set_page_config(
     page_icon="✨",
 )
 
-
-def configure_sidebar():
-    # Sidebar layout for initial submission
+def configure_sidebar(results_container):
     with st.sidebar:
         st.markdown("")
 
@@ -115,54 +114,120 @@ def configure_sidebar():
         if uploaded_files:
             st.session_state["uploaded_files"] = uploaded_files
 
-
 SYSTEM_MESSAGE_LATENCY = '''You are a clinical assistant specializing in the prior 
                         authorization process. Your goal is to assist with any questions related to the provision, 
                         evaluation, and determination of prior authorization requests.'''
 
-def initialize_chatbot() -> None:
-    st.markdown(
-        "<h4 style='text-align: center;'>PriorBuddy 🤖</h4>",
-        unsafe_allow_html=True,
-    )
+def initialize_chatbot(case_id=None, document=None) -> None:
+    st.markdown("<h4 style='text-align: center;'>PriorBuddy 🤖</h4>", unsafe_allow_html=True)
 
-    st.session_state.setdefault('chat_history', [])
-    st.session_state.setdefault('messages', [])
+    if 'chat_history' not in st.session_state:
+        st.session_state['chat_history'] = []
+    if 'messages' not in st.session_state:
+        st.session_state['messages'] = []
 
-    if not any(msg.get('role') == 'system' for msg in st.session_state['messages']):
-        st.session_state['messages'].insert(0, {'role': 'system', 'content': SYSTEM_MESSAGE_LATENCY})
+    if case_id and st.session_state.get('current_case_id') != case_id:
+        # New case, reset chat history and messages
+        st.session_state['chat_history'] = []
+        st.session_state['messages'] = []
+        st.session_state['current_case_id'] = case_id
 
-    respond_container = st.container()
+        # Create a summary of the case data
+        patient_info = document.get("Patient Information", {})
+        physician_info = document.get("Physician Information", {})
+        clinical_info = document.get("Clinical Information", {})
+        final_determination = document.get("final_determination", "N/A")
+        attachments_info = document.get("raw_uploaded_files", [])
+        policy_text = document.get("policy_text", [])
 
+        summary = f"""
+        Final Determination: {final_determination}
+
+        Patient Information:
+        - Name: {patient_info.get('Patient Name', 'N/A')}
+        - Date of Birth: {patient_info.get('Patient Date of Birth', 'N/A')}
+        - ID: {patient_info.get('Patient ID', 'N/A')}
+        - Address: {patient_info.get('Patient Address', 'N/A')}
+        - Phone Number: {patient_info.get('Patient Phone Number', 'N/A')}
+
+        Physician Information:
+        - Name: {physician_info.get('Physician Name', 'N/A')}
+        - Specialty: {physician_info.get('Specialty', 'N/A')}
+        - Contact:
+          - Office Phone: {physician_info.get('Physician Contact', {}).get('Office Phone', 'N/A')}
+          - Fax: {physician_info.get('Physician Contact', {}).get('Fax', 'N/A')}
+          - Office Address: {physician_info.get('Physician Contact', {}).get('Office Address', 'N/A')}
+
+        Clinical Information:
+        - Diagnosis and Medical Justification: {clinical_info.get('Diagnosis and medical justification (including ICD-10 code)', 'N/A')}
+        - Detailed History of Alternative Treatments and Results: {clinical_info.get('Detailed history of alternative treatments and results', 'N/A')}
+        - Relevant Lab Results or Diagnostic Imaging: {clinical_info.get('Relevant lab results or diagnostic imaging', 'N/A')}
+        - Documented Symptom Severity and Impact on Daily Life: {clinical_info.get('Documented symptom severity and impact on daily life', 'N/A')}
+        - Prognosis and Risk if Treatment is Not Approved: {clinical_info.get('Prognosis and risk if treatment is not approved', 'N/A')}
+        - Clinical Rationale for Urgency: {clinical_info.get('Clinical rationale for urgency (if applicable)', 'N/A')}
+        
+        Attachments:
+        The following attachments were provided by the user and were considered in the final determination:
+        {attachments_info}
+
+        Policy Text:
+        The following OCR text of the policy was used to make the final decision:
+        {policy_text}
+        """
+
+        # Include the summary in the system prompt
+        system_prompt = SYSTEM_MESSAGE_LATENCY + "\n\n" + summary
+        st.session_state['messages'].append({'role': 'system', 'content': system_prompt})
+
+        # Display a friendly greeting message to the user
+        greeting_message = f"👋 How can I assist you with case ID **{case_id}**? Feel free to ask any questions!"
+        st.session_state['messages'].append({'role': 'assistant', 'content': greeting_message})
+        st.session_state['chat_history'].append({'role': 'assistant', 'content': greeting_message})
+
+    elif not case_id and not st.session_state.get('initialized_default'):
+        # No case_id provided, initialize default assistant message once
+        st.session_state['chat_history'] = []
+        st.session_state['messages'] = []
+        st.session_state['initialized_default'] = True
+
+        st.session_state['messages'].append({'role': 'system', 'content': SYSTEM_MESSAGE_LATENCY})
+
+        default_message = (
+            "🚀 How can I help you today? I'm here to assist with any questions related to the prior authorization process."
+        )
+        st.session_state['messages'].append({'role': 'assistant', 'content': default_message})
+        st.session_state['chat_history'].append({'role': 'assistant', 'content': default_message})
+
+    respond_container = st.container(height=400)
     with respond_container:
-        for message in st.session_state.chat_history:
-            role = message.get("role", "assistant")
-            content = message.get("content", "")
-            avatar_style = "🧑‍💻" if role == "user" else "🤖"
-            with st.chat_message(role, avatar=avatar_style):
-                st.markdown(f"{content}", unsafe_allow_html=True)
+        for message in st.session_state['chat_history']:
+            role, content = message['role'], message['content']
+            avatar = "🧑‍💻" if role == "user" else "🤖"
+            with st.chat_message(role, avatar=avatar):
+                st.markdown(content, unsafe_allow_html=True)
 
-    prompt = st.chat_input("Ask away!")
+    prompt = st.chat_input("Type your message here...")
     if prompt:
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        st.session_state.chat_history.append({"role": "user", "content": prompt})
+        st.session_state['messages'].append({'role': 'user', 'content': prompt})
+        st.session_state['chat_history'].append({'role': 'user', 'content': prompt})
+
         with respond_container:
             with st.chat_message("user", avatar="🧑‍💻"):
-                st.markdown(f"{prompt}", unsafe_allow_html=True)
-            # Generate AI response
+                st.markdown(prompt, unsafe_allow_html=True)
+
             with st.chat_message("assistant", avatar="🤖"):
+                messages = st.session_state['messages']
+
                 stream = st.session_state.azure_openai_client_4o.openai_client.chat.completions.create(
                     model=st.session_state.azure_openai_client_4o.chat_model_name,
-                    messages=st.session_state.messages,
-                    temperature=0,
-                    max_tokens=3000,
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=4000,
                     stream=True,
                 )
                 ai_response = st.write_stream(stream)
-                st.session_state.messages.append({"role": "assistant", "content": ai_response})
-                st.session_state.chat_history.append({"role": "assistant", "content": ai_response})
-
-
+                st.session_state['messages'].append({'role': 'assistant', 'content': ai_response})
+                st.session_state['chat_history'].append({'role': 'assistant', 'content': ai_response})
 
 async def generate_ai_response(
     user_prompt: str,
@@ -197,12 +262,62 @@ async def generate_ai_response(
         logger.error(f"Error generating AI response: {e}")
         return {}
 
-
 async def run_pipeline_with_spinner(uploaded_files):
+    caseID = generate_unique_id()
     with st.spinner("Processing... Please wait."):
-        await st.session_state["pa_processing"].run(uploaded_files, streamlit=True)
-    return st.session_state["pa_processing"].conversation_history
+        await st.session_state["pa_processing"].run(uploaded_files, streamlit=True, caseId=caseID)
+    last_key = next(reversed(st.session_state["pa_processing"].results.keys()))
+    if "case_ids" not in st.session_state:
+        st.session_state["case_ids"] = []
+    if last_key not in st.session_state["case_ids"]:
+        st.session_state["case_ids"].append(last_key)
+    return last_key
 
+def display_case_data(document, results_container):
+    with results_container: 
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(
+            [
+                "📋 AI Determination",
+                "🩺 Clinical Information",
+                "👨‍⚕️ Physician Information",
+                "👤 Patient Information",
+                "📑 Supporting Documentation",
+            ]
+        )
+        with tab1:
+            st.header("📋 AI Determination")
+            final_determination = document.get("final_determination", "N/A")
+            st.markdown(f"{final_determination}")
+
+        with tab2:
+            st.header("🩺 Clinical Information")
+            data_clinical = format_clinical_info(document)
+            st.markdown(data_clinical)
+
+        with tab3:
+            st.header("👨‍⚕️ Physician Information")
+            data_physician = format_physician_info(document)
+            st.markdown(data_physician)
+
+        with tab4:
+            st.header("👤 Patient Information")
+            data_patient = format_patient_info(document)
+            st.markdown(data_patient)
+
+        with tab5:
+            st.header("📑 Supporting Documentation")
+            policy_retrieval = document.get("policy_location", [])
+            raw_uploaded_files = document.get("raw_uploaded_files", [])
+            if policy_retrieval:
+                st.markdown("Policy Leveraged:")
+                for policy in policy_retrieval:
+                    st.markdown(f"- {policy}")
+            if raw_uploaded_files:
+                st.markdown("Clinical Docs:")
+                for doc in raw_uploaded_files:
+                    st.markdown(f"- {doc}")
+            else:
+                st.markdown("No supporting documents found.")
 
 def save_uploaded_files(uploaded_files):
     temp_dir = tempfile.mkdtemp()
@@ -214,7 +329,6 @@ def save_uploaded_files(uploaded_files):
         file_paths.append(file_path)
     return file_paths
 
-
 def format_patient_info(document):
     patient_info = document["Patient Information"]
     return f"""
@@ -224,7 +338,6 @@ def format_patient_info(document):
     - **Address:** {patient_info.get('Patient Address', 'N/A')}
     - **Phone Number:** {patient_info.get('Patient Phone Number', 'N/A')}
     """
-
 
 def format_physician_info(document):
     physician_info = document["Physician Information"]
@@ -236,7 +349,6 @@ def format_physician_info(document):
       - **Fax:** {physician_info.get('Physician Contact', {}).get('Fax', 'N/A')}
       - **Office Address:** {physician_info.get('Physician Contact', {}).get('Office Address', 'N/A')}
     """
-
 
 def format_clinical_info(document):
     clinical_info = document["Clinical Information"]
@@ -255,18 +367,15 @@ def format_clinical_info(document):
       - **Rationale:** {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Rationale', 'N/A')}
     """
 
-
 def main() -> None:
     """
     Main function to run the Streamlit app.
     """
-    configure_sidebar()
     results_container = st.container(border=True)
+    configure_sidebar(results_container)
     uploaded_files = st.session_state.get("uploaded_files", [])
+    selected_case_id = None  # Initialize variable to track the selected case ID
 
-    conversation_history = []
-
-    # Custom CSS for centering and styling the button with a professional look
     st.sidebar.markdown(
         """
         <style>
@@ -315,73 +424,41 @@ def main() -> None:
     st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
     if submit_to_ai and uploaded_files:
+        uploaded_file_paths = save_uploaded_files(uploaded_files)
         with results_container:
-            uploaded_file_paths = save_uploaded_files(uploaded_files)
-            conversation_history = asyncio.run(run_pipeline_with_spinner(uploaded_file_paths))
-            st.session_state["conversation_history"].extend(conversation_history)
-             # Flatten the conversation history if needed
-            if isinstance(conversation_history, list) and len(conversation_history) == 1 and isinstance(conversation_history[0], list):
-                conversation_history = conversation_history[0]
-            
-            # Ensure conversation_history is in the correct format
-            if isinstance(conversation_history, list) and all(isinstance(msg, dict) for msg in conversation_history):
-                new_messages = [msg for msg in conversation_history if msg not in st.session_state["messages"]]
-                st.session_state["conversation_history"].extend(new_messages)
-                st.session_state["messages"].extend(new_messages)
-                st.session_state["chat_history"].extend(new_messages)
-            else:
-                st.error("Invalid conversation history format. Expected a list of dictionaries.")
-            last_key = next(reversed(st.session_state["pa_processing"].results.keys()))
-            query = {"caseId": last_key}
-            document = st.session_state["cosmosdb_manager"].read_document(query)
+            selected_case_id = asyncio.run(run_pipeline_with_spinner(uploaded_file_paths))
 
+    if "case_ids" in st.session_state and st.session_state["case_ids"]:
+        st.sidebar.markdown("### Historical PA")
+        case_ids = st.session_state["case_ids"][::-1]  # Reverse to show latest first
+        default_index = case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
+        selected_case_id = st.sidebar.selectbox(
+            'Select a case ID',
+            case_ids,
+            index=default_index,
+        )
+
+    if selected_case_id:
+        query = {"caseId": selected_case_id}
+        document = st.session_state["cosmosdb_manager"].read_document(query)
         if document:
-            tab1, tab2, tab3, tab4, tab5 = st.tabs(
-                [
-                    "📋 AI Determination",
-                    "🩺 Clinical Information",
-                    "👨‍⚕️ Physician Information",
-                    "👤 Patient Information",
-                    "📑 Supporting Documentation",
-                ]
+            # Display case data
+            display_case_data(document, results_container)
+
+            # Initialize the chatbot with the case data
+            initialize_chatbot(
+                case_id=selected_case_id,
+                document=document,
             )
-
-            with tab1:
-                st.header("📋 AI Determination")
-                final_determination = document.get("final_determination", "N/A")
-                st.markdown(f"**Final Determination:** {final_determination}")
-
-            with tab2:
-                st.header("🩺 Clinical Information")
-                data_clinical = format_clinical_info(document)
-                st.markdown(data_clinical)
-
-            with tab3:
-                st.header("👨‍⚕️ Physician Information")
-                data_physician = format_physician_info(document)
-                st.markdown(data_physician)
-
-            with tab4:
-                st.header("👤 Patient Information")
-                data_patient = format_patient_info(document)
-                st.markdown(data_patient)
-
-            with tab5:
-                st.header("📑 Supporting Documentation")
-                policy_retrieval = document.get("policy_location", [])
-                raw_uploaded_files = document.get("raw_uploaded_files", [])
-                if policy_retrieval:
-                    st.markdown("Policy Leveraged:")
-                    for policy in policy_retrieval:
-                        st.markdown(f"- {policy}")
-                if raw_uploaded_files:
-                    st.markdown("Clinical Docs:")
-                    for doc in raw_uploaded_files:
-                        st.markdown(f"- {doc}")
-                else:
-                    st.markdown("No supporting documents found.")
+        else:
+            with results_container:
+                st.warning("Case ID not found.")
+            # Initialize chatbot without case data
+            initialize_chatbot()
     else:
-        st.info("Let's get started ! Please upload your PA form and attached files, and let AI do the job.")
+        st.info("Let's get started! Please upload your PA form and attached files, and let AI do the job.")
+        # Initialize chatbot without case data
+        initialize_chatbot()
 
     st.sidebar.write(
         """
@@ -402,18 +479,6 @@ def main() -> None:
         """,
         unsafe_allow_html=True,
     )
-    st.write(
-        """
-        <div style="text-align:center; font-size:30px; margin-top:10px;">
-            ...
-        </div>""",
-        unsafe_allow_html=True,
-    )
-    st.markdown("")
-    if "disable_chatbot" not in st.session_state:
-        st.session_state.disable_chatbot = True
-    initialize_chatbot()
-
 
 if __name__ == "__main__":
     main()
