@@ -94,22 +94,6 @@ PRISM stands for:
 
 By integrating these core principles, PRISM transforms the PA process, making it more efficient and provider-friendly.
 
-## 🏢🤖 PAwise – Streamlined Prior Authorization Request Decisions for Payors
-
-PAWISE – **P**rior **A**uthorization **W**orkflow for **I**ntelligent **S**ystematic **E**fficiency is designed to reflect a streamlined, AI-powered process that makes the workflow around prior authorization both smart and efficient, reducing delays and improving accuracy in decision-making (approvals and denials).
-
-### What is PAwise?
-
-PAWISE stands for:
-- **P**rior: Focusing on the authorization process before treatment.
-- **A**uthorization: Ensuring accurate and efficient PA approvals.
-- **W**orkflow: Streamlining the PA workflow to reduce administrative burdens.
-- **I**ntelligent: Leveraging AI to enhance decision-making.
-- **S**ystematic: Implementing a systematic approach to PA processes.
-- **E**fficiency: Improving overall operational efficiency in the PA process.
-
-By integrating these core principles, PAWISE transforms the PA process for payors, making it more efficient and accurate.
-
 ### Disclaimer
 > [!IMPORTANT]
 > This software is provided for demonstration purposes only. It is not intended to be relied upon for any purpose. The creators of this software make no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability or availability with respect to the software or the information, products, services, or related graphics contained in the software for any purpose. Any reliance you place on such information is therefore strictly at your own risk.

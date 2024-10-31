@@ -47,18 +47,12 @@ def initialize_session_state(defaults: Dict[str, Any]) -> None:
 def get_main_content() -> str:
     """
     Get the main content HTML for the app.
-
-    This function generates the main content HTML for the Streamlit app.
-
-    :return: The main content HTML.
     """
+    azure_logo_base64 = get_image_base64('./utils/images/azure_logo.png')
     return f"""
     <h1 style="text-align:center;">
-        Welcome to Bench4AI 🤖!
-        <br>
-        <span style="font-style:italic; font-size:0.4em;"> Your ultimate LLM/SLM benchmarking destination </span> 
-        <img src="data:image/png;base64,{get_image_base64('./my_utils/images/azure_logo.png')}" alt="RAG logo" style="width:25px;height:25px;">        
-        <br>
+        Streamlining Prior Authorization with Azure AI
+        <img src="data:image/png;base64,{azure_logo_base64}" alt="Azure Logo" style="width:30px;height:30px;vertical-align:sub;"/>
     </h1>
     """
 
@@ -162,77 +156,112 @@ def display_support_center():
     #     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
     # </div>
 
-@st.cache_data
+@st.cache_data()
 def get_markdown_content() -> str:
     """
     Get the markdown content for the app.
-
-    This function generates the markdown content for the Streamlit app, providing information about the app's capabilities and resources.
-
-    :return: The markdown content.
     """
-    return """
-    Bench4AI features a user-friendly interface that streamlines the today's complex benchmarking process for your preferred MaaS (a.k.a Gpt-4o) and candidates. 
-    It allows you to bring your own prompts **(BYOP)** for a personalized benchmarking experience with your data. Gain in-depth performance insights with just a few clicks from an extensive library of statistical quality and performance metrics.
+
+    workflow = get_image_base64('./utils/images/prior_auth.png')
+    return f"""
+    Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors (insurance companies) before delivering specific treatments or medications. While essential for cost control and care management, the process has become inefficient, creating substantial delays, administrative overheads, and negative outcomes for all stakeholders—providers, payors, and patients.
     
-    #### 🛠️ Automating the Daily Adventures of the AI Engineer
+    <br>
+    <img src="data:image/png;base64,{workflow}" alt="Prior Authorization Flow" style="display: block; margin-left: auto; margin-right: auto; width: 100%;"/>
+    <br>
 
-    - **👩‍💼 Tech Lead**: "Hey squad! Just caught wind that Azure OpenAI dropped a shiny new model. When are we integrating it into our app?"
+    ### 🔍 Identifying Challenges and Leveraging Opportunities
 
-    - **👩🏾‍ Product Manager**: "Hold your horses! We'll sprint through our benchmarking and circle back... will get back to you! ⏱️"
+    Let's uncover the daily pain points faced by providers and payors, and understand the new landscape for Prior Authorization (PA) with the upcoming 2026 regulations.
 
-    - **🧑‍💻 The Team Hero**: "Wait... Why not let Bench4AI take it for a spin and.."
+    <details>
+    <summary>📊 Understanding the Burden for Payors and Providers</summary>
+    <br>
 
-    <div style="text-align: center;">
-        <img src="https://media.giphy.com/media/5owckHKAKMoA8/giphy.gif" alt="Speedy AI" style="width: 50%; height: auto;">
-        <p></p>
-    </div>
+    #### ⏳ Time and Cost Implications for Providers and Payors
 
-    <div style="text-align: center;">
-        Oh, and say hi to BenchBuddy 🤖! Your go-to AI pal for all things benchmarking.
-    </div>
+    **Providers:**
+    - **41 Requests per Week:** Physicians handle an average of 41 PA requests per week, consuming around 13 hours, equivalent to two business days [1].
+    - **High Administrative Burden:** 88% of physicians report a high or extremely high administrative burden due to PA processes [1].
 
-    #### 🌟 Getting Started
+    **Payors:**
+    - **Manual Processing Costs:** Up to 75% of PA tasks are manual or partially manual, costing around $3.14 per transaction [2].
+    - **Automation Benefits:** AI can reduce processing costs by up to 40%, cutting manual tasks and reducing expenses to just pennies per request in high-volume cases [2][3].
 
-    To kick things off, we recommend watching the above introductory video for a smooth start.. If you have any questions, the 'How-To Guide' in the sidebar offers a comprehensive step-by-step walkthrough.
+    #### 🚨 Impact on Patient Outcomes and Delays
 
-    - **Navigating the App:** The navigation tool in the top right corner is designed for seamless switching between different sections of the app: 
-        - 👋 **Home:** The main page you're currently on.
-        - 📊 **PerformanceArena:** Gain in-depth insights into model performance, including throughput and latency analysis.
-        - 🔍 **QualityIQ:** Assess the accuracy and reliability of your AI models with detailed quality metrics.
-  
-    #### 💬 Want to Collaborate or Share Your Feedback?
-    - **Join Our Community:** Dive into our [chat group](#) to connect with both experts and enthusiasts alike. Share your thoughts, ask questions, and engage with the community.
+    **Providers:**
+    - **Treatment Delays:** 93% of physicians report that prior authorization delays access to necessary care, leading to treatment abandonment in 82% of cases [1].
+    - **Mortality Risk:** Even a one-week delay in critical treatments like cancer increases mortality risk by 1.2–3.2% [3].
 
-    - **Feedback Options:**
-        - **For Developers/Coders:** We encourage you to provide feedback directly through GitHub Actions. This method allows for a streamlined process to review and implement your valuable suggestions. For step-by-step, please refer to the 'Feedback' section in the sidebar.
-        - **For Everyone:** If you don't have access to GitHub, no worries! Your insights are still incredibly important to us. Please share your thoughts by filling out our [feedback form](#). We're eager to hear from you and make improvements based on your feedback.
+    **Payors:**
+    - **Improved Approval Accuracy:** AI automation reduces errors by up to 75%, ensuring more accurate and consistent approvals [2].
+    - **Faster Turnaround Times:** AI-enabled systems reduce PA decision-making from days to just hours, leading to improved member satisfaction and reduced costs [3].
+
+    #### ⚙️ Operational Inefficiencies and Automation Potential
+
+    **Providers:**
+    - **Transparency Issues:** Providers often lack real-time insight into PA requirements, resulting in treatment delays. AI integration with EHRs can provide real-time updates, improving transparency and reducing bottlenecks [2].
+
+    **Payors:**
+    - **High-Volume Auto-Approvals:** AI-based systems can automatically approve low-risk cases, reducing call volumes by 10–15% and improving operational efficiency [2][3].
+    - **Efficiency Gains:** AI automation can save 7–10 minutes per case, compounding savings for payors [3].
+
+    #### 📊 Key Statistics: AI’s Impact on PA
+
+    - 40% cost reduction for payors in high-volume cases using AI automation [3].
+    - 15–20% savings in call handle time through AI-driven processes [2].
+    - 75% of manual tasks can be automated [2].
+    - 88% of physicians report high administrative burdens due to PA [1].
+    - 93% of physicians report that PA delays patient care [1].
+
+    #### References
+
+    1. American Medical Association, "Prior Authorization Research Reports" [link](https://www.ama-assn.org/practice-management/prior-authorization/prior-authorization-research-reports)
+    2. Sagility Health, "Transformative AI to Revamp Prior Authorizations" [link](https://sagilityhealth.com/news/transformative-ai-to-revamp-prior-authorizations/)
+    3. McKinsey, "AI Ushers in Next-Gen Prior Authorization in Healthcare" [link](https://www.mckinsey.com/industries/healthcare/our-insights/ai-ushers-in-next-gen-prior-authorization-in-healthcare)
+
+    </details>
+
+    <details>
+    <summary>🏛️ Impact of CMS (Centers for Medicare & Medicaid Services) New Regulations</summary>
+    <br>
+
+    **Real-Time Data Exchange:** The new regulations mandate that payors use APIs based on HL7 FHIR standards to facilitate real-time data exchange. This will allow healthcare providers to receive quicker PA decisions—within 72 hours for urgent cases and 7 days for standard requests. Immediate access to PA determinations will dramatically reduce delays, ensuring that patients get the necessary care faster. For AI-driven solutions, this real-time data will enable enhanced decision-making capabilities, streamlining the interaction between payors and providers.
+
+    **Transparency in Decision-Making:** Payors will now be required to provide detailed explanations for PA decisions, including reasons for denial, through the Prior Authorization API. This will foster greater transparency, which has been a longstanding issue in the PA process. For AI solutions, this transparency can be leveraged to improve algorithms that predict authorization outcomes, thereby reducing manual reviews and cutting down on administrative burdens. The transparency also enhances trust between providers and payors, reducing disputes over PA decisions.
+
+    </details>
+
+    <br>
+
+    ### 🤖👩‍⚕️ PRISM: Our Solution for Payors - The Value of Time
+
+    **PRISM** – **P**rior **R**equest **I**ntelligent **S**ystem for **M**edical Authorization is a comprehensive solution designed to optimize the Prior Authorization (PA) process for healthcare providers. By leveraging advanced AI and automation, PRISM ensures faster, more accurate PA decisions, reducing administrative burdens and improving patient care.
+
+    Please navigate to the Payor page to explore our solution designed to streamline the Prior Authorization (PA) process. Our goal is to reduce administrative burdens, enhance accuracy, and improve productivity by leveraging advanced AI and automation. By implementing PRISM, healthcare providers can process more cases efficiently, reduce bottlenecks, and lower expenses.
+
+
     """
 
-
-@st.cache_data
+@st.cache_data()
 def get_footer_content() -> str:
     """
     Get the footer content HTML for the app.
-
-    This function generates the footer content HTML for the Streamlit app.
-
-    :return: The footer content HTML.
     """
     return """
     <div style="text-align:center; font-size:30px; margin-top:10px;">
         ...
     </div>
     <div style="text-align:center; margin-top:20px;">
-        <a href="https://github.com/pablosalvador10/gbb-ai-upgrade-llm" target="_blank" style="text-decoration:none; margin: 0 10px;">
+        <a href="https://github.com/pablosalvador10" target="_blank" style="text-decoration:none; margin: 0 10px;">
             <img src="https://img.icons8.com/fluent/48/000000/github.png" alt="GitHub" style="width:40px; height:40px;">
         </a>
         <a href="https://www.linkedin.com/in/pablosalvadorlopez/?locale=en_US" target="_blank" style="text-decoration:none; margin: 0 10px;">
             <img src="https://img.icons8.com/fluent/48/000000/linkedin.png" alt="LinkedIn" style="width:40px; height:40px;">
         </a>
-        <!-- TODO: Update this link to the correct URL in the future -->
-        <a href="#" target="_blank" style="text-decoration:none; margin: 0 10px;">
-            <img src="https://img.icons8.com/?size=100&id=23438&format=png&color=000000" alt="Blog" style="width:40px; height:40px;">
+        <a href="https://pabloaicorner.hashnode.dev/" target="_blank" style="text-decoration:none; margin: 0 10px;">
+            <img src="https://img.icons8.com/ios-filled/50/000000/blog.png" alt="Blog" style="width:40px; height:40px;">
         </a>
     </div>
     """
@@ -354,173 +383,6 @@ def add_deployment_aoai_form() -> None:
                     )
 
 
-def display_deployments() -> None:
-    """
-    Display and manage existing Azure OpenAI deployments.
-
-    This function renders the existing deployments in the Streamlit sidebar, allowing users to view, update, or remove deployments.
-    """
-    if "deployments" in st.session_state:
-        st.markdown("##### Loaded Deployments")
-        if st.session_state.deployments == {}:
-            st.sidebar.error(
-                "No deployments were found. Please add a deployment in the Deployment Center."
-            )
-        else:
-            for deployment_name, deployment in st.session_state.deployments.items():
-                with st.expander(deployment_name):
-                    updated_name = st.text_input(
-                        "Name", value=deployment_name, key=f"name_{deployment_name}"
-                    )
-                    updated_key = st.text_input(
-                        "Key",
-                        value=deployment.get("key", ""),
-                        type="password",
-                        key=f"key_{deployment_name}",
-                    )
-                    updated_endpoint = st.text_input(
-                        "Endpoint",
-                        value=deployment.get("endpoint", ""),
-                        key=f"endpoint_{deployment_name}",
-                    )
-                    updated_version = st.text_input(
-                        "Version",
-                        value=deployment.get("version", ""),
-                        key=f"version_{deployment_name}",
-                    )
-                    updated_stream = st.radio(
-                        "Streaming",
-                        (True, False),
-                        format_func=lambda x: "Yes" if x else "No",
-                        index=0 if deployment.get("stream", False) else 1,
-                        key=f"stream_{deployment_name}",
-                        help="Select 'Yes' if the model will be tested with output in streaming mode.",
-                    )
-
-                    if st.button("Update Deployment", key=f"update_{deployment_name}"):
-                        st.session_state.deployments[deployment_name] = {
-                            "key": updated_key,
-                            "endpoint": updated_endpoint,
-                            "version": updated_version,
-                            "stream": updated_stream,
-                        }
-                        st.rerun()
-
-                    if st.button("Remove Deployment", key=f"remove_{deployment_name}"):
-                        del st.session_state.deployments[deployment_name]
-                        st.rerun()
-    else:
-        st.sidebar.error(
-            "No deployments were found. Please add a deployment in the Deployment Center."
-        )
-
-
-def add_deployment_maas_form() -> None:
-    """
-    Render the form to add a new model deployment.
-
-    This function provides a form in the Streamlit sidebar to add a new deployment, allowing users to specify deployment details.
-    """
-    with st.form("add_deployment_maas_form"):
-        deployment_name = st.text_input(
-            "Deployment ID",
-            help="Enter the deployment ID for the model.",
-            placeholder="e.g., model-deployment-1234abcd",
-        )
-        deployment_key = st.text_input(
-            "API Key",
-            help="Enter your API key.",
-            type="password",
-            placeholder="e.g., sk-ab*****..",
-        )
-        deployment_endpoint = st.text_input(
-            "API Endpoint",
-            help="Enter the API endpoint for the model.",
-            placeholder="e.g., https://api.model.com/v1",
-        )
-        model_family = st.selectbox(
-            "Model Family",
-            [
-                "Phi-3 family of models",
-                "Cohere Embed V3 family of models",
-                "Cohere Command R family of models",
-                "Meta Llama 2 chat family of models",
-                "Meta Llama 3 instruct family of models",
-                "Mistral-Small",
-                "Mistral-Large",
-                "Jais family of models",
-                "Jamba family of models",
-            ],
-            help="Select the model family for the deployment.",
-        )
-        # Streaming mode is fixed to non-streaming and disabled
-        streaming_mode = st.radio(
-            "Streaming Mode",
-            ["Non-Streaming"],
-            index=0,
-            disabled=True,
-            help="Streaming mode is fixed to Non-Streaming and cannot be changed.",
-        )
-        
-        submitted = st.form_submit_button("Add Deployment")
-
-        if submitted:
-            if (
-                deployment_name
-                and deployment_key
-                and deployment_endpoint
-                and model_family
-            ):
-                if "deployments" not in st.session_state:
-                    st.session_state.deployments = {}
-                try:
-                    pass
-                except Exception as e:
-                    st.warning(
-                        f"""An issue occurred while initializing the model manager. {e} Please try again. If the issue persists,
-                                    verify your configuration."""
-                    )
-                    return
-
-                if deployment_name not in st.session_state.deployments:
-                    st.session_state.deployments[deployment_name] = {
-                        "key": deployment_key,
-                        "endpoint": deployment_endpoint,
-                        "model_family": model_family,
-                        "streaming_mode": streaming_mode,
-                    }
-                    st.toast(f"Deployment '{deployment_name}' added successfully.")
-                    st.rerun()
-                else:
-                    st.error(
-                        f"A deployment with the name '{deployment_name}' already exists."
-                    )
-
-
-def create_benchmark_center() -> None:
-    """
-    Creates a benchmark center UI component in a Streamlit application.
-    This component allows users to add their MaaS Deployment for benchmarking
-    against different model families.
-
-    The function dynamically generates UI elements based on the user's selection
-    of model family from a dropdown menu. Currently, it supports the "AOAI" model
-    family and provides a placeholder for future expansion to other model families.
-    """
-    with st.expander("➕ Add Your MaaS Deployment", expanded=False):
-        operation = st.selectbox(
-            "Choose Model Family:",
-            ("AOAI", "Other"),
-            index=0,
-            help="Select the benchmark you want to perform to evaluate AI model performance.",
-            placeholder="Select a Benchmark",
-        )
-        if operation == "AOAI":
-            add_deployment_aoai_form()
-        else:
-            add_deployment_maas_form()
-
-
 def main() -> None:
     """
     Main function to run the Streamlit app.
@@ -538,15 +400,6 @@ def main() -> None:
         "deployments": {},
     }
     initialize_session_state(env_vars)
-
-    with st.sidebar:
-        st.markdown("## 🤖 Deployment Center ")
-        if st.session_state.deployments == {}:
-            load_default_deployment()
-        create_benchmark_center()
-        display_deployments()
-
-    st.sidebar.divider()
 
     display_support_center()
 

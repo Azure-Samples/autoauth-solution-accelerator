@@ -80,15 +80,17 @@ def configure_sidebar(results_container):
 
         st.markdown(
             """
-            ## Welcome to the SmartPA!
+            ## 👩‍⚕️ Welcome to PRISM 
 
-            Our AI-powered tool streamlines the prior authorization process by analyzing your documents and providing a clinical determination based on policy criteria. 📄✨
+            PRISM – **P**rior **R**equest **I**ntelligent **S**ystem for **M**edical Authorization is a 
+            comprehensive solution designed to optimize the Prior Authorization (PA) process.
 
             ### How it works:
-            1. **Upload Documents**: Attach all relevant files, including text files, PDFs, images, and clinical notes. 📚
+            1. **Upload Documents**: Attach all relevant files, including clinical notes, PDFs, images, and reports. 📚
             2. **Submit for Analysis**: Click 'Submit' and let our AI handle the rest. You'll receive a comprehensive clinical determination. 🎩
 
-            Ready to get started? Let's make prior authorization effortless! 🚀
+            ### Need Assistance?
+            Don't forget to talk to **PriorBuddy** for any questions or further assistance. 🗨️
             """
         )
 
