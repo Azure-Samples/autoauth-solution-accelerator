@@ -527,7 +527,6 @@ class IndexerRunner:
         Run the indexer to start indexing documents.
         """
         try:
-            # Start the indexer
             self.indexer_client.run_indexer(self.indexer_name)
             logger.info(f"Indexer '{self.indexer_name}' has been started.")
         except ResourceNotFoundError as e:

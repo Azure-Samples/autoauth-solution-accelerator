@@ -240,34 +240,27 @@ def chat_interface() -> None:
     conversation_history: List[Dict[str, str]] = []
 
     try:
-        # Allow the user to input the directory up to three times
         max_attempts = 3
         attempts = 0
 
         while attempts < max_attempts:
             try:
-                # Ask the user for the directory of files to process
                 input_dir = input(
                     Fore.GREEN + "Enter the path to the directory containing files to process: "
                 )
                 process_documents_flow(input_dir)
 
-                # If processing is successful, break out of the loop
                 print(Fore.GREEN + "Documents processed successfully.")
                 break
             except Exception as e:
-                # Increment the attempt counter
                 attempts += 1
 
-                # Print the error message
                 print(Fore.RED + f"Error: {e}")
 
-                # If the maximum number of attempts is reached, print a message and exit
                 if attempts == max_attempts:
                     print(Fore.RED + "Maximum number of attempts reached. Exiting.")
                     return
 
-        # After processing, display the final determination
         final_response = session_state["conversation_history"].get("final_determination")
         if final_response:
             print(

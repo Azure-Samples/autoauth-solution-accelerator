@@ -5,6 +5,7 @@ import shutil
 from typing import Any, Dict, List, Optional, Union
 
 import dotenv
+import streamlit as st
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.models import (
@@ -364,7 +365,6 @@ class PAProcessingPipeline:
         prompt_query_expansion = self.prompt_manager.create_prompt_query_expansion(clinical_info)
         logger.info(Fore.CYAN + "Expanding query and searching for policy...")
         logger.info(f"Input clinical information: {clinical_info}")
-        logger.info(f"Input clinical information: {prompt_query_expansion}")
         api_response_query = await self.azure_openai_client.generate_chat_response(
             query=prompt_query_expansion,
             system_message_content=self.SYSTEM_PROMPT_QUERY_EXPANSION,
@@ -372,7 +372,7 @@ class PAProcessingPipeline:
             response_format="json_object",
             max_tokens=3000,
         )
-    
+
         # Store query expansion response
         self.log_output(api_response_query['response'], api_response_query['conversation_history'], step=None)
         logger.info(f"API response query: {api_response_query}")
@@ -397,36 +397,62 @@ class PAProcessingPipeline:
         logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
         self.log_output({"final_determination": final_response}, api_response_determination['conversation_history'], step=None)
 
-    async def run(self, uploaded_files: List[str]) -> None:
+    async def run(self, uploaded_files: List[str], streamlit: bool = False) -> None:
         """
         Process documents as per the pipeline flow and store the outputs.
         """
         if not uploaded_files:
             logger.info(Fore.RED + "No files provided for processing.")
+            if streamlit:
+                st.error("No files provided for processing.")
             return
 
         try:
             temp_dir = self.process_uploaded_files(uploaded_files)
             image_files = find_all_files(temp_dir, ["png"])
 
+            if streamlit:
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                progress = 0
+                total_steps = 4
+
+                status_text.write("🔍 **Analyzing clinical information...**")
+                progress += 1
+                progress_bar.progress(progress / total_steps)
+
             api_response_ner = await self.analyze_clinical_information(image_files)
             clinical_info = api_response_ner["response"]
 
             if not clinical_info:
                 logger.info(Fore.RED + "Clinical Information not found in AI response.")
+                if streamlit:
+                    status_text.error("Clinical Information not found in AI response.")
+                    progress_bar.empty()
                 return
+
+            if streamlit:
+                status_text.write("🔎 **Expanding query and searching for policy...**")
+                progress += 1
+                progress_bar.progress(progress / total_steps)
 
             api_response_query = await self.expand_query_and_search_policy(clinical_info)
             policy_location = self.locate_policy(api_response_query)
 
             if policy_location in ["No results found", "Error locating policy"]:
                 logger.info(Fore.RED + "Policy not found.")
+                if streamlit:
+                    status_text.error("Policy not found.")
+                    progress_bar.empty()
                 return
 
             policy_text = self.get_policy_text_from_blob(policy_location)
 
             if not policy_text:
                 logger.info(Fore.RED + "Policy text not found.")
+                if streamlit:
+                    status_text.error("Policy text not found.")
+                    progress_bar.empty()
                 return
 
             self.log_output(
@@ -434,13 +460,24 @@ class PAProcessingPipeline:
                     "policy_location": policy_location,
                     "policy_text": policy_text,
                 },
-                step=None
+                step='policy_retrieval'
             )
+
+            if streamlit:
+                status_text.write("📝 **Generating final determination...**")
+                progress += 1
+                progress_bar.progress(progress / total_steps)
 
             await self.generate_final_determination(api_response_ner['response'], policy_text)
 
+            if streamlit:
+                status_text.success(f"✅ **PA {self.caseId} Processing complete!**")
+                progress_bar.progress(1.0)
+
         except Exception as e:
             logger.error(f"Document processing failed: {e}")
+            if streamlit:
+                st.error(f"Document processing failed: {e}")
         finally:
             self.cleanup_temp_dir()
             self.store_output()
