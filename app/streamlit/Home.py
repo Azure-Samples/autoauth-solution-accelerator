@@ -233,9 +233,11 @@ def get_markdown_content() -> str:
 
     </details>
 
-    <br>
+    <div style="text-align:center; font-size:30px; margin-top:10px;">
+            ...
+    </div>
 
-    ### 🤖👩‍⚕️ PRISM: Our Solution for Payors - The Value of Time
+    ### 🤖👩‍⚕️ Meet PRISM: Our Solution for Payors 
 
     **PRISM** – **P**rior **R**equest **I**ntelligent **S**ystem for **M**edical Authorization is a comprehensive solution designed to optimize the Prior Authorization (PA) process for healthcare providers. By leveraging advanced AI and automation, PRISM ensures faster, more accurate PA decisions, reducing administrative burdens and improving patient care.
 

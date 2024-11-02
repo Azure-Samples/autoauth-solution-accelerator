@@ -163,6 +163,7 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         Clinical Information:
         - Diagnosis and Medical Justification: {clinical_info.get('Diagnosis and medical justification (including ICD-10 code)', 'N/A')}
         - Detailed History of Alternative Treatments and Results: {clinical_info.get('Detailed history of alternative treatments and results', 'N/A')}
+        - Alternative treatments listed in prior authorization request form: {clinical_info.get('Alternative treatments listed in prior authorization request form', 'N/A')}
         - Relevant Lab Results or Diagnostic Imaging: {clinical_info.get('Relevant lab results or diagnostic imaging', 'N/A')}
         - Documented Symptom Severity and Impact on Daily Life: {clinical_info.get('Documented symptom severity and impact on daily life', 'N/A')}
         - Prognosis and Risk if Treatment is Not Approved: {clinical_info.get('Prognosis and risk if treatment is not approved', 'N/A')}
@@ -357,6 +358,7 @@ def format_clinical_info(document):
     return f"""
     - **Diagnosis and Medical Justification:** {clinical_info.get('Diagnosis and medical justification (including ICD-10 code)', 'N/A')}
     - **Detailed History of Alternative Treatments and Results:** {clinical_info.get('Detailed history of alternative treatments and results', 'N/A')}
+    - **Alternative treatments listed in prior authorization request form:** {clinical_info.get('Alternative treatments listed in prior authorization request form', 'N/A')}
     - **Relevant Lab Results or Diagnostic Imaging:** {clinical_info.get('Relevant lab results or diagnostic imaging', 'N/A')}
     - **Documented Symptom Severity and Impact on Daily Life:** {clinical_info.get('Documented symptom severity and impact on daily life', 'N/A')}
     - **Prognosis and Risk if Treatment is Not Approved:** {clinical_info.get('Prognosis and risk if treatment is not approved', 'N/A')}

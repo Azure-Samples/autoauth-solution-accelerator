@@ -5,27 +5,102 @@
 - **Patient Address**: {{ patient_address }}
 - **Patient Phone Number**: {{ patient_phone }}
 
+## Physician Information:
+- **Physician Name**: {{ physician_name }}
+- **Specialty**: {{ specialty }}
+- **Physician Contact**:
+  - **Office Phone**: {{ physician_phone }}
+  - **Fax**: {{ physician_fax }}
+  - **Address**: {{ physician_address }}
+
 ## Clinical Information:
-- **Diagnosis and Medical Justification**: {{ diagnosis }}
-- **Detailed History of Alternative Treatments and Their Results**: {{ treatment_history }}
+
+- **Diagnosis**: {{ diagnosis }}
+- **ICD-10 Code**: {{ icd10_code }}
+- **Detailed History of Prior Treatments and Results**: {{ prior_treatments }}
+- **Specific Drugs Already Taken and Treatment Outcomes**: {{ specific_drugs }}
+- **Alternative Drugs Required by PA Form**: {{ alternative_drugs_required }}
 - **Relevant Lab Results or Diagnostic Imaging**: {{ lab_results }}
-- **Documented Symptom Severity and Its Impact on Daily Life**: {{ symptom_severity }}
-- **Prognosis and Risks if Treatment is Not Approved**: {{ prognosis }}
-- **Clinical Rationale for Urgency**: {{ urgency_rationale }}
-- **Plan for Treatment or Request for Prior Authorization**:
-  - **Medication or Procedure**: {{ medication_or_procedure }}
-  - **Code**: {{ code }}
-  - **Dosage or Plan**: {{ dosage }}
-  - **Duration**: {{ duration }}
-  - **Rationale**: {{ rationale }}
+- **Documented Symptom Severity and Impact on Daily Life**: {{ symptom_severity }}
+- **Prognosis and Risk if Treatment Is Not Approved**: {{ prognosis_risk }}
+- **Clinical Rationale for Urgency (if applicable)**: {{ urgency_rationale }}
+
+### Plan for Treatment or Request for Prior Authorization:
+
+- **Name of the Medication or Procedure Being Requested**: {{ requested_medication }}
+- **Code of the Medication or Procedure**: {{ medication_code }}
+- **Dosage or Plan for the Medication or Procedure**: {{ dosage_plan }}
+- **Duration of Doses or Days of Treatment**: {{ treatment_duration }}
+- **Rationale for the Medication or Procedure**: {{ medication_rationale }}
+- **Presumed Eligibility Based on PA Form Answers**: {{ presumed_eligibility }}
 
 ## Policy Text:
 {{ policy_text }}
 
 ## Decision:
-Based on the provided policy text, patient information, and clinical information, decide if the prior authorization request should be:
-1. **Approved**: If the request meets the policy criteria.
-2. **Denied**: If the request does not meet the policy criteria.
-3. **Needs More Information**: If additional information is required to make a decision.
 
-Please provide your decision along with a brief explanation.
+Using the provided policy text, patient information, physician information, and clinical information, conduct a thorough analysis of the prior authorization request to determine the appropriate decision. Apply a step-by-step reasoning approach ("tree of thought") to evaluate the request.
+
+### Step-by-Step Analysis:
+
+1. **Analyze Policy Criteria**:
+   - Extract and list all key criteria and requirements from the policy text relevant to the requested medication or procedure.
+   - Identify specific conditions, prior treatment requirements, dosage limitations, and eligibility criteria outlined in the policy.
+
+2. **Review Patient's Clinical Information**:
+   - **Diagnosis and ICD-10 Code**:
+     - Confirm the patient's diagnosis and ensure the ICD-10 code matches.
+   - **Detailed History of Prior Treatments and Results**:
+     - List all prior treatments the patient has undergone.
+     - Note the outcomes and whether the patient failed these treatments.
+   - **Specific Drugs Already Taken and Treatment Outcomes**:
+     - Identify the specific drugs the patient has taken.
+     - Indicate if the patient failed these prior treatments and provide reasons if available.
+   - **Alternative Drugs Required by the PA Form**:
+     - Determine how many and which alternative drugs are required by the PA form to approve the new requested drug.
+     - Compare these requirements with the patient's treatment history.
+   - **Relevant Lab Results or Diagnostic Imaging**:
+     - Summarize key findings that support the diagnosis and need for the requested treatment.
+   - **Documented Symptom Severity and Impact on Daily Life**:
+     - Describe how the patient's symptoms affect daily activities.
+   - **Prognosis and Risk if Treatment Is Not Approved**:
+     - Explain potential risks or worsening of condition if the treatment is not authorized.
+   - **Clinical Rationale for Urgency**:
+     - If applicable, provide reasons for the urgency of the treatment.
+
+3. **Evaluate Plan for Treatment or Request for Prior Authorization**:
+   - **Medication or Procedure Details**:
+     - Confirm the name and code of the medication or procedure being requested.
+     - Verify the dosage, treatment plan, and duration align with policy guidelines.
+     - Assess the rationale provided for the medication or procedure.
+     - Evaluate the presumed eligibility based on PA form answers.
+
+4. **Compare Policy Criteria with Patient Information**:
+   - Compare each criterion from the policy with the patient's clinical information.
+   - Assess whether each criterion is fully met, partially met, or not met.
+   - Carefully review each qualifying statement in the policy text, including "and" and "or" conditions.
+
+5. **Identify Gaps or Missing Information**:
+   - Note any missing information required to make a decision.
+   - Specify what additional information is needed.
+
+### References to Policy Text:
+
+- Cite specific sections or clauses from the policy that support your analysis.
+- Provide quotations or excerpts where necessary to justify your reasoning.
+
+### Explanation of Alignment or Discrepancies:
+
+- Clearly explain how the patient's case aligns with or deviates from the policy criteria.
+- Detail any discrepancies and their impact on the decision.
+
+### Rationale for Final Decision:
+
+- Justify your decision with logical reasoning and evidence from the provided information and policy text.
+- Ensure your explanation is clear, logical, and thoroughly justified.
+
+**Final Decision**:
+
+State your final decision (**Approved**, **Denied**, or **Needs More Information**) and provide a detailed rationale based solely on the facts provided.
+
+**Note**: If the decision would vary based on insurance policy specifics, please specify this and indicate the criteria it would depend on.
