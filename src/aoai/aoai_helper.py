@@ -83,6 +83,7 @@ class AzureOpenAIManager:
             "AZURE_AOAI_WHISPER_MODEL_DEPLOYMENT_ID"
         )
 
+
         self.openai_client = AzureOpenAI(
             api_key=self.api_key,
             api_version=self.api_version,
@@ -237,6 +238,78 @@ class AzureOpenAIManager:
             logger.error(f"Error details: {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             return None, None 
+    
+    async def generate_chat_response_o1(
+        self,
+        query: str,
+        conversation_history: List[Dict[str, str]] = [],
+        max_completion_tokens: int = 5000,
+        stream: bool = False,
+        model: str = "o1-preview",
+        **kwargs,
+    ) -> Optional[Union[str, Dict[str, Any]]]:
+        """
+        Generates a text response using the o1-preview or o1-mini models, considering the specific requirements and limitations of these models.
+    
+        :param query: The latest query to generate a response for.
+        :param conversation_history: A list of message dictionaries representing the conversation history.
+        :param max_completion_tokens: Maximum number of tokens to generate. Defaults to 5000.
+        :param stream: Whether to stream the response. Defaults to False.
+        :param model: The model to use for generating the response. Defaults to "o1-preview".
+        :return: The generated text response as a string if response_format is "text", or a dictionary containing the response and conversation history if response_format is "json_object". Returns None if an error occurs.
+        """
+        start_time = time.time()
+        logger.info(f"Function generate_chat_response_o1 started at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(start_time))}")
+    
+        try:
+            user_message = {"role": "user", "content": query}
+    
+            messages_for_api = conversation_history + [user_message]
+            logger.info(f"Sending request to Azure OpenAI at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time()))}")
+    
+            response = self.openai_client.chat.completions.create(
+                model=model,
+                messages=messages_for_api,
+                max_completion_tokens=max_completion_tokens,
+                stream=stream,
+                **kwargs,
+            )
+    
+            if stream:
+                response_content = ""
+                for event in response:
+                    if event.choices:
+                        event_text = event.choices[0].delta
+                        if event_text is None or event_text.content is None:
+                            continue
+                        print(event_text.content, end="", flush=True)
+                        response_content += event_text.content
+                        time.sleep(0.001)  # Maintain minimal sleep to reduce latency
+            else:
+                response_content = response.choices[0].message.content
+    
+            conversation_history.append(user_message)
+            conversation_history.append({"role": "assistant", "content": response_content})
+    
+            end_time = time.time()
+            duration = end_time - start_time
+            logger.info(f"Function generate_chat_response_o1 finished at {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(end_time))} (Duration: {duration:.2f} seconds)")
+    
+            return {
+                "response": response_content,
+                "conversation_history": conversation_history
+            }
+    
+        except openai.APIConnectionError as e:
+            logger.error("API Connection Error: The server could not be reached.")
+            logger.error(f"Error details: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return None
+        except Exception as e:
+            logger.error("Unexpected Error: An unexpected error occurred during contextual response generation.")
+            logger.error(f"Error details: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return None
 
     async def generate_chat_response(
             self,

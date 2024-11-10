@@ -494,30 +494,36 @@ class PAProcessingPipeline:
         
         return api_response_query
 
-    async def generate_final_determination(self, retrieved_infromation_ner: Dict[str, Any], policy_text: str) -> None:
+    async def generate_final_determination(self, retrieved_infromation_ner: Dict[str, Any], policy_text: str, use_o1: bool = False) -> None:
         """
         Generate final determination using AI.
         """
-        user_prompt_pa = self.prompt_manager.create_prompt_pa(retrieved_infromation_ner, policy_text)
+        user_prompt_pa = self.prompt_manager.create_prompt_pa(retrieved_infromation_ner, policy_text, use_o1)
         print(user_prompt_pa)
         logger.info(Fore.CYAN + "Generating final determination...")
         logger.info(f"Input clinical information: {user_prompt_pa}")
-        api_response_determination = await self.azure_openai_client.generate_chat_response(
-            query=user_prompt_pa,
-            system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
-            conversation_history=[],
-            response_format="text",
-            max_tokens=self.max_tokens,
-            top_p=self.top_p,
-            temperature=self.temperature,
-            frequency_penalty=self.frequency_penalty,
-            presence_penalty=self.presence_penalty,
-        )
+        if use_o1:
+            api_response_determination = await self.azure_openai_client.generate_chat_response_o1(
+                query=user_prompt_pa,
+                max_completion_tokens=20000,
+            )
+        else:
+            api_response_determination = await self.azure_openai_client.generate_chat_response(
+                query=user_prompt_pa,
+                system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
+                conversation_history=[],
+                response_format="text",
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                temperature=self.temperature,
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty,
+            )
         final_response = api_response_determination["response"]
         logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
         self.log_output({"final_determination": final_response}, api_response_determination['conversation_history'], step=None)
 
-    async def run(self, uploaded_files: List[str], streamlit: bool = False, caseId: str = None) -> None:
+    async def run(self, uploaded_files: List[str], streamlit: bool = False, caseId: str = None, use_o1: bool = False) -> None:
         """
         Process documents as per the pipeline flow and store the outputs.
         """
@@ -588,7 +594,7 @@ class PAProcessingPipeline:
                 progress += 1
                 progress_bar.progress(progress / total_steps)
 
-            await self.generate_final_determination(api_response_ner, policy_text)
+            await self.generate_final_determination(api_response_ner, policy_text, use_o1)
 
             if streamlit:
                 status_text.success(f"✅ **PA {self.caseId} Processing complete!**")

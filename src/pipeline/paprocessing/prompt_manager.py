@@ -67,13 +67,14 @@ class PromptManager:
             rationale=plan_info.get("Rationale for the Medication or Procedure", "Not provided"),
         )
 
-    def create_prompt_pa(self, results: Dict[str, Any], policy_text: str) -> str:
+    def create_prompt_pa(self, results: Dict[str, Any], policy_text: str, use_o1: bool = False) -> str:
         """
         Create a prompt for prior authorization based on the given results and policy text.
     
         Args:
             results (Dict[str, Any]): The results dictionary containing patient, physician, and clinical information.
             policy_text (str): The policy text to include in the prompt.
+            use_o1 (bool): Indicates whether to use the o1 model. Defaults to False.
     
         Returns:
             str: The rendered prior authorization prompt.
@@ -117,8 +118,11 @@ class PromptManager:
         medication_rationale = plan_info.get("Rationale", "Not provided")
         presumed_eligibility = plan_info.get("Presumed eligibility for the medication based on answers to the PA form questions", "Not provided")
     
+        # Choose the appropriate template based on the use_o1 flag
+        template_name = 'prior_auth_o1_user_prompt.jinja' if use_o1 else 'prior_auth_user_prompt.jinja'
+    
         return self.get_prompt(
-            'prior_auth_user_prompt.jinja',
+            template_name,
             # Patient Information
             patient_name=patient_name,
             patient_dob=patient_dob,
