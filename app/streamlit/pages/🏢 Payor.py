@@ -316,8 +316,11 @@ def display_case_data(document, results_container):
             raw_uploaded_files = document.get("raw_uploaded_files", [])
             if policy_retrieval:
                 st.markdown("Policy Leveraged:")
-                for policy in policy_retrieval:
-                    st.markdown(f"- {policy}")
+                if isinstance(policy_retrieval, list) and all(isinstance(policy, str) for policy in policy_retrieval):
+                    for policy in policy_retrieval:
+                        st.markdown(f"- {policy}")
+                else:
+                     st.markdown(f"- {policy_retrieval}")
             if raw_uploaded_files:
                 st.markdown("Clinical Docs:")
                 for doc in raw_uploaded_files:
