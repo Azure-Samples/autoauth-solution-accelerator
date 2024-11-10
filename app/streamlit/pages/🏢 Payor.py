@@ -12,13 +12,10 @@ from azure.core.credentials import AzureKeyCredential
 from src.pipeline.paprocessing.run import PAProcessingPipeline
 from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
 
-# Set up logger
 logger = get_logger()
 
-# Load environment variables if not already loaded
 dotenv.load_dotenv(".env", override=True)
 
-# Initialize clients only once and store them in session_state
 if "cosmosdb_manager" not in st.session_state:
     st.session_state["cosmosdb_manager"] = CosmosDBMongoCoreManager(
         connection_string=os.getenv("AZURE_COSMOS_CONNECTION_STRING"),
@@ -41,7 +38,6 @@ if "search_client" not in st.session_state:
 if "pa_processing" not in st.session_state:
     st.session_state["pa_processing"] = PAProcessingPipeline()
 
-# Define other session variables and initial values
 session_vars = [
     "conversation_history",
     "ai_response",
@@ -129,12 +125,10 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         st.session_state['messages'] = []
 
     if case_id and st.session_state.get('current_case_id') != case_id:
-        # New case, reset chat history and messages
         st.session_state['chat_history'] = []
         st.session_state['messages'] = []
         st.session_state['current_case_id'] = case_id
 
-        # Create a summary of the case data
         patient_info = document.get("Patient Information", {})
         physician_info = document.get("Physician Information", {})
         clinical_info = document.get("Clinical Information", {})
@@ -146,29 +140,38 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         Final Determination: {final_determination}
 
         Patient Information:
-        - Name: {patient_info.get('Patient Name', 'N/A')}
-        - Date of Birth: {patient_info.get('Patient Date of Birth', 'N/A')}
-        - ID: {patient_info.get('Patient ID', 'N/A')}
-        - Address: {patient_info.get('Patient Address', 'N/A')}
-        - Phone Number: {patient_info.get('Patient Phone Number', 'N/A')}
+        - Name: {patient_info.get('Patient Name', 'Not provided')}
+        - Date of Birth: {patient_info.get('Patient Date of Birth', 'Not provided')}
+        - ID: {patient_info.get('Patient ID', 'Not provided')}
+        - Address: {patient_info.get('Patient Address', 'Not provided')}
+        - Phone Number: {patient_info.get('Patient Phone Number', 'Not provided')}
 
         Physician Information:
-        - Name: {physician_info.get('Physician Name', 'N/A')}
-        - Specialty: {physician_info.get('Specialty', 'N/A')}
+        - Name: {physician_info.get('Physician Name', 'Not provided')}
+        - Specialty: {physician_info.get('Specialty', 'Not provided')}
         - Contact:
-          - Office Phone: {physician_info.get('Physician Contact', {}).get('Office Phone', 'N/A')}
-          - Fax: {physician_info.get('Physician Contact', {}).get('Fax', 'N/A')}
-          - Office Address: {physician_info.get('Physician Contact', {}).get('Office Address', 'N/A')}
+            - Office Phone: {physician_info.get('Physician Contact', {}).get('Office Phone', 'Not provided')}
+            - Fax: {physician_info.get('Physician Contact', {}).get('Fax', 'Not provided')}
+            - Office Address: {physician_info.get('Physician Contact', {}).get('Office Address', 'Not provided')}
 
         Clinical Information:
-        - Diagnosis and Medical Justification: {clinical_info.get('Diagnosis and medical justification (including ICD-10 code)', 'N/A')}
-        - Detailed History of Alternative Treatments and Results: {clinical_info.get('Detailed history of alternative treatments and results', 'N/A')}
-        - Alternative treatments listed in prior authorization request form: {clinical_info.get('Alternative treatments listed in prior authorization request form', 'N/A')}
-        - Relevant Lab Results or Diagnostic Imaging: {clinical_info.get('Relevant lab results or diagnostic imaging', 'N/A')}
-        - Documented Symptom Severity and Impact on Daily Life: {clinical_info.get('Documented symptom severity and impact on daily life', 'N/A')}
-        - Prognosis and Risk if Treatment is Not Approved: {clinical_info.get('Prognosis and risk if treatment is not approved', 'N/A')}
-        - Clinical Rationale for Urgency: {clinical_info.get('Clinical rationale for urgency (if applicable)', 'N/A')}
-        
+        - Diagnosis: {clinical_info.get('Diagnosis', 'Not provided')}
+        - ICD-10 code: {clinical_info.get('ICD-10 code', 'Not provided')}
+        - Detailed History of Prior Treatments and Results: {clinical_info.get('Detailed History of Prior Treatments and Results', 'Not provided')}
+        - Specific drugs already taken by patient and if the patient failed these prior treatments: {clinical_info.get('Specific drugs already taken by patient and if the patient failed these prior treatments', 'Not provided')}
+        - How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug: {clinical_info.get('How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug', 'Not provided')}
+        - Relevant Lab Results or Diagnostic Imaging: {clinical_info.get('Relevant Lab Results or Diagnostic Imaging', 'Not provided')}
+        - Documented Symptom Severity and Impact on Daily Life: {clinical_info.get('Documented Symptom Severity and Impact on Daily Life', 'Not provided')}
+        - Prognosis and Risk if Treatment is Not Approved: {clinical_info.get('Prognosis and Risk if Treatment Is Not Approved', 'Not provided')}
+        - Clinical Rationale for Urgency: {clinical_info.get('Clinical Rationale for Urgency (if applicable)', 'Not provided')}
+        - Plan for Treatment or Request for Prior Authorization:
+            - Name of the Medication or Procedure Being Requested: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Name of the Medication or Procedure Being Requested', 'Not provided')}
+            - Code of the Medication or Procedure: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Code of the Medication or Procedure', 'Not provided')}
+            - Dosage: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Dosage', 'Not provided')}
+            - Duration: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Duration', 'Not provided')}
+            - Rationale: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Rationale', 'Not provided')}
+            - Presumed eligibility for the medication based on answers to the PA form questions: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Presumed eligibility for the medication based on answers to the PA form questions', 'Not provided')}
+
         Attachments:
         The following attachments were provided by the user and were considered in the final determination:
         {attachments_info}
@@ -333,42 +336,46 @@ def save_uploaded_files(uploaded_files):
     return file_paths
 
 def format_patient_info(document):
-    patient_info = document["Patient Information"]
+    patient_info = document.get("Patient Information", {})
     return f"""
-    - **Name:** {patient_info.get('Patient Name', 'N/A')}
-    - **Date of Birth:** {patient_info.get('Patient Date of Birth', 'N/A')}
-    - **ID:** {patient_info.get('Patient ID', 'N/A')}
-    - **Address:** {patient_info.get('Patient Address', 'N/A')}
-    - **Phone Number:** {patient_info.get('Patient Phone Number', 'N/A')}
+    - **Name:** {patient_info.get('Patient Name', 'Not provided')}
+    - **Date of Birth:** {patient_info.get('Patient Date of Birth', 'Not provided')}
+    - **ID:** {patient_info.get('Patient ID', 'Not provided')}
+    - **Address:** {patient_info.get('Patient Address', 'Not provided')}
+    - **Phone Number:** {patient_info.get('Patient Phone Number', 'Not provided')}
     """
 
 def format_physician_info(document):
-    physician_info = document["Physician Information"]
+    physician_info = document.get("Physician Information", {})
     return f"""
-    - **Name:** {physician_info.get('Physician Name', 'N/A')}
-    - **Specialty:** {physician_info.get('Specialty', 'N/A')}
+    - **Name:** {physician_info.get('Physician Name', 'Not provided')}
+    - **Specialty:** {physician_info.get('Specialty', 'Not provided')}
     - **Contact:**
-      - **Office Phone:** {physician_info.get('Physician Contact', {}).get('Office Phone', 'N/A')}
-      - **Fax:** {physician_info.get('Physician Contact', {}).get('Fax', 'N/A')}
-      - **Office Address:** {physician_info.get('Physician Contact', {}).get('Office Address', 'N/A')}
+      - **Office Phone:** {physician_info.get('Physician Contact', {}).get('Office Phone', 'Not provided')}
+      - **Fax:** {physician_info.get('Physician Contact', {}).get('Fax', 'Not provided')}
+      - **Office Address:** {physician_info.get('Physician Contact', {}).get('Office Address', 'Not provided')}
     """
 
 def format_clinical_info(document):
-    clinical_info = document["Clinical Information"]
+    clinical_info = document.get("Clinical Information", {})
+    plan_info = clinical_info.get("Plan for Treatment or Request for Prior Authorization", {})
     return f"""
-    - **Diagnosis and Medical Justification:** {clinical_info.get('Diagnosis and medical justification (including ICD-10 code)', 'N/A')}
-    - **Detailed History of Alternative Treatments and Results:** {clinical_info.get('Detailed history of alternative treatments and results', 'N/A')}
-    - **Alternative treatments listed in prior authorization request form:** {clinical_info.get('Alternative treatments listed in prior authorization request form', 'N/A')}
-    - **Relevant Lab Results or Diagnostic Imaging:** {clinical_info.get('Relevant lab results or diagnostic imaging', 'N/A')}
-    - **Documented Symptom Severity and Impact on Daily Life:** {clinical_info.get('Documented symptom severity and impact on daily life', 'N/A')}
-    - **Prognosis and Risk if Treatment is Not Approved:** {clinical_info.get('Prognosis and risk if treatment is not approved', 'N/A')}
-    - **Clinical Rationale for Urgency:** {clinical_info.get('Clinical rationale for urgency (if applicable)', 'N/A')}
+    - **Diagnosis:** {clinical_info.get('Diagnosis', 'Not provided')}
+    - **ICD-10 code:** {clinical_info.get('ICD-10 code', 'Not provided')}
+    - **Detailed History of Prior Treatments and Results:** {clinical_info.get('Detailed History of Prior Treatments and Results', 'Not provided')}
+    - **Specific drugs already taken by patient and if the patient failed these prior treatments:** {clinical_info.get('Specific drugs already taken by patient and if the patient failed these prior treatments', 'Not provided')}
+    - **How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug:** {clinical_info.get('How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug', 'Not provided')}
+    - **Relevant Lab Results or Diagnostic Imaging:** {clinical_info.get('Relevant Lab Results or Diagnostic Imaging', 'Not provided')}
+    - **Documented Symptom Severity and Impact on Daily Life:** {clinical_info.get('Documented Symptom Severity and Impact on Daily Life', 'Not provided')}
+    - **Prognosis and Risk if Treatment Is Not Approved:** {clinical_info.get('Prognosis and Risk if Treatment Is Not Approved', 'Not provided')}
+    - **Clinical Rationale for Urgency:** {clinical_info.get('Clinical Rationale for Urgency (if applicable)', 'Not provided')}
     - **Plan for Treatment or Request for Prior Authorization:**
-      - **Medication or Procedure:** {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Medication or Procedure', 'N/A')}
-      - **Code:** {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Code', 'N/A')}
-      - **Dosage:** {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Dosage', 'N/A')}
-      - **Duration:** {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Duration', 'N/A')}
-      - **Rationale:** {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Rationale', 'N/A')}
+      - **Name of the Medication or Procedure Being Requested:** {plan_info.get('Name of the Medication or Procedure Being Requested', 'Not provided')}
+      - **Code of the Medication or Procedure:** {plan_info.get('Code of the Medication or Procedure', 'Not provided')}
+      - **Dosage:** {plan_info.get('Dosage', 'Not provided')}
+      - **Duration:** {plan_info.get('Duration', 'Not provided')}
+      - **Rationale:** {plan_info.get('Rationale', 'Not provided')}
+      - **Presumed eligibility for the medication based on answers to the PA form questions:** {plan_info.get('Presumed eligibility for the medication based on answers to the PA form questions', 'Not provided')}
     """
 
 def main() -> None:
@@ -415,7 +422,6 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    # Center the button using a container with the custom CSS class
     st.sidebar.markdown(
         '<div class="centered-button-container">', unsafe_allow_html=True
     )
@@ -446,10 +452,8 @@ def main() -> None:
         query = {"caseId": selected_case_id}
         document = st.session_state["cosmosdb_manager"].read_document(query)
         if document:
-            # Display case data
             display_case_data(document, results_container)
 
-            # Initialize the chatbot with the case data
             initialize_chatbot(
                 case_id=selected_case_id,
                 document=document,
@@ -457,11 +461,9 @@ def main() -> None:
         else:
             with results_container:
                 st.warning("Case ID not found.")
-            # Initialize chatbot without case data
             initialize_chatbot()
     else:
         st.info("Let's get started! Please upload your PA form and attached files, and let AI do the job.")
-        # Initialize chatbot without case data
         initialize_chatbot()
 
     st.sidebar.write(

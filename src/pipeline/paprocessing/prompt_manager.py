@@ -78,9 +78,9 @@ class PromptManager:
         Returns:
             str: The rendered prior authorization prompt.
         """
-        patient_info = results.get("Patient Information", {})
-        physician_info = results.get("Physician Information", {})
-        clinical_info = results.get("Clinical Information", {})
+        patient_info = results['patient_data'].get("Patient Information", {})
+        physician_info = results['physician_data'].get("Physician Information", {})
+        clinical_info = results['clinician_data'].get("Clinical Information", {})
         plan_info = clinical_info.get("Plan for Treatment or Request for Prior Authorization", {})
     
         # Extracting Patient Information
@@ -144,8 +144,8 @@ class PromptManager:
             # Plan for Treatment or Request for Prior Authorization
             requested_medication=requested_medication,
             medication_code=medication_code,
-            dosage_plan=dosage,
-            treatment_duration=duration,
+            dosage=dosage,
+            treatment=duration,
             medication_rationale=medication_rationale,
             presumed_eligibility=presumed_eligibility,
             # Policy Text

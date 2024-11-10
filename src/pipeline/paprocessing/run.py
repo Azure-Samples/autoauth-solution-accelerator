@@ -16,6 +16,7 @@ from azure.search.documents.models import (
 )
 from src.pipeline.paprocessing.helpers import find_all_files
 from colorama import Fore, init
+import asyncio
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.pipeline.paprocessing.pdfhandler import OCRHelper
 from src.documentintelligence.document_intelligence_helper import AzureDocumentIntelligenceManager
@@ -119,6 +120,13 @@ class PAProcessingPipeline:
         self.caseId = caseId if caseId else generate_unique_id()
         self.azure_blob_storage_account_name = azure_blob_storage_account_name
         self.azure_blob_storage_account_key = azure_blob_storage_account_key
+        # Azure OpenAI configuration
+        self.temperature = config['azure_openai']['temperature']
+        self.max_tokens = config['azure_openai']['max_tokens']
+        self.top_p = config['azure_openai']['top_p']
+        self.frequency_penalty = config['azure_openai']['frequency_penalty']
+        self.presence_penalty = config['azure_openai']['presence_penalty']
+        self.seed = config['azure_openai']['seed']
 
         self.document_intelligence_client = AzureDocumentIntelligenceManager(
             azure_endpoint=azure_document_intelligence_endpoint,
@@ -135,8 +143,13 @@ class PAProcessingPipeline:
             collection_name=azure_cosmos_db_collection_name,
         )
         self.prompt_manager = PromptManager()
-        self.SYSTEM_PROMPT_NER = self.prompt_manager.get_prompt('ner_system_prompt.jinja')
-        self.USER_PROMPT_NER = self.prompt_manager.get_prompt('ner_user_prompt.jinja')
+        self.PATIENT_PROMPT_NER_SYSTEM = self.prompt_manager.get_prompt('ner_patient_system.jinja')
+        self.PHYSICIAN_PROMPT_NER_SYSTEM = self.prompt_manager.get_prompt('ner_physician_system.jinja')
+        self.CLINICIAN_PROMPT_NER_SYSTEM = self.prompt_manager.get_prompt('ner_clinician_system.jinja')
+        self.PATIENT_PROMPT_NER_USER = self.prompt_manager.get_prompt('ner_patient_user.jinja')
+        self.PHYSICIAN_PROMPT_NER_USER = self.prompt_manager.get_prompt('ner_physician_user.jinja')
+        self.CLINICIAN_PROMPT_NER_USER = self.prompt_manager.get_prompt('ner_clinician_user.jinja')
+
         self.SYSTEM_PROMPT_QUERY_EXPANSION = self.prompt_manager.get_prompt('query_expansion_system_prompt.jinja')
         self.SYSTEM_PROMPT_PRIOR_AUTH = self.prompt_manager.get_prompt('prior_auth_system_prompt.jinja')
 
@@ -145,37 +158,6 @@ class PAProcessingPipeline:
         self.results: Dict[str, Any] = {}
         self.temp_dir = tempfile.mkdtemp()
         self.local = local
-
-    def locate_policy(self, api_response: Dict[str, Any]) -> str:
-        """
-        Locate the policy based on the optimized query from the AI response.
-        """
-        try:
-            optimized_query = api_response["response"]["optimized_query"]
-            vector_query = VectorizableTextQuery(
-                text=optimized_query, k_nearest_neighbors=5, fields="vector", weight=0.5
-            )
-
-            results = self.search_client.search(
-                search_text=optimized_query,
-                vector_queries=[vector_query],
-                query_type=QueryType.SEMANTIC,
-                semantic_configuration_name="my-semantic-config",
-                query_caption=QueryCaptionType.EXTRACTIVE,
-                query_answer=QueryAnswerType.EXTRACTIVE,
-                top=5,
-            )
-
-            first_result = next(iter(results), None)
-            if first_result:
-                parent_path = first_result.get("parent_path", "Path not found")
-                return parent_path
-            else:
-                logger.warning("No results found")
-                return "No results found"
-        except Exception as e:
-            logger.error(f"Error locating policy: {e}")
-            return "Error locating policy"
                 
     def upload_files_to_blob(self, uploaded_files: Union[str, List[str]], step: str) -> None:
         """
@@ -342,6 +324,131 @@ class PAProcessingPipeline:
         except Exception as e:
             logger.error(f"Failed to clean up temporary directory '{self.temp_dir}': {e}")
 
+    
+    async def extract_patient_data(self, image_files: List[str]) -> Dict[str, Any]:
+        """
+        Extract patient data using AI.
+        """
+        try:
+            logger.info(Fore.CYAN + "\nExtracting patient data...")
+            api_response_patient = await self.azure_openai_client.generate_chat_response(
+                query=self.PATIENT_PROMPT_NER_USER,
+                system_message_content=self.PATIENT_PROMPT_NER_SYSTEM,
+                image_paths=image_files,
+                conversation_history=[],
+                response_format="json_object",
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                temperature=self.temperature,
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty,
+            )
+            self.log_output(api_response_patient['response'], api_response_patient['conversation_history'])
+            return api_response_patient['response']
+        except Exception as e:
+            logger.error(f"Error extracting patient data: {e}")
+            return {"error": str(e)}
+
+    async def extract_physician_data(self, image_files: List[str]) -> Dict[str, Any]:
+        """
+        Extract physician data using AI.
+        """
+        try:
+            logger.info(Fore.CYAN + "\nExtracting physician data...")
+            api_response_physician = await self.azure_openai_client.generate_chat_response(
+                query=self.PHYSICIAN_PROMPT_NER_USER,
+                system_message_content=self.PHYSICIAN_PROMPT_NER_SYSTEM,
+                image_paths=image_files,
+                conversation_history=[],
+                response_format="json_object",
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                temperature=self.temperature,
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty,
+            )
+            self.log_output(api_response_physician['response'], api_response_physician['conversation_history'])
+            return api_response_physician['response']
+        except Exception as e:
+            logger.error(f"Error extracting physician data: {e}")
+            return {"error": str(e)}
+
+    async def extract_clinician_data(self, image_files: List[str]) -> Dict[str, Any]:
+        """
+        Extract clinician data using AI.
+        """
+        try:
+            logger.info(Fore.CYAN + "\nExtracting clinician data...")
+            api_response_clinician = await self.azure_openai_client.generate_chat_response(
+                query=self.CLINICIAN_PROMPT_NER_USER,
+                system_message_content=self.CLINICIAN_PROMPT_NER_SYSTEM,
+                image_paths=image_files,
+                conversation_history=[],
+                response_format="json_object",
+                max_tokens=self.max_tokens,
+                top_p=self.top_p,
+                temperature=self.temperature,
+                frequency_penalty=self.frequency_penalty,
+                presence_penalty=self.presence_penalty,
+            )
+            self.log_output(api_response_clinician['response'], api_response_clinician['conversation_history'])
+            return api_response_clinician['response']
+        except Exception as e:
+            logger.error(f"Error extracting clinician data: {e}")
+            return {"error": str(e)}
+
+    async def extract_all_data(self, image_files: List[str]) -> Dict[str, Any]:
+        """
+        Extract patient, physician, and clinician data in parallel.
+        """
+        try:
+            patient_data_task = self.extract_patient_data(image_files)
+            physician_data_task = self.extract_physician_data(image_files)
+            clinician_data_task = self.extract_clinician_data(image_files)
+
+            patient_data, physician_data, clinician_data = await asyncio.gather(
+                patient_data_task, physician_data_task, clinician_data_task
+            )
+            return {
+                "patient_data": patient_data,
+                "physician_data": physician_data,
+                "clinician_data": clinician_data,
+            }
+        except Exception as e:
+            logger.error(f"Error extracting all data: {e}")
+            return {"error": str(e)}
+
+    def locate_policy(self, api_response: Dict[str, Any]) -> str:
+        """
+        Locate the policy based on the optimized query from the AI response.
+        """
+        try:
+            optimized_query = api_response["response"]["optimized_query"]
+            vector_query = VectorizableTextQuery(
+                text=optimized_query, k_nearest_neighbors=5, fields="vector", weight=0.5
+            )
+
+            results = self.search_client.search(
+                search_text=optimized_query,
+                vector_queries=[vector_query],
+                query_type=QueryType.SEMANTIC,
+                semantic_configuration_name="my-semantic-config",
+                query_caption=QueryCaptionType.EXTRACTIVE,
+                query_answer=QueryAnswerType.EXTRACTIVE,
+                top=5,
+            )
+
+            first_result = next(iter(results), None)
+            if first_result:
+                parent_path = first_result.get("parent_path", "Path not found")
+                return parent_path
+            else:
+                logger.warning("No results found")
+                return "No results found"
+        except Exception as e:
+            logger.error(f"Error locating policy: {e}")
+            return "Error locating policy"
+                    
     async def analyze_clinical_information(self, image_files: List[str]) -> Dict[str, Any]:
         """
         Analyze clinical information using AI.
@@ -353,7 +460,11 @@ class PAProcessingPipeline:
             image_paths=image_files,
             conversation_history=[],
             response_format="json_object",
-            max_tokens=3000,
+            max_tokens=self.max_tokens,
+            top_p=self.top_p,
+            temperature=self.temperature,
+            frequency_penalty=self.frequency_penalty,
+            presence_penalty=self.presence_penalty,
         )
         self.log_output(api_response_ner['response'], api_response_ner['conversation_history'], step=None)
         return api_response_ner
@@ -370,7 +481,11 @@ class PAProcessingPipeline:
             system_message_content=self.SYSTEM_PROMPT_QUERY_EXPANSION,
             conversation_history=[],
             response_format="json_object",
-            max_tokens=3000,
+            max_tokens=self.max_tokens,
+            top_p=self.top_p,
+            temperature=self.temperature,
+            frequency_penalty=self.frequency_penalty,
+            presence_penalty=self.presence_penalty,
         )
 
         # Store query expansion response
@@ -379,11 +494,12 @@ class PAProcessingPipeline:
         
         return api_response_query
 
-    async def generate_final_determination(self, clinical_info: Dict[str, Any], policy_text: str) -> None:
+    async def generate_final_determination(self, retrieved_infromation_ner: Dict[str, Any], policy_text: str) -> None:
         """
         Generate final determination using AI.
         """
-        user_prompt_pa = self.prompt_manager.create_prompt_pa(clinical_info, policy_text)
+        user_prompt_pa = self.prompt_manager.create_prompt_pa(retrieved_infromation_ner, policy_text)
+        print(user_prompt_pa)
         logger.info(Fore.CYAN + "Generating final determination...")
         logger.info(f"Input clinical information: {user_prompt_pa}")
         api_response_determination = await self.azure_openai_client.generate_chat_response(
@@ -391,7 +507,11 @@ class PAProcessingPipeline:
             system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
             conversation_history=[],
             response_format="text",
-            max_tokens=3000,
+            max_tokens=self.max_tokens,
+            top_p=self.top_p,
+            temperature=self.temperature,
+            frequency_penalty=self.frequency_penalty,
+            presence_penalty=self.presence_penalty,
         )
         final_response = api_response_determination["response"]
         logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
@@ -422,8 +542,8 @@ class PAProcessingPipeline:
                 progress += 1
                 progress_bar.progress(progress / total_steps)
 
-            api_response_ner = await self.analyze_clinical_information(image_files)
-            clinical_info = api_response_ner["response"]
+            api_response_ner = await self.extract_all_data(image_files)
+            clinical_info = api_response_ner["clinician_data"]
 
             if not clinical_info:
                 logger.info(Fore.RED + "Clinical Information not found in AI response.")
@@ -460,8 +580,7 @@ class PAProcessingPipeline:
                 {
                     "policy_location": policy_location,
                     "policy_text": policy_text,
-                },
-                step='policy_retrieval'
+                }
             )
 
             if streamlit:
@@ -469,7 +588,7 @@ class PAProcessingPipeline:
                 progress += 1
                 progress_bar.progress(progress / total_steps)
 
-            await self.generate_final_determination(api_response_ner['response'], policy_text)
+            await self.generate_final_determination(api_response_ner, policy_text)
 
             if streamlit:
                 status_text.success(f"✅ **PA {self.caseId} Processing complete!**")

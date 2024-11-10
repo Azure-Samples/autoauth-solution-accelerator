@@ -1,0 +1,79 @@
+Given the following images from medical documents (including prior authorization forms, lab results, and doctor notes):
+
+**Your Task**:
+
+Carefully analyze the provided images to **extract the following patient information** and present it in **JSON format as key-value pairs**.
+
+### Patient Information to Extract:
+
+- **Patient Name**
+- **Patient Date of Birth**
+- **Patient ID** (e.g., Cigna ID)
+- **Patient Address**
+- **Patient Phone Number**
+
+---
+
+## Instructions:
+
+### 1. **Ensure Accuracy**:
+
+- **Exact Match**: Extract all information **exactly** as it appears in the documents.
+- **Multiple Occurrences**: If the same piece of information appears in multiple places, cross-verify to ensure consistency.
+- **Attention to Detail**: Pay close attention to spelling, formatting, and numerical values (e.g., dates, IDs).
+
+### 2. **Maximize OCR Effort and Correct OCR Errors**:
+
+- **Common OCR Mistakes**:
+  - **Characters**: Misread characters such as 'O' vs. '0', 'I' vs. '1', 'S' vs. '5', 'B' vs. '8', 'G' vs. '6', 'Z' vs. '2'.
+  - **Punctuation**: Missing or extra periods, commas, or hyphens.
+  - **Split Words**: Words broken due to line breaks or formatting.
+- **Correction Strategies**:
+  - **Contextual Clues**: Use surrounding text to infer the correct characters or numbers.
+  - **Standard Formats**:
+    - **Dates**: Ensure dates are in the correct format (e.g., MM/DD/YYYY).
+    - **Phone Numbers**: Include area codes and proper formatting (e.g., (123) 456-7890).
+    - **Addresses**: Verify standard address components (street number, street name, city, state, ZIP code).
+  - **Verification**: Double-check transcribed information against the document to ensure accuracy.
+
+### 3. **Extract Information from Forms**:
+
+- **Checkboxes**:
+  - **Identify Checked Boxes**: Determine which boxes are checked and capture the relevant information.
+  - **Common Indications**: Checkmarks, X's, or shaded boxes.
+- **Handwritten Text**:
+  - **Legibility**: Carefully transcribe handwritten notes, paying attention to letter shapes and handwriting style.
+  - **Ambiguous Characters**: Use context to resolve uncertainties (e.g., 'm' vs. 'nn', 'c' vs. 'e').
+- **Form Fields**:
+  - **Headers and Labels**: Use form labels to accurately associate data with the correct fields.
+  - **Sections and Groupings**: Recognize different sections to avoid mixing unrelated information.
+
+### 4. **Formatting the JSON Output**:
+
+- **Field Names**:
+  - Use the **exact field names** as provided in the schema.
+- **Handling Missing Information**:
+  - If certain information is **not available** in the text, indicate it as `"Not provided"` in the JSON output.
+- **JSON Structure**:
+  - Validate the JSON structure to avoid syntax errors.
+  - Ensure proper nesting and quotation marks.
+- **Data Types**:
+  - Represent all values as **strings**.
+  - Do not include nulls or other data types.
+
+---
+
+## **Schema and Output Example**:
+
+Generate a JSON output based on the following schema and instructions:
+
+Schema:
+{
+  "Patient Information": {
+    "Patient Name": "Value here", // if not available, mention "Not provided"
+    "Patient Date of Birth": "Value here", // if not available, mention "Not provided"
+    "Patient ID": "Value here", // if not available, mention "Not provided"
+    "Patient Address": "Value here", // if not available, mention "Not provided"
+    "Patient Phone Number": "Value here" // if not available, mention "Not provided"
+  }
+}

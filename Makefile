@@ -74,7 +74,6 @@ remove_conda_env:
 	@echo "Removing conda environment"
 	conda env remove --name $(CONDA_ENV)
 
-
 # Target to run the Streamlit app locally
 run_streamlit:
 	streamlit run app/streamlit/Home.py

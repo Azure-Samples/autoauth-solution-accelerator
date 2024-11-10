@@ -149,7 +149,7 @@ class PolicyIndexingPipeline:
         try:
             container = SearchIndexerDataContainer(
                 name=self.blob_container_name,
-                query=f"'{self.blob_prefix}'" if self.blob_prefix else None
+                query=self.blob_prefix if self.blob_prefix else None
             )
             data_source_connection = SearchIndexerDataSourceConnection(
                 name=self.data_source_name,
@@ -158,7 +158,7 @@ class PolicyIndexingPipeline:
                 container=container,
                 data_deletion_detection_policy=NativeBlobSoftDeleteDeletionDetectionPolicy()
             )
-
+    
             data_source = self.indexer_client.create_or_update_data_source_connection(data_source_connection)
             logger.info(f"Data source '{data_source.name}' created or updated")
         except Exception as e:
@@ -249,7 +249,7 @@ class PolicyIndexingPipeline:
                             resource_url=self.azure_openai_endpoint,
                             deployment_name=self.azure_openai_embedding_deployment,
                             model_name=self.azure_openai_model_name,
-                            api_key=self.azure_openai_model_dimensions,
+                            api_key=self.azure_openai_key,
                         ),
                     ),
                 ],
@@ -404,9 +404,11 @@ class PolicyIndexingPipeline:
                             target_index_name=self.skills_config['index_projections']['selectors'][0]['target_index_name'],
                             parent_key_field_name=self.skills_config['index_projections']['selectors'][0]['parent_key_field_name'],
                             source_context=self.skills_config['index_projections']['selectors'][0]['source_context'],
-                            mappings=[
-                                InputFieldMappingEntry(name=entry['name'], source=entry['source'])
-                                for entry in self.skills_config['index_projections']['selectors'][0]['mappings']
+                              mappings=[
+                                InputFieldMappingEntry(name="chunk", source="/document/pages/*"),  
+                                InputFieldMappingEntry(name="vector", source="/document/pages/*/vector"),
+                                InputFieldMappingEntry(name="parent_path", source="/document/metadata_storage_path"),
+                                InputFieldMappingEntry(name="title", source="/document/metadata_storage_name"),
                             ]
                         )
                     ],
@@ -437,7 +439,7 @@ class PolicyIndexingPipeline:
             if self.use_ocr:
                 indexer_parameters = IndexingParameters(
                     configuration=IndexingParametersConfiguration(
-                        image_action=BlobIndexerImageAction.GENERATE_NORMALIZED_IMAGES,
+                        image_action=BlobIndexerImageAction.GENERATE_NORMALIZED_IMAGE_PER_PAGE,
                         query_timeout=None
                     )
                 )

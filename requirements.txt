@@ -4,7 +4,7 @@ matplotlib
 seaborn
 tiktoken
 asyncio
-azure-identity 
+azure-identity
 azure-mgmt-resource
 openai
 requests
@@ -22,3 +22,6 @@ langchain-community==0.0.10
 langchain-core==0.1.8
 azure-cosmos
 Jinja2
+azure-search-documents==11.6.0b5
+azure-storage-blob
+azure-identity

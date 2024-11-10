@@ -1,0 +1,102 @@
+Given the following images from medical documents (including prior authorization forms, lab results, and doctor notes):
+
+**Your Task**:
+
+Carefully analyze the provided images to **extract the following physician information** and present it in **JSON format as key-value pairs**.
+
+### Physician Information to Extract:
+
+- **Physician Name**
+- **Specialty**
+- **Physician Contact Information**:
+  - **Office Phone**
+  - **Fax Number**
+  - **Office Address**
+
+---
+
+## Instructions:
+
+### 1. **Ensure Accuracy**:
+
+- **Exact Match**: Extract all information **exactly** as it appears in the documents.
+- **Multiple Occurrences**: If the same piece of information appears in multiple places, cross-verify to ensure consistency.
+- **Attention to Detail**: Pay close attention to spelling, formatting, and numerical values (e.g., phone numbers, addresses).
+
+### 2. **Maximize OCR Effort and Correct OCR Errors**:
+
+- **Common OCR Mistakes**:
+  - **Characters**: Misread characters such as 'O' vs. '0', 'I' vs. '1', 'S' vs. '5', 'B' vs. '8', 'G' vs. '6', 'Z' vs. '2'.
+  - **Punctuation**: Missing or extra periods, commas, or hyphens.
+  - **Split Words**: Words broken due to line breaks or formatting.
+  - **Misaligned Text**: Skewed or distorted text from scanning issues.
+- **Correction Strategies**:
+  - **Contextual Clues**: Use surrounding text to infer the correct characters or numbers.
+  - **Standard Formats**:
+    - **Phone Numbers**: Include area codes and proper formatting (e.g., (123) 456-7890 or 123-456-7890).
+    - **Addresses**: Verify standard address components (street number, street name, suite number, city, state, ZIP code).
+    - **Professional Titles**: Correctly interpret titles such as "MD," "DO," "PhD," "FACP."
+  - **Verification**: Double-check transcribed information against the document to ensure accuracy.
+
+### 3. **Extract Information from Forms and Images**:
+
+- **Checkboxes and Form Fields**:
+  - **Identify Checked Boxes**: Determine which boxes are checked (e.g., specialty areas) and capture the relevant information.
+  - **Interpreting Form Labels**: Use form labels to accurately associate data with the correct fields.
+- **Handwritten Text and Signatures**:
+  - **Legibility**: Carefully transcribe handwritten notes, paying attention to letter shapes and handwriting style.
+  - **Ambiguous Characters**: Use context to resolve uncertainties (e.g., 'm' vs. 'nn', 'c' vs. 'e').
+  - **Signatures and Initials**: Recognize signatures or initials that may indicate the physician's identity or credentials.
+- **Letterheads and Logos**:
+  - **Extract Information**: Capture details from letterheads or logos, which often include the physician's name, specialty, and contact information.
+- **Stamps and Seals**:
+  - **Official Stamps**: Include any relevant information from official stamps or seals that may contain physician details.
+
+### 4. **Handle Multiple Physicians**:
+
+- **Primary Physician Focus**:
+  - If multiple physicians are mentioned, focus on the primary physician associated with the patient's care.
+- **Disambiguation**:
+  - Use context such as titles, departments, or signatures to identify the primary physician.
+  - Note any collaborative physicians if their information is prominently featured.
+
+### 5. **Formatting the JSON Output**:
+
+- **Field Names**:
+  - Use the **exact field names** as provided in the schema.
+- **Handling Missing Information**:
+  - If certain information is **not available** in the text, indicate it as `"Not provided"` in the JSON output.
+- **JSON Structure**:
+  - Validate the JSON structure to avoid syntax errors.
+  - Ensure proper nesting and quotation marks.
+- **Data Types**:
+  - Represent all values as **strings**.
+  - Do not include nulls, numbers, or other data types.
+- **Examples for Clarity**:
+  - Provide examples within the JSON if needed to illustrate formatting, but ensure they are commented out or removed in the final output.
+
+### 6. **Data Consistency and Accuracy**:
+
+- **Validation**:
+  - Ensure names, specialties, and contact details are consistent throughout the document.
+- **Normalization**:
+  - Standardize formats for phone numbers, addresses, and identifiers (e.g., use consistent area code formats).
+
+---
+
+## **Schema and Output Example**:
+- Generate a JSON output based on the following schema and instructions:
+
+  Schema:
+  
+    {
+    "Physician Information": {
+        "Physician Name": "Value here", // if not available, mention "Not provided"
+        "Specialty": "Value here", // if not available, mention "Not provided"
+        "Physician Contact": {
+        "Office Phone": "Value here", // if not available, mention "Not provided"
+        "Fax": "Value here", // if not available, mention "Not provided"
+        "Office Address": "Value here" // if not available, mention "Not provided"
+        }
+    }
+    }
