@@ -108,6 +108,9 @@ class PAProcessingPipeline:
             completion_model_name=azure_openai_chat_deployment_id,
             api_key=azure_openai_key,
         )
+        self.azure_openai_client_o1 = AzureOpenAIManager(
+            api_version=os.getenv('AZURE_OPENAI_API_VERSION_01') or "2024-09-01-preview"
+        )
         self.search_client = SearchClient(
             endpoint=azure_search_service_endpoint,
             index_name=azure_search_index_name,
@@ -503,11 +506,13 @@ class PAProcessingPipeline:
         logger.info(Fore.CYAN + "Generating final determination...")
         logger.info(f"Input clinical information: {user_prompt_pa}")
         if use_o1:
-            api_response_determination = await self.azure_openai_client.generate_chat_response_o1(
+            logger.info(Fore.CYAN + "Using o1 model for final determination...")
+            api_response_determination = await self.azure_openai_client_o1.generate_chat_response_o1(
                 query=user_prompt_pa,
                 max_completion_tokens=20000,
             )
         else:
+            logger.info(Fore.CYAN + "Using 4o model for final determination...")
             api_response_determination = await self.azure_openai_client.generate_chat_response(
                 query=user_prompt_pa,
                 system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,

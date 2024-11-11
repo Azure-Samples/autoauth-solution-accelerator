@@ -268,10 +268,12 @@ async def generate_ai_response(
         logger.error(f"Error generating AI response: {e}")
         return {}
 
-async def run_pipeline_with_spinner(uploaded_files):
+async def run_pipeline_with_spinner(uploaded_files, use_o1):
     caseID = generate_unique_id()
     with st.spinner("Processing... Please wait."):
-        await st.session_state["pa_processing"].run(uploaded_files, streamlit=True, caseId=caseID)
+        if use_o1:
+            st.toast("Using the o1 model for final determination.", icon="🔥")
+        await st.session_state["pa_processing"].run(uploaded_files, streamlit=True, caseId=caseID, use_o1=use_o1)
     last_key = next(reversed(st.session_state["pa_processing"].results.keys()))
     if "case_ids" not in st.session_state:
         st.session_state["case_ids"] = []
@@ -425,6 +427,15 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
+    # Add a radio button in the sidebar to select the model
+    st.sidebar.markdown("#### Select Model")
+    model_choice = st.sidebar.radio(
+        "Choose the model for final determination:",
+        ("4o", "o1"),
+        index=0,  # Default selection is "4o"
+    )
+    use_o1 = model_choice == "o1"
+
     st.sidebar.markdown(
         '<div class="centered-button-container">', unsafe_allow_html=True
     )
@@ -439,7 +450,7 @@ def main() -> None:
     if submit_to_ai and uploaded_files:
         uploaded_file_paths = save_uploaded_files(uploaded_files)
         with results_container:
-            selected_case_id = asyncio.run(run_pipeline_with_spinner(uploaded_file_paths))
+            selected_case_id = asyncio.run(run_pipeline_with_spinner(uploaded_file_paths, use_o1))
 
     if "case_ids" in st.session_state and st.session_state["case_ids"]:
         st.sidebar.markdown("### Historical PA")

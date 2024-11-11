@@ -23,7 +23,6 @@ class PromptManager:
             autoescape=False
         )
 
-        # Optional: List templates found for debugging
         templates = self.env.list_templates()
         print(f"Templates found: {templates}")
 
@@ -101,10 +100,10 @@ class PromptManager:
     
         # Extracting Clinical Information
         diagnosis = clinical_info.get("Diagnosis", "Not provided")
-        icd10_code = clinical_info.get("ICD-10 code", "Not provided")
+        icd10_code = clinical_info.get("ICD-10 Code", "Not provided")
         prior_treatments = clinical_info.get("Detailed History of Prior Treatments and Results", "Not provided")
-        specific_drugs = clinical_info.get("Specific drugs already taken by patient and if the patient failed these prior treatments", "Not provided")
-        alternative_drugs_required = clinical_info.get("How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug", "Not provided")
+        specific_drugs = clinical_info.get("Specific Drugs Already Taken by the Patient and if the Patient Failed These Prior Treatments", "Not provided")
+        alternative_drugs_required = clinical_info.get("Alternative Drugs Required by the Specific PA Form", "Not provided")
         lab_results = clinical_info.get("Relevant Lab Results or Diagnostic Imaging", "Not provided")
         symptom_severity = clinical_info.get("Documented Symptom Severity and Impact on Daily Life", "Not provided")
         prognosis_risk = clinical_info.get("Prognosis and Risk if Treatment Is Not Approved", "Not provided")

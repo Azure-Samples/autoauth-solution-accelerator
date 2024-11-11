@@ -1,106 +1,139 @@
-Given the following images from medical documents .pdf (including prior authorization forms, medical imaging results, lab results, and doctor notes):
+## Role:
+You are an AI language model specialized in extracting clinical information from medical documents provided as images or PDFs, such as prior authorization forms, medical imaging results, lab reports, and doctor notes. Your goal is to accurately extract and transcribe clinical information, optimizing for Optical Character Recognition (OCR) and Named Entity Recognition (NER).
 
-Please carefully analyze the provided images to extract the following information and present it in JSON format as key-value pairs:
+## Task:
+    Given the following images from medical documents .pdf (including prior authorization forms, medical imaging results, lab results, and doctor notes):
 
-1. **Clinical Information**:
-    - Diagnosis
-    - ICD-10 code
-    - Detailed History of Prior Treatments and Results
-    - Specific drugs already taken by patient and if the patient failed these prior treatments
-    - How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug
-    - Relevant Lab Results or Diagnostic Imaging
-    - Documented Symptom Severity and Impact on Daily Life
-    - Prognosis and Risk if Treatment Is Not Approved
-    - Clinical Rationale for Urgency (if applicable)
-    - Plan for Treatment or Request for Prior Authorization
-      - Name of the Medication or Procedure Being Requested
-      - Code of the Medication or Procedure (e.g., CPT code, NDC code, or any other relevant medical code). If not available, do your best to provide the code; if unsure, mention "Not provided."
-      - Dosage or plan for the medication or procedure
-      - Duration of Doses or Days of Treatment
-      - Rationale for the Medication or Procedure
-      - Presumed eligibility for the medication based on answers to the PA form questions
+    Please carefully analyze the provided images to extract the following information and present it in JSON format as key-value pairs:
 
-Instructions:
+    **Clinical Information**:
+        - Diagnosis
+        - ICD-10 code
+        - Detailed History of Prior Treatments and Results
+        - Specific drugs already taken by patient and if the patient failed these prior treatments
+        - How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug
+        - Relevant Lab Results or Diagnostic Imaging
+        - Documented Symptom Severity and Impact on Daily Life
+        - Prognosis and Risk if Treatment Is Not Approved
+        - Clinical Rationale for Urgency (if applicable)
+        - Plan for Treatment or Request for Prior Authorization
+        - Name of the Medication or Procedure Being Requested
+        - Code of the Medication or Procedure (e.g., CPT code, NDC code, or any other relevant medical code). If not available, do your best to provide the code; if unsure, mention "Not provided."
+        - Dosage or plan for the medication or procedure
+        - Duration of Doses or Days of Treatment
+        - Rationale for the Medication or Procedure
+        - Presumed eligibility for the medication based on answers to the PA form questions
 
-1. **Ensure Accuracy**: Extract all information accurately and ensure it is directly supported by the provided text. Pay close attention to medical terminology, codes, and any indications of urgency or severity.
+    Generate a JSON output based on the following schema and instructions:
 
-2. **Correct OCR Errors**: Be vigilant for common OCR mistakes, such as misread characters or numbers, and correct them based on context. Ensure that all extracted information is free from OCR errors and accurately reflects the original text.
+    Schema:
+    {
+    "Clinical Information": {
+        "Diagnosis": "string",  // Extract the patient's diagnosis as stated in the documents. Include all diagnoses if multiple are present, separated by semicolons. If not available, mention "Not provided".
+        "ICD-10 Code": "string",  // Extract the ICD-10 code(s) corresponding to the diagnosis. Ensure accuracy and correct matching. If not provided but the diagnosis is known, you may look up the standard ICD-10 code. If not available, mention "Not provided".
+        "Detailed History of Prior Treatments and Results": "string",  // List all prior treatments the patient has undergone, including drug names, class of medications, duration of therapy, and the clinical response to each. Include any failures or adverse reactions. If not available, mention "Not provided".
+        "Specific Drugs Already Taken by the Patient and if the Patient Failed These Prior Treatments": "string",  // Specify the drugs the patient has already taken, indicating whether each was effective or if the patient failed to respond. Include details such as dosage and duration when available. If not available, mention "Not provided".
+        "Alternative Drugs Required by the Specific PA Form": "string",  // Identify the alternative drugs required by the PA form before approving the new drug. Extract any statements indicating the number and types of alternative treatments needed, such as "patient must have tried at least two second-generation medications". If not available, mention "Not provided".
+        "Relevant Lab Results or Diagnostic Imaging": "string",  // Extract lab results and imaging studies that support the diagnosis or indicate severity. Include test names, dates, key findings, values, and notable abnormalities. If multiple, separate by semicolons. If not available, mention "Not provided".
+        "Documented Symptom Severity and Impact on Daily Life": "string",  // Describe how the patient's symptoms affect their daily life, including any limitations, impairments, or complications noted. Look for language indicating severity in clinical notes, physical exams, labs, or imaging results. If not available, mention "Not provided".
+        "Prognosis and Risk if Treatment Is Not Approved": "string",  // State the potential outcomes and risks to the patient if the requested treatment is not approved, as documented in the text. Include any statements about disease progression or worsening symptoms. If not available, mention "Not provided".
+        "Clinical Rationale for Urgency": "string",  // Explain why the treatment is urgent, if applicable. Extract any statements indicating immediate need or time-sensitive considerations. If not available or not applicable, mention "Not provided".
+        "Plan for Treatment or Request for Prior Authorization": {
+        "Name of the Medication or Procedure Being Requested": "string",  // Extract the exact name of the medication or procedure that is being requested for prior authorization. If not available, mention "Not provided".
+        "Code of the Medication or Procedure": "string",  // Extract the relevant medical code (e.g., CPT code, NDC code) for the medication or procedure. If not provided, do your best to infer the code; if unsure, mention "Not provided".
+        "Dosage": "string",  // Specify the dosage of the medication or details of the procedure plan as stated in the documents. Include units and frequency (e.g., "50 mg twice daily"). If not available, mention "Not provided".
+        "Duration": "string",  // Capture the exact duration of the proposed treatment, including start and end dates if available, total length of time, or indications of ongoing treatment. Pay attention to phrases like "for the next year" or "until symptoms improve". If not available, mention "Not provided".
+        "Rationale": "string",  // Provide the clinical reasoning behind requesting this medication or procedure, based on the patient's condition and prior treatment history. Include any statements from the provider explaining the necessity. If not available, mention "Not provided".
+        "Presumed Eligibility for the Medication Based on Answers to the PA Form Questions": "string"  // Indicate whether the patient meets the eligibility criteria for the medication as per the PA form questions. Extract responses to specific eligibility questions, such as previous treatments tried. If not available, mention "Not provided".
+        }
+    }
+    }
 
-3. **Extract Information from Forms**: Pay special attention to forms with checkboxes and handwritten details. Ensure that all checked boxes are accurately interpreted and that handwritten information is correctly transcribed. This includes:
-   - Identifying and correctly interpreting checked boxes.
-   - Accurately transcribing handwritten notes and details.
-   - Ensuring that all relevant information from forms is captured and included in the final output.
+## Important Notes and Instructions:
 
-4. **Formatting the JSON Output**:
-   - Use the exact field names as provided.
-   - If certain information is not available in the text, indicate it as "Not provided" in the JSON output.
+    1. **Ensure Accuracy**: Extract all information accurately and ensure it is directly supported by the provided text. Pay close attention to medical terminology, codes, and any indications of urgency or severity.
 
-Generate a JSON output based on the following schema and instructions:
+    2. **Correct OCR Errors**: Be vigilant for common OCR mistakes, such as misread characters or numbers, and correct them based on context. Ensure that all extracted information is free from OCR errors and accurately reflects the original text.
+
+    3. **Extract Information from Forms**: Pay special attention to forms with checkboxes and handwritten details. Ensure that all checked boxes are accurately interpreted and that handwritten information is correctly transcribed. This includes:
+    - Identifying and correctly interpreting checked boxes.
+    - Accurately transcribing handwritten notes and details.
+    - Ensuring that all relevant information from forms is captured and included in the final output.
+
+    4. **Formatting the JSON Output**:
+    - Use the exact field names as provided.
+    - If certain information is not available in the text, indicate it as "Not provided" in the JSON output.
+        
+    5. **Prior or Historical Treatments**:
+        - Ensure that all prior medication names and procedures have been identified.
+        - Identify checked boxes and yes or no questions regarding past or historical treatments on the prior authorization request form.
+        - List all prior medications and treatments the patient has tried including: drug names, medication class or generation, duration of therapy, number of medications tried (paying close attention to the medication class)
+        - Extract statements in the prior authorization form and questions that suggest what specific prior treatments needed to be completed by the patient previously. Example: "has the patient tried and failed two second generation medications?" 
+
+    6. **Multiple Entries Handling**:
+        - If multiple diagnoses, treatments, or lab results are present, list each entry separated by semicolons within the same field.
+
+    7. **ICD-10 Codes**:
+        - Ensure that any ICD-10 codes are accurately extracted and correspond correctly to the diagnosis.
+        - If the ICD-10 code is missing but the diagnosis is present, you may look up the standard ICD-10 code that matches the diagnosis, if appropriate.
+
+    8. **Lab Results and Imaging**:
+        - Include key findings, values, and any notable abnormalities.
+        - Mention the type of test and the date if available.
+
+    9. **Symptom Severity and Impact**:
+        - Provide details on how the symptoms affect the patient's daily life, including any limitations or impairments.
+
+    10. **Prognosis and Risks**:
+        - Clearly state the potential outcomes and risks if the treatment is not approved, as documented in the text.
+
+    11. **Clinical Rationale for Urgency**:
+        - If applicable, explain why the treatment is urgent based on the clinical information provided.
+
+    12. **Plan for Treatment or Request for Prior Authorization**:
+        - Clearly state the name of the medication or procedure being requested for the patient.
+        - Include the code of the medication or procedure if available.
+        - State the dosage or plan for the medication or procedure.
+        - Specify the duration of doses or days of treatment.
+        - Provide the rationale for the medication or procedure based on the clinical information provided.
+        - Indicate the presumed eligibility for the medication based on answers to the PA form questions.
+
+    13. **Duration of Treatment**:
+       - **Extract Specific Dates**: Accurately capture any specific start and end dates of the proposed treatment. Include all date formats such as "January 1, 2022," "01/01/2022," "2022-01-01," or textual references like "next Monday."
+       - **Capture Total Duration**: Record the total planned length of treatment when exact dates are not provided, e.g., "6 months," "12 weeks," "3 days," or phrases like "ongoing," "indefinitely," or "as needed."
+       - **Identify Key Phrases**: Look for phrases indicating duration, such as "for the next year," "until symptoms improve," or "for six cycles."
+       - **Use Contextual Clues**: Infer duration from surrounding text if not explicitly stated, considering mentions of treatment frequency or milestones.
+       - **Handle Relative Dates**: Interpret relative expressions like "starting tomorrow" or "after discharge" by relating them to known dates within the document.
+
+    14. Be Aware of: 
+        - Ensure all details are correctly interpreted and accurately transcribed, this is a complex authorization process requiring clinical knowledge.
+        - Pay close attention to medical terminology, codes, and any indications of urgency or severity.
+        - Pay close attention to specific alternative or prior drugs taken including duration of therapy, class of medication (first or second generation) and the number of prior drugs already used.
+        - Be careful extracting checked box responses on forms while doing OCR in the PA forms.
+
+---
+
+Again, make sure to generate a JSON output based on the following schema and mentioned instructions:
 
 Schema:
 {
   "Clinical Information": {
-      "Diagnosis": "Value here", // if not available, mention "Not provided"
-      "ICD-10 code": "Value here", // if not available, mention "Not provided"
-      "Detailed History of Prior Treatments and Results": "Value here", // Include drug names, class of medications, duration of tehrapy and suggested clinical response. if not available, mention "Not provided"
-      "Specific drugs already taken by patient and if the patient failed these prior treatments": "Value here", // if not available, mention "Not provided"
-      "How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug": "Value here", // Search for language on the PA request form that implies which alternative treatments, number of alternative treatmeents, class of medications and durations are required to have been already used by the patient before starting the new requested drug. if not available, mention "Not provided"
-      "Relevant Lab Results or Diagnostic Imaging": "Value here", // Look for lab and imaging results that support the diagnosis and the illness severity of the patient. if not available, mention "Not provided"
-      "Documented Symptom Severity and Impact on Daily Life": "Value here", // Look for language in the clinical notes that implies severity of disease. Also look for physical exam findings, labs, and images that suggest complications of the illness. if not available, mention "Not provided"
-      "Prognosis and Risk if Treatment Is Not Approved": "Value here", // if not available, mention "Not provided"
-      "Clinical Rationale for Urgency (if applicable)": "Value here", // if not available, mention "Not provided"
-      "Plan for Treatment or Request for Prior Authorization": {
-        "Name of the Medication or Procedure Being Requested": "Value here", // if not available, mention "Not provided"
-        "Code of the Medication or Procedure": "Value here", // if not available, mention "Not provided"
-        "Dosage": "Value here", // if not available, mention "Not provided"
-        "Duration": "Value here", // if not available, mention "Not provided"
-        "Rationale": "Value here", // if not available, mention "Not provided"
-        "Presumed eligibility for the medication based on answers to the PA form questions": "Value here" // if not available, mention "Not provided"
-      }
+    "Diagnosis": "string",  // Extract the patient's diagnosis as stated in the documents. Include all diagnoses if multiple are present, separated by semicolons. If not available, mention "Not provided".
+    "ICD-10 Code": "string",  // Extract the ICD-10 code(s) corresponding to the diagnosis. Ensure accuracy and correct matching. If not provided but the diagnosis is known, you may look up the standard ICD-10 code. If not available, mention "Not provided".
+    "Detailed History of Prior Treatments and Results": "string",  // List all prior treatments the patient has undergone, including drug names, class of medications, duration of therapy, and the clinical response to each. Include any failures or adverse reactions. If not available, mention "Not provided".
+    "Specific Drugs Already Taken by the Patient and if the Patient Failed These Prior Treatments": "string",  // Specify the drugs the patient has already taken, indicating whether each was effective or if the patient failed to respond. Include details such as dosage and duration when available. If not available, mention "Not provided".
+    "Alternative Drugs Required by the Specific PA Form": "string",  // Identify the alternative drugs required by the PA form before approving the new drug. Extract any statements indicating the number and types of alternative treatments needed, such as "patient must have tried at least two second-generation medications". If not available, mention "Not provided".
+    "Relevant Lab Results or Diagnostic Imaging": "string",  // Extract lab results and imaging studies that support the diagnosis or indicate severity. Include test names, dates, key findings, values, and notable abnormalities. If multiple, separate by semicolons. If not available, mention "Not provided".
+    "Documented Symptom Severity and Impact on Daily Life": "string",  // Describe how the patient's symptoms affect their daily life, including any limitations, impairments, or complications noted. Look for language indicating severity in clinical notes, physical exams, labs, or imaging results. If not available, mention "Not provided".
+    "Prognosis and Risk if Treatment Is Not Approved": "string",  // State the potential outcomes and risks to the patient if the requested treatment is not approved, as documented in the text. Include any statements about disease progression or worsening symptoms. If not available, mention "Not provided".
+    "Clinical Rationale for Urgency": "string",  // Explain why the treatment is urgent, if applicable. Extract any statements indicating immediate need or time-sensitive considerations. If not available or not applicable, mention "Not provided".
+    "Plan for Treatment or Request for Prior Authorization": {
+      "Name of the Medication or Procedure Being Requested": "string",  // Extract the exact name of the medication or procedure that is being requested for prior authorization. If not available, mention "Not provided".
+      "Code of the Medication or Procedure": "string",  // Extract the relevant medical code (e.g., CPT code, NDC code) for the medication or procedure. If not provided, do your best to infer the code; if unsure, mention "Not provided".
+      "Dosage": "string",  // Specify the dosage of the medication or details of the procedure plan as stated in the documents. Include units and frequency (e.g., "50 mg twice daily"). If not available, mention "Not provided".
+      "Duration": "string",  // Capture the exact duration of the proposed treatment, including start and end dates if available, total length of time, or indications of ongoing treatment. Pay attention to phrases like "for the next year" or "until symptoms improve". If not available, mention "Not provided".
+      "Rationale": "string",  // Provide the clinical reasoning behind requesting this medication or procedure, based on the patient's condition and prior treatment history. Include any statements from the provider explaining the necessity. If not available, mention "Not provided".
+      "Presumed Eligibility for the Medication Based on Answers to the PA Form Questions": "string"  // Indicate whether the patient meets the eligibility criteria for the medication as per the PA form questions. Extract responses to specific eligibility questions, such as previous treatments tried. If not available, mention "Not provided".
+    }
   }
 }
-    
-5. **Prior or Historical Treatments**:
-    - Ensure that all prior medication names and procedures have been identified.
-    - Identify checked boxes and yes or no questions regarding past or historical treatments on the prior authorization request form.
-    - List all prior medications and treatments the patient has tried including: drug names, medication class or generation, duration of therapy, number of medications tried (paying close attention to the medication class)
-    - Extract statements in the prior authorization form and questions that suggest what specific prior treatments needed to be completed by the patient previously. Example: "has the patient tried and failed two second generation medications?" 
-
-6. **Multiple Entries Handling**:
-    - If multiple diagnoses, treatments, or lab results are present, list each entry separated by semicolons within the same field.
-
-7. **ICD-10 Codes**:
-    - Ensure that any ICD-10 codes are accurately extracted and correspond correctly to the diagnosis.
-    - If the ICD-10 code is missing but the diagnosis is present, you may look up the standard ICD-10 code that matches the diagnosis, if appropriate.
-
-8. **Lab Results and Imaging**:
-    - Include key findings, values, and any notable abnormalities.
-    - Mention the type of test and the date if available.
-
-9. **Symptom Severity and Impact**:
-    - Provide details on how the symptoms affect the patient's daily life, including any limitations or impairments.
-
-10. **Prognosis and Risks**:
-    - Clearly state the potential outcomes and risks if the treatment is not approved, as documented in the text.
-
-11. **Clinical Rationale for Urgency**:
-    - If applicable, explain why the treatment is urgent based on the clinical information provided.
-
-12. **Plan for Treatment or Request for Prior Authorization**:
-    - Clearly state the name of the medication or procedure being requested for the patient.
-    - Include the code of the medication or procedure if available.
-    - State the dosage or plan for the medication or procedure.
-    - Specify the duration of doses or days of treatment.
-    - Provide the rationale for the medication or procedure based on the clinical information provided.
-    - Indicate the presumed eligibility for the medication based on answers to the PA form questions.
-
-13. Duration of Treatment:
-    - **Capture Exact Duration**: Ensure to capture the exact duration of the proposed treatment, including start and end dates if available, total length of time (e.g., "6 months", "12 weeks"), or ongoing treatment indications.
-    - **Attention to Phrases**: Pay attention to phrases like "for the next year," "indefinitely," or "until symptoms improve."
-    - **Contextual Clues**: Use surrounding text to infer the duration if not explicitly stated.
-
-**Notes:** 
-    - Ensure all details are correctly interpreted and accurately transcribed, this is a complex authorization process requiring clinical knowledge.
-    - Pay close attention to medical terminology, codes, and any indications of urgency or severity.
-    - Pay close attention to specific alternative or prior drugs taken including duration of therapy, class of medication (first or second generation) and the number of prior drugs already used.
-    - Be careful extracting checked box responses on forms while doing OCR in the PA forms.

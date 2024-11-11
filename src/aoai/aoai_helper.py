@@ -287,6 +287,7 @@ class AzureOpenAIManager:
                         time.sleep(0.001)  # Maintain minimal sleep to reduce latency
             else:
                 response_content = response.choices[0].message.content
+                logger.info(f"Model_used: {response.model}")
     
             conversation_history.append(user_message)
             conversation_history.append({"role": "assistant", "content": response_content})
