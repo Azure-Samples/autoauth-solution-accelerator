@@ -76,17 +76,17 @@ def configure_sidebar(results_container):
 
         st.markdown(
             """
-            ## 👩‍⚕️ Welcome to PRISM 
-
-            PRISM – **P**rior **R**equest **I**ntelligent **S**ystem for **M**edical Authorization is a 
-            comprehensive solution designed to optimize the Prior Authorization (PA) process.
-
-            ### How it works:
-            1. **Upload Documents**: Attach all relevant files, including clinical notes, PDFs, images, and reports. 📚
-            2. **Submit for Analysis**: Click 'Submit' and let our AI handle the rest. You'll receive a comprehensive clinical determination. 🎩
-
+            ## 👩‍⚕️ Welcome to AutoAuth
+        
+            AutoAuth is an AI-powered tool designed to streamline the Prior Authorization (PA) process.
+        
+            ### How It Works:
+            1. **Upload Your PA Case**: Attach all relevant files, including clinical notes, PDFs, images, and reports.
+            2. **Submit for Analysis**: Click 'Submit' and let our AI handle the rest. You'll receive a comprehensive clinical determination. 🤖
+        
             ### Need Assistance?
-            Don't forget to talk to **PriorBuddy** for any questions or further assistance. 🗨️
+            Feel free to reach out to **AutoAuth Chat** for any questions or further assistance. 🗨️
+
             """
         )
 
@@ -117,7 +117,7 @@ SYSTEM_MESSAGE_LATENCY = '''You are a clinical assistant specializing in the pri
                         evaluation, and determination of prior authorization requests.'''
 
 def initialize_chatbot(case_id=None, document=None) -> None:
-    st.markdown("<h4 style='text-align: center;'>PriorBuddy 🤖</h4>", unsafe_allow_html=True)
+    st.markdown("<h4 style='text-align: center;'>AutoAuth Chat 🤖</h4>", unsafe_allow_html=True)
 
     if 'chat_history' not in st.session_state:
         st.session_state['chat_history'] = []
@@ -366,10 +366,10 @@ def format_clinical_info(document):
     plan_info = clinical_info.get("Plan for Treatment or Request for Prior Authorization", {})
     return f"""
     - **Diagnosis:** {clinical_info.get('Diagnosis', 'Not provided')}
-    - **ICD-10 code:** {clinical_info.get('ICD-10 code', 'Not provided')}
+    - **ICD-10 code:** {clinical_info.get('ICD-10 Code', 'Not provided')}
     - **Detailed History of Prior Treatments and Results:** {clinical_info.get('Detailed History of Prior Treatments and Results', 'Not provided')}
-    - **Specific drugs already taken by patient and if the patient failed these prior treatments:** {clinical_info.get('Specific drugs already taken by patient and if the patient failed these prior treatments', 'Not provided')}
-    - **How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug:** {clinical_info.get('How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug', 'Not provided')}
+    - **Specific drugs already taken by patient and if the patient failed these prior treatments:** {clinical_info.get('Specific Drugs Already Taken by the Patient and if the Patient Failed These Prior Treatments', 'Not provided')}
+    - **Alternative Drugs Required by the Specific PA Form:** {clinical_info.get('Alternative Drugs Required by the Specific PA Form', 'Not provided')}
     - **Relevant Lab Results or Diagnostic Imaging:** {clinical_info.get('Relevant Lab Results or Diagnostic Imaging', 'Not provided')}
     - **Documented Symptom Severity and Impact on Daily Life:** {clinical_info.get('Documented Symptom Severity and Impact on Daily Life', 'Not provided')}
     - **Prognosis and Risk if Treatment Is Not Approved:** {clinical_info.get('Prognosis and Risk if Treatment Is Not Approved', 'Not provided')}
@@ -453,14 +453,21 @@ def main() -> None:
             selected_case_id = asyncio.run(run_pipeline_with_spinner(uploaded_file_paths, use_o1))
 
     if "case_ids" in st.session_state and st.session_state["case_ids"]:
-        st.sidebar.markdown("### Historical PA")
+        st.sidebar.divider()
         case_ids = st.session_state["case_ids"][::-1]  # Reverse to show latest first
         default_index = case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
-        selected_case_id = st.sidebar.selectbox(
-            'Select a case ID',
-            case_ids,
-            index=default_index,
-        )
+            
+        if "case_ids" in st.session_state and st.session_state["case_ids"]:
+            case_ids = st.session_state["case_ids"][::-1]  # Reverse to show latest first
+            default_index = case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
+        
+            st.sidebar.markdown("#### Retrieve a Case ID to Review")
+            selected_case_id = st.sidebar.selectbox(
+                'Select PA case ID',
+                case_ids,
+                index=default_index,
+                help="Select a Case ID from the list to view its details and status."
+            )
 
     if selected_case_id:
         query = {"caseId": selected_case_id}

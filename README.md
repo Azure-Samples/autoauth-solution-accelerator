@@ -79,21 +79,6 @@ Let's uncover the daily pain points faced by providers and payors, and understan
 
 ---
 
-## 🤖👩‍⚕️ PRISM - Streamlined Prior Authorization for Providers
-
-PRISM – **P**rior **R**equest **I**ntelligent **S**ystem for **M**edical Authorization is a comprehensive solution designed to optimize the Prior Authorization (PA) process for healthcare providers. By leveraging advanced AI and automation, PRISM ensures faster, more accurate PA decisions, reducing administrative burdens and improving patient care.
-
-### What is PRISM?
-
-PRISM stands for:
-- **P**rior: Focusing on the authorization process before treatment.
-- **R**equest: Streamlining the PA request process.
-- **I**ntelligent: Leveraging AI to enhance decision-making.
-- **S**ystem: Implementing a systematic approach to PA processes.
-- **M**edical Authorization: Ensuring accurate and efficient PA approvals.
-
-By integrating these core principles, PRISM transforms the PA process, making it more efficient and provider-friendly.
-
 ### Disclaimer
 > [!IMPORTANT]
 > This software is provided for demonstration purposes only. It is not intended to be relied upon for any purpose. The creators of this software make no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability or availability with respect to the software or the information, products, services, or related graphics contained in the software for any purpose. Any reliance you place on such information is therefore strictly at your own risk.

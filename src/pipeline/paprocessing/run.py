@@ -509,7 +509,7 @@ class PAProcessingPipeline:
             logger.info(Fore.CYAN + "Using o1 model for final determination...")
             api_response_determination = await self.azure_openai_client_o1.generate_chat_response_o1(
                 query=user_prompt_pa,
-                max_completion_tokens=20000,
+                max_completion_tokens=15000,
             )
         else:
             logger.info(Fore.CYAN + "Using 4o model for final determination...")
