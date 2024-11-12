@@ -2,7 +2,9 @@ import os
 import yaml
 import tempfile
 import shutil
-from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel, ValidationError
+from src.pipeline.paprocessing.models import PatientInformation, PhysicianInformation, ClinicalInformation
+from typing import Any, Dict, List, Optional, Union, Type
 
 import dotenv
 import streamlit as st
@@ -327,6 +329,55 @@ class PAProcessingPipeline:
         except Exception as e:
             logger.error(f"Failed to clean up temporary directory '{self.temp_dir}': {e}")
 
+    @staticmethod
+    async def validate_with_field_level_correction(data: Dict[str, Any], model_class: Type[BaseModel]) -> BaseModel:
+        """
+        Validate each field with a Pydantic model. Retain valid fields, correct invalid ones with defaults.
+        """
+        validated_data = {}
+        
+        for field_name, model_field in model_class.model_fields.items():
+            # Get the field alias if it exists; otherwise, use the field name
+            expected_alias = model_field.alias or field_name
+            value = data.get(expected_alias, None)
+
+            try:
+                validated_instance = model_class(**{field_name: value})
+                validated_data[field_name] = getattr(validated_instance, field_name)
+            except ValidationError as e:
+                logger.warning(f"Validation error for '{expected_alias}': {e}")
+
+                if model_field.default is not None:
+                    default_value = model_field.default
+                elif model_field.default_factory is not None:
+                    default_value = model_field.default_factory()
+                else:
+                    # Assign a default based on the type
+                    field_type = model_field.outer_type_
+                    if field_type == str:
+                        default_value = "Not provided"
+                    elif field_type == int:
+                        default_value = 0
+                    elif field_type == float:
+                        default_value = 0.0
+                    elif field_type == bool:
+                        default_value = False
+                    elif field_type == list:
+                        default_value = []
+                    elif field_type == dict:
+                        default_value = {}
+                    else:
+                        default_value = None
+                validated_data[field_name] = default_value
+
+        try:
+            # Create an instance of the model with the fully validated data
+            instance = model_class(**validated_data)
+        except ValidationError as e:
+            logger.error(f"Failed to create {model_class.__name__} instance: {e}")
+            raise
+
+        return instance
     
     async def extract_patient_data(self, image_files: List[str]) -> Dict[str, Any]:
         """
@@ -346,11 +397,12 @@ class PAProcessingPipeline:
                 frequency_penalty=self.frequency_penalty,
                 presence_penalty=self.presence_penalty,
             )
-            self.log_output(api_response_patient['response'], api_response_patient['conversation_history'])
-            return api_response_patient['response']
+            validated_data = await self.validate_with_field_level_correction(api_response_patient['response'], PatientInformation)
+            self.log_output(validated_data.model_dump(mode="json"), api_response_patient['conversation_history'])
+            return validated_data
         except Exception as e:
             logger.error(f"Error extracting patient data: {e}")
-            return {"error": str(e)}
+            return PatientInformation()
 
     async def extract_physician_data(self, image_files: List[str]) -> Dict[str, Any]:
         """
@@ -370,11 +422,12 @@ class PAProcessingPipeline:
                 frequency_penalty=self.frequency_penalty,
                 presence_penalty=self.presence_penalty,
             )
-            self.log_output(api_response_physician['response'], api_response_physician['conversation_history'])
-            return api_response_physician['response']
+            validated_data = await self.validate_with_field_level_correction(api_response_physician['response'], PhysicianInformation)
+            self.log_output(validated_data.model_dump(mode="json"), api_response_physician['conversation_history'])
+            return validated_data
         except Exception as e:
             logger.error(f"Error extracting physician data: {e}")
-            return {"error": str(e)}
+            return PhysicianInformation()
 
     async def extract_clinician_data(self, image_files: List[str]) -> Dict[str, Any]:
         """
@@ -394,13 +447,14 @@ class PAProcessingPipeline:
                 frequency_penalty=self.frequency_penalty,
                 presence_penalty=self.presence_penalty,
             )
-            self.log_output(api_response_clinician['response'], api_response_clinician['conversation_history'])
-            return api_response_clinician['response']
+            validated_data = await self.validate_with_field_level_correction(api_response_clinician['response'], ClinicalInformation)
+            self.log_output(validated_data.model_dump(mode="json"), api_response_clinician['conversation_history'])
+            return validated_data
         except Exception as e:
             logger.error(f"Error extracting clinician data: {e}")
-            return {"error": str(e)}
+            return ClinicalInformation()
 
-    async def extract_all_data(self, image_files: List[str]) -> Dict[str, Any]:
+    async def extract_all_data(self, image_files: List[str]) -> Dict[str, BaseModel]:
         """
         Extract patient, physician, and clinician data in parallel.
         """
@@ -419,7 +473,11 @@ class PAProcessingPipeline:
             }
         except Exception as e:
             logger.error(f"Error extracting all data: {e}")
-            return {"error": str(e)}
+            return {
+                "patient_data": PatientInformation(),
+                "physician_data": PhysicianInformation(),
+                "clinician_data": ClinicalInformation(),
+            }
 
     def locate_policy(self, api_response: Dict[str, Any]) -> str:
         """
@@ -472,7 +530,7 @@ class PAProcessingPipeline:
         self.log_output(api_response_ner['response'], api_response_ner['conversation_history'], step=None)
         return api_response_ner
 
-    async def expand_query_and_search_policy(self, clinical_info: Dict[str, Any]) -> Dict[str, Any]:
+    async def expand_query_and_search_policy(self, clinical_info: BaseModel) -> Dict[str, Any]:
         """
         Expand query and search for policy.
         """
@@ -497,12 +555,20 @@ class PAProcessingPipeline:
         
         return api_response_query
 
-    async def generate_final_determination(self, retrieved_infromation_ner: Dict[str, Any], policy_text: str, use_o1: bool = False) -> None:
+    async def generate_final_determination(self, 
+                                           patient_info: BaseModel,
+                                           physician_info: BaseModel, 
+                                           clinical_info: BaseModel,
+                                           policy_text: str, use_o1: bool = False) -> None:
         """
         Generate final determination using AI.
         """
-        user_prompt_pa = self.prompt_manager.create_prompt_pa(retrieved_infromation_ner, policy_text, use_o1)
-        print(user_prompt_pa)
+        user_prompt_pa = self.prompt_manager.create_prompt_pa(patient_info, 
+                                                              physician_info, 
+                                                              clinical_info,  
+                                                              policy_text,
+                                                              use_o1)
+        
         logger.info(Fore.CYAN + "Generating final determination...")
         logger.info(f"Input clinical information: {user_prompt_pa}")
         if use_o1:
@@ -527,6 +593,7 @@ class PAProcessingPipeline:
         final_response = api_response_determination["response"]
         logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
         self.log_output({"final_determination": final_response}, api_response_determination['conversation_history'], step=None)
+
 
     async def run(self, uploaded_files: List[str], streamlit: bool = False, caseId: str = None, use_o1: bool = False) -> None:
         """
@@ -554,14 +621,10 @@ class PAProcessingPipeline:
                 progress_bar.progress(progress / total_steps)
 
             api_response_ner = await self.extract_all_data(image_files)
+            
             clinical_info = api_response_ner["clinician_data"]
-
-            if not clinical_info:
-                logger.info(Fore.RED + "Clinical Information not found in AI response.")
-                if streamlit:
-                    status_text.error("Clinical Information not found in AI response.")
-                    progress_bar.empty()
-                return
+            patient_info = api_response_ner["patient_data"]
+            physician_info = api_response_ner["physician_data"]
 
             if streamlit:
                 status_text.write("🔎 **Expanding query and searching for policy...**")
@@ -599,7 +662,8 @@ class PAProcessingPipeline:
                 progress += 1
                 progress_bar.progress(progress / total_steps)
 
-            await self.generate_final_determination(api_response_ner, policy_text, use_o1)
+            # Use models directly when generating prompts
+            await self.generate_final_determination(patient_info, physician_info, clinical_info, policy_text, use_o1)
 
             if streamlit:
                 status_text.success(f"✅ **PA {self.caseId} Processing complete!**")

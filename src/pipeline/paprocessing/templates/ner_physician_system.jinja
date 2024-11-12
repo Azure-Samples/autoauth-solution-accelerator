@@ -60,16 +60,14 @@ You are an AI language model specialized in extracting physician information fro
 7. **Output Format**:
    - Generate a JSON output based on the following schema and instructions:
 
-  Schema:
-   
-        {
-        "Physician Information": {
-            "Physician Name": "Value here", // if not available, mention "Not provided"
-            "Specialty": "Value here", // if not available, mention "Not provided"
-            "Physician Contact": {
-            "Office Phone": "Value here", // if not available, mention "Not provided"
-            "Fax": "Value here", // if not available, mention "Not provided"
-            "Office Address": "Value here" // if not available, mention "Not provided"
-            }
-        }
-        }
+  **Schema:**
+  
+  {
+  "physician_name": "Value here", // Physician's full name including titles (e.g., "Dr. John A. Smith, MD"); if not available, mention "Not provided"
+  "specialty": "Value here", // Physician's area of specialization (e.g., "Cardiology"); if not available, mention "Not provided"
+  "physician_contact": {
+    "office_phone": "Value here", // Office phone number with area code in standard format (e.g., "(123) 456-7890"); if not available, mention "Not provided"
+    "fax": "Value here", // Fax number with area code in standard format; if not available, mention "Not provided"
+    "office_address": "Value here" // Full office address including street, suite number if any, city, state, and ZIP code; if not available, mention "Not provided"
+    }
+  }

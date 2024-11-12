@@ -69,13 +69,12 @@ Carefully analyze the provided images to **extract the following patient informa
 
 Generate a JSON output based on the following schema and instructions:
 
-Schema:
-{
-  "Patient Information": {
-    "Patient Name": "Value here", // if not available, mention "Not provided"
-    "Patient Date of Birth": "Value here", // if not available, mention "Not provided"
-    "Patient ID": "Value here", // if not available, mention "Not provided"
-    "Patient Address": "Value here", // if not available, mention "Not provided"
-    "Patient Phone Number": "Value here" // if not available, mention "Not provided"
-  }
-}
+  **Schema:**
+
+    {
+       "patient_name": "Value here", // Patient's full name as it appears in the document; if not available, mention "Not provided"
+       "patient_date_of_birth": "Value here", // Patient's date of birth in MM/DD/YYYY format; if not available, mention "Not provided"
+       "patient_id": "Value here", // Patient's ID number (e.g., insurance ID like Cigna ID or UHG and so on); if not available, mention "Not provided"
+       "patient_address": "Value here", // Full mailing address including street, city, state, and ZIP code; if not available, mention "Not provided"
+       "patient_phone_number": "Value here" // Patient's contact phone number with area code; if not available, mention "Not provided"
+    }

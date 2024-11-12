@@ -1,7 +1,8 @@
 from jinja2 import Environment, FileSystemLoader
 import os
-from typing import Dict, Any
+from typing import Any
 from utils.ml_logging import get_logger
+from pydantic import BaseModel
 
 logger = get_logger()
 
@@ -16,8 +17,6 @@ class PromptManager:
         current_dir = os.path.dirname(os.path.abspath(__file__))
         template_path = os.path.join(current_dir, template_dir)
         
-        print(f"Template directory resolved to: {template_path}")
-        
         self.env = Environment(
             loader=FileSystemLoader(searchpath=template_path),
             autoescape=False
@@ -25,7 +24,6 @@ class PromptManager:
 
         templates = self.env.list_templates()
         print(f"Templates found: {templates}")
-
 
     def get_prompt(self, template_name: str, **kwargs) -> str:
         """
@@ -44,113 +42,74 @@ class PromptManager:
         except Exception as e:
             raise ValueError(f"Error rendering template '{template_name}': {e}")
 
-    def create_prompt_query_expansion(self, results: Dict[str, Any]) -> str:
+    def create_prompt_query_expansion(self, clinical_info: BaseModel) -> str:
         """
-        Create a prompt for query expansion based on the given results.
+        Create a prompt for query expansion using clinical information.
 
         Args:
-            results (Dict[str, Any]): The results dictionary containing clinical information.
+            clinical_info (BaseModel): A model instance containing clinical information.
 
         Returns:
             str: The rendered query expansion prompt.
         """
-        clinical_info = results.get("Clinical Information", {})
-        plan_info = clinical_info.get("Plan for Treatment or Request for Prior Authorization", {})
         return self.get_prompt(
             'query_expansion_user_prompt.jinja',
-            diagnosis=clinical_info.get("Diagnosis", "Not provided"),
-            medication_or_procedure=plan_info.get("Name of the Medication or Procedure Being Requested", "Not provided"),
-            code=plan_info.get("Code of the Medication or Procedure", "Not provided"),
-            dosage=plan_info.get("Dosage or Plan for the Medication or Procedure", "Not provided"),
-            duration=plan_info.get("Duration of Doses or Days of Treatment", "Not provided"),
-            rationale=plan_info.get("Rationale for the Medication or Procedure", "Not provided"),
+            diagnosis=clinical_info.diagnosis,
+            medication_or_procedure=clinical_info.treatment_request.name_of_medication_or_procedure,
+            code=clinical_info.treatment_request.code_of_medication_or_procedure,
+            dosage=clinical_info.treatment_request.dosage,
+            duration=clinical_info.treatment_request.duration,
+            rationale=clinical_info.treatment_request.rationale
         )
 
-    def create_prompt_pa(self, results: Dict[str, Any], policy_text: str, use_o1: bool = False) -> str:
+    def create_prompt_pa(self, patient_info: BaseModel, physician_info: BaseModel, 
+                         clinical_info: BaseModel, policy_text: str, use_o1: bool = False) -> str:
         """
-        Create a prompt for prior authorization based on the given results and policy text.
-    
+        Create a prompt for prior authorization based on patient, physician, clinical information, and policy text.
+
         Args:
-            results (Dict[str, Any]): The results dictionary containing patient, physician, and clinical information.
+            patient_info (BaseModel): A model instance for patient information.
+            physician_info (BaseModel): A model instance for physician information.
+            clinical_info (BaseModel): A model instance for clinical information.
             policy_text (str): The policy text to include in the prompt.
             use_o1 (bool): Indicates whether to use the o1 model. Defaults to False.
-    
+
         Returns:
             str: The rendered prior authorization prompt.
         """
-        patient_info = results['patient_data'].get("Patient Information", {})
-        physician_info = results['physician_data'].get("Physician Information", {})
-        clinical_info = results['clinician_data'].get("Clinical Information", {})
-        plan_info = clinical_info.get("Plan for Treatment or Request for Prior Authorization", {})
-    
-        # Extracting Patient Information
-        patient_name = patient_info.get("Patient Name", "Not provided")
-        patient_dob = patient_info.get("Patient Date of Birth", "Not provided")
-        patient_id = patient_info.get("Patient ID", "Not provided")
-        patient_address = patient_info.get("Patient Address", "Not provided")
-        patient_phone = patient_info.get("Patient Phone Number", "Not provided")
-    
-        # Extracting Physician Information
-        physician_name = physician_info.get("Physician Name", "Not provided")
-        specialty = physician_info.get("Specialty", "Not provided")
-        physician_contact = physician_info.get("Physician Contact", {})
-        physician_phone = physician_contact.get("Office Phone", "Not provided")
-        physician_fax = physician_contact.get("Fax", "Not provided")
-        physician_address = physician_contact.get("Office Address", "Not provided")
-    
-        # Extracting Clinical Information
-        diagnosis = clinical_info.get("Diagnosis", "Not provided")
-        icd10_code = clinical_info.get("ICD-10 Code", "Not provided")
-        prior_treatments = clinical_info.get("Detailed History of Prior Treatments and Results", "Not provided")
-        specific_drugs = clinical_info.get("Specific Drugs Already Taken by the Patient and if the Patient Failed These Prior Treatments", "Not provided")
-        alternative_drugs_required = clinical_info.get("Alternative Drugs Required by the Specific PA Form", "Not provided")
-        lab_results = clinical_info.get("Relevant Lab Results or Diagnostic Imaging", "Not provided")
-        symptom_severity = clinical_info.get("Documented Symptom Severity and Impact on Daily Life", "Not provided")
-        prognosis_risk = clinical_info.get("Prognosis and Risk if Treatment Is Not Approved", "Not provided")
-        urgency_rationale = clinical_info.get("Clinical Rationale for Urgency (if applicable)", "Not provided")
-    
-        # Extracting Plan for Treatment
-        requested_medication = plan_info.get("Name of the Medication or Procedure Being Requested", "Not provided")
-        medication_code = plan_info.get("Code of the Medication or Procedure", "Not provided")
-        dosage = plan_info.get("Dosage", "Not provided")
-        duration = plan_info.get("Duration", "Not provided")
-        medication_rationale = plan_info.get("Rationale", "Not provided")
-        presumed_eligibility = plan_info.get("Presumed eligibility for the medication based on answers to the PA form questions", "Not provided")
-    
-        # Choose the appropriate template based on the use_o1 flag
         template_name = 'prior_auth_o1_user_prompt.jinja' if use_o1 else 'prior_auth_user_prompt.jinja'
-    
+        
         return self.get_prompt(
             template_name,
             # Patient Information
-            patient_name=patient_name,
-            patient_dob=patient_dob,
-            patient_id=patient_id,
-            patient_address=patient_address,
-            patient_phone=patient_phone,
+            patient_name=patient_info.patient_name,
+            patient_dob=patient_info.patient_date_of_birth,
+            patient_id=patient_info.patient_id,
+            patient_address=patient_info.patient_address,
+            patient_phone=patient_info.patient_phone_number,
             # Physician Information
-            physician_name=physician_name,
-            specialty=specialty,
-            physician_phone=physician_phone,
-            physician_fax=physician_fax,
-            physician_address=physician_address,
+            physician_name=physician_info.physician_name,
+            specialty=physician_info.specialty,
+            physician_phone=physician_info.physician_contact.office_phone,
+            physician_fax=physician_info.physician_contact.fax,
+            physician_address=physician_info.physician_contact.office_address,
             # Clinical Information
-            diagnosis=diagnosis,
-            icd10_code=icd10_code,
-            prior_treatments=prior_treatments,
-            specific_drugs=specific_drugs,
-            alternative_drugs_required=alternative_drugs_required,
-            lab_results=lab_results,
-            symptom_severity=symptom_severity,
-            prognosis_risk=prognosis_risk,
-            urgency_rationale=urgency_rationale,
-            # Plan for Treatment or Request for Prior Authorization
-            requested_medication=requested_medication,
-            medication_code=medication_code,
-            dosage=dosage,
-            treatment=duration,
-            medication_rationale=medication_rationale,
-            presumed_eligibility=presumed_eligibility,
+            diagnosis=clinical_info.diagnosis,
+            icd10_code=clinical_info.icd_10_code,
+            prior_treatments=clinical_info.prior_treatments_and_results,
+            specific_drugs=clinical_info.specific_drugs_taken_and_failures,
+            alternative_drugs_required=clinical_info.alternative_drugs_required,
+            lab_results=clinical_info.relevant_lab_results_or_imaging,
+            symptom_severity=clinical_info.symptom_severity_and_impact,
+            prognosis_risk=clinical_info.prognosis_and_risk_if_not_approved,
+            urgency_rationale=clinical_info.clinical_rationale_for_urgency,
+            # Plan for Treatment
+            requested_medication=clinical_info.treatment_request.name_of_medication_or_procedure,
+            medication_code=clinical_info.treatment_request.code_of_medication_or_procedure,
+            dosage=clinical_info.treatment_request.dosage,
+            treatment_duration=clinical_info.treatment_request.duration,
+            medication_rationale=clinical_info.treatment_request.rationale,
+            presumed_eligibility=clinical_info.treatment_request.presumed_eligibility,
             # Policy Text
             policy_text=policy_text
         )

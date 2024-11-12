@@ -129,9 +129,7 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         st.session_state['messages'] = []
         st.session_state['current_case_id'] = case_id
 
-        patient_info = document.get("Patient Information", {})
-        physician_info = document.get("Physician Information", {})
-        clinical_info = document.get("Clinical Information", {})
+        plan_info = document.get("treatment_request", {})
         final_determination = document.get("final_determination", "N/A")
         attachments_info = document.get("raw_uploaded_files", [])
         policy_text = document.get("policy_text", [])
@@ -140,37 +138,37 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         Final Determination: {final_determination}
 
         Patient Information:
-        - Name: {patient_info.get('Patient Name', 'Not provided')}
-        - Date of Birth: {patient_info.get('Patient Date of Birth', 'Not provided')}
-        - ID: {patient_info.get('Patient ID', 'Not provided')}
-        - Address: {patient_info.get('Patient Address', 'Not provided')}
-        - Phone Number: {patient_info.get('Patient Phone Number', 'Not provided')}
+            - **Name:** {document.get('physician_name', 'Not provided')}
+            - **Specialty:** {document.get('specialty', 'Not provided')}
+            - **Contact:**
+            - **Office Phone:** {document.get('physician_contact', {}).get('office_phone', 'Not provided')}
+            - **Fax:** {document.get('physician_contact', {}).get('fax', 'Not provided')}
+            - **Office Address:** {document.get('physician_contact', {}).get('office_address', 'Not provided')}
 
         Physician Information:
-        - Name: {physician_info.get('Physician Name', 'Not provided')}
-        - Specialty: {physician_info.get('Specialty', 'Not provided')}
-        - Contact:
-            - Office Phone: {physician_info.get('Physician Contact', {}).get('Office Phone', 'Not provided')}
-            - Fax: {physician_info.get('Physician Contact', {}).get('Fax', 'Not provided')}
-            - Office Address: {physician_info.get('Physician Contact', {}).get('Office Address', 'Not provided')}
+            - **Name:** {document.get('physician_name', 'Not provided')}
+            - **Specialty:** {document.get('specialty', 'Not provided')}
+            - **Contact:**
+            - **Office Phone:** {document.get('physician_contact', {}).get('office_phone', 'Not provided')}
+            - **Fax:** {document.get('physician_contact', {}).get('fax', 'Not provided')}
+            - **Office Address:** {document.get('physician_contact', {}).get('office_address', 'Not provided')}
 
         Clinical Information:
-        - Diagnosis: {clinical_info.get('Diagnosis', 'Not provided')}
-        - ICD-10 code: {clinical_info.get('ICD-10 code', 'Not provided')}
-        - Detailed History of Prior Treatments and Results: {clinical_info.get('Detailed History of Prior Treatments and Results', 'Not provided')}
-        - Specific drugs already taken by patient and if the patient failed these prior treatments: {clinical_info.get('Specific drugs already taken by patient and if the patient failed these prior treatments', 'Not provided')}
-        - How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug: {clinical_info.get('How many and which alternative drugs are required by the specific PA form, in order to approve the new requested drug', 'Not provided')}
-        - Relevant Lab Results or Diagnostic Imaging: {clinical_info.get('Relevant Lab Results or Diagnostic Imaging', 'Not provided')}
-        - Documented Symptom Severity and Impact on Daily Life: {clinical_info.get('Documented Symptom Severity and Impact on Daily Life', 'Not provided')}
-        - Prognosis and Risk if Treatment is Not Approved: {clinical_info.get('Prognosis and Risk if Treatment Is Not Approved', 'Not provided')}
-        - Clinical Rationale for Urgency: {clinical_info.get('Clinical Rationale for Urgency (if applicable)', 'Not provided')}
-        - Plan for Treatment or Request for Prior Authorization:
-            - Name of the Medication or Procedure Being Requested: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Name of the Medication or Procedure Being Requested', 'Not provided')}
-            - Code of the Medication or Procedure: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Code of the Medication or Procedure', 'Not provided')}
-            - Dosage: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Dosage', 'Not provided')}
-            - Duration: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Duration', 'Not provided')}
-            - Rationale: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Rationale', 'Not provided')}
-            - Presumed eligibility for the medication based on answers to the PA form questions: {clinical_info.get('Plan for Treatment or Request for Prior Authorization', {}).get('Presumed eligibility for the medication based on answers to the PA form questions', 'Not provided')}
+            - **Diagnosis:** {document.get('diagnosis', 'Not provided')}
+            - **ICD-10 code:** {document.get('icd_10_code', 'Not provided')}
+            - **Detailed History of Prior Treatments and Results:** {document.get('prior_treatments_and_results', 'Not provided')}
+            - **Specific drugs already taken by patient and if the patient failed these prior treatments:** {document.get('specific_drugs_taken_and_failures', 'Not provided')}
+            - **Alternative Drugs Required by the Specific PA Form:** {document.get('alternative_drugs_required', 'Not provided')}
+            - **Relevant Lab Results or Diagnostic Imaging:** {document.get('relevant_lab_results_or_imaging', 'Not provided')}
+            - **Documented Symptom Severity and Impact on Daily Life:** {document.get('symptom_severity_and_impact', 'Not provided')}
+            - **Prognosis and Risk if Treatment Is Not Approved:** {document.get('prognosis_and_risk_if_not_approved', 'Not provided')}
+            - **Clinical Rationale for Urgency:** {document.get('clinical_rationale_for_urgency', 'Not provided')}
+            - **Plan for Treatment or Request for Prior Authorization:**
+                - **Name of the Medication or Procedure Being Requested:** {plan_info.get('name_of_medication_or_procedure', 'Not provided')}
+                - **Code of the Medication or Procedure:** {plan_info.get('code_of_medication_or_procedure', 'Not provided')}
+                - **Dosage:** {plan_info.get('dosage', 'Not provided')}
+                - **Duration:** {plan_info.get('duration', 'Not provided')}
+                - **Rationale:** {plan_info.get('rationale', 'Not provided')}
 
         Attachments:
         The following attachments were provided by the user and were considered in the final determination:
@@ -181,17 +179,14 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         {policy_text}
         """
 
-        # Include the summary in the system prompt
         system_prompt = SYSTEM_MESSAGE_LATENCY + "\n\n" + summary
         st.session_state['messages'].append({'role': 'system', 'content': system_prompt})
 
-        # Display a friendly greeting message to the user
         greeting_message = f"👋 How can I assist you with case ID **{case_id}**? Feel free to ask any questions!"
         st.session_state['messages'].append({'role': 'assistant', 'content': greeting_message})
         st.session_state['chat_history'].append({'role': 'assistant', 'content': greeting_message})
 
     elif not case_id and not st.session_state.get('initialized_default'):
-        # No case_id provided, initialize default assistant message once
         st.session_state['chat_history'] = []
         st.session_state['messages'] = []
         st.session_state['initialized_default'] = True
@@ -341,46 +336,42 @@ def save_uploaded_files(uploaded_files):
     return file_paths
 
 def format_patient_info(document):
-    patient_info = document.get("Patient Information", {})
     return f"""
-    - **Name:** {patient_info.get('Patient Name', 'Not provided')}
-    - **Date of Birth:** {patient_info.get('Patient Date of Birth', 'Not provided')}
-    - **ID:** {patient_info.get('Patient ID', 'Not provided')}
-    - **Address:** {patient_info.get('Patient Address', 'Not provided')}
-    - **Phone Number:** {patient_info.get('Patient Phone Number', 'Not provided')}
+    - **Name:** {document.get('patient_name', 'Not provided')}
+    - **Date of Birth:** {document.get('patient_date_of_birth', 'Not provided')}
+    - **ID:** {document.get('patient_id', 'Not provided')}
+    - **Address:** {document.get('patient_address', 'Not provided')}
+    - **Phone Number:** {document.get('patient_phone_number', 'Not provided')}
     """
 
 def format_physician_info(document):
-    physician_info = document.get("Physician Information", {})
     return f"""
-    - **Name:** {physician_info.get('Physician Name', 'Not provided')}
-    - **Specialty:** {physician_info.get('Specialty', 'Not provided')}
+    - **Name:** {document.get('physician_name', 'Not provided')}
+    - **Specialty:** {document.get('specialty', 'Not provided')}
     - **Contact:**
-      - **Office Phone:** {physician_info.get('Physician Contact', {}).get('Office Phone', 'Not provided')}
-      - **Fax:** {physician_info.get('Physician Contact', {}).get('Fax', 'Not provided')}
-      - **Office Address:** {physician_info.get('Physician Contact', {}).get('Office Address', 'Not provided')}
+      - **Office Phone:** {document.get('physician_contact', {}).get('office_phone', 'Not provided')}
+      - **Fax:** {document.get('physician_contact', {}).get('fax', 'Not provided')}
+      - **Office Address:** {document.get('physician_contact', {}).get('office_address', 'Not provided')}
     """
 
 def format_clinical_info(document):
-    clinical_info = document.get("Clinical Information", {})
-    plan_info = clinical_info.get("Plan for Treatment or Request for Prior Authorization", {})
+    plan_info = document.get("treatment_request", {})
     return f"""
-    - **Diagnosis:** {clinical_info.get('Diagnosis', 'Not provided')}
-    - **ICD-10 code:** {clinical_info.get('ICD-10 Code', 'Not provided')}
-    - **Detailed History of Prior Treatments and Results:** {clinical_info.get('Detailed History of Prior Treatments and Results', 'Not provided')}
-    - **Specific drugs already taken by patient and if the patient failed these prior treatments:** {clinical_info.get('Specific Drugs Already Taken by the Patient and if the Patient Failed These Prior Treatments', 'Not provided')}
-    - **Alternative Drugs Required by the Specific PA Form:** {clinical_info.get('Alternative Drugs Required by the Specific PA Form', 'Not provided')}
-    - **Relevant Lab Results or Diagnostic Imaging:** {clinical_info.get('Relevant Lab Results or Diagnostic Imaging', 'Not provided')}
-    - **Documented Symptom Severity and Impact on Daily Life:** {clinical_info.get('Documented Symptom Severity and Impact on Daily Life', 'Not provided')}
-    - **Prognosis and Risk if Treatment Is Not Approved:** {clinical_info.get('Prognosis and Risk if Treatment Is Not Approved', 'Not provided')}
-    - **Clinical Rationale for Urgency:** {clinical_info.get('Clinical Rationale for Urgency (if applicable)', 'Not provided')}
+    - **Diagnosis:** {document.get('diagnosis', 'Not provided')}
+    - **ICD-10 code:** {document.get('icd_10_code', 'Not provided')}
+    - **Detailed History of Prior Treatments and Results:** {document.get('prior_treatments_and_results', 'Not provided')}
+    - **Specific drugs already taken by patient and if the patient failed these prior treatments:** {document.get('specific_drugs_taken_and_failures', 'Not provided')}
+    - **Alternative Drugs Required by the Specific PA Form:** {document.get('alternative_drugs_required', 'Not provided')}
+    - **Relevant Lab Results or Diagnostic Imaging:** {document.get('relevant_lab_results_or_imaging', 'Not provided')}
+    - **Documented Symptom Severity and Impact on Daily Life:** {document.get('symptom_severity_and_impact', 'Not provided')}
+    - **Prognosis and Risk if Treatment Is Not Approved:** {document.get('prognosis_and_risk_if_not_approved', 'Not provided')}
+    - **Clinical Rationale for Urgency:** {document.get('clinical_rationale_for_urgency', 'Not provided')}
     - **Plan for Treatment or Request for Prior Authorization:**
-      - **Name of the Medication or Procedure Being Requested:** {plan_info.get('Name of the Medication or Procedure Being Requested', 'Not provided')}
-      - **Code of the Medication or Procedure:** {plan_info.get('Code of the Medication or Procedure', 'Not provided')}
-      - **Dosage:** {plan_info.get('Dosage', 'Not provided')}
-      - **Duration:** {plan_info.get('Duration', 'Not provided')}
-      - **Rationale:** {plan_info.get('Rationale', 'Not provided')}
-      - **Presumed eligibility for the medication based on answers to the PA form questions:** {plan_info.get('Presumed eligibility for the medication based on answers to the PA form questions', 'Not provided')}
+      - **Name of the Medication or Procedure Being Requested:** {plan_info.get('name_of_medication_or_procedure', 'Not provided')}
+      - **Code of the Medication or Procedure:** {plan_info.get('code_of_medication_or_procedure', 'Not provided')}
+      - **Dosage:** {plan_info.get('dosage', 'Not provided')}
+      - **Duration:** {plan_info.get('duration', 'Not provided')}
+      - **Rationale:** {plan_info.get('rationale', 'Not provided')}
     """
 
 def main() -> None:
