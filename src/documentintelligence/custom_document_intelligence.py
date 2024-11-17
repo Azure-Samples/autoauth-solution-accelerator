@@ -12,10 +12,9 @@
 
 import json
 import logging
+import mimetypes
 import os
 import uuid
-import mimetypes
-from azure.core.exceptions import HttpResponseError
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -258,22 +257,22 @@ class DocumentIntelligenceCustomPipeline:
         except Exception as e:
             logger.error(f"Failed to upload file {local_file_path} to blob: {e}")
             raise
-    
+
     def build_classifier(
-            self,
-            base_classifier_id: Optional[str] = None,
-            classifier_description: Optional[str] = None,
-        ) -> None:
+        self,
+        base_classifier_id: Optional[str] = None,
+        classifier_description: Optional[str] = None,
+    ) -> None:
         """
         Builds a classifier model using the uploaded documents.
-    
+
         :param base_classifier_id: Base classifier ID for incremental training.
         :param classifier_description: Description of the classifier.
         """
         try:
             document_model_admin_client, container_client = self.create_clients()
             container_sas_url = self.create_container_sas_url(container_client)
-    
+
             poller = document_model_admin_client.begin_build_classifier(
                 BuildDocumentClassifierRequest(
                     classifier_id=str(uuid.uuid4()),
@@ -286,10 +285,10 @@ class DocumentIntelligenceCustomPipeline:
             self.print_classifier_results(result)
         except HttpResponseError as e:
             logger.error(f"Failed to build classifier: {e}")
-            if hasattr(e, 'error') and e.error:
+            if hasattr(e, "error") and e.error:
                 logger.error(f"Error Code: {e.error.code}")
                 logger.error(f"Error Message: {e.error.message}")
-                if hasattr(e.error, 'inner_error') and e.error.inner_error:
+                if hasattr(e.error, "inner_error") and e.error.inner_error:
                     logger.error(f"Inner Error Code: {e.error.inner_error.code}")
                     logger.error(f"Inner Error Message: {e.error.inner_error.message}")
             raise
@@ -373,38 +372,46 @@ class DocumentIntelligenceCustomPipeline:
             logger.error(f"Failed to create container SAS URL: {e}")
             raise
 
-    def upload_documents(self, local_directory: Optional[str] = None, max_workers: Optional[int] = None) -> None:
+    def upload_documents(
+        self, local_directory: Optional[str] = None, max_workers: Optional[int] = None
+    ) -> None:
         """
         Uploads labeled data to Azure Blob Storage.
-        
+
         :param local_directory: Optional path to the directory containing documents to be uploaded.
         :param max_workers: Optional number of threads to use for parallel processing.
         """
         local_directory = local_directory or self.local_directory
         incompatible_files: List[str] = []
 
-        def upload_file(local_file_path: str, jsonl_data: Optional[List[Dict[str, str]]] = None) -> None:
+        def upload_file(
+            local_file_path: str, jsonl_data: Optional[List[Dict[str, str]]] = None
+        ) -> None:
             """
             Uploads a single file to Azure Blob Storage.
-            
+
             :param local_file_path: Path of the local file to upload.
             :param jsonl_data: Optional list to append JSONL data.
             """
             try:
-                blob_name = os.path.relpath(local_file_path, self.local_directory).replace("\\", "/")
+                blob_name = os.path.relpath(
+                    local_file_path, self.local_directory
+                ).replace("\\", "/")
                 if jsonl_data is not None:
                     jsonl_data.append({"file": f"{blob_name}"})
                 blob_client = self.container_client.get_blob_client(blob_name)
                 with open(local_file_path, "rb") as data:
                     blob_client.upload_blob(data, overwrite=True)
-                logger.info(f"Uploaded {local_file_path} to {blob_name} in container {self.container_name}")
+                logger.info(
+                    f"Uploaded {local_file_path} to {blob_name} in container {self.container_name}"
+                )
             except Exception as e:
                 logger.error(f"Failed to upload file {local_file_path} to blob: {e}")
 
         def collect_files(directory: str) -> List[str]:
             """
             Collects all valid document files from the specified directory and its subdirectories.
-            
+
             :param directory: The directory to search for document files.
             :return: A list of paths to the document files.
             """
@@ -416,11 +423,30 @@ class DocumentIntelligenceCustomPipeline:
                     for file in os.listdir(dir_path):
                         local_file_path = os.path.join(dir_path, file)
                         ocr_json_file_path = local_file_path + ".ocr.json"
-                        if file.lower().endswith((".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".heif", ".pdf", ".docx", ".xlsx", ".pptx")):
+                        if file.lower().endswith(
+                            (
+                                ".jpg",
+                                ".jpeg",
+                                ".png",
+                                ".bmp",
+                                ".tiff",
+                                ".heif",
+                                ".pdf",
+                                ".docx",
+                                ".xlsx",
+                                ".pptx",
+                            )
+                        ):
                             if os.path.isfile(ocr_json_file_path):
                                 files_to_upload.append(local_file_path)
                                 files_to_upload.append(ocr_json_file_path)
-                                jsonl_data.append({"file": os.path.relpath(local_file_path, self.local_directory).replace("\\", "/")})
+                                jsonl_data.append(
+                                    {
+                                        "file": os.path.relpath(
+                                            local_file_path, self.local_directory
+                                        ).replace("\\", "/")
+                                    }
+                                )
                             else:
                                 incompatible_files.append(local_file_path)
                         elif not file.endswith((".ocr.json", ".jsonl")):
@@ -445,7 +471,10 @@ class DocumentIntelligenceCustomPipeline:
 
         upload_count = 0
         with ThreadPoolExecutor(max_workers=max_workers or os.cpu_count()) as executor:
-            futures = {executor.submit(upload_file, file_path): file_path for file_path in files_to_upload}
+            futures = {
+                executor.submit(upload_file, file_path): file_path
+                for file_path in files_to_upload
+            }
 
             for future in as_completed(futures):
                 try:
@@ -456,13 +485,16 @@ class DocumentIntelligenceCustomPipeline:
                     logger.error(f"An error occurred during file upload: {e}")
 
         if incompatible_files:
-            logger.info("\nThe following files are not of a supported file type, missing a corresponding .ocr.json file, or both:")
+            logger.info(
+                "\nThe following files are not of a supported file type, missing a corresponding .ocr.json file, or both:"
+            )
             for local_file_path in incompatible_files:
                 logger.info(f"\t{local_file_path}")
-            logger.info("Please ensure you run analyze_layout() to create .ocr.json files before uploading documents. \nVisit the following link for more information on supported file types and sizes. \nhttps://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/concept-custom-classifier?view=doc-intel-4.0.0#input-requirements")
-        
-        logger.info("Batch upload completed!")
+            logger.info(
+                "Please ensure you run analyze_layout() to create .ocr.json files before uploading documents. \nVisit the following link for more information on supported file types and sizes. \nhttps://learn.microsoft.com/en-us/azure/ai-services/document-intelligence/concept-custom-classifier?view=doc-intel-4.0.0#input-requirements"
+            )
 
+        logger.info("Batch upload completed!")
 
     def print_classifier_results(self, result: Any) -> None:
         """
@@ -529,13 +561,19 @@ class DocumentClassifierInference:
                 content_type=content_type,
             )
             result = poller.result()
-            logger.info(f"Classified document: {doc if isinstance(doc, str) else 'bytes object'}")
+            logger.info(
+                f"Classified document: {doc if isinstance(doc, str) else 'bytes object'}"
+            )
             return result
         except HttpResponseError as e:
-            logger.error(f"Error classifying document {doc if isinstance(doc, str) else 'bytes object'}: {e}")
+            logger.error(
+                f"Error classifying document {doc if isinstance(doc, str) else 'bytes object'}: {e}"
+            )
             raise
         except Exception as e:
-            logger.error(f"Unexpected error during classification of {doc if isinstance(doc, str) else 'bytes object'}: {e}")
+            logger.error(
+                f"Unexpected error during classification of {doc if isinstance(doc, str) else 'bytes object'}: {e}"
+            )
             raise
 
     def classify_documents_in_directory(

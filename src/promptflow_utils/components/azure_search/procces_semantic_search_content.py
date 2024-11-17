@@ -1,13 +1,15 @@
-import logging
 import json
-from typing import List, Dict
+import logging
+from typing import Dict, List
 
 from azure.search.documents._paging import SearchItemPaged
+
 from pipeline import tool
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 @tool
 def process_search_results(result: SearchItemPaged) -> List[Dict[str, str]]:
@@ -31,9 +33,11 @@ def process_search_results(result: SearchItemPaged) -> List[Dict[str, str]]:
         )
         logger.info(f"source: {source}")
 
-        results.append({
-            "content": content,
-            "source": source,
-        })
+        results.append(
+            {
+                "content": content,
+                "source": source,
+            }
+        )
 
     return results

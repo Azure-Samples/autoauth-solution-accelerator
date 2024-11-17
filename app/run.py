@@ -18,15 +18,15 @@ from azure.search.documents.models import (
 from azure.storage.blob import BlobServiceClient
 from colorama import Fore, Style, init
 
-from src.aoai.aoai_helper import AzureOpenAIManager
 from app.components.prompts import (
     SYSTEM_PROMPT_NER,
     SYSTEM_PROMPT_PRIOR_AUTH,
     SYSTEM_PROMPT_QUERY_EXPANSION,
+    USER_PROMPT_NER,
     create_prompt_pa,
     create_prompt_query_expansion,
-    USER_PROMPT_NER,
 )
+from src.aoai.aoai_helper import AzureOpenAIManager
 from src.extractors.pdf_data_extractor import OCRHelper
 from src.ocr.document_intelligence import AzureDocumentIntelligenceManager
 from utils.ml_logging import get_logger
@@ -42,6 +42,7 @@ dotenv.load_dotenv(".env")
 
 # Generate a unique ID for the case
 import uuid
+
 
 def generate_unique_id() -> str:
     """
@@ -71,13 +72,14 @@ session_state = {
 }
 
 # Correctly set the temp_dir as a string
-session_state['temp_dir'] = os.path.join(
+session_state["temp_dir"] = os.path.join(
     r"C:\Users\pablosal\Desktop\gbb-ai-hls-factory-prior-auth\utils\temp",
-    session_state["conversation_id"]
+    session_state["conversation_id"],
 )
 
 # Ensure the temp_dir exists
-os.makedirs(session_state['temp_dir'], exist_ok=True)
+os.makedirs(session_state["temp_dir"], exist_ok=True)
+
 
 def locate_policy(api_response_gpt4o: Dict[str, Any]) -> str:
     """
@@ -124,7 +126,7 @@ def process_uploaded_files(uploaded_files: List[str]) -> str:
     ocr_data_extractor_helper = OCRHelper(
         container_name=session_state["container_name"]
     )
-    temp_dir = session_state['temp_dir']
+    temp_dir = session_state["temp_dir"]
 
     try:
         for file_path in uploaded_files:
@@ -199,7 +201,10 @@ def find_all_files(root_folder: str, extensions: Union[List[str], str]) -> List[
 
 
 async def generate_ai_response(
-    user_prompt: str, system_prompt: str, image_paths: List[str] = None, response_format: str = 'json_object'
+    user_prompt: str,
+    system_prompt: str,
+    image_paths: List[str] = None,
+    response_format: str = "json_object",
 ) -> Dict[str, Any]:
     """
     Generate AI response using OpenAI's API.
@@ -210,16 +215,13 @@ async def generate_ai_response(
     :return: The AI response as a dictionary.
     """
     try:
-        response = await session_state[
-            "azure_openai_client_4o"
-        ].generate_chat_response(
+        response = await session_state["azure_openai_client_4o"].generate_chat_response(
             query=user_prompt,
             system_message_content=system_prompt,
             image_paths=image_paths,
             conversation_history=[],
             max_tokens=3000,
-            response_format=response_format
-
+            response_format=response_format,
         )
         return response
     except Exception as e:
@@ -246,7 +248,8 @@ def chat_interface() -> None:
         while attempts < max_attempts:
             try:
                 input_dir = input(
-                    Fore.GREEN + "Enter the path to the directory containing files to process: "
+                    Fore.GREEN
+                    + "Enter the path to the directory containing files to process: "
                 )
                 process_documents_flow(input_dir)
 
@@ -261,7 +264,9 @@ def chat_interface() -> None:
                     print(Fore.RED + "Maximum number of attempts reached. Exiting.")
                     return
 
-        final_response = session_state["conversation_history"].get("final_determination")
+        final_response = session_state["conversation_history"].get(
+            "final_determination"
+        )
         if final_response:
             print(
                 Fore.MAGENTA
@@ -358,7 +363,10 @@ def process_documents_flow(input_dir: str) -> None:
 
                     # Store policy text in memory
                     store_output_in_memory(
-                        {"policy_location": policy_location, "policy_text": policy_text},
+                        {
+                            "policy_location": policy_location,
+                            "policy_text": policy_text,
+                        },
                         step="policy_retrieval",
                     )
 
@@ -371,11 +379,13 @@ def process_documents_flow(input_dir: str) -> None:
                                 user_prompt_pa,
                                 SYSTEM_PROMPT_PRIOR_AUTH,
                                 pa_files_images,
-                                response_format='text'
+                                response_format="text",
                             )
                         )
                         print(
-                            Fore.MAGENTA + "\nFinal Determination:\n" + api_response_final["response"]
+                            Fore.MAGENTA
+                            + "\nFinal Determination:\n"
+                            + api_response_final["response"]
                         )
 
                         # Store final determination in memory
@@ -390,9 +400,7 @@ def process_documents_flow(input_dir: str) -> None:
                         )
                 else:
                     print(Fore.RED + "Policy not found.")
-                    store_output_in_memory(
-                        {"error": "Policy not found."}, step="error"
-                    )
+                    store_output_in_memory({"error": "Policy not found."}, step="error")
             else:
                 print(Fore.RED + "Clinical Information not found in AI response.")
                 store_output_in_memory(

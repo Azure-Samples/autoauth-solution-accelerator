@@ -2,13 +2,14 @@
 `tokenizer.py` is a module that extends the AzureOpenAIManager to include tokenization capabilities for Azure OpenAI.
 """
 
-from typing import Dict, List, Optional, Union
-from PIL import Image
 import io
+from typing import Dict, List, Optional, Union
+
 import tiktoken
 
 # Load environment variables from .env file
 from dotenv import load_dotenv
+from PIL import Image
 
 from utils.ml_logging import get_logger
 
@@ -88,7 +89,7 @@ class AzureOpenAITokenizer:
         num_tokens += 3
 
         return num_tokens
-    
+
     def estimate_tokens_completion(
         self,
         response: str,
@@ -113,17 +114,13 @@ class AzureOpenAITokenizer:
         num_tokens = len(encoding.encode(response))
 
         return num_tokens
-    
+
     # This function is derived from the official documentation and provides a best-effort estimation.
     # For more information, visit: https://platform.openai.com/docs/guides/vision
-    def calculate_image_token(
-            self,
-            image_data: Union[bytes, str],
-            detail: str
-        ) -> int:
+    def calculate_image_token(self, image_data: Union[bytes, str], detail: str) -> int:
         """
         Calculate the token cost for an image based on its size and detail level.
-    
+
         :param image_data: The image data in bytes or the path to the image file.
         :param detail: The detail level of the image ('low' or 'high').
         :return: The token cost for the image.
@@ -137,10 +134,10 @@ class AzureOpenAITokenizer:
         except Exception as e:
             logger.error(f"Failed to open image: {e}")
             raise ValueError("Invalid image data or path provided.")
-        
-        if detail.lower() == 'low':
+
+        if detail.lower() == "low":
             return 85  # Fixed cost for low detail images
-        
+
         # For high detail images, follow the described scaling and token calculation
         # Step 1: Scale to fit within 2048 x 2048 while maintaining aspect ratio
         if image_width > 2048 or image_height > 2048:
@@ -151,7 +148,7 @@ class AzureOpenAITokenizer:
             else:
                 image_height = 2048
                 image_width = int(2048 * aspect_ratio)
-        
+
         # Step 2: Scale such that the shortest side is 768px long
         if image_width < image_height:
             scale_factor = 768 / image_width
@@ -161,7 +158,7 @@ class AzureOpenAITokenizer:
             scale_factor = 768 / image_height
             image_height = 768
             image_width = int(image_width * scale_factor)
-        
+
         # Step 3: Calculate the number of 512px squares the image consists of
         num_squares = (image_width // 512) * (image_height // 512)
         if image_width % 512 != 0:
@@ -170,10 +167,7 @@ class AzureOpenAITokenizer:
             num_squares += image_width // 512
         if image_width % 512 != 0 and image_height % 512 != 0:
             num_squares += 1
-        
+
         # Each square costs 170 tokens and we add a fixed 85 tokens
         total_cost = (num_squares * 170) + 85
         return total_cost
-
-
-

@@ -25,7 +25,7 @@ Carefully analyze the provided images and extract the following information, pre
 """
 
 
-USER_PROMPT_NER = '''
+USER_PROMPT_NER = """
 Given the following images from medical documents .pdf (including prior authorization forms, medical imaging results, lab results, and doctor notes):
 
 Please carefully analyze the provided images to extract the following information and present it in JSON format as key-value pairs:
@@ -135,7 +135,7 @@ Schema:
     - Provide the rationale for the medication or procedure based on the clinical information provided.
 
 **Note**: This task involves critical clinical information extraction. Take your time to ensure all details are correctly interpreted and accurately transcribed from the OCR.
-'''
+"""
 
 
 SYSTEM_PROMPT_QUERY_EXPANSION = """
@@ -163,6 +163,7 @@ Carefully analyze the provided clinical information, including:
 Your goal is to construct a search query that uses this clinical information to retrieve the most relevant prior authorization policy. Leverage vector and embedding-based techniques to enhance search accuracy and ensure the query reflects the urgency and specific medical needs of the case.
 """
 
+
 def create_prompt_query_expansion(results: dict) -> str:
     """
     Create a formatted prompt by injecting the provided results into the prompt template.
@@ -173,7 +174,7 @@ def create_prompt_query_expansion(results: dict) -> str:
     Returns:
         str: The formatted prompt with the results included.
     """
-    USER_PROMPT_1 = f'''
+    USER_PROMPT_1 = f"""
     ## Role:
     You are an expert in search engine evaluation and prior authorization.
 
@@ -234,7 +235,7 @@ def create_prompt_query_expansion(results: dict) -> str:
     }}
 
     Please provide the constructed search query.
-    '''
+    """
     return USER_PROMPT_1
 
 

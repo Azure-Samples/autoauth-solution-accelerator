@@ -25,3 +25,4 @@ Jinja2
 azure-search-documents==11.6.0b5
 azure-storage-blob
 azure-identity
+azure-monitor-opentelemetry

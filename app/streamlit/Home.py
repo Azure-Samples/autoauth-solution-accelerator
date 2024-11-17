@@ -48,7 +48,7 @@ def get_main_content() -> str:
     """
     Get the main content HTML for the app.
     """
-    azure_logo_base64 = get_image_base64('./utils/images/azure_logo.png')
+    azure_logo_base64 = get_image_base64("./utils/images/azure_logo.png")
     return f"""
     <h1 style="text-align:center;">
         Streamlining Prior Authorization with Azure AI
@@ -145,16 +145,18 @@ def display_support_center():
     with tab2:
         st.markdown(content["Feedback"])
 
+
 # #### 🚀 Ready to Dive In?
 
-    # <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); width: 80%; margin: auto;">
-    #     <iframe src="https://www.loom.com/share/2988afbc761c4348b5299ed55895f128?sid=f7369149-4ab2-4204-8580-0bbdc6a38616" 
-    #     frameborder="0" 
-    #     webkitallowfullscreen 
-    #     mozallowfullscreen 
-    #     allowfullscreen 
-    #     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
-    # </div>
+# <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); width: 80%; margin: auto;">
+#     <iframe src="https://www.loom.com/share/2988afbc761c4348b5299ed55895f128?sid=f7369149-4ab2-4204-8580-0bbdc6a38616"
+#     frameborder="0"
+#     webkitallowfullscreen
+#     mozallowfullscreen
+#     allowfullscreen
+#     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
+# </div>
+
 
 @st.cache_data()
 def get_markdown_content() -> str:
@@ -162,7 +164,7 @@ def get_markdown_content() -> str:
     Get the markdown content for the app.
     """
 
-    workflow = get_image_base64('./utils/images/prior_auth.png')
+    workflow = get_image_base64("./utils/images/prior_auth.png")
     return f"""
     Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors (insurance companies) before delivering specific treatments or medications. While essential for cost control and care management, the process has become inefficient, creating substantial delays, administrative overheads, and negative outcomes for all stakeholders—providers, payors, and patients.
     
@@ -246,6 +248,7 @@ def get_markdown_content() -> str:
 
     """
 
+
 @st.cache_data()
 def get_footer_content() -> str:
     """
@@ -313,7 +316,6 @@ def load_default_deployment(
         st.session_state.deployments[default_deployment["name"]] = default_deployment
 
 
-
 def add_deployment_aoai_form() -> None:
     """
     Render the form to add a new Azure OpenAI deployment.
@@ -362,7 +364,7 @@ def add_deployment_aoai_form() -> None:
                     st.session_state.deployments = {}
 
                 try:
-                   pass
+                    pass
                 except Exception as e:
                     st.warning(
                         f"""An issue occurred while initializing the Azure OpenAI manager. {e} Please try again. If the issue persists,

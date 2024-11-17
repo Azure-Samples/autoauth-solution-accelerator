@@ -1,6 +1,8 @@
-from promptflow import tool
 from typing import Dict
 
+from promptflow import tool
+
+
 @tool
-def my_python_tool(safety_result:Dict) -> str:
+def my_python_tool(safety_result: Dict) -> str:
     return safety_result["suggested_action"]

@@ -1,9 +1,10 @@
 from pipeline import tool
 
+
 @tool
 def filter_and_transform_data(data):
     """
-    Receives a list of dictionaries with a specific format and returns a list of dictionaries 
+    Receives a list of dictionaries with a specific format and returns a list of dictionaries
     with only 'content' and 'question' keys.
 
     Parameters:
@@ -15,9 +16,9 @@ def filter_and_transform_data(data):
     transformed_data = []
     for item in data:
         transformed_item = {
-            'content': item.get('content'),
-            'question': item.get('question')
+            "content": item.get("content"),
+            "question": item.get("question"),
         }
         transformed_data.append(transformed_item)
-    
+
     return transformed_data

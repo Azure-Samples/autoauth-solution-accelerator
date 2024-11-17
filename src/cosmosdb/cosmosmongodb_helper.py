@@ -1,12 +1,14 @@
+import logging
 import os
 from typing import Any, Dict, List, Optional
+
 import pymongo
-from pymongo.errors import PyMongoError, DuplicateKeyError
 from dotenv import load_dotenv
-import logging
+from pymongo.errors import DuplicateKeyError, PyMongoError
 
 # Initialize logging
 logger = logging.getLogger(__name__)
+
 
 class CosmosDBMongoCoreManager:
     def __init__(
@@ -19,7 +21,9 @@ class CosmosDBMongoCoreManager:
         Initialize the CosmosDBMongoCoreManager for connecting to Cosmos DB using MongoDB API.
         """
         load_dotenv()
-        connection_string = connection_string or os.getenv("AZURE_COSMOS_CONNECTION_STRING")
+        connection_string = connection_string or os.getenv(
+            "AZURE_COSMOS_CONNECTION_STRING"
+        )
         database_name = database_name or os.getenv("AZURE_COSMOS_DATABASE_NAME")
         collection_name = collection_name or os.getenv("AZURE_COSMOS_COLLECTION_NAME")
         try:
@@ -27,7 +31,9 @@ class CosmosDBMongoCoreManager:
             self.client = pymongo.MongoClient(connection_string)
             self.database = self.client[database_name]
             self.collection = self.database[collection_name]
-            logger.info(f"Connected to Cosmos DB database: '{database_name}', collection: '{collection_name}'")
+            logger.info(
+                f"Connected to Cosmos DB database: '{database_name}', collection: '{collection_name}'"
+            )
         except PyMongoError as e:
             logger.error(f"Failed to connect to Cosmos DB: {e}")
             raise
@@ -49,7 +55,9 @@ class CosmosDBMongoCoreManager:
             logger.error(f"Failed to insert document: {e}")
             return None
 
-    def upsert_document(self, document: Dict[str, Any], query: Dict[str, Any]) -> Optional[Any]:
+    def upsert_document(
+        self, document: Dict[str, Any], query: Dict[str, Any]
+    ) -> Optional[Any]:
         """
         Upsert (insert or update) a document into the collection. If a document matching the query exists, it will update the document, otherwise it inserts a new one.
         :param document: The document data to upsert.
@@ -139,4 +147,3 @@ class CosmosDBMongoCoreManager:
         """Close the connection to Cosmos DB."""
         self.client.close()
         logger.info("Closed the connection to Cosmos DB.")
-

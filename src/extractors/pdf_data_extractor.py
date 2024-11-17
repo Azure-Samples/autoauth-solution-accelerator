@@ -1,13 +1,12 @@
-import io
-
-from PyPDF2 import PdfFileReader
 import glob
+import io
 import os
 import tempfile
-from typing import Optional, List
+from typing import List, Optional
 from urllib.parse import urlparse
 
 import fitz
+from PyPDF2 import PdfFileReader
 
 from src.storage.blob_helper import AzureBlobManager
 from utils.ml_logging import get_logger
@@ -154,17 +153,20 @@ class OCRHelper:
             if self.blob_manager:
                 with tempfile.TemporaryDirectory() as temp_dir:
                     # Download the blob to the temporary directory
-                    blob_name = urlparse(input_path).path.lstrip('/')
-                    local_file_path = os.path.join(temp_dir, os.path.basename(blob_name))
+                    blob_name = urlparse(input_path).path.lstrip("/")
+                    local_file_path = os.path.join(
+                        temp_dir, os.path.basename(blob_name)
+                    )
                     self.blob_manager.download_blob_to_file(
-                        remote_blob_path=blob_name,
-                        local_file_path=local_file_path
+                        remote_blob_path=blob_name, local_file_path=local_file_path
                     )
                     # Process the downloaded file
                     self._process_pdf_path(local_file_path, output_path)
             else:
                 logger.error("BlobManager is not initialized. Cannot handle URL input.")
-                raise Exception("BlobManager is not initialized. Cannot handle URL input.")
+                raise Exception(
+                    "BlobManager is not initialized. Cannot handle URL input."
+                )
         else:
             logger.info(f"Input path is a local file or directory: {input_path}")
             self._process_pdf_path(input_path, output_path)
@@ -185,7 +187,9 @@ class OCRHelper:
             self._process_single_pdf(input_path, output_path)
         else:
             logger.error("The input path is neither a valid PDF file nor a directory.")
-            raise ValueError("The input path is neither a valid PDF file nor a directory.")
+            raise ValueError(
+                "The input path is neither a valid PDF file nor a directory."
+            )
 
     def _process_pdf_directory(self, directory_path: str, output_path: str) -> None:
         """
@@ -196,7 +200,9 @@ class OCRHelper:
             output_path (str): Directory where the images will be saved.
         """
         all_files = self._find_all_pdfs(directory_path)
-        logger.info(f"Found {len(all_files)} PDF files in {directory_path} and its subdirectories")
+        logger.info(
+            f"Found {len(all_files)} PDF files in {directory_path} and its subdirectories"
+        )
         for file_path in all_files:
             logger.info(f"Processing file: {file_path}")
             self._process_single_pdf(file_path, output_path)

@@ -1,13 +1,14 @@
+import json
 import logging
 import os
-import json
 from typing import Dict, List, Union
 
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-from azure.search.documents.models import RawVectorQuery
 from azure.search.documents._paging import SearchItemPaged
+from azure.search.documents.models import RawVectorQuery
 from dotenv import load_dotenv
+
 from pipeline import tool
 
 # Set up logging
@@ -85,9 +86,11 @@ def process_search_results(result: SearchItemPaged) -> List[Dict[str, str]]:
         )
         logger.info(f"source: {source}")
 
-        results.append({
-            "content": content,
-            "source": source,
-        })
+        results.append(
+            {
+                "content": content,
+                "source": source,
+            }
+        )
 
     return results

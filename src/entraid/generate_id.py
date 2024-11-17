@@ -1,5 +1,6 @@
 import uuid
 
+
 def generate_unique_id() -> str:
     """
     Generate an 8-digit unique value.

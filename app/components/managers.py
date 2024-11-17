@@ -1,7 +1,9 @@
-from src.aoai.aoai_helper import AzureOpenAIManager
+from typing import Optional
+
 from azure.core.credentials import AzureKeyCredential
 
-from typing import Optional
+from src.aoai.aoai_helper import AzureOpenAIManager
+
 
 def create_azure_openai_manager(
     api_key: str, azure_endpoint: str, api_version: str, deployment_id: str
@@ -21,6 +23,3 @@ def create_azure_openai_manager(
         api_version=api_version,
         chat_model_name=deployment_id,
     )
-
-
-

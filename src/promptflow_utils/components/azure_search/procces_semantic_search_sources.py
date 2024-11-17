@@ -2,6 +2,7 @@ import logging
 from typing import Dict, List
 
 from azure.search.documents._paging import SearchItemPaged
+
 from pipeline import tool
 
 # Set up logging

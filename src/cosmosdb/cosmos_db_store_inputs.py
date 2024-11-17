@@ -1,13 +1,13 @@
 import logging
-import random
 import os
+import random
 from datetime import datetime
+from typing import Optional
 
 from azure.core.exceptions import AzureError
 from azure.cosmos import CosmosClient
 from dotenv import load_dotenv
 from promptflow import tool
-from typing import Optional
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -60,20 +60,20 @@ def send_to_cosmos_db(
 
         # Generate an 8-digit random user ID if one is not provided
         if user_id is None:
-            user_id = ''.join(random.choices('0123456789', k=8))
+            user_id = "".join(random.choices("0123456789", k=8))
 
         # Define the data to be stored
         data = {
             "id": user_id,
-            "ChatId": chat_id, 
+            "ChatId": chat_id,
             "content": input_str,
             "timestamp": current_time,
-            "safety_target": safety_target
+            "safety_target": safety_target,
         }
 
         # Insert the item into the container
         container.upsert_item(data)
-        
+
         return f"Data with chat ID {chat_id}, user ID {user_id}, and timestamp {current_time} sent to Cosmos DB successfully in database '{cosmos_database}' and container '{cosmos_container}'."
 
     except AzureError as e:

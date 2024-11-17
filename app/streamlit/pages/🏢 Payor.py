@@ -1,16 +1,18 @@
+import asyncio
+import os
+import tempfile
+from typing import List
+
 import dotenv
 import streamlit as st
-import asyncio
-import tempfile
-from src.aoai.aoai_helper import AzureOpenAIManager
-from typing import List
-from utils.ml_logging import get_logger
-import os
-from src.entraid.generate_id import generate_unique_id
-from azure.search.documents import SearchClient
 from azure.core.credentials import AzureKeyCredential
-from src.pipeline.paprocessing.run import PAProcessingPipeline
+from azure.search.documents import SearchClient
+
+from src.aoai.aoai_helper import AzureOpenAIManager
 from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
+from src.entraid.generate_id import generate_unique_id
+from src.pipeline.paprocessing.run import PAProcessingPipeline
+from utils.ml_logging import get_logger
 
 logger = get_logger()
 
@@ -70,6 +72,7 @@ st.set_page_config(
     page_icon="✨",
 )
 
+
 def configure_sidebar(results_container):
     with st.sidebar:
         st.markdown("")
@@ -112,22 +115,26 @@ def configure_sidebar(results_container):
         if uploaded_files:
             st.session_state["uploaded_files"] = uploaded_files
 
-SYSTEM_MESSAGE_LATENCY = '''You are a clinical assistant specializing in the prior 
+
+SYSTEM_MESSAGE_LATENCY = """You are a clinical assistant specializing in the prior 
                         authorization process. Your goal is to assist with any questions related to the provision, 
-                        evaluation, and determination of prior authorization requests.'''
+                        evaluation, and determination of prior authorization requests."""
+
 
 def initialize_chatbot(case_id=None, document=None) -> None:
-    st.markdown("<h4 style='text-align: center;'>AutoAuth Chat 🤖</h4>", unsafe_allow_html=True)
+    st.markdown(
+        "<h4 style='text-align: center;'>AutoAuth Chat 🤖</h4>", unsafe_allow_html=True
+    )
 
-    if 'chat_history' not in st.session_state:
-        st.session_state['chat_history'] = []
-    if 'messages' not in st.session_state:
-        st.session_state['messages'] = []
+    if "chat_history" not in st.session_state:
+        st.session_state["chat_history"] = []
+    if "messages" not in st.session_state:
+        st.session_state["messages"] = []
 
-    if case_id and st.session_state.get('current_case_id') != case_id:
-        st.session_state['chat_history'] = []
-        st.session_state['messages'] = []
-        st.session_state['current_case_id'] = case_id
+    if case_id and st.session_state.get("current_case_id") != case_id:
+        st.session_state["chat_history"] = []
+        st.session_state["messages"] = []
+        st.session_state["current_case_id"] = case_id
 
         plan_info = document.get("treatment_request", {})
         final_determination = document.get("final_determination", "N/A")
@@ -180,44 +187,54 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         """
 
         system_prompt = SYSTEM_MESSAGE_LATENCY + "\n\n" + summary
-        st.session_state['messages'].append({'role': 'system', 'content': system_prompt})
+        st.session_state["messages"].append(
+            {"role": "system", "content": system_prompt}
+        )
 
         greeting_message = f"👋 How can I assist you with case ID **{case_id}**? Feel free to ask any questions!"
-        st.session_state['messages'].append({'role': 'assistant', 'content': greeting_message})
-        st.session_state['chat_history'].append({'role': 'assistant', 'content': greeting_message})
-
-    elif not case_id and not st.session_state.get('initialized_default'):
-        st.session_state['chat_history'] = []
-        st.session_state['messages'] = []
-        st.session_state['initialized_default'] = True
-
-        st.session_state['messages'].append({'role': 'system', 'content': SYSTEM_MESSAGE_LATENCY})
-
-        default_message = (
-            "🚀 How can I help you today? I'm here to assist with any questions related to the prior authorization process."
+        st.session_state["messages"].append(
+            {"role": "assistant", "content": greeting_message}
         )
-        st.session_state['messages'].append({'role': 'assistant', 'content': default_message})
-        st.session_state['chat_history'].append({'role': 'assistant', 'content': default_message})
+        st.session_state["chat_history"].append(
+            {"role": "assistant", "content": greeting_message}
+        )
+
+    elif not case_id and not st.session_state.get("initialized_default"):
+        st.session_state["chat_history"] = []
+        st.session_state["messages"] = []
+        st.session_state["initialized_default"] = True
+
+        st.session_state["messages"].append(
+            {"role": "system", "content": SYSTEM_MESSAGE_LATENCY}
+        )
+
+        default_message = "🚀 How can I help you today? I'm here to assist with any questions related to the prior authorization process."
+        st.session_state["messages"].append(
+            {"role": "assistant", "content": default_message}
+        )
+        st.session_state["chat_history"].append(
+            {"role": "assistant", "content": default_message}
+        )
 
     respond_container = st.container(height=400)
     with respond_container:
-        for message in st.session_state['chat_history']:
-            role, content = message['role'], message['content']
+        for message in st.session_state["chat_history"]:
+            role, content = message["role"], message["content"]
             avatar = "🧑‍💻" if role == "user" else "🤖"
             with st.chat_message(role, avatar=avatar):
                 st.markdown(content, unsafe_allow_html=True)
 
     prompt = st.chat_input("Type your message here...")
     if prompt:
-        st.session_state['messages'].append({'role': 'user', 'content': prompt})
-        st.session_state['chat_history'].append({'role': 'user', 'content': prompt})
+        st.session_state["messages"].append({"role": "user", "content": prompt})
+        st.session_state["chat_history"].append({"role": "user", "content": prompt})
 
         with respond_container:
             with st.chat_message("user", avatar="🧑‍💻"):
                 st.markdown(prompt, unsafe_allow_html=True)
 
             with st.chat_message("assistant", avatar="🤖"):
-                messages = st.session_state['messages']
+                messages = st.session_state["messages"]
 
                 stream = st.session_state.azure_openai_client_4o.openai_client.chat.completions.create(
                     model=st.session_state.azure_openai_client_4o.chat_model_name,
@@ -227,8 +244,13 @@ def initialize_chatbot(case_id=None, document=None) -> None:
                     stream=True,
                 )
                 ai_response = st.write_stream(stream)
-                st.session_state['messages'].append({'role': 'assistant', 'content': ai_response})
-                st.session_state['chat_history'].append({'role': 'assistant', 'content': ai_response})
+                st.session_state["messages"].append(
+                    {"role": "assistant", "content": ai_response}
+                )
+                st.session_state["chat_history"].append(
+                    {"role": "assistant", "content": ai_response}
+                )
+
 
 async def generate_ai_response(
     user_prompt: str,
@@ -263,12 +285,15 @@ async def generate_ai_response(
         logger.error(f"Error generating AI response: {e}")
         return {}
 
+
 async def run_pipeline_with_spinner(uploaded_files, use_o1):
     caseID = generate_unique_id()
     with st.spinner("Processing... Please wait."):
         if use_o1:
             st.toast("Using the o1 model for final determination.", icon="🔥")
-        await st.session_state["pa_processing"].run(uploaded_files, streamlit=True, caseId=caseID, use_o1=use_o1)
+        await st.session_state["pa_processing"].run(
+            uploaded_files, streamlit=True, caseId=caseID, use_o1=use_o1
+        )
     last_key = next(reversed(st.session_state["pa_processing"].results.keys()))
     if "case_ids" not in st.session_state:
         st.session_state["case_ids"] = []
@@ -276,8 +301,9 @@ async def run_pipeline_with_spinner(uploaded_files, use_o1):
         st.session_state["case_ids"].append(last_key)
     return last_key
 
+
 def display_case_data(document, results_container):
-    with results_container: 
+    with results_container:
         tab1, tab2, tab3, tab4, tab5 = st.tabs(
             [
                 "📋 AI Determination",
@@ -313,17 +339,20 @@ def display_case_data(document, results_container):
             raw_uploaded_files = document.get("raw_uploaded_files", [])
             if policy_retrieval:
                 st.markdown("Policy Leveraged:")
-                if isinstance(policy_retrieval, list) and all(isinstance(policy, str) for policy in policy_retrieval):
+                if isinstance(policy_retrieval, list) and all(
+                    isinstance(policy, str) for policy in policy_retrieval
+                ):
                     for policy in policy_retrieval:
                         st.markdown(f"- {policy}")
                 else:
-                     st.markdown(f"- {policy_retrieval}")
+                    st.markdown(f"- {policy_retrieval}")
             if raw_uploaded_files:
                 st.markdown("Clinical Docs:")
                 for doc in raw_uploaded_files:
                     st.markdown(f"- {doc}")
             else:
                 st.markdown("No supporting documents found.")
+
 
 def save_uploaded_files(uploaded_files):
     temp_dir = tempfile.mkdtemp()
@@ -335,6 +364,7 @@ def save_uploaded_files(uploaded_files):
         file_paths.append(file_path)
     return file_paths
 
+
 def format_patient_info(document):
     return f"""
     - **Name:** {document.get('patient_name', 'Not provided')}
@@ -343,6 +373,7 @@ def format_patient_info(document):
     - **Address:** {document.get('patient_address', 'Not provided')}
     - **Phone Number:** {document.get('patient_phone_number', 'Not provided')}
     """
+
 
 def format_physician_info(document):
     return f"""
@@ -353,6 +384,7 @@ def format_physician_info(document):
       - **Fax:** {document.get('physician_contact', {}).get('fax', 'Not provided')}
       - **Office Address:** {document.get('physician_contact', {}).get('office_address', 'Not provided')}
     """
+
 
 def format_clinical_info(document):
     plan_info = document.get("treatment_request", {})
@@ -373,6 +405,7 @@ def format_clinical_info(document):
       - **Duration:** {plan_info.get('duration', 'Not provided')}
       - **Rationale:** {plan_info.get('rationale', 'Not provided')}
     """
+
 
 def main() -> None:
     """
@@ -441,23 +474,31 @@ def main() -> None:
     if submit_to_ai and uploaded_files:
         uploaded_file_paths = save_uploaded_files(uploaded_files)
         with results_container:
-            selected_case_id = asyncio.run(run_pipeline_with_spinner(uploaded_file_paths, use_o1))
+            selected_case_id = asyncio.run(
+                run_pipeline_with_spinner(uploaded_file_paths, use_o1)
+            )
 
     if "case_ids" in st.session_state and st.session_state["case_ids"]:
         st.sidebar.divider()
         case_ids = st.session_state["case_ids"][::-1]  # Reverse to show latest first
-        default_index = case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
-            
+        default_index = (
+            case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
+        )
+
         if "case_ids" in st.session_state and st.session_state["case_ids"]:
-            case_ids = st.session_state["case_ids"][::-1]  # Reverse to show latest first
-            default_index = case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
-        
+            case_ids = st.session_state["case_ids"][
+                ::-1
+            ]  # Reverse to show latest first
+            default_index = (
+                case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
+            )
+
             st.sidebar.markdown("#### Retrieve a Case ID to Review")
             selected_case_id = st.sidebar.selectbox(
-                'Select PA case ID',
+                "Select PA case ID",
                 case_ids,
                 index=default_index,
-                help="Select a Case ID from the list to view its details and status."
+                help="Select a Case ID from the list to view its details and status.",
             )
 
     if selected_case_id:
@@ -475,7 +516,9 @@ def main() -> None:
                 st.warning("Case ID not found.")
             initialize_chatbot()
     else:
-        st.info("Let's get started! Please upload your PA form and attached files, and let AI do the job.")
+        st.info(
+            "Let's get started! Please upload your PA form and attached files, and let AI do the job."
+        )
         initialize_chatbot()
 
     st.sidebar.write(
@@ -497,6 +540,7 @@ def main() -> None:
         """,
         unsafe_allow_html=True,
     )
+
 
 if __name__ == "__main__":
     main()

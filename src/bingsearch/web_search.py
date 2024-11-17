@@ -1,7 +1,8 @@
-import requests
 import logging
-import os 
-from typing import List, Dict
+import os
+from typing import Dict, List
+
+import requests
 from dotenv import load_dotenv
 from promptflow import tool
 
@@ -13,13 +14,18 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # Endpoint for the Bing Search API
-endpoint = os.getenv("BING_SEARCH_API_ENDPOINT", "https://api.bing.microsoft.com/v7.0/search")
+endpoint = os.getenv(
+    "BING_SEARCH_API_ENDPOINT", "https://api.bing.microsoft.com/v7.0/search"
+)
 
 # Subscription key for the Bing Search API
 subscription_key = os.getenv("BING_SEARCH_API_SUBSCRIPTION_KEY")
 
+
 @tool
-def get_search_results(query: str, refine_query: str, count: int = 10) -> List[Dict[str, str]]:
+def get_search_results(
+    query: str, refine_query: str, count: int = 10
+) -> List[Dict[str, str]]:
     """
     Fetch the top 'count' search results from the Bing Search API.
 
@@ -37,16 +43,16 @@ def get_search_results(query: str, refine_query: str, count: int = 10) -> List[D
 
     # Parameters for the request
     params = {
-        'q': refined_query,
-        'mkt': 'en-US',
-        'setLang': 'en-US',
-        'count': count,
-        'offset': 0,
-        'textDecorations': False,
-        'textFormat': 'Raw',
-        'safeSearch': 'Moderate'
+        "q": refined_query,
+        "mkt": "en-US",
+        "setLang": "en-US",
+        "count": count,
+        "offset": 0,
+        "textDecorations": False,
+        "textFormat": "Raw",
+        "safeSearch": "Moderate",
     }
-    headers = {'Ocp-Apim-Subscription-Key': subscription_key}
+    headers = {"Ocp-Apim-Subscription-Key": subscription_key}
 
     # Initialize the list to store results
     results = []
@@ -60,15 +66,15 @@ def get_search_results(query: str, refine_query: str, count: int = 10) -> List[D
         data = response.json()
 
         # Extracting web page results
-        web_pages = data.get('webPages', {}).get('value', [])
+        web_pages = data.get("webPages", {}).get("value", [])
 
         # Iterate over each page and store its details in a dictionary, then add it to the list
         for page in web_pages:
             result_item = {
-                'source': page.get('url'),
-                'content': page.get('snippet'),
-                'time_published': page.get('datePublished', 'Not available'),
-                'question': query,
+                "source": page.get("url"),
+                "content": page.get("snippet"),
+                "time_published": page.get("datePublished", "Not available"),
+                "question": query,
             }
             results.append(result_item)
 
@@ -77,4 +83,3 @@ def get_search_results(query: str, refine_query: str, count: int = 10) -> List[D
     except Exception as ex:
         logger.error(f"An error occurred: {ex}")
         return []
-
