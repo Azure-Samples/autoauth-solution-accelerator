@@ -64,6 +64,9 @@ logger = get_logger()
 
 dotenv.load_dotenv(".env")
 
+from azure.monitor.opentelemetry import configure_azure_monitor
+configure_azure_monitor()
+
 class PAProcessingPipeline:
     """
     A class to handle the Prior Authorization Processing Pipeline.
