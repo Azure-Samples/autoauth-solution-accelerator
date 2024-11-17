@@ -2,14 +2,14 @@ import functools
 import logging
 import os
 import time
-from typing import Callable, Optional
 from threading import Lock
+from typing import Callable, Optional
 
 from azure.monitor.opentelemetry import configure_azure_monitor
+from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
 
 # Globals
 _cloud_logging_configured = False
@@ -20,11 +20,14 @@ _logger_cache_lock = Lock()
 KEYINFO_LEVEL_NUM = 25
 logging.addLevelName(KEYINFO_LEVEL_NUM, "KEYINFO")
 
+
 def keyinfo(self: logging.Logger, message, *args, **kws):
     if self.isEnabledFor(KEYINFO_LEVEL_NUM):
         self._log(KEYINFO_LEVEL_NUM, message, args, **kws)
 
+
 logging.Logger.keyinfo = keyinfo
+
 
 class CustomFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
@@ -32,11 +35,12 @@ class CustomFormatter(logging.Formatter):
         record.filename = getattr(record, "file_name_override", record.filename)
         return super().format(record)
 
+
 def initialize_azure_monitor():
     global _cloud_logging_configured
     if not _cloud_logging_configured:
         configure_azure_monitor(
-            connection_string=os.getenv('APPLICATIONINSIGHTS_CONNECTION_STRING'),
+            connection_string=os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"),
             logging_exporter_enabled=True,
             tracing_exporter_enabled=True,
             metrics_exporter_enabled=True,
@@ -45,11 +49,12 @@ def initialize_azure_monitor():
             tracer_provider = TracerProvider()
             trace.set_tracer_provider(tracer_provider)
             exporter = AzureMonitorTraceExporter(
-                connection_string=os.getenv('APPLICATIONINSIGHTS_CONNECTION_STRING')
+                connection_string=os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
             )
             span_processor = BatchSpanProcessor(exporter)
             tracer_provider.add_span_processor(span_processor)
         _cloud_logging_configured = True
+
 
 def get_logger(
     name: str = "micro",
@@ -73,7 +78,9 @@ def get_logger(
         if level is not None or logger.level == 0:
             logger.setLevel(level or logging.INFO)
 
-        if include_stream_handler and not any(isinstance(h, logging.StreamHandler) for h in logger.handlers):
+        if include_stream_handler and not any(
+            isinstance(h, logging.StreamHandler) for h in logger.handlers
+        ):
             sh = logging.StreamHandler()
             sh.setFormatter(formatter)
             logger.addHandler(sh)
@@ -84,18 +91,21 @@ def get_logger(
         _logger_cache[name] = logger
         return logger
 
+
 def log_function_call(
-    logger_name: Optional[str] = None, log_inputs: bool = False, log_output: bool = False
+    logger_name: Optional[str] = None,
+    log_inputs: bool = False,
+    log_output: bool = False,
 ) -> Callable:
     def decorator_log_function_call(func):
         @functools.wraps(func)
         def wrapper_log_function_call(*args, **kwargs):
             # Access 'self' if available
-            if args and hasattr(args[0], '__class__'):
+            if args and hasattr(args[0], "__class__"):
                 self = args[0]
-                case_id = getattr(self, 'caseId', 'default_caseId')
+                case_id = getattr(self, "caseId", "default_caseId")
             else:
-                case_id = 'default_caseId'
+                case_id = "default_caseId"
 
             # Use caseId in logger name
             current_logger_name = logger_name or f"case_{case_id}"
@@ -117,7 +127,9 @@ def log_function_call(
             if log_output:
                 logger.info(f"Output for caseId {case_id}: {result}")
 
-            logger.info(f"Function {func_name} executed in {duration:.2f} seconds for caseId: {case_id}")
+            logger.info(
+                f"Function {func_name} executed in {duration:.2f} seconds for caseId: {case_id}"
+            )
             logger.info(f"Function {func_name} completed for caseId: {case_id}")
 
             return result

@@ -1,0 +1,7 @@
+services:
+  streamlit:
+    build: 
+      context: ../../../
+      dockerfile: devops/container/Dockerfile
+    ports:
+      - "8081:8501"

@@ -1,10 +1,9 @@
 import asyncio
+import json
 import os
 import shutil
-import json
 import tempfile
 from typing import Any, Dict, List, Optional, Type, Union
-from opentelemetry import trace
 
 import dotenv
 import streamlit as st
@@ -18,6 +17,7 @@ from azure.search.documents.models import (
     VectorizableTextQuery,
 )
 from colorama import Fore, init
+from opentelemetry import trace
 from pydantic import BaseModel, ValidationError
 
 from src.aoai.aoai_helper import AzureOpenAIManager
@@ -40,6 +40,7 @@ from utils.ml_logging import get_logger
 init(autoreset=True)
 
 dotenv.load_dotenv(".env")
+
 
 class PAProcessingPipeline:
     """
@@ -179,7 +180,9 @@ class PAProcessingPipeline:
         self.results: Dict[str, Any] = {}
         self.temp_dir = tempfile.mkdtemp()
         self.local = send_cloud_logs
-        self.logger = get_logger(name="PAProcessing", level=10, tracing_enabled=self.local)
+        self.logger = get_logger(
+            name="PAProcessing", level=10, tracing_enabled=self.local
+        )
 
     def upload_files_to_blob(
         self, uploaded_files: Union[str, List[str]], step: str
@@ -255,7 +258,9 @@ class PAProcessingPipeline:
                 self.upload_files_to_blob(output_paths, step="processed_images")
                 self.logger.info(f"Images extracted and uploaded from: {self.temp_dir}")
 
-            self.logger.info(f"Files processed and images extracted to: {self.temp_dir}")
+            self.logger.info(
+                f"Files processed and images extracted to: {self.temp_dir}"
+            )
             return self.temp_dir
         except Exception as e:
             self.logger.error(f"Failed to process files: {e}")
@@ -340,7 +345,9 @@ class PAProcessingPipeline:
                     query = {"caseId": self.caseId}
 
                     self.cosmos_db_manager.upsert_document(data_item, query)
-                    self.logger.info(f"Results stored in Cosmos DB for caseId {self.caseId}")
+                    self.logger.info(
+                        f"Results stored in Cosmos DB for caseId {self.caseId}"
+                    )
                 else:
                     self.logger.warning(f"No results to store for caseId {self.caseId}")
             else:
@@ -598,7 +605,7 @@ class PAProcessingPipeline:
         self.logger.info(f"API response query: {api_response_query}")
 
         return api_response_query
-    
+
     async def generate_final_determination(
         self,
         patient_info: BaseModel,
@@ -613,47 +620,60 @@ class PAProcessingPipeline:
         user_prompt_pa = self.prompt_manager.create_prompt_pa(
             patient_info, physician_info, clinical_info, policy_text, use_o1
         )
-    
+
         self.logger.info(Fore.CYAN + "Generating final determination...")
         self.logger.info(f"Input clinical information: {user_prompt_pa}")
-    
+
         if use_o1:
             self.logger.info(Fore.CYAN + "Using o1 model for final determination...")
             try:
-                api_response_determination = await self.azure_openai_client_o1.generate_chat_response_o1(
-                    query=user_prompt_pa,
-                    max_completion_tokens=15000,
+                api_response_determination = (
+                    await self.azure_openai_client_o1.generate_chat_response_o1(
+                        query=user_prompt_pa,
+                        max_completion_tokens=15000,
+                    )
                 )
             except Exception as e:
                 self.logger.warning(f"o1 model generation failed: {str(e)}")
-                self.logger.info(Fore.CYAN + "Retrying with 4o model for final determination...")
+                self.logger.info(
+                    Fore.CYAN + "Retrying with 4o model for final determination..."
+                )
                 use_o1 = False  # Fallback to 4o model
-    
+
         if not use_o1:
             max_retries = 2
             for attempt in range(1, max_retries + 1):
                 try:
-                    self.logger.info(Fore.CYAN + f"Using 4o model for final determination, attempt {attempt}...")
-                    api_response_determination = await self.azure_openai_client.generate_chat_response(
-                        query=user_prompt_pa,
-                        system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
-                        conversation_history=[],
-                        response_format="text",
-                        max_tokens=self.max_tokens,
-                        top_p=self.top_p,
-                        temperature=self.temperature,
-                        frequency_penalty=self.frequency_penalty,
-                        presence_penalty=self.presence_penalty,
+                    self.logger.info(
+                        Fore.CYAN
+                        + f"Using 4o model for final determination, attempt {attempt}..."
+                    )
+                    api_response_determination = (
+                        await self.azure_openai_client.generate_chat_response(
+                            query=user_prompt_pa,
+                            system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
+                            conversation_history=[],
+                            response_format="text",
+                            max_tokens=self.max_tokens,
+                            top_p=self.top_p,
+                            temperature=self.temperature,
+                            frequency_penalty=self.frequency_penalty,
+                            presence_penalty=self.presence_penalty,
+                        )
                     )
                     break
                 except Exception as e:
-                    self.logger.warning(f"4o model generation failed on attempt {attempt}: {str(e)}")
+                    self.logger.warning(
+                        f"4o model generation failed on attempt {attempt}: {str(e)}"
+                    )
                     if attempt < max_retries:
-                        self.logger.info(Fore.CYAN + "Retrying 4o model for final determination...")
+                        self.logger.info(
+                            Fore.CYAN + "Retrying 4o model for final determination..."
+                        )
                     else:
                         self.logger.error("All retries for 4o model failed.")
                         raise e
-    
+
         final_response = api_response_determination["response"]
         self.logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
         self.log_output(
@@ -661,7 +681,7 @@ class PAProcessingPipeline:
             api_response_determination.get("conversation_history", []),
             step="llm_determination",
         )
-    
+
     async def run(
         self,
         uploaded_files: List[str],
@@ -687,7 +707,10 @@ class PAProcessingPipeline:
         with tracer.start_as_current_span(f"{dynamic_logger_name}.run") as span:
             span.set_attribute("caseId", self.caseId)
             span.set_attribute("uploaded_files", len(uploaded_files))
-            self.logger.info(f"PAProcessing started {self.caseId}.", extra={"custom_dimensions": json.dumps({"caseId": self.caseId})})
+            self.logger.info(
+                f"PAProcessing started {self.caseId}.",
+                extra={"custom_dimensions": json.dumps({"caseId": self.caseId})},
+            )
             try:
                 temp_dir = self.process_uploaded_files(uploaded_files)
                 image_files = find_all_files(temp_dir, ["png"])
@@ -708,7 +731,9 @@ class PAProcessingPipeline:
                 physician_info = api_response_ner["physician_data"]
 
                 if streamlit:
-                    status_text.write("🔎 **Expanding query and searching for policy...**")
+                    status_text.write(
+                        "🔎 **Expanding query and searching for policy...**"
+                    )
                     progress += 1
                     progress_bar.progress(progress / total_steps)
 
@@ -747,12 +772,16 @@ class PAProcessingPipeline:
                     progress_bar.progress(1.0)
 
             except Exception as e:
-                self.logger.error(f"PAprocessing failed for {self.caseId}: {e}", extra={"custom_dimensions": json.dumps({"caseId": self.caseId})})
+                self.logger.error(
+                    f"PAprocessing failed for {self.caseId}: {e}",
+                    extra={"custom_dimensions": json.dumps({"caseId": self.caseId})},
+                )
                 if streamlit:
                     st.error(f"PAprocessing failed for {self.caseId}: {e}")
             finally:
                 self.cleanup_temp_dir()
                 self.store_output()
-                self.logger.info(f"PAprocessing completed for {self.caseId}.", extra={"custom_dimensions": json.dumps({"caseId": self.caseId})})
-
-
+                self.logger.info(
+                    f"PAprocessing completed for {self.caseId}.",
+                    extra={"custom_dimensions": json.dumps({"caseId": self.caseId})},
+                )
