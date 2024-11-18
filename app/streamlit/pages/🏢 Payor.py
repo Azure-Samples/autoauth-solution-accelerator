@@ -79,7 +79,6 @@ st.set_page_config(
 def configure_sidebar(results_container):
     with st.sidebar:
         st.markdown("")
-
         st.markdown(
             """
             ## 👩‍⚕️ Welcome to AutoAuth
@@ -100,14 +99,15 @@ def configure_sidebar(results_container):
                         
             """)
         
-            # List of files to include in the ZIP
             files_to_zip = [
-                "utils/data/cases/002/a/doctor_notes/002_a (note).pdf", 
-                "utils/data/cases/002/a/imaging/002_a (imaging).pdf", 
-                "utils/data/cases/002/a/pa_form/002_a (form).pdf"
+                "utils/data/cases/003/b/doctor_notes/003_b (note) .pdf", 
+                "utils/data/cases/003/b/labs/003_b (labs) .pdf", 
+                "utils/data/cases/003/b/pa_form/003_b (form).pdf",
+                "utils/data/cases/003/a/doctor_notes/003_a (note) .pdf",
+                "utils/data/cases/003/a/labs/003_a (labs).pdf",
+                "utils/data/cases/003/a/pa_form/003_a (form).pdf"
             ]
         
-            # Filter out missing files and log a warning if files are missing
             existing_files = []
             for file_path in files_to_zip:
                 if os.path.exists(file_path):
@@ -115,7 +115,6 @@ def configure_sidebar(results_container):
                 else:
                     st.warning(f"⚠️ File not found and will be skipped: {file_path}")
         
-            # Create a ZIP file in memory
             if existing_files:
                 zip_buffer = io.BytesIO()
                 with zipfile.ZipFile(zip_buffer, "w") as zip_file:
@@ -123,7 +122,6 @@ def configure_sidebar(results_container):
                         with open(file_name, "rb") as f:
                             zip_file.writestr(os.path.basename(file_name), f.read())
         
-                # Provide a download button
                 st.download_button(
                     label="⬇️ Download Sample Files",
                     data=zip_buffer.getvalue(),

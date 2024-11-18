@@ -176,6 +176,10 @@ class PAProcessingPipeline:
             "prior_auth_system_prompt.jinja"
         )
 
+        self.SYSTEM_PROMPT_SUMMARIZE_POLICY = self.prompt_manager.get_prompt(
+            "summarize_policy_system.jinja"
+        )
+
         self.remote_dir = f"{self.remote_dir_base_path}/{self.caseId}"
         self.conversation_history: List[Dict[str, Any]] = []
         self.results: Dict[str, Any] = {}
@@ -607,6 +611,37 @@ class PAProcessingPipeline:
 
         return api_response_query
 
+    async def summarize_policy(
+        self, policy_text: str
+    ) -> Dict[str, Any]:
+        """
+        Expand query and search for policy.
+        """
+        prompt_user_query_summary = self.prompt_manager.create_prompt_summary_policy(
+            policy_text
+        )
+        self.logger.info(Fore.CYAN + "Summarizing Policy...")
+        api_response_query = await self.azure_openai_client.generate_chat_response(
+            query=prompt_user_query_summary,
+            system_message_content=self.SYSTEM_PROMPT_SUMMARIZE_POLICY,
+            conversation_history=[],
+            response_format="text",
+            max_tokens=4096,
+            top_p=self.top_p,
+            temperature=self.temperature,
+            frequency_penalty=self.frequency_penalty,
+            presence_penalty=self.presence_penalty,
+        )
+
+        self.log_output(
+            {"summary_policy":  api_response_query["response"]},
+            api_response_query["conversation_history"],
+            step="summarize_policy",
+        )
+        self.logger.info(f"Summary policy: {api_response_query}")
+
+        return api_response_query["response"]
+
     async def generate_final_determination(
         self,
         patient_info: BaseModel,
@@ -621,37 +656,62 @@ class PAProcessingPipeline:
         user_prompt_pa = self.prompt_manager.create_prompt_pa(
             patient_info, physician_info, clinical_info, policy_text, use_o1
         )
-
-        self.logger.info(Fore.CYAN + "Generating final determination...")
+    
+        self.logger.info(Fore.CYAN + f"Generating final determination for {self.caseId or None}")
         self.logger.info(f"Input clinical information: {user_prompt_pa}")
-
-        if use_o1:
-            self.logger.info(Fore.CYAN + "Using o1 model for final determination...")
+    
+        async def generate_response_with_model(model_client, prompt, use_o1):
             try:
-                api_response_determination = (
-                    await self.azure_openai_client_o1.generate_chat_response_o1(
-                        query=user_prompt_pa,
+                api_response = await model_client.generate_chat_response_o1(
+                    query=prompt,
+                    conversation_history=[],
+                    max_completion_tokens=15000,
+                )
+                if api_response == "maximum context length":
+                    summarized_policy = await self.summarize_policy(policy_text)
+                    summarized_prompt = self.prompt_manager.create_prompt_pa(
+                        patient_info, physician_info, clinical_info, summarized_policy, use_o1
+                    )
+                    api_response = await model_client.generate_chat_response_o1(
+                        query=summarized_prompt,
+                        conversation_history=[],
                         max_completion_tokens=15000,
                     )
-                )
+                return api_response
             except Exception as e:
-                self.logger.warning(f"o1 model generation failed: {str(e)}")
-                self.logger.info(
-                    Fore.CYAN + "Retrying with 4o model for final determination..."
-                )
+                self.logger.warning(f"{model_client.__class__.__name__} model generation failed: {str(e)}")
+                raise e
+        if use_o1:
+            self.logger.info(Fore.CYAN + f"Using o1 model for final determination for {self.caseId or None}...")
+            try:
+                api_response_determination = await generate_response_with_model(self.azure_openai_client_o1, user_prompt_pa, use_o1)
+            except Exception as e:
+                self.logger.info(Fore.CYAN + f"Retrying with 4o model for final determination for {self.caseId or None}...")
                 use_o1 = False  # Fallback to 4o model
-
+    
         if not use_o1:
             max_retries = 2
             for attempt in range(1, max_retries + 1):
                 try:
-                    self.logger.info(
-                        Fore.CYAN
-                        + f"Using 4o model for final determination, attempt {attempt}..."
+                    self.logger.info(Fore.CYAN + f"Using 4o model for final determination, attempt {attempt} for {self.caseId or None}...")
+                    api_response_determination = await self.azure_openai_client.generate_chat_response(
+                        query=user_prompt_pa,
+                        system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
+                        conversation_history=[],
+                        response_format="text",
+                        max_tokens=self.max_tokens,
+                        top_p=self.top_p,
+                        temperature=self.temperature,
+                        frequency_penalty=self.frequency_penalty,
+                        presence_penalty=self.presence_penalty,
                     )
-                    api_response_determination = (
-                        await self.azure_openai_client.generate_chat_response(
-                            query=user_prompt_pa,
+                    if api_response_determination == "maximum context length":
+                        summarized_policy = await self.summarize_policy(policy_text)
+                        summarized_prompt = self.prompt_manager.create_prompt_pa(
+                            patient_info, physician_info, clinical_info, summarized_policy, use_o1
+                        )
+                        api_response_determination = await self.azure_openai_client.generate_chat_response(
+                            query=summarized_prompt,
                             system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
                             conversation_history=[],
                             response_format="text",
@@ -661,20 +721,15 @@ class PAProcessingPipeline:
                             frequency_penalty=self.frequency_penalty,
                             presence_penalty=self.presence_penalty,
                         )
-                    )
                     break
                 except Exception as e:
-                    self.logger.warning(
-                        f"4o model generation failed on attempt {attempt}: {str(e)}"
-                    )
+                    self.logger.warning(f"4o model generation failed on attempt {attempt}: {str(e)}")
                     if attempt < max_retries:
-                        self.logger.info(
-                            Fore.CYAN + "Retrying 4o model for final determination..."
-                        )
+                        self.logger.info(Fore.CYAN + "Retrying 4o model for final determination...")
                     else:
-                        self.logger.error("All retries for 4o model failed.")
+                        self.logger.error(f"All retries for 4o model failed for {self.caseId or None}.")
                         raise e
-
+    
         final_response = api_response_determination["response"]
         self.logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
         self.log_output(
@@ -694,16 +749,16 @@ class PAProcessingPipeline:
         Process documents as per the pipeline flow and store the outputs.
         """
         dynamic_logger_name = f"Case_{caseId}" if caseId else "PaProcessing"
-
+    
         if not uploaded_files:
             self.logger.info("No files provided for processing.")
             if streamlit:
                 st.error("No files provided for processing.")
             return
-
+    
         if caseId:
             self.caseId = caseId
-
+    
         tracer = trace.get_tracer(dynamic_logger_name)
         start_time = time.time()
         with tracer.start_as_current_span(f"{dynamic_logger_name}.run") as span:
@@ -716,42 +771,46 @@ class PAProcessingPipeline:
             try:
                 temp_dir = self.process_uploaded_files(uploaded_files)
                 image_files = find_all_files(temp_dir, ["png"])
-
+    
                 if streamlit:
                     progress_bar = st.progress(0)
                     status_text = st.empty()
                     progress = 0
                     total_steps = 4
-
+    
                     status_text.write("🔍 **Analyzing clinical information...**")
                     progress += 1
                     progress_bar.progress(progress / total_steps)
-
+    
                 api_response_ner = await self.extract_all_data(image_files)
-                clinical_info = api_response_ner["clinician_data"]
-                patient_info = api_response_ner["patient_data"]
-                physician_info = api_response_ner["physician_data"]
-
+    
+                clinical_info = api_response_ner.get("clinician_data")
+                patient_info = api_response_ner.get("patient_data")
+                physician_info = api_response_ner.get("physician_data")
+    
                 if streamlit:
                     status_text.write(
                         "🔎 **Expanding query and searching for policy...**"
                     )
                     progress += 1
                     progress_bar.progress(progress / total_steps)
-
-                api_response_query = await self.expand_query_and_search_policy(
-                    clinical_info
-                )
+    
+                api_response_query = await self.expand_query_and_search_policy(clinical_info)
+                if api_response_query is None:
+                    raise ValueError("Query expansion and search returned None")
+    
                 policy_location = self.locate_policy(api_response_query)
-
                 if policy_location in ["No results found", "Error locating policy"]:
                     self.logger.info("Policy not found.")
                     if streamlit:
                         status_text.error("Policy not found.")
                         progress_bar.empty()
                     return
-
+    
                 policy_text = self.get_policy_text_from_blob(policy_location)
+                if policy_text is None:
+                    raise ValueError("Policy text extraction returned None")
+    
                 self.log_output(
                     data={
                         "policy_location": policy_location,
@@ -759,22 +818,22 @@ class PAProcessingPipeline:
                     },
                     step="policy_extraction",
                 )
-
+    
                 if streamlit:
                     status_text.write("📝 **Generating final determination...**")
                     progress += 1
                     progress_bar.progress(progress / total_steps)
-
+    
                 await self.generate_final_determination(
                     patient_info, physician_info, clinical_info, policy_text, use_o1
                 )
-
+    
                 if streamlit:
                     end_time = time.time()  # End timing
                     execution_time = end_time - start_time
                     status_text.success(f"✅ **PA {self.caseId} Processing completed in {execution_time:.2f} seconds!**")
                     progress_bar.progress(1.0)
-
+    
             except Exception as e:
                 self.logger.error(
                     f"PAprocessing failed for {self.caseId}: {e}",
@@ -789,5 +848,5 @@ class PAProcessingPipeline:
                 execution_time = end_time - start_time
                 self.logger.info(
                     f"PAprocessing completed for {self.caseId}. Execution time: {execution_time:.2f} seconds.",
-                    extra={"custom_dimensions": json.dumps({"caseId": self.caseId})},
+                    extra={"custom_dimensions": json.dumps({"caseId": self.caseId, "execution_time": execution_time})},
                 )

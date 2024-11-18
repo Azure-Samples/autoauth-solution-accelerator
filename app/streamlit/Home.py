@@ -13,9 +13,6 @@ import streamlit as st
 # Load environment variables if not already loaded
 dotenv.load_dotenv(".env")
 
-FROM_EMAIL = "Pablosalvadorlopez@outlook.com"
-
-
 def get_image_base64(image_path: str) -> str:
     """
     Convert an image file to a base64 string.
@@ -56,80 +53,42 @@ def get_main_content() -> str:
     </h1>
     """
 
-
 @st.cache_data()
 def create_support_center_content():
     content = {
-        "How to Use the Deployment Center": """
-            ### 🌟 Getting Started with the Deployment Center
-
-            Adding new deployments allows you to compare performance across multiple MaaS deployments. Follow this step-by-step guide to add and manage your deployments:
-
-            **Step 1: Add Your MaaS Deployment**
-
-            1. Navigate to the `Deployment Center` located at the top of the sidebar.
-            2. You will find two sections: `Add your MaaS deployment` and `Loaded deployments`.
-                - `Add your MaaS deployment`: Here, you can add a new deployment.
-                - `Loaded deployments`: This section displays deployments that are already loaded and ready to use.
-            3. To add a new deployment, proceed to the next step.
-        
-            **Step 2: Add Deployment Details**
-            - Fill in the form with the following details:
-                - **Deployment ID:** Your chat model deployment ID.
-                - **Azure OpenAI Key:** Your Azure OpenAI key (treated as confidential).
-                - **API Endpoint:** The endpoint URL for Azure OpenAI.
-                - **API Version:** The version of the Azure OpenAI API you're using.
-                - **Streaming:** Select 'Yes' if the model will output in streaming mode.
-            - Click **Add Deployment** to save your deployment to the session state.
-
-            **Step 3: View and Manage Deployments**
-            - Your deployments will be listed under **Loaded Deployments**.
-            - Click on a deployment to expand and view its details.
-            - You can update any deployment details and click **Update Deployment** to save changes.
-            - To remove a deployment, click **Remove Deployment**.
-        """,
-        "How Deployments are Managed": """
-            ### 🌟 Managing Deployments in the Deployment Center
-            - Deployments are stored in the Streamlit `session_state`, allowing them to persist across page reloads and be accessible across different pages of the app.
-            - This flexibility allows you to easily compare the performance of different deployments and make adjustments as needed.
-
-            **Updating Deployments Across Pages**
-            - Any updates made to a deployment from one page are reflected across the entire app, allowing seamless switching between different deployments or updating their configurations without losing context.
-        """,
         "How to Collaborate on the Project": """
             ### 🛠️ Resource Links
-            - **GitHub Repository:** [Access the GitHub repo](https://github.com/pablosalvador10/gbb-ai-upgrade-llm)
+            - **GitHub Repository:** [Access the GitHub repo](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth)
             - **Feedback Form:** [Share your feedback](https://forms.office.com/r/gr8jK9cxuT)
 
             ### 💬 Want to Collaborate or Share Your Feedback?
             - **Join Our Community:** Connect with experts and enthusiasts in our [community forums](https://forms.office.com/r/qryYbe23T0).
-            - **Provide Feedback:** Use our [feedback form](https://forms.office.com/r/gr8jK9cxuT) or [GitHub Issues](https://github.com/pablosalvador10/gbb-ai-upgrade-llm/issues) to share your thoughts and suggestions.
+            - **Provide Feedback:** Use our [feedback form](https://forms.office.com/r/gr8jK9cxuT) or [GitHub Issues](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/issues) to share your thoughts and suggestions.
         """,
         "How to Navigate Through the App": """
-            ### 🌐 Navigating the App
+            ### 🌐 Navigating AutoAuth
             - **Home:** This is the main page you're currently on.
-            - **Performance Insights:** Gain in-depth insights into model performance, including throughput and latency analysis.
-            - **Quality Metrics:** Assess the accuracy and reliability of your AI models with detailed quality metrics.
+            - **Payor:** Explore AutoAuth.
+            - **Provider:** WIP..AutoAuth for providers will be Available soon. Stay tuned!
         """,
         "Feedback": """
             🐞 **Encountered a bug?** Or have a **feature request**? We're all ears!
 
-            Your feedback is crucial in helping us make our service better. If you've stumbled upon an issue or have an idea to enhance our platform, don't hesitate to let us know.
+            Your feedback is crucial in helping us improve AutoAuth. If you've found an issue or have an idea to enhance our platform, please let us know.
 
             📝 **Here's how you can help:**
             - Click on the link below to open a new issue on our GitHub repository.
             - Provide a detailed description of the bug or the feature you envision. The more details, the better!
             - Submit your issue. We'll review it as part of our ongoing effort to improve.
 
-            [🔗 Open an Issue on GitHub](https://github.com/pablosalvador10/gbb-ai-upgrade-llm/issues)
+            [🔗 Open an Issue on GitHub](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/issues)
 
-            Don't worry if you can't access GitHub! We'd still love to hear your ideas or suggestions for improvements. Just click [here](https://forms.office.com/r/gr8jK9cxuT) to fill out our form. 
+            If you can't access GitHub, we'd still love to hear your ideas or suggestions for improvements. Just click [here](https://forms.office.com/r/gr8jK9cxuT) to fill out our form.
 
             🙏 **Thank you for contributing!** Your insights are invaluable to us.
         """,
     }
     return content
-
 
 def display_support_center():
     st.sidebar.markdown("## 🛠️ Support Center")
@@ -145,17 +104,6 @@ def display_support_center():
     with tab2:
         st.markdown(content["Feedback"])
 
-
-# #### 🚀 Ready to Dive In?
-
-# <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); width: 80%; margin: auto;">
-#     <iframe src="https://www.loom.com/share/2988afbc761c4348b5299ed55895f128?sid=f7369149-4ab2-4204-8580-0bbdc6a38616"
-#     frameborder="0"
-#     webkitallowfullscreen
-#     mozallowfullscreen
-#     allowfullscreen
-#     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
-# </div>
 
 
 @st.cache_data()
@@ -269,51 +217,6 @@ def get_footer_content() -> str:
     </div>
     """
 
-
-def load_default_deployment(
-    name: Optional[str] = None,
-    key: Optional[str] = None,
-    endpoint: Optional[str] = None,
-    version: Optional[str] = None,
-) -> None:
-    """
-    Load default deployment settings, optionally from provided parameters.
-
-    Ensures that a deployment with the same name does not already exist.
-
-    :param name: (Optional) Name of the deployment.
-    :param key: (Optional) Azure OpenAI key.
-    :param endpoint: (Optional) API endpoint for Azure OpenAI.
-    :param version: (Optional) API version for Azure OpenAI.
-    :raises ValueError: If required deployment settings are missing.
-    """
-    # Ensure deployments is a dictionary
-    if "deployments" not in st.session_state or not isinstance(
-        st.session_state.deployments, dict
-    ):
-        st.session_state.deployments = {}
-
-    # Check if the deployment name already exists
-    deployment_name = (
-        name if name else os.getenv("AZURE_AOAI_CHAT_MODEL_NAME_DEPLOYMENT_ID")
-    )
-    if deployment_name in st.session_state.deployments:
-        return  # Exit the function if deployment already exists
-
-    default_deployment = {
-        "name": deployment_name,
-        "key": key if key else os.getenv("AZURE_OPENAI_KEY"),
-        "endpoint": endpoint if endpoint else os.getenv("AZURE_OPENAI_API_ENDPOINT"),
-        "version": version if version else os.getenv("AZURE_OPENAI_API_VERSION"),
-        "stream": False,
-    }
-
-    if all(
-        value is not None for value in default_deployment.values() if value != False
-    ):
-        st.session_state.deployments[default_deployment["name"]] = default_deployment
-
-
 def main() -> None:
     """
     Main function to run the Streamlit app.
@@ -322,15 +225,6 @@ def main() -> None:
         page_title="Home",
         page_icon="👋",
     )
-
-    env_vars = {
-        "AZURE_OPENAI_KEY": "",
-        "AZURE_OPENAI_API_ENDPOINT": "",
-        "AZURE_OPENAI_API_VERSION": "",
-        "AZURE_AOAI_CHAT_MODEL_NAME_DEPLOYMENT_ID": "",
-        "deployments": {},
-    }
-    initialize_session_state(env_vars)
 
     display_support_center()
 
@@ -355,8 +249,6 @@ def main() -> None:
     </div>
     """,
     unsafe_allow_html=True)
-
-
 
 if __name__ == "__main__":
     main()

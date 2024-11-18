@@ -115,7 +115,7 @@ login-acr:
 	@echo "Logging in to Azure..."
 	az login
 	@echo "Logging in to Azure Container Registry..."
-	az acr login --name containerregistryaigbb
+	az acr login --name containerregistrygbbai
 
 
 # Target to create a container app in Azure, depending on setup-env to load .env variables
