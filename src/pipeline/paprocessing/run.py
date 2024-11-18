@@ -770,7 +770,9 @@ class PAProcessingPipeline:
                 )
 
                 if streamlit:
-                    status_text.success(f"✅ **PA {self.caseId} Processing complete!**")
+                    end_time = time.time()  # End timing
+                    execution_time = end_time - start_time
+                    status_text.success(f"✅ **PA {self.caseId} Processing completed in {execution_time:.2f} seconds!**")
                     progress_bar.progress(1.0)
 
             except Exception as e:

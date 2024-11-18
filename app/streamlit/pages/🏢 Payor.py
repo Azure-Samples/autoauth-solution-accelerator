@@ -7,6 +7,8 @@ import dotenv
 import streamlit as st
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
+import zipfile
+import io
 
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
@@ -38,7 +40,7 @@ if "search_client" not in st.session_state:
     )
 
 if "pa_processing" not in st.session_state:
-    st.session_state["pa_processing"] = PAProcessingPipeline()
+    st.session_state["pa_processing"] = PAProcessingPipeline(send_cloud_logs=True)
 
 session_vars = [
     "conversation_history",
@@ -68,10 +70,11 @@ for var in session_vars:
         st.session_state[var] = initial_values.get(var, None)
 
 st.set_page_config(
-    page_title="SmartPA",
+    page_title="AutoAuth",
     page_icon="✨",
+    layout="wide",
+    initial_sidebar_state="expanded",
 )
-
 
 def configure_sidebar(results_container):
     with st.sidebar:
@@ -80,38 +83,78 @@ def configure_sidebar(results_container):
         st.markdown(
             """
             ## 👩‍⚕️ Welcome to AutoAuth
-        
+
             AutoAuth is an AI-powered tool designed to streamline the Prior Authorization (PA) process.
-        
+
             ### How It Works:
             1. **Upload Your PA Case**: Attach all relevant files, including clinical notes, PDFs, images, and reports.
-            2. **Submit for Analysis**: Click 'Submit' and let our AI handle the rest. You'll receive a comprehensive clinical determination. 🤖
-        
-            ### Need Assistance?
-            Feel free to reach out to **AutoAuth Chat** for any questions or further assistance. 🗨️
-
+            2. **Submit for Analysis**: Click **Submit** and let our AI handle the rest. You'll receive a comprehensive clinical determination. 🤖
             """
         )
 
-        uploaded_files = st.sidebar.file_uploader(
-            "Upload documents",
+        with st.expander("⚠️ Disclaimer"):
+            st.markdown("""
+            **Please do not upload personal or sensitive information.** All documents submitted are for analysis purposes only. Ensure all data is anonymized and contains no personally identifiable information (PII).
+            
+            For testing, you can download a sample PA case by clicking the button below.          
+                        
+            """)
+        
+            # List of files to include in the ZIP
+            files_to_zip = [
+                "utils/data/cases/002/a/doctor_notes/002_a (note).pdf", 
+                "utils/data/cases/002/a/imaging/002_a (imaging).pdf", 
+                "utils/data/cases/002/a/pa_form/002_a (form).pdf"
+            ]
+        
+            # Filter out missing files and log a warning if files are missing
+            existing_files = []
+            for file_path in files_to_zip:
+                if os.path.exists(file_path):
+                    existing_files.append(file_path)
+                else:
+                    st.warning(f"⚠️ File not found and will be skipped: {file_path}")
+        
+            # Create a ZIP file in memory
+            if existing_files:
+                zip_buffer = io.BytesIO()
+                with zipfile.ZipFile(zip_buffer, "w") as zip_file:
+                    for file_name in existing_files:
+                        with open(file_name, "rb") as f:
+                            zip_file.writestr(os.path.basename(file_name), f.read())
+        
+                # Provide a download button
+                st.download_button(
+                    label="⬇️ Download Sample Files",
+                    data=zip_buffer.getvalue(),
+                    file_name="sample_files.zip",
+                    mime="application/zip",
+                    help="Download sample documents to see how AutoAuth works.",
+                )
+            else:
+                st.info("ℹ️ Sample files are not available for download at this time.")
+
+        st.write(
+        """
+        <div style="text-align:center; font-size:30px; margin-top:10px;">
+            ...
+        </div>
+        """,
+        unsafe_allow_html=True,
+        )
+        
+        st.markdown("")
+
+        uploaded_files = st.file_uploader(
+            "Upload PA Case Files",
             type=[
-                "png",
-                "jpg",
-                "jpeg",
-                "pdf",
-                "ppt",
-                "pptx",
-                "doc",
-                "docx",
-                "mp3",
-                "wav",
+                "png", "jpg", "jpeg", "pdf"
             ],
             accept_multiple_files=True,
-            help="Upload the documents you want the AI to analyze. You can upload multiple documents of types PNG, JPG, JPEG, and PDF.",
+            help="Upload documents for AI analysis. If you don't have data available, please download sample files from the Disclaimer section above.",
+
         )
 
-        # Store uploaded files in session state
         if uploaded_files:
             st.session_state["uploaded_files"] = uploaded_files
 
@@ -451,14 +494,7 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    # Add a radio button in the sidebar to select the model
-    st.sidebar.markdown("#### Select Model")
-    model_choice = st.sidebar.radio(
-        "Choose the model for final determination:",
-        ("4o", "o1"),
-        index=0,  # Default selection is "4o"
-    )
-    use_o1 = model_choice == "o1"
+    USE_O1 = True
 
     st.sidebar.markdown(
         '<div class="centered-button-container">', unsafe_allow_html=True
@@ -471,11 +507,15 @@ def main() -> None:
     )
     st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
+    st.sidebar.markdown("")
+    st.sidebar.markdown("""💬 **Questions about the policy or AI results?** **AutoAuth Chat** is here to assist you. Try it !""")
+
+
     if submit_to_ai and uploaded_files:
         uploaded_file_paths = save_uploaded_files(uploaded_files)
         with results_container:
             selected_case_id = asyncio.run(
-                run_pipeline_with_spinner(uploaded_file_paths, use_o1)
+                run_pipeline_with_spinner(uploaded_file_paths, USE_O1)
             )
 
     if "case_ids" in st.session_state and st.session_state["case_ids"]:

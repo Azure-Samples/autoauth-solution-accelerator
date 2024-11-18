@@ -239,13 +239,11 @@ def get_markdown_content() -> str:
             ...
     </div>
 
-    ### 🤖👩‍⚕️ Meet PRISM: Our Solution for Payors 
-
-    **PRISM** – **P**rior **R**equest **I**ntelligent **S**ystem for **M**edical Authorization is a comprehensive solution designed to optimize the Prior Authorization (PA) process for healthcare providers. By leveraging advanced AI and automation, PRISM ensures faster, more accurate PA decisions, reducing administrative burdens and improving patient care.
-
-    Please navigate to the Payor page to explore our solution designed to streamline the Prior Authorization (PA) process. Our goal is to reduce administrative burdens, enhance accuracy, and improve productivity by leveraging advanced AI and automation. By implementing PRISM, healthcare providers can process more cases efficiently, reduce bottlenecks, and lower expenses.
-
-
+    ### 🤖👩‍⚕️ Introducing AutoAuth: Streamlining Prior Authorization
+    
+    **AutoAuth** is an AI-powered solution designed to optimize the Prior Authorization (PA) process. By leveraging advanced technology, AutoAuth ensures faster and more accurate PA decisions, reducing administrative burdens and enhancing patient care.
+    
+    Visit the **Payor** page to explore our tailored solution for payors, aimed at improving efficiency and reducing operational costs.
     """
 
 
@@ -316,77 +314,6 @@ def load_default_deployment(
         st.session_state.deployments[default_deployment["name"]] = default_deployment
 
 
-def add_deployment_aoai_form() -> None:
-    """
-    Render the form to add a new Azure OpenAI deployment.
-
-    This function provides a form in the Streamlit sidebar to add a new deployment, allowing users to specify deployment details.
-    """
-    with st.form("add_deployment_aoai_form"):
-        deployment_name = st.text_input(
-            "Deployment id",
-            help="Enter the deployment ID for Azure OpenAI.",
-            placeholder="e.g., chat-gpt-1234abcd",
-        )
-        deployment_key = st.text_input(
-            "Azure OpenAI Key",
-            help="Enter your Azure OpenAI key.",
-            type="password",
-            placeholder="e.g., sk-ab*****..",
-        )
-        deployment_endpoint = st.text_input(
-            "API Endpoint",
-            help="Enter the API endpoint for Azure OpenAI.",
-            placeholder="e.g., https://api.openai.com/v1",
-        )
-        deployment_version = st.text_input(
-            "API Version",
-            help="Enter the API version for Azure OpenAI.",
-            placeholder="e.g., 2024-02-15-preview",
-        )
-        is_streaming = st.radio(
-            "Streaming",
-            (True, False),
-            index=1,
-            format_func=lambda x: "Yes" if x else "No",
-            help="Select 'Yes' if the model will be tested with output in streaming mode.",
-        )
-        submitted = st.form_submit_button("Add Deployment")
-
-        if submitted:
-            if (
-                deployment_name
-                and deployment_key
-                and deployment_endpoint
-                and deployment_version
-            ):
-                if "deployments" not in st.session_state:
-                    st.session_state.deployments = {}
-
-                try:
-                    pass
-                except Exception as e:
-                    st.warning(
-                        f"""An issue occurred while initializing the Azure OpenAI manager. {e} Please try again. If the issue persists,
-                                    verify your configuration."""
-                    )
-                    return
-
-                if deployment_name not in st.session_state.deployments:
-                    st.session_state.deployments[deployment_name] = {
-                        "key": deployment_key,
-                        "endpoint": deployment_endpoint,
-                        "version": deployment_version,
-                        "stream": is_streaming,
-                    }
-                    st.toast(f"Deployment '{deployment_name}' added successfully.")
-                    st.rerun()
-                else:
-                    st.error(
-                        f"A deployment with the name '{deployment_name}' already exists."
-                    )
-
-
 def main() -> None:
     """
     Main function to run the Streamlit app.
@@ -410,6 +337,25 @@ def main() -> None:
     st.write(get_main_content(), unsafe_allow_html=True)
     st.markdown(get_markdown_content(), unsafe_allow_html=True)
     st.write(get_footer_content(), unsafe_allow_html=True)
+    st.sidebar.write(
+    """
+    <div style="text-align:center; font-size:30px; margin-top:10px;">
+        ...
+    </div>
+    <div style="text-align:center; margin-top:20px;">
+                <a href="https://github.com/pablosalvador10" target="_blank" style="text-decoration:none; margin: 0 10px;">
+                    <img src="https://img.icons8.com/fluent/48/000000/github.png" alt="GitHub" style="width:40px; height:40px;">
+                </a>
+                <a href="https://www.linkedin.com/in/pablosalvadorlopez/?locale=en_US" target="_blank" style="text-decoration:none; margin: 0 10px;">
+                    <img src="https://img.icons8.com/fluent/48/000000/linkedin.png" alt="LinkedIn" style="width:40px; height:40px;">
+                </a>
+                <a href="https://pabloaicorner.hashnode.dev/" target="_blank" style="text-decoration:none; margin: 0 10px;">
+                    <img src="https://img.icons8.com/ios-filled/50/000000/blog.png" alt="Blog" style="width:40px; height:40px;">
+                </a>
+    </div>
+    """,
+    unsafe_allow_html=True)
+
 
 
 if __name__ == "__main__":
