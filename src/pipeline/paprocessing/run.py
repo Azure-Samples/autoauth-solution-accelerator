@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 import shutil
+import time
 import tempfile
 from typing import Any, Dict, List, Optional, Type, Union
 
@@ -704,6 +705,7 @@ class PAProcessingPipeline:
             self.caseId = caseId
 
         tracer = trace.get_tracer(dynamic_logger_name)
+        start_time = time.time()
         with tracer.start_as_current_span(f"{dynamic_logger_name}.run") as span:
             span.set_attribute("caseId", self.caseId)
             span.set_attribute("uploaded_files", len(uploaded_files))
@@ -781,7 +783,9 @@ class PAProcessingPipeline:
             finally:
                 self.cleanup_temp_dir()
                 self.store_output()
+                end_time = time.time()  # End timing
+                execution_time = end_time - start_time
                 self.logger.info(
-                    f"PAprocessing completed for {self.caseId}.",
+                    f"PAprocessing completed for {self.caseId}. Execution time: {execution_time:.2f} seconds.",
                     extra={"custom_dimensions": json.dumps({"caseId": self.caseId})},
                 )

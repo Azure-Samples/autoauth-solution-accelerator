@@ -1,7 +1,9 @@
 services:
   streamlit:
     build: 
-      context: ../../../
+      context: ../../
       dockerfile: devops/container/Dockerfile
     ports:
       - "8081:8501"
+    env_file:
+      - ../../.env  
