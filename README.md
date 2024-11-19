@@ -8,7 +8,7 @@
 
 Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors (insurance companies) before delivering specific treatments or medications. While essential for cost control and care management, the process has become inefficient, creating substantial delays, administrative overheads, and negative outcomes for all stakeholders—providers, payors, and patients.
 
-![alt text](utils\images\prior_auth_flow.png)
+![alt text](utils/images/paworflow.png)
 
 ### 🔍 Identifying Challenges and Leveraging Opportunities
 
@@ -78,6 +78,180 @@ Let's uncover the daily pain points faced by providers and payors, and understan
 </details>
 
 ---
+
+## The solution: AutoAuth 🤖
+
+![alt text](utils/images/diagram.png)
+
+The **AutoAuth framework** revolutionizes the Prior Authorization (PA) process by integrating Agentic Retrieval-Augmented Generation (RAG) and advanced Large Language Models (LLMs). This approach automates and optimizes key steps in the PA workflow, enhancing decision-making accuracy and efficiency.
+
+AutoAuth employs a three-phase methodology:
+
+1. **Data Extraction and Structuring**
+2. **Policy Matching and Hybrid Retrieval**
+3. **Advanced Reasoning for Decision Support**
+
+<details>
+<summary>📊 In Detail </summary>
+
+<div style="max-height: 400px; overflow-y: auto;">
+
+## Phase 1: Data Extraction and Structuring
+
+This phase focuses on extracting and structuring data from diverse sources using LLM-based Optical Character Recognition (OCR) and agentic pipelines.
+
+- **Data Ingestion and Preprocessing**: The system processes unstructured data (e.g., PDFs, handwritten notes, scanned images) using advanced OCR techniques integrated with RAG agents. This ensures accurate extraction of clinical entities such as ICD-10 codes, lab results, and physician notes.
+
+- **Automated Clinical Information Extraction**: Leveraging LLM-based document processing, the system identifies and extracts clinically relevant entities. Agentic pipelines handle entity resolution and disambiguation, addressing variability in terminology and formatting across different data sources.
+
+- **Data Structuring and Semantic Layering**: Extracted entities are transformed into structured JSON objects with semantic annotations. This standardization ensures consistency and interoperability with downstream components, facilitating precise policy retrieval.
+
+## Phase 2: Policy Matching and Hybrid Retrieval System
+
+In this phase, structured clinical data is matched against policy documents using a hybrid retrieval architecture that combines vector-based semantic search and lexical search methods.
+
+- **Intelligent Query Generation**: The system generates contextually optimized queries using structured clinical data. These queries are enriched by the LLM’s language understanding capabilities, focusing on key clinical entities mapped to policy requirements.
+
+- **Hybrid Vector and Lexical Search**: AutoAuth employs a hybrid retrieval architecture to maximize retrieval accuracy. A dense vector embedding search captures contextual meaning, while a BM25-based lexical search provides precise term-matching for compliance-related keywords. This dual-layered approach allows for fine-grained control in identifying policy documents that best align with the clinical information.
+
+- **Dynamic Policy Ranking and Selection**: Retrieved policies are ranked based on a composite similarity score calculated from both vector and lexical layers. This scoring algorithm prioritizes documents with higher relevance, ensuring that policy documents directly applicable to the case are selected. Advanced ranking metrics, such as cosine similarity in vector space and BM25 relevance scores, drive the final selection.
+
+## Phase 3: Advanced Reasoning for Decision Support
+
+The final phase involves decision-making through a structured reasoning framework that assesses compliance with policy criteria. This phase leverages advanced reasoning models (e.g., OpenAI’s o1-series models) to conduct in-depth policy analysis, enabling comprehensive decision support for PA determination.
+
+- **Policy Criteria Assessment through Complex Reasoning**: Each identified policy criterion is independently evaluated against the extracted clinical information. Using a series of chained inferences, the reasoning model conducts a rigorous analysis to determine if each criterion is fully met, partially met, or unmet. These assessments are grounded in the extracted data and policy requirements, with explicit reasoning chains that simulate human decision-making processes.
+
+- **Identification of Data Gaps and Missing Information**: During the reasoning process, any missing data elements or partially met criteria are flagged. For example, if specific lab results or prior treatment details are absent, the system generates a data request to fill these gaps, thereby ensuring that no authorization decision is made with incomplete information.
+
+- **Decision Recommendation Generation**: Based on the structured analysis, the system generates a decision recommendation—Approve, Deny, or Request Additional Information—using a rules-based logic layer informed by the reasoning model’s assessments. Decisions are accompanied by a detailed rationale, citing specific policy references and clinical data points that substantiate the outcome.
+
+- **Justification and Reporting for Transparent Decision-Making**: The decision and its underlying rationale are encapsulated in a structured report, detailing each policy criterion, the compliance status, and evidence from clinical and policy data. This report is designed for interpretability, ensuring that providers and payers can trace the decision logic and audit the automated process.
+
+## Technical Implementation and Data Complexity
+
+- **Data Variability and Interoperability**:
+  - **Variability in Data Formats**: The system handles various document types and qualities, such as scanned images and handwritten notes.
+  - **Terminology Disambiguation**: It addresses synonyms, abbreviations, and variations in clinical and policy language.
+  - **Interoperability**: Ensures structured data is compatible with downstream systems for seamless integration.
+
+</div>
+
+</details>
+
+---
+
+## Getting Started with AutoAuth Framework
+
+### Step 1: Create and Activate the Conda Environment
+
+#### **For Windows Users**
+
+1. **Create the Conda Environment**:
+   - Open your terminal or command prompt and navigate to the repository directory.
+   - Run the following command:
+     ```bash
+     conda env create -f environment.yaml
+     ```
+   - This command creates the Conda environment as defined in `environment.yaml`.
+
+2. **Activate the Environment**:
+   - Once created, activate it using:
+     ```bash
+     conda activate vector-indexing-azureaisearch
+     ```
+
+#### **For Linux Users (or Windows WSL)**
+
+1. **Use `make` for Environment Setup**:
+   - Navigate to the repository directory in your terminal.
+   - Use the `make` command to create the Conda environment:
+     ```bash
+     make create_conda_env
+     ```
+
+## Step 2: Configure Environment Variables
+
+To ensure the application functions correctly, you need to set up environment variables by following these steps:
+
+1. **Locate the Sample Environment File**:
+   - In the root directory of the repository, find the `.env.sample` file.
+
+2. **Create Your Environment Configuration**:
+   - Make a copy of `.env.sample` and rename it to `.env`.
+
+3. **Populate the `.env` File**:
+   - Open the `.env` file in a text editor.
+   - Replace placeholder values with your actual configuration details. For example:
+
+     ```plaintext
+     AZURE_OPENAI_KEY=your_azure_openai_key
+     AZURE_SEARCH_SERVICE_NAME=your_azure_search_service_name
+     AZURE_STORAGE_ACCOUNT_KEY=your_azure_storage_account_key
+     ```
+
+   - Ensure all required variables are provided to avoid runtime errors.
+
+**Note**: The `.env` file contains sensitive information. Handle it securely and avoid sharing it publicly.
+
+**Azure Services Required**:
+
+To obtain the necessary values for the `.env` file, you'll need to set up the following Azure services:
+
+1. **Azure OpenAI Service**:
+   - **Setup Guide**: [Get started with Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/get-started)
+
+2. **Azure AI Search**:
+   - **Setup Guide**: [Create an Azure Cognitive Search service](https://learn.microsoft.com/en-us/azure/search/search-create-service-portal)
+
+3. **Azure Blob Storage**:
+   - **Setup Guide**: [Create a storage account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create)
+
+4. **Azure Cosmos DB**:
+   - **Setup Guide**: [Create an Azure Cosmos DB account](https://learn.microsoft.com/en-us/azure/cosmos-db/create-sql-api-python)
+
+5. **Azure AI Document Intelligence (formerly Form Recognizer)**:
+   - **Setup Guide**: [Quickstart: Form Recognizer client library](https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence?msockid=1fc5e25b196066be057ff76118e667d7)
+
+6. **Azure Application Insights**:
+   - **Setup Guide**: [Set up Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
+
+### Step 3: Index Policies
+
+Before running the application, policies must be indexed to enable accurate search and retrieval.
+
+1. Open the notebook `01-indexing-policies.ipynb`
+2. Run all cells to index the policies into the Azure AI Search Service.
+3. Ensure indexing completes without errors, as it is essential for retrieving the correct documents during PA processing.
+
+### Step 4: Run the Application
+
+1. Navigate to the repository's root directory.
+2. Start the Streamlit application with the following command:
+   ```bash
+   streamlit run app/streamlit/Home.py
+   ```
+### Step 5: Data Sources
+
+- Test and validate cases are located in the `utils/data/` directory.
+- Example cases (e.g., `001`) include clinical references and documents required for Prior Authorization.
+
+- **Note**: This data has been created and validated by certified physician (MD certified) to ensure accuracy and reliability.
+
+### Step 6: Developer Notes
+
+Developers can test the pipeline for PA processing by instantiating the **PAProcessingPipeline** and running the process with example files.
+
+Example code:
+```python
+from src.pipeline.paprocessing.run import PAProcessingPipeline
+
+# Instantiate the pipeline
+pa_pipeline = PAProcessingPipeline(send_cloud_logs=True)
+
+# Run the pipeline with uploaded files
+await pa_pipeline.run(uploaded_files=files, use_o1=True)
+```
 
 ### Disclaimer
 > [!IMPORTANT]
