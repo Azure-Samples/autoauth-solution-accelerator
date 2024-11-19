@@ -2,6 +2,7 @@ import asyncio
 import os
 import tempfile
 from typing import List
+import shutil
 
 import dotenv
 import streamlit as st
@@ -20,6 +21,7 @@ logger = get_logger()
 
 dotenv.load_dotenv(".env", override=True)
 
+# Initialize session state managers
 if "cosmosdb_manager" not in st.session_state:
     st.session_state["cosmosdb_manager"] = CosmosDBMongoCoreManager(
         connection_string=os.getenv("AZURE_COSMOS_CONNECTION_STRING"),
@@ -39,9 +41,11 @@ if "search_client" not in st.session_state:
         credential=AzureKeyCredential(os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")),
     )
 
-if "pa_processing" not in st.session_state:
-    st.session_state["pa_processing"] = PAProcessingPipeline(send_cloud_logs=True)
+# # Initialize PAProcessingPipeline in session state
+# if "pa_processing" not in st.session_state:
+#     st.session_state["pa_processing"] = PAProcessingPipeline(send_cloud_logs=True)
 
+# Initialize other session variables
 session_vars = [
     "conversation_history",
     "ai_response",
@@ -75,6 +79,21 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
+
+
+def cleanup_temp_dir(temp_dir) -> None:
+    """
+    Cleans up the temporary directory used for processing files.
+    """
+    try:
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+            logger.info(f"Cleaned up temporary directory: {temp_dir}")
+    except Exception as e:
+        logger.error(
+            f"Failed to clean up temporary directory '{temp_dir}': {e}"
+        )
+
 
 def configure_sidebar(results_container):
     with st.sidebar:
@@ -143,6 +162,7 @@ def configure_sidebar(results_container):
         
         st.markdown("")
 
+        # File uploader
         uploaded_files = st.file_uploader(
             "Upload PA Case Files",
             type=[
@@ -150,17 +170,14 @@ def configure_sidebar(results_container):
             ],
             accept_multiple_files=True,
             help="Upload documents for AI analysis. If you don't have data available, please download sample files from the Disclaimer section above.",
-
         )
 
         if uploaded_files:
             st.session_state["uploaded_files"] = uploaded_files
 
-
 SYSTEM_MESSAGE_LATENCY = """You are a clinical assistant specializing in the prior 
                         authorization process. Your goal is to assist with any questions related to the provision, 
                         evaluation, and determination of prior authorization requests."""
-
 
 def initialize_chatbot(case_id=None, document=None) -> None:
     st.markdown(
@@ -292,7 +309,6 @@ def initialize_chatbot(case_id=None, document=None) -> None:
                     {"role": "assistant", "content": ai_response}
                 )
 
-
 async def generate_ai_response(
     user_prompt: str,
     system_prompt: str,
@@ -326,22 +342,34 @@ async def generate_ai_response(
         logger.error(f"Error generating AI response: {e}")
         return {}
 
-
 async def run_pipeline_with_spinner(uploaded_files, use_o1):
     caseID = generate_unique_id()
     with st.spinner("Processing... Please wait."):
         if use_o1:
             st.toast("Using the o1 model for final determination.", icon="🔥")
-        await st.session_state["pa_processing"].run(
+
+        pa_processing = PAProcessingPipeline(send_cloud_logs=True)
+        
+        await pa_processing.run(
             uploaded_files, streamlit=True, caseId=caseID, use_o1=use_o1
         )
-    last_key = next(reversed(st.session_state["pa_processing"].results.keys()))
-    if "case_ids" not in st.session_state:
-        st.session_state["case_ids"] = []
-    if last_key not in st.session_state["case_ids"]:
-        st.session_state["case_ids"].append(last_key)
-    return last_key
+    
+    last_key = next(iter(pa_processing.results.keys()))
+    
+    if 'case_ids' not in st.session_state:
+        st.session_state['case_ids'] = []
+    
+    if last_key not in st.session_state['case_ids']:
+        st.session_state['case_ids'].append(last_key)
+    
+    if 'pa_processing_results' not in st.session_state:
+        st.session_state['pa_processing_results'] = {}
+    
+    st.session_state['pa_processing_results'][last_key] = pa_processing.results[last_key]
 
+    st.session_state['uploaded_files'] = []
+
+    return last_key
 
 def display_case_data(document, results_container):
     with results_container:
@@ -394,7 +422,6 @@ def display_case_data(document, results_container):
             else:
                 st.markdown("No supporting documents found.")
 
-
 def save_uploaded_files(uploaded_files):
     temp_dir = tempfile.mkdtemp()
     file_paths = []
@@ -403,8 +430,7 @@ def save_uploaded_files(uploaded_files):
         with open(file_path, "wb") as f:
             f.write(uploaded_file.getbuffer())
         file_paths.append(file_path)
-    return file_paths
-
+    return file_paths, temp_dir
 
 def format_patient_info(document):
     return f"""
@@ -415,7 +441,6 @@ def format_patient_info(document):
     - **Phone Number:** {document.get('patient_phone_number', 'Not provided')}
     """
 
-
 def format_physician_info(document):
     return f"""
     - **Name:** {document.get('physician_name', 'Not provided')}
@@ -425,7 +450,6 @@ def format_physician_info(document):
       - **Fax:** {document.get('physician_contact', {}).get('fax', 'Not provided')}
       - **Office Address:** {document.get('physician_contact', {}).get('office_address', 'Not provided')}
     """
-
 
 def format_clinical_info(document):
     plan_info = document.get("treatment_request", {})
@@ -446,7 +470,6 @@ def format_clinical_info(document):
       - **Duration:** {plan_info.get('duration', 'Not provided')}
       - **Rationale:** {plan_info.get('rationale', 'Not provided')}
     """
-
 
 def main() -> None:
     """
@@ -508,13 +531,16 @@ def main() -> None:
     st.sidebar.markdown("")
     st.sidebar.markdown("""💬 **Questions about the policy or AI results?** **AutoAuth Chat** is here to assist you. Try it !""")
 
-
     if submit_to_ai and uploaded_files:
-        uploaded_file_paths = save_uploaded_files(uploaded_files)
-        with results_container:
-            selected_case_id = asyncio.run(
-                run_pipeline_with_spinner(uploaded_file_paths, USE_O1)
-            )
+        uploaded_file_paths, temp_dir = save_uploaded_files(uploaded_files)
+        try:
+
+            with results_container:
+                selected_case_id = asyncio.run(
+                    run_pipeline_with_spinner(uploaded_file_paths, USE_O1)
+                )
+        finally:
+            cleanup_temp_dir(temp_dir)
 
     if "case_ids" in st.session_state and st.session_state["case_ids"]:
         st.sidebar.divider()
@@ -523,25 +549,19 @@ def main() -> None:
             case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
         )
 
-        if "case_ids" in st.session_state and st.session_state["case_ids"]:
-            case_ids = st.session_state["case_ids"][
-                ::-1
-            ]  # Reverse to show latest first
-            default_index = (
-                case_ids.index(selected_case_id) if selected_case_id in case_ids else 0
-            )
-
-            st.sidebar.markdown("#### Retrieve a Case ID to Review")
-            selected_case_id = st.sidebar.selectbox(
-                "Select PA case ID",
-                case_ids,
-                index=default_index,
-                help="Select a Case ID from the list to view its details and status.",
-            )
+        st.sidebar.markdown("#### Retrieve a Case ID to Review")
+        selected_case_id = st.sidebar.selectbox(
+            "Select PA case ID",
+            case_ids,
+            index=default_index,
+            help="Select a Case ID from the list to view its details and status.",
+        )
 
     if selected_case_id:
-        query = {"caseId": selected_case_id}
-        document = st.session_state["cosmosdb_manager"].read_document(query)
+        if 'pa_processing_results' in st.session_state:
+            document = st.session_state['pa_processing_results'].get(selected_case_id, {})
+        else:
+            document = {}
         if document:
             display_case_data(document, results_container)
 
@@ -578,7 +598,6 @@ def main() -> None:
         """,
         unsafe_allow_html=True,
     )
-
 
 if __name__ == "__main__":
     main()

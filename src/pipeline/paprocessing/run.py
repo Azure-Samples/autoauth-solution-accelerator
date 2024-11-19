@@ -250,6 +250,8 @@ class PAProcessingPipeline:
             account_key=self.azure_blob_storage_account_key,
         )
         try:
+            # Initialize a local list for image files
+            image_files = []
             for file_path in uploaded_files:
                 self.logger.info(f"Processing file: {file_path}")
                 output_paths = ocr_helper.extract_images_from_pdf(
@@ -261,15 +263,17 @@ class PAProcessingPipeline:
 
                 # Upload each extracted image individually
                 self.upload_files_to_blob(output_paths, step="processed_images")
+                image_files.extend(output_paths)
                 self.logger.info(f"Images extracted and uploaded from: {self.temp_dir}")
 
             self.logger.info(
                 f"Files processed and images extracted to: {self.temp_dir}"
             )
-            return self.temp_dir
+            return self.temp_dir, image_files
         except Exception as e:
             self.logger.error(f"Failed to process files: {e}")
-            return self.temp_dir
+            return self.temp_dir, []
+
 
     def get_policy_text_from_blob(self, blob_url: str) -> str:
         """
@@ -769,7 +773,7 @@ class PAProcessingPipeline:
                 extra={"custom_dimensions": json.dumps({"caseId": self.caseId})},
             )
             try:
-                temp_dir = self.process_uploaded_files(uploaded_files)
+                temp_dir, image_files = self.process_uploaded_files(uploaded_files)
                 image_files = find_all_files(temp_dir, ["png"])
     
                 if streamlit:
