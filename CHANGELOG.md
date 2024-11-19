@@ -6,7 +6,9 @@ This file meticulously documents all noteworthy changes made to the this project
 
 > **Versioning Protocol**: The project strictly adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html) (SemVer). SemVer is a versioning scheme for software that aims to convey meaning about the underlying changes with each new release. For details on the version numbering convention, please refer to the [official SemVer specification](https://semver.org/spec/v2.0.0.html).
 
-## [0.0.1] - 2023-09-07
+## [0.0.1] - 2024-11-18
 
 ### Added
-- **Initial Project Structure**: Set up the foundational structure for this project. This structure is essential for organizing the project's files and directories in a way that is comprehensible and accessible to contributors and users. Newcomers to the project can read [this guide on project structure](https://example-link-to-your-project-structure-guide) to better navigate and understand the established framework.
+- **Core Modules**: Implemented the core modules necessary for the basic functionality of the project. These modules include user authentication, database connection, and API endpoints.
+- **Documentation**: Created comprehensive documentation to help new developers get started with the project. This includes setup instructions, coding guidelines, and contribution procedures.
+- **Initial Tests**: Added initial unit tests to ensure the core functionalities work as expected. This helps in maintaining code quality and reliability as the project evolves.
