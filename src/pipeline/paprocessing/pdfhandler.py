@@ -1,15 +1,17 @@
 import os
-import tempfile
 import shutil
+import tempfile
 from typing import List, Optional
 from urllib.parse import urlparse
 
 import fitz  # PyMuPDF
+
 from src.storage.blob_helper import AzureBlobManager
 from utils.ml_logging import get_logger
 
 # Initialize logger
 logger = get_logger()
+
 
 class OCRHelper:
     """
@@ -40,12 +42,16 @@ class OCRHelper:
                 logger.info("AzureBlobManager initialized successfully.")
             else:
                 self.blob_manager = None
-                logger.warning("AzureBlobManager not initialized. Only local files will be processed.")
+                logger.warning(
+                    "AzureBlobManager not initialized. Only local files will be processed."
+                )
         except Exception as e:
             logger.error(f"Error initializing AzureBlobManager: {e}")
             self.blob_manager = None
 
-    def extract_images_from_pdf(self, input_path: str, output_path: Optional[str] = None, dpi: int = 144) -> List[str]:
+    def extract_images_from_pdf(
+        self, input_path: str, output_path: Optional[str] = None, dpi: int = 144
+    ) -> List[str]:
         """
         Extracts pages from a PDF file or a folder of PDF files and saves them as images.
 
@@ -69,19 +75,28 @@ class OCRHelper:
                 if self.blob_manager:
                     temp_dir = tempfile.mkdtemp()
                     blob_name = self._get_blob_name_from_url(input_path)
-                    local_file_path = os.path.join(temp_dir, os.path.basename(blob_name))
-                    
-                    logger.info(f"Downloading blob '{blob_name}' to temporary directory '{temp_dir}'.")
-                    self.blob_manager.download_blob_to_file(
-                        remote_blob_path=blob_name,
-                        local_file_path=local_file_path
+                    local_file_path = os.path.join(
+                        temp_dir, os.path.basename(blob_name)
                     )
-                    
-                    extracted_images = self._process_pdf_path(local_file_path, output_path or temp_dir, dpi)
+
+                    logger.info(
+                        f"Downloading blob '{blob_name}' to temporary directory '{temp_dir}'."
+                    )
+                    self.blob_manager.download_blob_to_file(
+                        remote_blob_path=blob_name, local_file_path=local_file_path
+                    )
+
+                    extracted_images = self._process_pdf_path(
+                        local_file_path, output_path or temp_dir, dpi
+                    )
                     image_paths.extend(extracted_images)
                 else:
-                    logger.error("BlobManager is not initialized. Cannot handle URL input.")
-                    raise Exception("BlobManager is not initialized. Cannot handle URL input.")
+                    logger.error(
+                        "BlobManager is not initialized. Cannot handle URL input."
+                    )
+                    raise Exception(
+                        "BlobManager is not initialized. Cannot handle URL input."
+                    )
             else:
                 logger.info(f"Input path is a local file or directory: {input_path}")
                 extracted_images = self._process_pdf_path(input_path, output_path, dpi)
@@ -100,9 +115,13 @@ class OCRHelper:
                     shutil.rmtree(temp_dir)
                     logger.info(f"Cleaned up temporary directory: {temp_dir}")
                 except Exception as cleanup_error:
-                    logger.error(f"Failed to clean up temporary directory '{temp_dir}': {cleanup_error}")
+                    logger.error(
+                        f"Failed to clean up temporary directory '{temp_dir}': {cleanup_error}"
+                    )
 
-    def _process_pdf_path(self, input_path: str, output_path: str, dpi: int) -> List[str]:
+    def _process_pdf_path(
+        self, input_path: str, output_path: str, dpi: int
+    ) -> List[str]:
         """
         Processes a PDF file or all PDF files in a directory.
 
@@ -117,18 +136,28 @@ class OCRHelper:
         image_paths = []
         try:
             if os.path.isdir(input_path):
-                image_paths.extend(self._process_pdf_directory(input_path, output_path, dpi))
+                image_paths.extend(
+                    self._process_pdf_directory(input_path, output_path, dpi)
+                )
             elif os.path.isfile(input_path) and input_path.lower().endswith(".pdf"):
-                image_paths.extend(self._process_single_pdf(input_path, output_path, dpi))
+                image_paths.extend(
+                    self._process_single_pdf(input_path, output_path, dpi)
+                )
             else:
-                logger.error("The input path is neither a valid PDF file nor a directory.")
-                raise ValueError("The input path is neither a valid PDF file nor a directory.")
+                logger.error(
+                    "The input path is neither a valid PDF file nor a directory."
+                )
+                raise ValueError(
+                    "The input path is neither a valid PDF file nor a directory."
+                )
         except Exception as e:
             logger.error(f"Failed to process PDF path: {e}")
             raise
         return image_paths
 
-    def _process_pdf_directory(self, directory_path: str, output_path: str, dpi: int) -> List[str]:
+    def _process_pdf_directory(
+        self, directory_path: str, output_path: str, dpi: int
+    ) -> List[str]:
         """
         Processes all PDF files in a directory and its subdirectories, saving each page as an image.
 
@@ -143,7 +172,9 @@ class OCRHelper:
         image_paths = []
         try:
             all_files = self._find_all_pdfs(directory_path)
-            logger.info(f"Found {len(all_files)} PDF files in '{directory_path}' and its subdirectories.")
+            logger.info(
+                f"Found {len(all_files)} PDF files in '{directory_path}' and its subdirectories."
+            )
             for file_path in all_files:
                 logger.info(f"Processing file: {file_path}")
                 extracted_images = self._process_single_pdf(file_path, output_path, dpi)
@@ -172,10 +203,14 @@ class OCRHelper:
             logger.debug(f"PDF files found: {pdf_files}")
             return pdf_files
         except Exception as e:
-            logger.error(f"Failed to find PDF files in directory '{directory_path}': {e}")
+            logger.error(
+                f"Failed to find PDF files in directory '{directory_path}': {e}"
+            )
             raise
 
-    def _process_single_pdf(self, file_path: str, output_path: str, dpi: int) -> List[str]:
+    def _process_single_pdf(
+        self, file_path: str, output_path: str, dpi: int
+    ) -> List[str]:
         """
         Processes a single PDF file and saves each page as an image.
 
@@ -237,7 +272,7 @@ class OCRHelper:
             str: The blob name.
         """
         parsed_url = urlparse(url)
-        path_parts = parsed_url.path.lstrip('/').split('/', 1)
+        path_parts = parsed_url.path.lstrip("/").split("/", 1)
         if len(path_parts) == 2:
             container, blob_name = path_parts
             return blob_name

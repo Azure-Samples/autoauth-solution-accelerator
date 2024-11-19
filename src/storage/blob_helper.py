@@ -2,10 +2,10 @@ import os
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
 
-from azure.storage.blob import BlobServiceClient, BlobClient
 from azure.core.credentials import AzureNamedKeyCredential
+from azure.storage.blob import BlobClient, BlobServiceClient
 from dotenv import load_dotenv
-from tenacity import retry, wait_exponential, stop_after_attempt
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from utils.ml_logging import get_logger
 
@@ -37,24 +37,37 @@ class AzureBlobManager:
         """
         try:
             load_dotenv()
-            self.storage_account_name = storage_account_name or os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
-            self.container_name = container_name or os.getenv("AZURE_BLOB_CONTAINER_NAME")
+            self.storage_account_name = storage_account_name or os.getenv(
+                "AZURE_STORAGE_ACCOUNT_NAME"
+            )
+            self.container_name = container_name or os.getenv(
+                "AZURE_BLOB_CONTAINER_NAME"
+            )
             self.account_key = account_key or os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
 
             if not self.storage_account_name:
-                raise ValueError("Storage account name must be provided either as a parameter or in the .env file.")
+                raise ValueError(
+                    "Storage account name must be provided either as a parameter or in the .env file."
+                )
             if not self.container_name:
-                raise ValueError("Container name must be provided either as a parameter or in the .env file.")
+                raise ValueError(
+                    "Container name must be provided either as a parameter or in the .env file."
+                )
             if not self.account_key:
-                raise ValueError("Storage account key must be provided either as a parameter or in the .env file.")
+                raise ValueError(
+                    "Storage account key must be provided either as a parameter or in the .env file."
+                )
 
-            # Initialize the BlobServiceClient with the account key
-            credential = AzureNamedKeyCredential(self.storage_account_name, self.account_key)
+            credential = AzureNamedKeyCredential(
+                self.storage_account_name, self.account_key
+            )
             self.blob_service_client = BlobServiceClient(
                 account_url=f"https://{self.storage_account_name}.blob.core.windows.net",
                 credential=credential,
             )
-            self.container_client = self.blob_service_client.get_container_client(self.container_name)
+            self.container_client = self.blob_service_client.get_container_client(
+                self.container_name
+            )
             self._create_container_if_not_exists()
 
         except Exception as e:
@@ -72,7 +85,9 @@ class AzureBlobManager:
             else:
                 logger.info(f"Container '{self.container_name}' already exists.")
         except Exception as e:
-            logger.error(f"Failed to create or access container '{self.container_name}': {e}")
+            logger.error(
+                f"Failed to create or access container '{self.container_name}': {e}"
+            )
             raise
 
     def change_container(self, new_container_name: str) -> None:
@@ -84,7 +99,9 @@ class AzureBlobManager:
         """
         try:
             self.container_name = new_container_name
-            self.container_client = self.blob_service_client.get_container_client(new_container_name)
+            self.container_client = self.blob_service_client.get_container_client(
+                new_container_name
+            )
             self._create_container_if_not_exists()
             logger.info(f"Container changed to '{new_container_name}'.")
         except Exception as e:
@@ -102,14 +119,14 @@ class AzureBlobManager:
             Dict[str, str]: A dictionary containing 'storage_account', 'container_name', and 'blob_name'.
         """
         parsed_url = urlparse(blob_url)
-        storage_account = parsed_url.netloc.split('.')[0]
-        path_parts = parsed_url.path.lstrip('/').split('/')
+        storage_account = parsed_url.netloc.split(".")[0]
+        path_parts = parsed_url.path.lstrip("/").split("/")
         container_name = path_parts[0]
-        blob_name = '/'.join(path_parts[1:])
+        blob_name = "/".join(path_parts[1:])
         return {
-            'storage_account': storage_account,
-            'container_name': container_name,
-            'blob_name': blob_name
+            "storage_account": storage_account,
+            "container_name": container_name,
+            "blob_name": blob_name,
         }
 
     def _check_file_exists_and_permissions(self, file_path: str) -> bool:
@@ -130,7 +147,9 @@ class AzureBlobManager:
             return False
         return True
 
-    @retry(wait=wait_exponential(multiplier=1, min=4, max=10), stop=stop_after_attempt(2))
+    @retry(
+        wait=wait_exponential(multiplier=1, min=4, max=10), stop=stop_after_attempt(2)
+    )
     def upload_file(
         self,
         local_file_path: str,
@@ -152,11 +171,15 @@ class AzureBlobManager:
             return
 
         if extension:
-            self._upload_files_with_extension(local_file_path, remote_blob_path, extension, overwrite)
+            self._upload_files_with_extension(
+                local_file_path, remote_blob_path, extension, overwrite
+            )
         else:
             self._upload_single_file(local_file_path, remote_blob_path, overwrite)
 
-    def _upload_single_file(self, local_file_path: str, remote_blob_path: str, overwrite: bool) -> None:
+    def _upload_single_file(
+        self, local_file_path: str, remote_blob_path: str, overwrite: bool
+    ) -> None:
         """
         Uploads a single file to Azure Blob Storage.
 
@@ -172,12 +195,22 @@ class AzureBlobManager:
             blob_client = self.container_client.get_blob_client(remote_blob_path)
             with open(local_file_path, "rb") as data:
                 blob_client.upload_blob(data, overwrite=overwrite)
-            logger.info(f"File '{local_file_path}' uploaded to blob '{remote_blob_path}' successfully.")
+            logger.info(
+                f"File '{local_file_path}' uploaded to blob '{remote_blob_path}' successfully."
+            )
         except Exception as e:
-            logger.error(f"Failed to upload file '{local_file_path}' to blob '{remote_blob_path}': {e}")
+            logger.error(
+                f"Failed to upload file '{local_file_path}' to blob '{remote_blob_path}': {e}"
+            )
             raise
 
-    def _upload_files_with_extension(self, directory_path: str, remote_blob_path: str, extension: str, overwrite: bool) -> None:
+    def _upload_files_with_extension(
+        self,
+        directory_path: str,
+        remote_blob_path: str,
+        extension: str,
+        overwrite: bool,
+    ) -> None:
         """
         Uploads all files with a specific extension from a directory to Azure Blob Storage.
 
@@ -195,7 +228,9 @@ class AzureBlobManager:
             for file_name in files:
                 if file_name.lower().endswith(extension.lower()):
                     file_path = os.path.join(root, file_name)
-                    blob_path = os.path.join(remote_blob_path, os.path.relpath(file_path, directory_path)).replace("\\", "/")
+                    blob_path = os.path.join(
+                        remote_blob_path, os.path.relpath(file_path, directory_path)
+                    ).replace("\\", "/")
 
                     if not self._check_file_exists_and_permissions(file_path):
                         continue
@@ -204,9 +239,13 @@ class AzureBlobManager:
                         blob_client = self.container_client.get_blob_client(blob_path)
                         with open(file_path, "rb") as data:
                             blob_client.upload_blob(data, overwrite=overwrite)
-                        logger.info(f"File '{file_path}' uploaded to blob '{blob_path}' successfully.")
+                        logger.info(
+                            f"File '{file_path}' uploaded to blob '{blob_path}' successfully."
+                        )
                     except Exception as e:
-                        logger.error(f"Failed to upload file '{file_path}' to blob '{blob_path}': {e}")
+                        logger.error(
+                            f"Failed to upload file '{file_path}' to blob '{blob_path}': {e}"
+                        )
                         raise
 
     def copy_blob(self, source_blob_url: str, destination_blob_path: str) -> None:
@@ -224,11 +263,17 @@ class AzureBlobManager:
         try:
             blob_client = self.container_client.get_blob_client(destination_blob_path)
             blob_client.start_copy_from_url(source_blob_url)
-            logger.info(f"Started copying blob from '{source_blob_url}' to '{destination_blob_path}' in container '{self.container_name}'.")
+            logger.info(
+                f"Started copying blob from '{source_blob_url}' to '{destination_blob_path}' in container '{self.container_name}'."
+            )
         except Exception as e:
-            logger.error(f"Failed to copy blob from '{source_blob_url}' to '{destination_blob_path}': {e}")
+            logger.error(
+                f"Failed to copy blob from '{source_blob_url}' to '{destination_blob_path}': {e}"
+            )
 
-    def download_blob_to_file(self, remote_blob_path: str, local_file_path: str) -> None:
+    def download_blob_to_file(
+        self, remote_blob_path: str, local_file_path: str
+    ) -> None:
         """
         Downloads a blob from Azure Blob Storage to a local file.
 
@@ -241,7 +286,9 @@ class AzureBlobManager:
             os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
             with open(local_file_path, "wb") as download_file:
                 download_file.write(blob_client.download_blob().readall())
-            logger.info(f"Downloaded blob '{blob_client.blob_name}' to '{local_file_path}'.")
+            logger.info(
+                f"Downloaded blob '{blob_client.blob_name}' to '{local_file_path}'."
+            )
         except Exception as e:
             logger.error(f"Failed to download blob '{remote_blob_path}': {e}")
 
@@ -277,7 +324,9 @@ class AzureBlobManager:
         if remote_blob_path.startswith("http"):
             return BlobClient.from_blob_url(
                 blob_url=remote_blob_path,
-                credential=AzureNamedKeyCredential(self.storage_account_name, self.account_key)
+                credential=AzureNamedKeyCredential(
+                    self.storage_account_name, self.account_key
+                ),
             )
         else:
             return self.container_client.get_blob_client(remote_blob_path)
@@ -299,8 +348,12 @@ class AzureBlobManager:
         try:
             blobs = self.container_client.list_blobs(name_starts_with=prefix)
             blob_names = [blob.name for blob in blobs]
-            logger.info(f"Listed {len(blob_names)} blobs with prefix '{prefix}' in container '{self.container_name}'.")
+            logger.info(
+                f"Listed {len(blob_names)} blobs with prefix '{prefix}' in container '{self.container_name}'."
+            )
             return blob_names
         except Exception as e:
-            logger.error(f"Failed to list blobs with prefix '{prefix}' in container '{self.container_name}': {e}")
+            logger.error(
+                f"Failed to list blobs with prefix '{prefix}' in container '{self.container_name}': {e}"
+            )
             return []

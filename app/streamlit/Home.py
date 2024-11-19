@@ -13,9 +13,6 @@ import streamlit as st
 # Load environment variables if not already loaded
 dotenv.load_dotenv(".env")
 
-FROM_EMAIL = "Pablosalvadorlopez@outlook.com"
-
-
 def get_image_base64(image_path: str) -> str:
     """
     Convert an image file to a base64 string.
@@ -48,7 +45,7 @@ def get_main_content() -> str:
     """
     Get the main content HTML for the app.
     """
-    azure_logo_base64 = get_image_base64('./utils/images/azure_logo.png')
+    azure_logo_base64 = get_image_base64("./utils/images/azure_logo.png")
     return f"""
     <h1 style="text-align:center;">
         Streamlining Prior Authorization with Azure AI
@@ -56,80 +53,42 @@ def get_main_content() -> str:
     </h1>
     """
 
-
 @st.cache_data()
 def create_support_center_content():
     content = {
-        "How to Use the Deployment Center": """
-            ### 🌟 Getting Started with the Deployment Center
-
-            Adding new deployments allows you to compare performance across multiple MaaS deployments. Follow this step-by-step guide to add and manage your deployments:
-
-            **Step 1: Add Your MaaS Deployment**
-
-            1. Navigate to the `Deployment Center` located at the top of the sidebar.
-            2. You will find two sections: `Add your MaaS deployment` and `Loaded deployments`.
-                - `Add your MaaS deployment`: Here, you can add a new deployment.
-                - `Loaded deployments`: This section displays deployments that are already loaded and ready to use.
-            3. To add a new deployment, proceed to the next step.
-        
-            **Step 2: Add Deployment Details**
-            - Fill in the form with the following details:
-                - **Deployment ID:** Your chat model deployment ID.
-                - **Azure OpenAI Key:** Your Azure OpenAI key (treated as confidential).
-                - **API Endpoint:** The endpoint URL for Azure OpenAI.
-                - **API Version:** The version of the Azure OpenAI API you're using.
-                - **Streaming:** Select 'Yes' if the model will output in streaming mode.
-            - Click **Add Deployment** to save your deployment to the session state.
-
-            **Step 3: View and Manage Deployments**
-            - Your deployments will be listed under **Loaded Deployments**.
-            - Click on a deployment to expand and view its details.
-            - You can update any deployment details and click **Update Deployment** to save changes.
-            - To remove a deployment, click **Remove Deployment**.
-        """,
-        "How Deployments are Managed": """
-            ### 🌟 Managing Deployments in the Deployment Center
-            - Deployments are stored in the Streamlit `session_state`, allowing them to persist across page reloads and be accessible across different pages of the app.
-            - This flexibility allows you to easily compare the performance of different deployments and make adjustments as needed.
-
-            **Updating Deployments Across Pages**
-            - Any updates made to a deployment from one page are reflected across the entire app, allowing seamless switching between different deployments or updating their configurations without losing context.
-        """,
         "How to Collaborate on the Project": """
             ### 🛠️ Resource Links
-            - **GitHub Repository:** [Access the GitHub repo](https://github.com/pablosalvador10/gbb-ai-upgrade-llm)
+            - **GitHub Repository:** [Access the GitHub repo](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth)
             - **Feedback Form:** [Share your feedback](https://forms.office.com/r/gr8jK9cxuT)
 
             ### 💬 Want to Collaborate or Share Your Feedback?
             - **Join Our Community:** Connect with experts and enthusiasts in our [community forums](https://forms.office.com/r/qryYbe23T0).
-            - **Provide Feedback:** Use our [feedback form](https://forms.office.com/r/gr8jK9cxuT) or [GitHub Issues](https://github.com/pablosalvador10/gbb-ai-upgrade-llm/issues) to share your thoughts and suggestions.
+            - **Provide Feedback:** Use our [feedback form](https://forms.office.com/r/gr8jK9cxuT) or [GitHub Issues](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/issues) to share your thoughts and suggestions.
         """,
         "How to Navigate Through the App": """
-            ### 🌐 Navigating the App
+            ### 🌐 Navigating AutoAuth
             - **Home:** This is the main page you're currently on.
-            - **Performance Insights:** Gain in-depth insights into model performance, including throughput and latency analysis.
-            - **Quality Metrics:** Assess the accuracy and reliability of your AI models with detailed quality metrics.
+            - **Payor:** Explore AutoAuth.
+            - **Provider:** WIP..AutoAuth for providers will be Available soon. Stay tuned!
         """,
         "Feedback": """
             🐞 **Encountered a bug?** Or have a **feature request**? We're all ears!
 
-            Your feedback is crucial in helping us make our service better. If you've stumbled upon an issue or have an idea to enhance our platform, don't hesitate to let us know.
+            Your feedback is crucial in helping us improve AutoAuth. If you've found an issue or have an idea to enhance our platform, please let us know.
 
             📝 **Here's how you can help:**
             - Click on the link below to open a new issue on our GitHub repository.
             - Provide a detailed description of the bug or the feature you envision. The more details, the better!
             - Submit your issue. We'll review it as part of our ongoing effort to improve.
 
-            [🔗 Open an Issue on GitHub](https://github.com/pablosalvador10/gbb-ai-upgrade-llm/issues)
+            [🔗 Open an Issue on GitHub](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/issues)
 
-            Don't worry if you can't access GitHub! We'd still love to hear your ideas or suggestions for improvements. Just click [here](https://forms.office.com/r/gr8jK9cxuT) to fill out our form. 
+            If you can't access GitHub, we'd still love to hear your ideas or suggestions for improvements. Just click [here](https://forms.office.com/r/gr8jK9cxuT) to fill out our form.
 
             🙏 **Thank you for contributing!** Your insights are invaluable to us.
         """,
     }
     return content
-
 
 def display_support_center():
     st.sidebar.markdown("## 🛠️ Support Center")
@@ -145,16 +104,7 @@ def display_support_center():
     with tab2:
         st.markdown(content["Feedback"])
 
-# #### 🚀 Ready to Dive In?
 
-    # <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.15); width: 80%; margin: auto;">
-    #     <iframe src="https://www.loom.com/share/2988afbc761c4348b5299ed55895f128?sid=f7369149-4ab2-4204-8580-0bbdc6a38616" 
-    #     frameborder="0" 
-    #     webkitallowfullscreen 
-    #     mozallowfullscreen 
-    #     allowfullscreen 
-    #     style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></iframe>
-    # </div>
 
 @st.cache_data()
 def get_markdown_content() -> str:
@@ -162,7 +112,7 @@ def get_markdown_content() -> str:
     Get the markdown content for the app.
     """
 
-    workflow = get_image_base64('./utils/images/prior_auth.png')
+    workflow = get_image_base64("./utils/images/prior_auth.png")
     return f"""
     Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors (insurance companies) before delivering specific treatments or medications. While essential for cost control and care management, the process has become inefficient, creating substantial delays, administrative overheads, and negative outcomes for all stakeholders—providers, payors, and patients.
     
@@ -237,14 +187,13 @@ def get_markdown_content() -> str:
             ...
     </div>
 
-    ### 🤖👩‍⚕️ Meet PRISM: Our Solution for Payors 
-
-    **PRISM** – **P**rior **R**equest **I**ntelligent **S**ystem for **M**edical Authorization is a comprehensive solution designed to optimize the Prior Authorization (PA) process for healthcare providers. By leveraging advanced AI and automation, PRISM ensures faster, more accurate PA decisions, reducing administrative burdens and improving patient care.
-
-    Please navigate to the Payor page to explore our solution designed to streamline the Prior Authorization (PA) process. Our goal is to reduce administrative burdens, enhance accuracy, and improve productivity by leveraging advanced AI and automation. By implementing PRISM, healthcare providers can process more cases efficiently, reduce bottlenecks, and lower expenses.
-
-
+    ### 🤖👩‍⚕️ Introducing AutoAuth: Streamlining Prior Authorization
+    
+    **AutoAuth** is an AI-powered solution designed to optimize the Prior Authorization (PA) process. By leveraging advanced technology, AutoAuth ensures faster and more accurate PA decisions, reducing administrative burdens and enhancing patient care.
+    
+    Visit the **Payor** page to explore our tailored solution for payors, aimed at improving efficiency and reducing operational costs.
     """
+
 
 @st.cache_data()
 def get_footer_content() -> str:
@@ -268,123 +217,6 @@ def get_footer_content() -> str:
     </div>
     """
 
-
-def load_default_deployment(
-    name: Optional[str] = None,
-    key: Optional[str] = None,
-    endpoint: Optional[str] = None,
-    version: Optional[str] = None,
-) -> None:
-    """
-    Load default deployment settings, optionally from provided parameters.
-
-    Ensures that a deployment with the same name does not already exist.
-
-    :param name: (Optional) Name of the deployment.
-    :param key: (Optional) Azure OpenAI key.
-    :param endpoint: (Optional) API endpoint for Azure OpenAI.
-    :param version: (Optional) API version for Azure OpenAI.
-    :raises ValueError: If required deployment settings are missing.
-    """
-    # Ensure deployments is a dictionary
-    if "deployments" not in st.session_state or not isinstance(
-        st.session_state.deployments, dict
-    ):
-        st.session_state.deployments = {}
-
-    # Check if the deployment name already exists
-    deployment_name = (
-        name if name else os.getenv("AZURE_AOAI_CHAT_MODEL_NAME_DEPLOYMENT_ID")
-    )
-    if deployment_name in st.session_state.deployments:
-        return  # Exit the function if deployment already exists
-
-    default_deployment = {
-        "name": deployment_name,
-        "key": key if key else os.getenv("AZURE_OPENAI_KEY"),
-        "endpoint": endpoint if endpoint else os.getenv("AZURE_OPENAI_API_ENDPOINT"),
-        "version": version if version else os.getenv("AZURE_OPENAI_API_VERSION"),
-        "stream": False,
-    }
-
-    if all(
-        value is not None for value in default_deployment.values() if value != False
-    ):
-        st.session_state.deployments[default_deployment["name"]] = default_deployment
-
-
-
-def add_deployment_aoai_form() -> None:
-    """
-    Render the form to add a new Azure OpenAI deployment.
-
-    This function provides a form in the Streamlit sidebar to add a new deployment, allowing users to specify deployment details.
-    """
-    with st.form("add_deployment_aoai_form"):
-        deployment_name = st.text_input(
-            "Deployment id",
-            help="Enter the deployment ID for Azure OpenAI.",
-            placeholder="e.g., chat-gpt-1234abcd",
-        )
-        deployment_key = st.text_input(
-            "Azure OpenAI Key",
-            help="Enter your Azure OpenAI key.",
-            type="password",
-            placeholder="e.g., sk-ab*****..",
-        )
-        deployment_endpoint = st.text_input(
-            "API Endpoint",
-            help="Enter the API endpoint for Azure OpenAI.",
-            placeholder="e.g., https://api.openai.com/v1",
-        )
-        deployment_version = st.text_input(
-            "API Version",
-            help="Enter the API version for Azure OpenAI.",
-            placeholder="e.g., 2024-02-15-preview",
-        )
-        is_streaming = st.radio(
-            "Streaming",
-            (True, False),
-            index=1,
-            format_func=lambda x: "Yes" if x else "No",
-            help="Select 'Yes' if the model will be tested with output in streaming mode.",
-        )
-        submitted = st.form_submit_button("Add Deployment")
-
-        if submitted:
-            if (
-                deployment_name
-                and deployment_key
-                and deployment_endpoint
-                and deployment_version
-            ):
-                if "deployments" not in st.session_state:
-                    st.session_state.deployments = {}
-
-                try:
-                   pass
-                except Exception as e:
-                    st.warning(
-                        f"""An issue occurred while initializing the Azure OpenAI manager. {e} Please try again. If the issue persists,
-                                    verify your configuration."""
-                    )
-                    return
-
-                if deployment_name not in st.session_state.deployments:
-                    st.session_state.deployments[deployment_name] = {
-                        "key": deployment_key,
-                        "endpoint": deployment_endpoint,
-                        "version": deployment_version,
-                        "stream": is_streaming,
-                    }
-                    st.toast(f"Deployment '{deployment_name}' added successfully.")
-                    st.rerun()
-                else:
-                    st.error(
-                        f"A deployment with the name '{deployment_name}' already exists."
-                    )
-
-
 def main() -> None:
     """
     Main function to run the Streamlit app.
@@ -394,21 +226,29 @@ def main() -> None:
         page_icon="👋",
     )
 
-    env_vars = {
-        "AZURE_OPENAI_KEY": "",
-        "AZURE_OPENAI_API_ENDPOINT": "",
-        "AZURE_OPENAI_API_VERSION": "",
-        "AZURE_AOAI_CHAT_MODEL_NAME_DEPLOYMENT_ID": "",
-        "deployments": {},
-    }
-    initialize_session_state(env_vars)
-
     display_support_center()
 
     st.write(get_main_content(), unsafe_allow_html=True)
     st.markdown(get_markdown_content(), unsafe_allow_html=True)
     st.write(get_footer_content(), unsafe_allow_html=True)
-
+    st.sidebar.write(
+    """
+    <div style="text-align:center; font-size:30px; margin-top:10px;">
+        ...
+    </div>
+    <div style="text-align:center; margin-top:20px;">
+                <a href="https://github.com/pablosalvador10" target="_blank" style="text-decoration:none; margin: 0 10px;">
+                    <img src="https://img.icons8.com/fluent/48/000000/github.png" alt="GitHub" style="width:40px; height:40px;">
+                </a>
+                <a href="https://www.linkedin.com/in/pablosalvadorlopez/?locale=en_US" target="_blank" style="text-decoration:none; margin: 0 10px;">
+                    <img src="https://img.icons8.com/fluent/48/000000/linkedin.png" alt="LinkedIn" style="width:40px; height:40px;">
+                </a>
+                <a href="https://pabloaicorner.hashnode.dev/" target="_blank" style="text-decoration:none; margin: 0 10px;">
+                    <img src="https://img.icons8.com/ios-filled/50/000000/blog.png" alt="Blog" style="width:40px; height:40px;">
+                </a>
+    </div>
+    """,
+    unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()

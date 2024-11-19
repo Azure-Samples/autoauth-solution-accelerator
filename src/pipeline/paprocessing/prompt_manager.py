@@ -1,13 +1,16 @@
-from jinja2 import Environment, FileSystemLoader
 import os
 from typing import Any
-from utils.ml_logging import get_logger
+
+from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
+
+from utils.ml_logging import get_logger
 
 logger = get_logger()
 
+
 class PromptManager:
-    def __init__(self, template_dir: str = 'templates'):
+    def __init__(self, template_dir: str = "templates"):
         """
         Initialize the PromptManager with the given template directory.
 
@@ -16,10 +19,9 @@ class PromptManager:
         """
         current_dir = os.path.dirname(os.path.abspath(__file__))
         template_path = os.path.join(current_dir, template_dir)
-        
+
         self.env = Environment(
-            loader=FileSystemLoader(searchpath=template_path),
-            autoescape=False
+            loader=FileSystemLoader(searchpath=template_path), autoescape=False
         )
 
         templates = self.env.list_templates()
@@ -53,17 +55,23 @@ class PromptManager:
             str: The rendered query expansion prompt.
         """
         return self.get_prompt(
-            'query_expansion_user_prompt.jinja',
+            "query_expansion_user_prompt.jinja",
             diagnosis=clinical_info.diagnosis,
             medication_or_procedure=clinical_info.treatment_request.name_of_medication_or_procedure,
             code=clinical_info.treatment_request.code_of_medication_or_procedure,
             dosage=clinical_info.treatment_request.dosage,
             duration=clinical_info.treatment_request.duration,
-            rationale=clinical_info.treatment_request.rationale
+            rationale=clinical_info.treatment_request.rationale,
         )
 
-    def create_prompt_pa(self, patient_info: BaseModel, physician_info: BaseModel, 
-                         clinical_info: BaseModel, policy_text: str, use_o1: bool = False) -> str:
+    def create_prompt_pa(
+        self,
+        patient_info: BaseModel,
+        physician_info: BaseModel,
+        clinical_info: BaseModel,
+        policy_text: str,
+        use_o1: bool = False,
+    ) -> str:
         """
         Create a prompt for prior authorization based on patient, physician, clinical information, and policy text.
 
@@ -77,8 +85,12 @@ class PromptManager:
         Returns:
             str: The rendered prior authorization prompt.
         """
-        template_name = 'prior_auth_o1_user_prompt.jinja' if use_o1 else 'prior_auth_user_prompt.jinja'
-        
+        template_name = (
+            "prior_auth_o1_user_prompt.jinja"
+            if use_o1
+            else "prior_auth_user_prompt.jinja"
+        )
+
         return self.get_prompt(
             template_name,
             # Patient Information
@@ -111,5 +123,27 @@ class PromptManager:
             medication_rationale=clinical_info.treatment_request.rationale,
             presumed_eligibility=clinical_info.treatment_request.presumed_eligibility,
             # Policy Text
-            policy_text=policy_text
+            policy_text=policy_text,
         )
+    
+    def create_prompt_summary_policy(
+            self,
+            policy_text: str,
+        ) -> str:
+            """
+            Create a prompt to summarize the policy text for prior authorization.
+    
+            Args:
+                policy_text (str): The policy text to be summarized.
+    
+            Returns:
+                str: The rendered prompt for summarizing the policy.
+            """
+            template_name = (
+                "summarize_policy_user.jinja"
+            )
+    
+            return self.get_prompt(
+                template_name,
+                policy_text=policy_text,
+            )

@@ -48,7 +48,9 @@ class AzureDocumentIntelligenceManager:
         """
         # Load environment variables if not provided
         load_dotenv()
-        self.azure_endpoint = azure_endpoint or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
+        self.azure_endpoint = azure_endpoint or os.getenv(
+            "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
+        )
         self.azure_key = azure_key or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
 
         # Validate required configurations for Document Analysis Client
@@ -73,7 +75,6 @@ class AzureDocumentIntelligenceManager:
             )
         else:
             self.blob_manager = None
-
 
     def analyze_document(
         self,

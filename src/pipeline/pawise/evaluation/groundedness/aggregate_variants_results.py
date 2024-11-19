@@ -1,6 +1,8 @@
 from typing import List
-from pipeline import tool, log_metric
+
 import numpy as np
+
+from pipeline import log_metric, tool
 
 
 @tool
@@ -19,7 +21,7 @@ def aggregate_variants_results(results: List[dict]):
     for name, value in aggregate_results.items():
         metric_name = name
         aggregate_results[name] = np.nanmean(value)
-        if 'pass_rate' in metric_name:
+        if "pass_rate" in metric_name:
             metric_name = metric_name + "(%)"
             aggregate_results[name] = aggregate_results[name] * 100.0
         aggregate_results[name] = round(aggregate_results[name], 2)

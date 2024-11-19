@@ -1,80 +1,168 @@
 {
     "001_a": {
         "doctor_notes": [
-            "utils\\data\\cases\\001\\a\\doctor_notes\\01_a.pdf"
+            "utils\\data\\cases\\001\\a\\doctor_notes\\01_a_notes.pdf"
         ],
         "imaging": [
-            "utils\\data\\cases\\001\\a\\imaging\\01_a.pdf"
+            "utils\\data\\cases\\001\\a\\imaging\\01_a_imaging.pdf"
         ],
         "labs": [
-            "utils\\data\\cases\\001\\a\\labs\\01_a.pdf"
+            "utils\\data\\cases\\001\\a\\labs\\01_a_labs.pdf"
         ],
         "pa_form": [
-            "utils\\data\\cases\\001\\a\\pa_form\\01_a.pdf"
+            "utils\\data\\cases\\001\\a\\pa_form\\01_a_form.pdf"
         ],
-        "policies": [
-            "utils\\data\\cases\\001\\a\\policies\\001_inflammatory_Conditions.pdf"
-        ],
+        "policies": [],
         "evaluation_time": "2023-10-01T12:00:00Z",
-        "decision": "approved",
+        "decision": "rejected",
         "notes": "Manually evaluated by MD based on the policies."
     },
     "001_b": {
         "doctor_notes": [
-            "utils\\data\\cases\\001\\b\\doctor_notes\\01_a.pdf"
+            "utils\\data\\cases\\001\\b\\doctor_notes\\01_b_notes.pdf"
         ],
         "imaging": [
-            "utils\\data\\cases\\001\\b\\imaging\\01_a.pdf"
+            "utils\\data\\cases\\001\\b\\imaging\\01_b_imaging.pdf"
         ],
         "labs": [
-            "utils\\data\\cases\\001\\b\\labs\\01_a.pdf"
+            "utils\\data\\cases\\001\\b\\labs\\01_b_labs.pdf"
         ],
         "pa_form": [
-            "utils\\data\\cases\\001\\b\\pa_form\\01_a.pdf"
+            "utils\\data\\cases\\001\\b\\pa_form\\01_b_form.pdf"
         ],
-        "policies": [
-            "utils\\data\\cases\\001\\b\\policies\\001_inflammatory_Conditions.pdf"
-        ],
+        "policies": [],
         "evaluation_time": "2023-10-01T12:00:00Z",
         "decision": "approved",
         "notes": "Manually evaluated by MD based on the policies."
     },
     "002_a": {
         "doctor_notes": [
-            "utils\\data\\cases\\002\\a\\doctor_notes\\01_a.pdf"
+            "utils\\data\\cases\\002\\a\\doctor_notes\\002_a (note).pdf"
         ],
         "imaging": [
-            "utils\\data\\cases\\002\\a\\imaging\\01_a.pdf"
+            "utils\\data\\cases\\002\\a\\imaging\\002_a (imaging).pdf"
         ],
         "labs": [
-            "utils\\data\\cases\\002\\a\\labs\\01_a.pdf"
+            "utils\\data\\cases\\002\\a\\labs\\002_a (labs) .pdf"
         ],
         "pa_form": [
-            "utils\\data\\cases\\002\\a\\pa_form\\01_a.pdf"
+            "utils\\data\\cases\\002\\a\\pa_form\\002_a (form).pdf"
         ],
-        "policies": [
-            "utils\\data\\cases\\002\\a\\policies\\001_inflammatory_Conditions.pdf"
-        ],
+        "policies": [],
         "evaluation_time": "2023-10-01T12:00:00Z",
         "decision": "approved",
         "notes": "Manually evaluated by MD based on the policies."
     },
     "002_b": {
         "doctor_notes": [
-            "utils\\data\\cases\\002\\b\\doctor_notes\\01_a.pdf"
+            "utils\\data\\cases\\002\\b\\doctor_notes\\002_b (note).pdf"
         ],
         "imaging": [
-            "utils\\data\\cases\\002\\b\\imaging\\01_a.pdf"
+            "utils\\data\\cases\\002\\b\\imaging\\002_b (imaging).pdf"
         ],
         "labs": [
-            "utils\\data\\cases\\002\\b\\labs\\01_a.pdf"
+            "utils\\data\\cases\\002\\b\\labs\\002_b (labs).pdf"
         ],
         "pa_form": [
-            "utils\\data\\cases\\002\\b\\pa_form\\01_a.pdf"
+            "utils\\data\\cases\\002\\b\\pa_form\\002_b (form).pdf"
         ],
-        "policies": [
-            "utils\\data\\cases\\002\\b\\policies\\001_inflammatory_Conditions.pdf"
+        "policies": [],
+        "evaluation_time": "2023-10-01T12:00:00Z",
+        "decision": "approved",
+        "notes": "Manually evaluated by MD based on the policies."
+    },
+    "003_a": {
+        "doctor_notes": [
+            "utils\\data\\cases\\003\\a\\doctor_notes\\003_a (note) .pdf"
         ],
+        "imaging": [],
+        "labs": [
+            "utils\\data\\cases\\003\\a\\labs\\003_a (labs).pdf"
+        ],
+        "pa_form": [
+            "utils\\data\\cases\\003\\a\\pa_form\\003_a (form).pdf"
+        ],
+        "policies": [],
+        "evaluation_time": "2023-10-01T12:00:00Z",
+        "decision": "approved",
+        "notes": "Manually evaluated by MD based on the policies."
+    },
+    "003_b": {
+        "doctor_notes": [
+            "utils\\data\\cases\\003\\b\\doctor_notes\\003_b (note) .pdf"
+        ],
+        "imaging": [],
+        "labs": [
+            "utils\\data\\cases\\003\\b\\labs\\003_b (labs) .pdf"
+        ],
+        "pa_form": [
+            "utils\\data\\cases\\003\\b\\pa_form\\003_b (form).pdf"
+        ],
+        "policies": [],
+        "evaluation_time": "2023-10-01T12:00:00Z",
+        "decision": "approved",
+        "notes": "Manually evaluated by MD based on the policies."
+    },
+    "004_a": {
+        "doctor_notes": [
+            "utils\\data\\cases\\004\\a\\doctor_notes\\004_a (note).pdf"
+        ],
+        "imaging": [],
+        "labs": [],
+        "pa_form": [
+            "utils\\data\\cases\\004\\a\\pa_form\\004_a (form).pdf"
+        ],
+        "policies": [],
+        "evaluation_time": "2023-10-01T12:00:00Z",
+        "decision": "approved",
+        "notes": "Manually evaluated by MD based on the policies."
+    },
+    "004_b": {
+        "doctor_notes": [
+            "utils\\data\\cases\\004\\b\\doctor_notes\\004_b (note).pdf"
+        ],
+        "imaging": [],
+        "labs": [],
+        "pa_form": [
+            "utils\\data\\cases\\004\\b\\pa_form\\004_b (form).pdf"
+        ],
+        "policies": [],
+        "evaluation_time": "2023-10-01T12:00:00Z",
+        "decision": "approved",
+        "notes": "Manually evaluated by MD based on the policies."
+    },
+    "005_a": {
+        "doctor_notes": [
+            "utils\\data\\cases\\005\\a\\doctor_notes\\005_a (form).pdf"
+        ],
+        "imaging": [
+            "utils\\data\\cases\\005\\a\\imaging\\005_a (imaging).pdf"
+        ],
+        "labs": [
+            "utils\\data\\cases\\005\\a\\labs\\005_a (labs).pdf"
+        ],
+        "pa_form": [
+            "utils\\data\\cases\\005\\a\\pa_form\\005_a (form).pdf"
+        ],
+        "policies": [],
+        "evaluation_time": "2023-10-01T12:00:00Z",
+        "decision": "approved",
+        "notes": "Manually evaluated by MD based on the policies."
+    },
+    "005_b": {
+        "doctor_notes": [
+            "utils\\data\\cases\\005\\b\\doctor_notes\\005_b (note).pdf"
+        ],
+        "imaging": [
+            "utils\\data\\cases\\005\\b\\imaging\\005_b (imaging).pdf"
+        ],
+        "labs": [
+            "utils\\data\\cases\\005\\b\\labs\\005_b (labs).pdf"
+        ],
+        "pa_form": [
+            "utils\\data\\cases\\005\\b\\pa_form\\005_b (form).pdf"
+        ],
+        "policies": [],
         "evaluation_time": "2023-10-01T12:00:00Z",
         "decision": "approved",
         "notes": "Manually evaluated by MD based on the policies."
