@@ -165,3 +165,4 @@ outputs
 multirun
 
 temp/
+.DS_Store
