@@ -1,6 +1,7 @@
 import os
 import time
 from typing import Any, Dict, Optional
+from pathlib import Path
 
 import yaml
 from azure.core.credentials import AzureKeyCredential
@@ -58,13 +59,16 @@ class PolicyIndexingPipeline:
     A pipeline to automate the process of indexing policy documents into Azure Cognitive Search.
     """
 
-    def __init__(self, config_path: str = "src\pipeline\policyIndexer\settings.yaml"):
+    def __init__(self, config_path: str = "src/pipeline/policyIndexer/settings.yaml"):
         """
         Initialize the PolicyIndexingPipeline with configuration from a YAML file.
 
         Args:
             config_path (str): Path to the configuration YAML file.
         """
+        # Normalize the file path to work with both Windows and Unix-based systems
+        config_path = Path(config_path).resolve()
+
         # Load settings from YAML file
         with open(config_path, "r") as file:
             config = yaml.safe_load(file)
