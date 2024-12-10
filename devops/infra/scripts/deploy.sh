@@ -30,6 +30,7 @@ measure_time az group create --name "$prior_auth_rg" --location "$region"
 main_bicep_file="devops/infra/main.bicep"
 echo "Deploying main Bicep file: $main_bicep_file"
 measure_time az deployment group create \
+    --debug \
     --resource-group "$prior_auth_rg" \
     --template-file "$main_bicep_file" \
     --parameters priorAuthName="priorAuth" \
