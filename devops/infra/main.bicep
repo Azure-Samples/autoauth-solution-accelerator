@@ -1,6 +1,4 @@
 // Execute this main file to deploy Prior Authorization related resources in a basic configuration
-
-// Parameters
 @minLength(2)
 @maxLength(12)
 @description('Name for the PriorAuth resource and used to derive the name of dependent resources.')
@@ -13,33 +11,15 @@ param tags object = {}
 @secure()
 param cosmosAdministratorPassword string
 
-// @description('Resource name of the virtual network to deploy the resource into.')
-// param vnetName string
-
-// @description('Resource group name of the virtual network to deploy the resource into.')
-// param vnetRgName string
-
-// @description('Name of the subnet to deploy into.')
-// param subnetName string
-
 @description('The location into which the resources should be deployed.')
 param location string = resourceGroup().location
 
-// @minLength(2)
-// @maxLength(10)
-// @description('Prefix for all resource names.')
-// param prefix string
-
-// Variables
 var name = toLower('${priorAuthName}')
 var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 7)
-
-// var vnetResourceId = '/subscriptions/${subscription().subscriptionId}/resourceGroups/${vnetRgName}/providers/Microsoft.Network/virtualNetworks/${vnetName}'
-// var subnetResourceId = '${vnetResourceId}/subnets/${subnetName}'
 var storageServiceName = toLower(replace('storage-${name}-${uniqueSuffix}', '-', ''))
 
-// Deploy Cognitive Services: doc-extract
-module docIntelligence 'tmpmodules/docintelligence.bicep' = {
+// @TODO: Replace with AVM module
+module docIntelligence 'modules/docintelligence.bicep' = {
   name: 'doc-intelligence-${name}-${uniqueSuffix}-deployment'
   params: {
     aiServiceName: 'doc-intelligence-${name}-${uniqueSuffix}'
@@ -49,7 +29,8 @@ module docIntelligence 'tmpmodules/docintelligence.bicep' = {
   }
 }
 
-module multiAccountAiServices 'tmpmodules/cs-mais.bicep' = {
+// @TODO: Replace with AVM module
+module multiAccountAiServices 'modules/cs-mais.bicep' = {
   name: 'multiservice-${name}-${uniqueSuffix}-deployment'
   params: {
     aiServiceName: 'multiservice-${name}-${uniqueSuffix}'
@@ -59,8 +40,8 @@ module multiAccountAiServices 'tmpmodules/cs-mais.bicep' = {
   }
 }
 
-// Deploy Cognitive Services: OpenAI
-module openAiService 'tmpmodules/cs-openai.bicep' = {
+// @TODO: Replace with AVM module
+module openAiService 'modules/cs-openai.bicep' = {
   name: 'openai-${name}-${uniqueSuffix}-deployment'
   params: {
     aiServiceName: 'openai-${name}-${uniqueSuffix}'
@@ -70,8 +51,8 @@ module openAiService 'tmpmodules/cs-openai.bicep' = {
   }
 }
 
-// Deploy Search Service
-module searchService 'tmpmodules/search.bicep' = {
+// @TODO: Replace with AVM module
+module searchService 'modules/search.bicep' = {
   name: 'search-${name}-${uniqueSuffix}-deployment'
   params: {
     aiServiceName: 'search-${name}-${uniqueSuffix}'
@@ -81,7 +62,8 @@ module searchService 'tmpmodules/search.bicep' = {
   }
 }
 
-module storageAccount 'tmpmodules/storage.bicep' = {
+// @TODO: Replace with AVM module
+module storageAccount 'modules/storage.bicep' = {
   name: 'storage-${name}-${uniqueSuffix}-deployment'
   params: {
     aiServiceName: storageServiceName
@@ -91,8 +73,8 @@ module storageAccount 'tmpmodules/storage.bicep' = {
   }
 }
 
-// Deploy Application Insights
-module appInsights 'tmpmodules/appinsights.bicep' = {
+// @TODO: Replace with AVM module
+module appInsights 'modules/appinsights.bicep' = {
   name: 'appinsights-${name}-${uniqueSuffix}-deployment'
   params: {
     aiServiceName: 'appinsights-${name}-${uniqueSuffix}'
@@ -101,8 +83,8 @@ module appInsights 'tmpmodules/appinsights.bicep' = {
   }
 }
 
-// Deploy Cosmos DB Mongo Cluster
-module cosmosDb 'tmpmodules/cosmos-mongo.bicep' = {
+// @TODO: Replace with AVM module
+module cosmosDb 'modules/cosmos-mongo.bicep' = {
   name: 'cosmosdb-${name}-${uniqueSuffix}-deployment'
   params: {
     aiServiceName: 'cosmosdb-${name}-${uniqueSuffix}'

@@ -10,7 +10,7 @@ cosmosAdminPassword="$1"
 
 # Generate a unique 3-character alphanumeric identifier
 unique_id=$(printf "%7d" $((RANDOM % 10000000)) | awk '{$1=$1};1')
-region="eastus2"
+region="westeurope"
 
 # Function to measure the time taken for each step
 measure_time() {
