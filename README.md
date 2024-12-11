@@ -216,6 +216,24 @@ To obtain the necessary values for the `.env` file, you'll need to set up the fo
 6. **Azure Application Insights**:
    - **Setup Guide**: [Set up Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
 
+Included in this repository are our configurations to quickly deploy the infrastructure:
+
+```bash
+az deployment group create \
+    --debug \
+    --resource-group "<resourceGroup>" \
+    --template-file "devops/infra/main.bicep" \
+    --parameters priorAuthName="priorAuth" \
+                 tags={} \
+                 location="easstus2" \
+                 cosmosAdministratorPassword="<password>"
+```
+
+Click this button here to deploy directly into the portal:
+
+[![Deploy To Azure](https://raw.githubusercontent.com/gbb-ai-hls-factory-prior-auth/refs/heads/patch/infra/utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
+[![Visualize](https://raw.githubusercontent.com/gbb-ai-hls-factory-prior-auth/refs/heads/patch/infra/utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
+
 ### Step 3: Index Policies
 
 Before running the application, policies must be indexed to enable accurate search and retrieval.
