@@ -285,3 +285,31 @@ await pa_pipeline.run(uploaded_files=files, use_o1=True)
 ### Disclaimer
 > [!IMPORTANT]
 > This software is provided for demonstration purposes only. It is not intended to be relied upon for any purpose. The creators of this software make no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability or availability with respect to the software or the information, products, services, or related graphics contained in the software for any purpose. Any reliance you place on such information is therefore strictly at your own risk.
+
+### Contributors
+
+<table>
+<tr>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/ pablosalvador10>
+            <img src=https://avatars.githubusercontent.com/u/31255154?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Pablo Salvador Lopez/>
+            <br />
+            <sub style="font-size:14px"><b>Pablo Salvador Lopez</b></sub>
+        </a>
+    </td>
+    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/marcjimz>
+            <img src=https://avatars.githubusercontent.com/u/94473824?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Jin Lee/>
+            <br />
+            <sub style="font-size:14px"><b>Jin Lee</b></sub>
+        </a>
+    </td>
+        <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+        <a href=https://github.com/marcjimz>
+            <img src=https://avatars.githubusercontent.com/u/4607826?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt=Marci Jimenezn/>
+            <br />
+            <sub style="font-size:14px"><b>Marcin Jimenez</b></sub>
+        </a>
+    </td>
+</tr>
+</table>
