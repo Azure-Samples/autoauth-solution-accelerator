@@ -48,7 +48,7 @@ param embeddingModel object = {
 }
 
 @description('Embedding model size for the OpenAI Embedding deployment')
-param embeddingModelDimension int = 1536
+param embeddingModelDimension string = '1536'
 
 @description('Storage Blob Container name to land the files for Prior Auth')
 param storageBlobContainerName string = 'default'
