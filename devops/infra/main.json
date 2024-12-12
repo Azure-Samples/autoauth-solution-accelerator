@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "15468302446452739110"
+      "templateHash": "5795140990396297153"
     }
   },
   "parameters": {
@@ -25,6 +25,24 @@
         "description": "Set of tags to apply to all resources."
       }
     },
+    "acrContainerImage": {
+      "type": "securestring",
+      "metadata": {
+        "description": "ACR container image url"
+      }
+    },
+    "acrUsername": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin user for the ACR registry of the container image"
+      }
+    },
+    "acrPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the ACR registry of the container image"
+      }
+    },
     "cosmosAdministratorPassword": {
       "type": "securestring",
       "metadata": {
@@ -37,12 +55,60 @@
       "metadata": {
         "description": "The location into which the resources should be deployed."
       }
+    },
+    "openAiApiVersion": {
+      "type": "string",
+      "defaultValue": "2024-08-01-preview",
+      "metadata": {
+        "description": "API Version of the OpenAI API"
+      }
+    },
+    "chatCompletionModels": {
+      "type": "array",
+      "defaultValue": [
+        {
+          "name": "gpt-4o",
+          "version": "2024-08-06",
+          "skuName": "GlobalStandard",
+          "capacity": 25
+        }
+      ],
+      "metadata": {
+        "description": "List of completion models to be deployed to the OpenAI account."
+      }
+    },
+    "embeddingModel": {
+      "type": "object",
+      "defaultValue": {
+        "name": "text-embedding-ada-002",
+        "version": "2",
+        "skuName": "Standard",
+        "capacity": 16
+      },
+      "metadata": {
+        "description": "List of embedding models to be deployed to the OpenAI account."
+      }
+    },
+    "embeddingModelDimension": {
+      "type": "int",
+      "defaultValue": 1536,
+      "metadata": {
+        "description": "Embedding model size for the OpenAI Embedding deployment"
+      }
+    },
+    "storageBlobContainerName": {
+      "type": "string",
+      "defaultValue": "default",
+      "metadata": {
+        "description": "Storage Blob Container name to land the files for Prior Auth"
+      }
     }
   },
   "variables": {
     "name": "[toLower(format('{0}', parameters('priorAuthName')))]",
     "uniqueSuffix": "[substring(uniqueString(resourceGroup().id), 0, 7)]",
-    "storageServiceName": "[toLower(replace(format('storage-{0}-{1}', variables('name'), variables('uniqueSuffix')), '-', ''))]"
+    "storageServiceName": "[toLower(replace(format('storage-{0}-{1}', variables('name'), variables('uniqueSuffix')), '-', ''))]",
+    "encodedPassword": "[uriComponent(parameters('cosmosAdministratorPassword'))]"
   },
   "resources": [
     {
@@ -75,7 +141,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "14903257689607765601"
+              "templateHash": "15791306279606983313"
             }
           },
           "parameters": {
@@ -150,6 +216,10 @@
             "aiServicesPrincipalId": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01', 'full').identity.principalId]"
+            },
+            "aiServicesKey": {
+              "type": "string",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').key1]"
             }
           }
         }
@@ -185,7 +255,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "11210582556401087181"
+              "templateHash": "2020181929981449900"
             }
           },
           "parameters": {
@@ -261,6 +331,10 @@
             "aiServicesPrincipalId": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01', 'full').identity.principalId]"
+            },
+            "aiServicesPrimaryKey": {
+              "type": "string",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').key1]"
             }
           }
         }
@@ -287,6 +361,12 @@
           },
           "aiServiceSkuName": {
             "value": "S0"
+          },
+          "embeddingModel": {
+            "value": "[parameters('embeddingModel')]"
+          },
+          "chatCompletionModels": {
+            "value": "[parameters('chatCompletionModels')]"
           }
         },
         "template": {
@@ -296,7 +376,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "10041356557256786894"
+              "templateHash": "6997403857487115399"
             }
           },
           "parameters": {
@@ -328,7 +408,7 @@
                 "description": "AI service SKU"
               }
             },
-            "models": {
+            "chatCompletionModels": {
               "type": "array",
               "defaultValue": [
                 {
@@ -336,20 +416,27 @@
                   "version": "2024-08-06",
                   "skuName": "GlobalStandard",
                   "capacity": 25
-                },
-                {
-                  "name": "text-embedding-ada-002",
-                  "version": "2",
-                  "skuName": "Standard",
-                  "capacity": 16
                 }
               ],
               "metadata": {
-                "description": "List of models to be deployed to the OpenAI account."
+                "description": "List of chat completion models to be deployed to the OpenAI account."
+              }
+            },
+            "embeddingModel": {
+              "type": "object",
+              "defaultValue": {
+                "name": "text-embedding-ada-002",
+                "version": "2",
+                "skuName": "Standard",
+                "capacity": 16
+              },
+              "metadata": {
+                "description": "List of embedding models to be deployed to the OpenAI account."
               }
             }
           },
           "variables": {
+            "combinedModels": "[concat(parameters('chatCompletionModels'), createArray(parameters('embeddingModel')))]",
             "aiServiceNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
           },
           "resources": [
@@ -378,24 +465,24 @@
             {
               "copy": {
                 "name": "modelDeployments",
-                "count": "[length(parameters('models'))]",
+                "count": "[length(variables('combinedModels'))]",
                 "mode": "serial",
                 "batchSize": 1
               },
               "type": "Microsoft.CognitiveServices/accounts/deployments",
               "apiVersion": "2024-06-01-preview",
-              "name": "[format('{0}/{1}', variables('aiServiceNameCleaned'), format('{0}', parameters('models')[copyIndex()].name))]",
+              "name": "[format('{0}/{1}', variables('aiServiceNameCleaned'), format('{0}', variables('combinedModels')[copyIndex()].name))]",
               "sku": {
-                "name": "[parameters('models')[copyIndex()].skuName]",
-                "capacity": "[parameters('models')[copyIndex()].capacity]"
+                "name": "[variables('combinedModels')[copyIndex()].skuName]",
+                "capacity": "[variables('combinedModels')[copyIndex()].capacity]"
               },
               "properties": {
                 "model": {
                   "format": "OpenAI",
-                  "name": "[parameters('models')[copyIndex()].name]",
-                  "version": "[parameters('models')[copyIndex()].version]"
+                  "name": "[variables('combinedModels')[copyIndex()].name]",
+                  "version": "[variables('combinedModels')[copyIndex()].version]"
                 },
-                "currentCapacity": "[parameters('models')[copyIndex()].capacity]"
+                "currentCapacity": "[variables('combinedModels')[copyIndex()].capacity]"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned'))]"
@@ -784,7 +871,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "2516644621118148191"
+              "templateHash": "18266270289093716053"
             }
           },
           "parameters": {
@@ -806,6 +893,13 @@
                 "description": "Name of the Mongo cluster"
               }
             },
+            "cosmosAdministratorUsername": {
+              "type": "string",
+              "defaultValue": "adminuser",
+              "metadata": {
+                "description": "Administrator username for the Mongo cluster"
+              }
+            },
             "cosmosAdministratorPassword": {
               "type": "string",
               "metadata": {
@@ -814,7 +908,8 @@
             }
           },
           "variables": {
-            "mongoNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+            "mongoNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]",
+            "encodedPassword": "[uriComponent(parameters('cosmosAdministratorPassword'))]"
           },
           "resources": [
             {
@@ -825,7 +920,7 @@
               "tags": "[parameters('tags')]",
               "properties": {
                 "administrator": {
-                  "userName": "adminuser",
+                  "userName": "[parameters('cosmosAdministratorUsername')]",
                   "password": "[parameters('cosmosAdministratorPassword')]"
                 },
                 "serverVersion": "7.0",
@@ -856,10 +951,429 @@
             "mongoClusterName": {
               "type": "string",
               "value": "[variables('mongoNameCleaned')]"
+            },
+            "mongoConnectionString": {
+              "type": "string",
+              "value": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000', parameters('cosmosAdministratorUsername'), variables('encodedPassword'), variables('mongoNameCleaned'))]"
             }
           }
         }
       }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('loganalytics-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "logAnalyticsName": {
+            "value": "[format('loganalytics-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "16846269895886684865"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "logAnalyticsName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Log Analytics Workspace"
+              }
+            }
+          },
+          "variables": {
+            "logAnalyticsCleaned": "[replace(parameters('logAnalyticsName'), '-', '')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2020-08-01",
+              "name": "[variables('logAnalyticsCleaned')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "sku": {
+                  "name": "PerGB2018"
+                },
+                "retentionInDays": 30,
+                "workspaceCapping": {}
+              }
+            }
+          ],
+          "outputs": {
+            "logAnalyticsId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsCleaned'))]"
+            },
+            "logAnalyticsName": {
+              "type": "string",
+              "value": "[variables('logAnalyticsCleaned')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('containerapp-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "containerAppName": {
+            "value": "[format('pe-fe-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "acrContainerImage": {
+            "value": "[parameters('acrContainerImage')]"
+          },
+          "acrUsername": {
+            "value": "[parameters('acrUsername')]"
+          },
+          "acrPassword": {
+            "value": "[parameters('acrPassword')]"
+          },
+          "containerEnvArray": {
+            "value": [
+              {
+                "name": "AZURE_OPENAI_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesKey.value]"
+              },
+              {
+                "name": "AZURE_OPENAI_ENDPOINT",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
+              },
+              {
+                "name": "AZURE_OPENAI_API_VERSION",
+                "value": "[parameters('openAiApiVersion')]"
+              },
+              {
+                "name": "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
+                "value": "[parameters('embeddingModel').name]"
+              },
+              {
+                "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_ID",
+                "value": "gpt-4o"
+              },
+              {
+                "name": "AZURE_OPENAI_EMBEDDING_DIMENSIONS",
+                "value": "[parameters('embeddingModelDimension')]"
+              },
+              {
+                "name": "AZURE_SEARCH_SERVICE_NAME",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServiceName.value]"
+              },
+              {
+                "name": "AZURE_SEARCH_INDEX_NAME",
+                "value": "ai-policies-index"
+              },
+              {
+                "name": "AZURE_AI_SEARCH_ADMIN_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServicePrimaryKey.value]"
+              },
+              {
+                "name": "AZURE_AI_SEARCH_SERVICE_ENDPOINT",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServiceEndpoint.value]"
+              },
+              {
+                "name": "AZURE_STORAGE_ACCOUNT_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountPrimaryKey.value]"
+              },
+              {
+                "name": "AZURE_BLOB_CONTAINER_NAME",
+                "value": "[parameters('storageBlobContainerName')]"
+              },
+              {
+                "name": "AZURE_STORAGE_ACCOUNT_NAME",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountName.value]"
+              },
+              {
+                "name": "AZURE_STORAGE_CONNECTION_STRING",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountPrimaryConnectionString.value]"
+              },
+              {
+                "name": "AZURE_AI_SERVICES_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesPrimaryKey.value]"
+              },
+              {
+                "name": "AZURE_COSMOS_DB_DATABASE_NAME",
+                "value": "priorauthsessions"
+              },
+              {
+                "name": "AZURE_COSMOS_DB_COLLECTION_NAME",
+                "value": "temp"
+              },
+              {
+                "name": "AZURE_COSMOS_CONNECTION_STRING",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.mongoConnectionString.value]"
+              },
+              {
+                "name": "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
+              },
+              {
+                "name": "AZURE_DOCUMENT_INTELLIGENCE_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesKey.value]"
+              },
+              {
+                "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('appinsights-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.appInsightsConnectionString.value]"
+              }
+            ]
+          },
+          "environmentName": {
+            "value": "[format('managedEnv-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "appInsightsWorkspaceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('loganalytics-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.logAnalyticsId.value]"
+          },
+          "workloadProfileName": {
+            "value": "Consumption"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "13756176834732350237"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "containerAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Container App"
+              }
+            },
+            "acrContainerImage": {
+              "type": "string",
+              "metadata": {
+                "description": "Container Image for the Container App"
+              }
+            },
+            "acrUsername": {
+              "type": "string",
+              "metadata": {
+                "description": "Username for the Azure Container Registry (ACR)"
+              }
+            },
+            "acrPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Password for the Azure Container Registry (ACR)"
+              }
+            },
+            "containerEnvArray": {
+              "type": "array",
+              "metadata": {
+                "description": "Key value env array for the Container App"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Managed Environment"
+              }
+            },
+            "appInsightsWorkspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "ID of the Log Analytics Workspace"
+              }
+            },
+            "ingressPort": {
+              "type": "int",
+              "defaultValue": 8501,
+              "metadata": {
+                "description": "Ingress configuration for the Container App."
+              }
+            },
+            "workloadProfileName": {
+              "type": "string",
+              "defaultValue": "Consumption",
+              "allowedValues": [
+                "Consumption"
+              ],
+              "metadata": {
+                "description": "SKU name for the Managed Environment. Allowed values: Consumption"
+              }
+            }
+          },
+          "variables": {
+            "containerAppNameCleaned": "[toLower(parameters('containerAppName'))]",
+            "environmentNameCleaned": "[toLower(parameters('environmentName'))]",
+            "registryServer": "[split(parameters('acrContainerImage'), '/')[0]]",
+            "containers": {
+              "name": "[format('{0}-fe', variables('containerAppNameCleaned'))]",
+              "image": "[parameters('acrContainerImage')]",
+              "command": [],
+              "args": [],
+              "resources": {
+                "cpu": "[json('2.0')]",
+                "memory": "4Gi"
+              },
+              "env": "[parameters('containerEnvArray')]"
+            },
+            "registries": {
+              "server": "[variables('registryServer')]",
+              "username": "[parameters('acrUsername')]",
+              "passwordSecretRef": "acr-password-secret"
+            },
+            "secrets": {
+              "name": "acr-password-secret",
+              "value": "[parameters('acrPassword')]"
+            },
+            "ingress": {
+              "external": true,
+              "transport": "Auto",
+              "allowInsecure": false,
+              "targetPort": "[parameters('ingressPort')]",
+              "stickySessions": {
+                "affinity": "none"
+              },
+              "additionalPortMappings": []
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/managedEnvironments",
+              "apiVersion": "2024-02-02-preview",
+              "name": "[variables('environmentNameCleaned')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "appLogsConfiguration": {
+                  "destination": "log-analytics",
+                  "logAnalyticsConfiguration": {
+                    "customerId": "[reference(parameters('appInsightsWorkspaceId'), '2020-08-01').customerId]",
+                    "sharedKey": "[listKeys(parameters('appInsightsWorkspaceId'), '2020-08-01').primarySharedKey]"
+                  }
+                },
+                "publicNetworkAccess": "Enabled",
+                "workloadProfiles": [
+                  {
+                    "name": "[parameters('workloadProfileName')]",
+                    "workloadProfileType": "[parameters('workloadProfileName')]"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2024-02-02-preview",
+              "name": "[variables('containerAppNameCleaned')]",
+              "kind": "containerapps",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
+                "configuration": {
+                  "secrets": [
+                    "[variables('secrets')]"
+                  ],
+                  "registries": [
+                    "[variables('registries')]"
+                  ],
+                  "activeRevisionsMode": "Single",
+                  "ingress": "[variables('ingress')]"
+                },
+                "template": {
+                  "containers": [
+                    "[variables('containers')]"
+                  ],
+                  "scale": {
+                    "minReplicas": 0
+                  }
+                },
+                "workloadProfileName": "[parameters('workloadProfileName')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "containerAppId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/containerApps', variables('containerAppNameCleaned'))]"
+            },
+            "containerAppName": {
+              "type": "string",
+              "value": "[variables('containerAppNameCleaned')]"
+            },
+            "managedEnvironmentId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]"
+            },
+            "managedEnvironmentName": {
+              "type": "string",
+              "value": "[variables('environmentNameCleaned')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('appinsights-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('loganalytics-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]"
+      ]
     }
   ]
 }
