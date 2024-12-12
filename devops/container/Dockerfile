@@ -18,6 +18,9 @@ COPY ["utils/data/cases/003/a/doctor_notes/003_a (note) .pdf", "/app/utils/data/
 COPY ["utils/data/cases/003/a/labs/003_a (labs).pdf", "/app/utils/data/cases/003/a/labs/003_a (labs).pdf"]
 COPY ["utils/data/cases/003/a/pa_form/003_a (form).pdf", "/app/utils/data/cases/003/a/pa_form/003_a (form).pdf"]
 
+RUN apt-get update && \
+    apt-get -y install gcc mono-mcs && \
+    rm -rf /var/lib/apt/lists/*
 RUN mkdir -p /app/.streamlit
 COPY app/settings/config.toml /app/.streamlit/config.toml
 RUN pip install --no-cache-dir -r requirements.txt

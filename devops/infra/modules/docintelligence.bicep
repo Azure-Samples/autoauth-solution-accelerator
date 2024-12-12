@@ -35,7 +35,10 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   tags: tags
 }
 
+var docAiKeys = aiServices.listKeys()
+
 output aiServicesId string = aiServices.id
 output aiServicesEndpoint string = aiServices.properties.endpoint
 output aiServicesName string = aiServices.name
 output aiServicesPrincipalId string = aiServices.identity.principalId
+output aiServicesKey string = docAiKeys.key1

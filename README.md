@@ -216,6 +216,17 @@ To obtain the necessary values for the `.env` file, you'll need to set up the fo
 6. **Azure Application Insights**:
    - **Setup Guide**: [Set up Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
 
+6. **Azure Container Apps**:
+   - **Setup Guide**: [Set up Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/get-started?tabs=bash)
+
+6. **Azure Container Registry**:
+   - **Setup Guide**: [Set up Container Registry](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
+   - **Must build and contribute the docker image in `devops/container/Dockerfile`**
+```bash
+docker build -t priorauthdemo.azurecr.io/priorauth-frontend:v1 --file devops/container/Dockerfile .
+docker push priorauthdemo.azurecr.io/priorauth-frontend:v1
+```
+
 Included in this repository are our configurations to quickly deploy the infrastructure:
 
 ```bash
@@ -225,7 +236,7 @@ az deployment group create \
     --template-file "devops/infra/main.bicep" \
     --parameters priorAuthName="priorAuth" \
                  tags={} \
-                 location="easstus2" \
+                 location="eastus2" \
                  cosmosAdministratorPassword="<password>"
 ```
 

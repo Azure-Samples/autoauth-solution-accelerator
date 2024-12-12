@@ -13,21 +13,25 @@ param aiServiceName string
 @description('AI service SKU')
 param aiServiceSkuName string = 'S0'
 
-@description('List of models to be deployed to the OpenAI account.')
-param models array = [
+@description('List of chat completion models to be deployed to the OpenAI account.')
+param chatCompletionModels array = [
   {
     name: 'gpt-4o'
     version: '2024-08-06'
     skuName: 'GlobalStandard'
     capacity: 25
   }
-  {
+]
+
+@description('List of embedding models to be deployed to the OpenAI account.')
+param embeddingModel object = {
     name: 'text-embedding-ada-002'
     version: '2'
     skuName: 'Standard'
     capacity: 16
-  }
-]
+}
+
+var combinedModels = concat(chatCompletionModels, [embeddingModel])
 
 var aiServiceNameCleaned = replace(aiServiceName, '-', '')
 
@@ -53,7 +57,7 @@ resource openAiService 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 }
 
 @batchSize(1)
-resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024-06-01-preview' = [for (model, i) in models: {
+resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024-06-01-preview' = [for (model, i) in combinedModels: {
   parent: openAiService
   name: '${model.name}'
   sku: {

@@ -7,6 +7,9 @@ param tags object
 @description('Name of the Mongo cluster')
 param aiServiceName string
 
+@description('Administrator username for the Mongo cluster')
+param cosmosAdministratorUsername string = 'adminuser' // Default username, can be overridden
+
 @description('Admin password for the cluster')
 param cosmosAdministratorPassword string
 
@@ -18,7 +21,7 @@ resource mongoCluster 'Microsoft.DocumentDB/mongoClusters@2024-07-01' = {
   tags: tags
   properties: {
     administrator: {
-      userName: 'adminuser'
+      userName: cosmosAdministratorUsername
       password: cosmosAdministratorPassword
     }
     serverVersion: '7.0'
@@ -41,20 +44,10 @@ resource mongoCluster 'Microsoft.DocumentDB/mongoClusters@2024-07-01' = {
   }
 }
 
-// // Retrieve keys and connection strings
-// var clusterKeys = mongoCluster.listKeys()
-// var clusterConnStrings = mongoCluster.listConnectionStrings()
-
-// // Assume the first connection string is the primary connection string
-// var primaryConnectionString = clusterConnStrings.connectionStrings[0].connectionString
-// var endpointPortPart = split(primaryConnectionString, '@')[1]
-// var cosmosEndpoint = split(endpointPortPart, ':')[0]
-
-// // Extract the primary key from clusterKeys
-// var cosmosDatabaseKey = clusterKeys.primaryKey
-
 output mongoClusterId string = mongoCluster.id
 output mongoClusterName string = mongoCluster.name
-// output cosmosEndpoint string = cosmosEndpoint
-// output cosmosDatabaseKey string = cosmosDatabaseKey
-// output cosmosConnectionString string = primaryConnectionString
+
+// Variable: Encoded Cosmos Administrator Password
+var encodedPassword = uriComponent(cosmosAdministratorPassword)
+
+output mongoConnectionString string = 'mongodb+srv://${cosmosAdministratorUsername}:${encodedPassword}@${mongoNameCleaned}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000'
