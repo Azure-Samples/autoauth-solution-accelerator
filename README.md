@@ -141,6 +141,77 @@ The final phase involves decision-making through a structured reasoning framewor
 
 ---
 
+## One-Click Deploy AutoAuth Framework
+
+We have encapsulated the necessary steps to deploy the assets into Azure, requiring you to bring:
+
+* Azure Subscription
+* OpenAI Access
+* Available Quota for Resources
+* Working Internet Connection
+* *Preferred:* Access enabled to deploy `o1-preview` model on Azure OpenAI
+
+> **Temporary:** Ability to build and push Docker images
+
+Try it:
+
+### Step 1. Build the Docker Image
+
+You will need to build the docker image for this repository to work, and you are free to make any changes. You can create the repository on an Azure Container Registry of your choice, similarly:
+
+```bash
+docker build -t priorauthdemo.azurecr.io/priorauth-frontend:v1 --file devops/container/Dockerfile .
+docker push priorauthdemo.azurecr.io/priorauth-frontend:v1
+```
+
+### Step 2. Create the Infrastructure
+
+Included in this repository are our configurations to quickly deploy the infrastructure, you can use `az cli` to create it similarly:
+
+```bash
+az deployment group create \
+    --debug \
+    --resource-group "<resourceGroup>" \
+    --template-file "devops/infra/main.bicep" \
+    --parameters priorAuthName="priorAuth" \
+                 tags={} \
+                 location="eastus2" \
+                 cosmosAdministratorPassword="<password>" \
+                 acrContainerImage="priorauthdemo.azurecr.io/priorauth-frontend:v2" \
+                 acrUsername="priorauthdemo" \
+                 acrPassword="<acrPassword>"
+```
+
+Refer to the scripts in `devops/infra/scripts` folder for build and cleanup capabilities.
+
+Alternatively, one-click deployment is possible: 
+
+> *Warning*: Templates below will not populate correctly until this repository is made publicly available.
+
+[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
+[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
+
+### Step 3: Access Streamlit UI and Upload Policy Documents
+
+Review your deployment and use your browser to navigate to the URL assigned to your container app. Upload your policy documents, and watch AutoAuth work.
+
+## Azure Native Services
+
+The following services are required for implementation.
+
+| **Service Name**         | **Description**                                                                                   | **Major Components**                                              | **Limits/Defaults**                                                                                                  |
+|---------------------------|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------|
+| **Document Intelligence** | Azure Cognitive Services for AI models related to document processing and intelligence.          | `Microsoft.CognitiveServices/accounts`                            | Default SKU: `S0`. Public network access enabled.                                                                    |
+| **OpenAI Service**        | Deploys OpenAI models like `GPT-4o` and `text-embedding-ada-002` for completions and embeddings.  | OpenAI deployments: `GPT-4o` (chat), `o1`. `Text Embedding Ada-002` or `text-embedding-3-*`        | `GPT-4o`: Default capacity: 25. `o1` optional and can test with `GPT-4o`.                                                      |
+| **Azure Search**          | Azure AI Search service for indexing and querying data.                                          | `Microsoft.Search/searchServices`                                 | Default SKU: `basic`. Public network access enabled.                                                                  |
+| **Multi-Service AI**      | General-purpose Cognitive Services account for accessing multiple AI capabilities.               | `Microsoft.CognitiveServices/accounts`                            | Default SKU: `S0`. Public network access enabled. **Must be multi-service.**                                                                   |
+| **Storage Account**       | Azure Storage Account for storing and retrieving blob data.                                      | `Microsoft.Storage/storageAccounts`, Blob containers              | Default SKU: `Standard_LRS`. HTTPS traffic only. Delete retention policy: 7 days. Container created named `pre-auth-policies`.                                   |
+| **Application Insights**  | Azure monitoring for application performance and availability.                                   | `Microsoft.Insights/components`                                   | Public network access enabled for ingestion and query.                                                               |
+| **Cosmos DB (Mongo)**     | Cosmos DB Mongo cluster for storing NoSQL data with high availability.                           | `Microsoft.DocumentDB/mongoClusters`                              | Default compute tier: M30. Storage: 32 GB. Public network access enabled.                                            |
+| **Log Analytics**         | Azure Log Analytics for query-based monitoring.                                                  | `Microsoft.OperationalInsights/workspaces`                        | Retention: 30 days.                                                                                                   |
+| **Container Apps**        | Azure Container Apps for running microservices and managing workloads.                           | `Microsoft.App/containerApps`, `Microsoft.App/jobs`               | Workload profile: `Consumption`. CPU: 2.0 cores. Memory: 4 GiB per container. Ingress port: 8501.                    |
+
+
 ## Getting Started with AutoAuth Framework
 
 ### Step 1: Create and Activate the Conda Environment
@@ -194,57 +265,6 @@ To ensure the application functions correctly, you need to set up environment va
 
 **Note**: The `.env` file contains sensitive information. Handle it securely and avoid sharing it publicly.
 
-**Azure Services Required**:
-
-To obtain the necessary values for the `.env` file, you'll need to set up the following Azure services:
-
-1. **Azure OpenAI Service**:
-   - **Setup Guide**: [Get started with Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/get-started)
-
-2. **Azure AI Search**:
-   - **Setup Guide**: [Create an Azure Cognitive Search service](https://learn.microsoft.com/en-us/azure/search/search-create-service-portal)
-
-3. **Azure Blob Storage**:
-   - **Setup Guide**: [Create a storage account](https://learn.microsoft.com/en-us/azure/storage/common/storage-account-create)
-
-4. **Azure Cosmos DB**:
-   - **Setup Guide**: [Create an Azure Cosmos DB account](https://learn.microsoft.com/en-us/azure/cosmos-db/create-sql-api-python)
-
-5. **Azure AI Document Intelligence (formerly Form Recognizer)**:
-   - **Setup Guide**: [Quickstart: Form Recognizer client library](https://azure.microsoft.com/en-us/products/ai-services/ai-document-intelligence?msockid=1fc5e25b196066be057ff76118e667d7)
-
-6. **Azure Application Insights**:
-   - **Setup Guide**: [Set up Application Insights](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
-
-6. **Azure Container Apps**:
-   - **Setup Guide**: [Set up Container Apps](https://learn.microsoft.com/en-us/azure/container-apps/get-started?tabs=bash)
-
-6. **Azure Container Registry**:
-   - **Setup Guide**: [Set up Container Registry](https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview)
-   - **Must build and contribute the docker image in `devops/container/Dockerfile`**
-```bash
-docker build -t priorauthdemo.azurecr.io/priorauth-frontend:v1 --file devops/container/Dockerfile .
-docker push priorauthdemo.azurecr.io/priorauth-frontend:v1
-```
-
-Included in this repository are our configurations to quickly deploy the infrastructure:
-
-```bash
-az deployment group create \
-    --debug \
-    --resource-group "<resourceGroup>" \
-    --template-file "devops/infra/main.bicep" \
-    --parameters priorAuthName="priorAuth" \
-                 tags={} \
-                 location="eastus2" \
-                 cosmosAdministratorPassword="<password>"
-```
-
-Click this button here to deploy directly into the portal:
-
-[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
-[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
-
 ### Step 3: Index Policies
 
 Before running the application, policies must be indexed to enable accurate search and retrieval.
@@ -260,6 +280,9 @@ Before running the application, policies must be indexed to enable accurate sear
    ```bash
    streamlit run app/streamlit/Home.py
    ```
+
+   > Errors may return on failed import statements on some operating systems, be sure to include the folder path in your `PYTHONPATH` similarly: `export PYTHONPATH=$PYTHONPATH:$(pwd) && python ...`
+
 ### Step 5: Data Sources
 
 - Test and validate cases are located in the `utils/data/` directory.

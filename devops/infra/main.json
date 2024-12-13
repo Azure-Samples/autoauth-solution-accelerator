@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "5795140990396297153"
+      "templateHash": "6284630696032261864"
     }
   },
   "parameters": {
@@ -90,8 +90,8 @@
       }
     },
     "embeddingModelDimension": {
-      "type": "int",
-      "defaultValue": 1536,
+      "type": "string",
+      "defaultValue": "1536",
       "metadata": {
         "description": "Embedding model size for the OpenAI Embedding deployment"
       }
@@ -1093,6 +1093,10 @@
                 "value": "gpt-4o"
               },
               {
+                "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
+                "value": "gpt-4o"
+              },
+              {
                 "name": "AZURE_OPENAI_EMBEDDING_DIMENSIONS",
                 "value": "[parameters('embeddingModelDimension')]"
               },
@@ -1175,7 +1179,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "13756176834732350237"
+              "templateHash": "1437006286095397625"
             }
           },
           "parameters": {
@@ -1255,10 +1259,26 @@
             "containerAppNameCleaned": "[toLower(parameters('containerAppName'))]",
             "environmentNameCleaned": "[toLower(parameters('environmentName'))]",
             "registryServer": "[split(parameters('acrContainerImage'), '/')[0]]",
-            "containers": {
+            "containerAppJobContributorRoleId": "b9a307c4-5aa3-4b52-ba60-2b17c136cd7b",
+            "frontendContainers": {
               "name": "[format('{0}-fe', variables('containerAppNameCleaned'))]",
               "image": "[parameters('acrContainerImage')]",
               "command": [],
+              "args": [],
+              "resources": {
+                "cpu": "[json('2.0')]",
+                "memory": "4Gi"
+              },
+              "env": "[parameters('containerEnvArray')]"
+            },
+            "jobAppContainers": {
+              "name": "[format('{0}-job', variables('containerAppNameCleaned'))]",
+              "image": "[parameters('acrContainerImage')]",
+              "command": [
+                "/bin/bash",
+                "-c",
+                "python /app/src/pipeline/indexerSetup.py --target '/app'"
+              ],
               "args": [],
               "resources": {
                 "cpu": "[json('2.0')]",
@@ -1311,6 +1331,84 @@
               }
             },
             {
+              "type": "Microsoft.App/jobs",
+              "apiVersion": "2024-02-02-preview",
+              "name": "[format('{0}-job', variables('containerAppNameCleaned'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
+                "configuration": {
+                  "secrets": [
+                    "[variables('secrets')]"
+                  ],
+                  "registries": [
+                    "[variables('registries')]"
+                  ],
+                  "replicaTimeout": 1800,
+                  "replicaRetryLimit": 0,
+                  "triggerType": "Manual",
+                  "manualTriggerConfig": {
+                    "replicaCompletionCount": 1,
+                    "parallelism": 1
+                  }
+                },
+                "template": {
+                  "containers": [
+                    "[variables('jobAppContainers')]"
+                  ]
+                },
+                "workloadProfileName": "[parameters('workloadProfileName')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2023-07-31-preview",
+              "name": "script-identity",
+              "location": "[parameters('location')]"
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.App/jobs/{0}', format('{0}-job', variables('containerAppNameCleaned')))]",
+              "name": "[guid(resourceId('Microsoft.Authorization/roleDefinitions', variables('containerAppJobContributorRoleId')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity'), resourceId('Microsoft.App/jobs', format('{0}-job', variables('containerAppNameCleaned'))))]",
+              "properties": {
+                "principalType": "ServicePrincipal",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity'), '2023-07-31-preview').principalId]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('containerAppJobContributorRoleId'))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/jobs', format('{0}-job', variables('containerAppNameCleaned')))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2023-08-01",
+              "name": "[format('{0}-trigger', variables('containerAppNameCleaned'))]",
+              "location": "[parameters('location')]",
+              "kind": "AzureCLI",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity'))]": {}
+                }
+              },
+              "properties": {
+                "azCliVersion": "2.59.0",
+                "arguments": "[format('{0}-job {1}', variables('containerAppNameCleaned'), resourceGroup().name)]",
+                "retentionInterval": "PT1H",
+                "scriptContent": "      #!/bin/bash\n      set -e\n      az containerapp job start -n $1 -g $2\n    "
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/jobs', format('{0}-job', variables('containerAppNameCleaned')))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity')]"
+              ]
+            },
+            {
               "type": "Microsoft.App/containerApps",
               "apiVersion": "2024-02-02-preview",
               "name": "[variables('containerAppNameCleaned')]",
@@ -1331,7 +1429,7 @@
                 },
                 "template": {
                   "containers": [
-                    "[variables('containers')]"
+                    "[variables('frontendContainers')]"
                   ],
                   "scale": {
                     "minReplicas": 0
