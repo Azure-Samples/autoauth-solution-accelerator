@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the resource group name pattern: prior-auth- followed by exactly 4 or 5 digits
-PATTERN="^prior-auth-[0-9]{4,5}$"
+PATTERN="^prior-auth-[0-9]{1,7}$"
 
 # Function to delete a Cosmos DB account
 delete_cosmosdb_account() {

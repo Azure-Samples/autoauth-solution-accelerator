@@ -176,6 +176,10 @@ module containerApp 'modules/containerapp.bicep' = {
         name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_ID'
         value: 'gpt-4o'
       }
+      { 
+        name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_01'
+        value: 'gpt-4o'
+      }
       {
         name: 'AZURE_OPENAI_EMBEDDING_DIMENSIONS'
         value: embeddingModelDimension
@@ -240,7 +244,7 @@ module containerApp 'modules/containerapp.bicep' = {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
         value: appInsights.outputs.appInsightsConnectionString
       }
-    ]
+    ]    
     environmentName: 'managedEnv-${name}-${uniqueSuffix}'
     appInsightsWorkspaceId: logAnalytics.outputs.logAnalyticsId
     workloadProfileName: 'Consumption'

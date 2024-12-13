@@ -97,7 +97,7 @@ measure_time "Deploying main Bicep template" \
             tags={} \
             location="$region" \
             cosmosAdministratorPassword="$cosmosAdminPassword" \
-            acrContainerImage="priorauthdemo.azurecr.io/priorauth-frontend:v1" \
+            acrContainerImage="priorauthdemo.azurecr.io/priorauth-frontend:v2" \
             acrUsername="priorauthdemo" \
             acrPassword="$acrPassword"
 

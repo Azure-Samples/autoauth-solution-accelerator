@@ -39,8 +39,9 @@ param workloadProfileName string = 'Consumption'
 var containerAppNameCleaned = toLower(containerAppName)
 var environmentNameCleaned = toLower(environmentName)
 var registryServer = split(acrContainerImage, '/')[0]
+var containerAppJobContributorRoleId = 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b'
 
-var containers = {
+var frontendContainers = {
   name: '${containerAppNameCleaned}-fe'
   image: acrContainerImage
   command: []
@@ -51,6 +52,19 @@ var containers = {
   }
   env: containerEnvArray
 }
+
+var jobAppContainers = {
+  name: '${containerAppNameCleaned}-job'
+  image: acrContainerImage
+  command: ['/bin/bash', '-c', 'python /app/src/pipeline/indexerSetup.py --target \'/app\'']
+  args: []
+  resources: {
+    cpu: json('2.0')
+    memory: '4Gi'
+  }
+  env: containerEnvArray
+}
+
 
 var registries = {
   server: registryServer
@@ -97,6 +111,75 @@ resource managedEnvironment 'Microsoft.App/managedEnvironments@2024-02-02-previe
   }
 }
 
+resource containerAppJob 'Microsoft.App/jobs@2024-02-02-preview' = {
+  name: '${containerAppNameCleaned}-job'
+  location: location
+  tags: tags
+  properties: {
+    environmentId: managedEnvironment.id
+    configuration: {
+      secrets: [secrets]
+      registries: [registries]
+      replicaTimeout: 1800
+      replicaRetryLimit: 0
+      triggerType: 'Manual'
+      manualTriggerConfig: {
+        replicaCompletionCount: 1
+        parallelism: 1
+      }
+    }
+    template: {
+      containers: [jobAppContainers]
+    }
+    workloadProfileName: workloadProfileName
+  }
+}
+
+resource containerAppJobContributorRoleDef 'Microsoft.Authorization/roleDefinitions@2022-05-01-preview' existing = {
+  scope: resourceGroup()
+  name: containerAppJobContributorRoleId
+}
+
+resource scriptIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2023-07-31-preview' = {
+  name: 'script-identity'
+  location: location
+}
+
+resource jobContributorRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: containerAppJob
+  name: guid(containerAppJobContributorRoleDef.id, scriptIdentity.id, containerAppJob.id)
+  properties: {
+    principalType: 'ServicePrincipal'
+    principalId: scriptIdentity.properties.principalId
+    roleDefinitionId: containerAppJobContributorRoleDef.id
+  }
+}
+
+resource triggerJobScript 'Microsoft.Resources/deploymentScripts@2023-08-01' = {
+  name: '${containerAppNameCleaned}-trigger'
+  location: location
+  kind: 'AzureCLI'
+  identity: {
+    type: 'UserAssigned'
+    userAssignedIdentities: {
+      '${scriptIdentity.id}': {}
+    }
+  }
+  properties: {
+    azCliVersion: '2.59.0'
+    arguments: '${containerAppNameCleaned}-job ${resourceGroup().name}'
+    retentionInterval: 'PT1H'
+    scriptContent: '''
+      #!/bin/bash
+      set -e
+      az containerapp job start -n $1 -g $2
+    '''
+  }
+  dependsOn: [
+    containerAppJob
+  ]
+}
+
 // Resource: Container App
 resource containerAppResource 'Microsoft.App/containerapps@2024-02-02-preview' = {
   name: containerAppNameCleaned
@@ -112,7 +195,7 @@ resource containerAppResource 'Microsoft.App/containerapps@2024-02-02-preview' =
       ingress: ingress
     }
     template: {
-      containers: [containers]
+      containers: [frontendContainers]
       scale: {
         minReplicas: 0
       }
