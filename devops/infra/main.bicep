@@ -8,16 +8,15 @@ param priorAuthName string = 'priorAuth'
 param tags object = {}
 
 @description('ACR container image url')
-@secure()
-param acrContainerImage string
+param acrContainerImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
 
 @description('Admin user for the ACR registry of the container image')
 @secure()
-param acrUsername string
+param acrUsername string = ''
 
 @description('Admin password for the ACR registry of the container image')
 @secure()
-param acrPassword string
+param acrPassword string = ''
 
 @description('Admin password for the cluster')
 @secure()
@@ -56,7 +55,6 @@ param storageBlobContainerName string = 'default'
 var name = toLower('${priorAuthName}')
 var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 7)
 var storageServiceName = toLower(replace('storage-${name}-${uniqueSuffix}', '-', ''))
-var encodedPassword = uriComponent(cosmosAdministratorPassword)
 
 
 // @TODO: Replace with AVM module

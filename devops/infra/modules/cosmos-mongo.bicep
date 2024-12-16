@@ -11,6 +11,7 @@ param aiServiceName string
 param cosmosAdministratorUsername string = 'adminuser' // Default username, can be overridden
 
 @description('Admin password for the cluster')
+@secure()
 param cosmosAdministratorPassword string
 
 var mongoNameCleaned = replace(aiServiceName, '-', '')
