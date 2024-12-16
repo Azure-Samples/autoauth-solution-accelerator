@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "6284630696032261864"
+      "templateHash": "17756159631237565669"
     }
   },
   "parameters": {
@@ -101,6 +101,45 @@
       "defaultValue": "default",
       "metadata": {
         "description": "Storage Blob Container name to land the files for Prior Auth"
+      }
+    },
+    "appRegistrationName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "App Registration Name"
+      }
+    },
+    "aadClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "AAD Client ID (App Registration ID) for the Container App."
+      }
+    },
+    "aadClientSecret": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "AAD Client Secret for the Container App."
+      }
+    },
+    "aadTenantId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "AAD Tenant ID for the Container App."
+      }
+    },
+    "authProvider": {
+      "type": "string",
+      "defaultValue": "none",
+      "allowedValues": [
+        "aad",
+        "none"
+      ],
+      "metadata": {
+        "description": "Allowed provider scope for the identity. Only Microsoft AAD is currently supported. Also only select if plan on provisioning with Entra account, personal accounts do not have required permissions."
       }
     }
   },
@@ -1070,6 +1109,18 @@
           "acrPassword": {
             "value": "[parameters('acrPassword')]"
           },
+          "authProvider": {
+            "value": "[parameters('authProvider')]"
+          },
+          "aadClientId": {
+            "value": "[parameters('aadClientId')]"
+          },
+          "aadTenantId": {
+            "value": "[parameters('aadTenantId')]"
+          },
+          "aadClientSecret": {
+            "value": "[parameters('aadClientSecret')]"
+          },
           "containerEnvArray": {
             "value": [
               {
@@ -1179,7 +1230,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "1437006286095397625"
+              "templateHash": "3560191080767430508"
             }
           },
           "parameters": {
@@ -1253,6 +1304,35 @@
               "metadata": {
                 "description": "SKU name for the Managed Environment. Allowed values: Consumption"
               }
+            },
+            "authProvider": {
+              "type": "string",
+              "defaultValue": "none",
+              "allowedValues": [
+                "aad",
+                "none"
+              ]
+            },
+            "aadClientId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "AAD Client ID (App Registration ID) for the Container App. Required if authProvider is \"aad\"."
+              }
+            },
+            "aadTenantId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "AAD Tenant ID for the Container App. Required if authProvider is \"aad\"."
+              }
+            },
+            "aadClientSecret": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "AAD Client Secret for the Container App. Required if authProvider is \"aad\"."
+              }
             }
           },
           "variables": {
@@ -1291,10 +1371,7 @@
               "username": "[parameters('acrUsername')]",
               "passwordSecretRef": "acr-password-secret"
             },
-            "secrets": {
-              "name": "acr-password-secret",
-              "value": "[parameters('acrPassword')]"
-            },
+            "secrets": "[concat(createArray(createObject('name', 'acr-password-secret', 'value', parameters('acrPassword'))), if(equals(parameters('authProvider'), 'aad'), createArray(createObject('name', 'microsoft-provider-authentication-secret', 'value', parameters('aadClientSecret'))), createArray()))]",
             "ingress": {
               "external": true,
               "transport": "Auto",
@@ -1304,7 +1381,8 @@
                 "affinity": "none"
               },
               "additionalPortMappings": []
-            }
+            },
+            "authentication": "[if(equals(parameters('authProvider'), 'aad'), createObject('platform', createObject('enabled', true()), 'identityProviders', createObject('azureActiveDirectory', createObject('enabled', true(), 'clientId', parameters('aadClientId'), 'login', createObject('loginParameters', createArray()))), 'globalValidation', createObject('unauthenticatedClientAction', 'RedirectToLoginPage', 'redirectToProvider', 'AzureActiveDirectory', 'excludedPaths', createArray()), 'httpSettings', createObject('requireAuthentication', true(), 'authResponseHeaders', createObject())), null())]"
           },
           "resources": [
             {
@@ -1339,9 +1417,7 @@
               "properties": {
                 "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
                 "configuration": {
-                  "secrets": [
-                    "[variables('secrets')]"
-                  ],
+                  "secrets": "[variables('secrets')]",
                   "registries": [
                     "[variables('registries')]"
                   ],
@@ -1418,9 +1494,7 @@
               "properties": {
                 "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
                 "configuration": {
-                  "secrets": [
-                    "[variables('secrets')]"
-                  ],
+                  "secrets": "[variables('secrets')]",
                   "registries": [
                     "[variables('registries')]"
                   ],
@@ -1440,6 +1514,50 @@
               "dependsOn": [
                 "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]"
               ]
+            },
+            {
+              "condition": "[equals(parameters('authProvider'), 'aad')]",
+              "type": "Microsoft.App/containerApps/authConfigs",
+              "apiVersion": "2024-03-01",
+              "name": "[format('{0}/{1}', variables('containerAppNameCleaned'), 'current')]",
+              "properties": {
+                "platform": {
+                  "enabled": true
+                },
+                "globalValidation": {
+                  "unauthenticatedClientAction": "RedirectToLoginPage",
+                  "redirectToProvider": "azureactivedirectory"
+                },
+                "identityProviders": {
+                  "azureActiveDirectory": {
+                    "registration": {
+                      "openIdIssuer": "[format('{0}{1}/v2.0', environment().authentication.loginEndpoint, parameters('aadTenantId'))]",
+                      "clientId": "[parameters('aadClientId')]",
+                      "clientSecretSettingName": "microsoft-provider-authentication-secret"
+                    },
+                    "validation": {
+                      "allowedAudiences": [],
+                      "defaultAuthorizationPolicy": {
+                        "allowedPrincipals": {},
+                        "allowedApplications": [
+                          "[parameters('aadClientId')]"
+                        ]
+                      }
+                    },
+                    "isAutoProvisioned": false
+                  }
+                },
+                "login": {
+                  "routes": {},
+                  "preserveUrlFragmentsForLogins": false,
+                  "cookieExpiration": {},
+                  "nonce": {}
+                },
+                "encryptionSettings": {}
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/containerApps', variables('containerAppNameCleaned'))]"
+              ]
             }
           ],
           "outputs": {
@@ -1458,6 +1576,10 @@
             "managedEnvironmentName": {
               "type": "string",
               "value": "[variables('environmentNameCleaned')]"
+            },
+            "containerAppUrl": {
+              "type": "string",
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.App/containerApps', variables('containerAppNameCleaned')), '2024-02-02-preview').configuration.ingress.fqdn)]"
             }
           }
         }

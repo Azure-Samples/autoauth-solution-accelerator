@@ -4,7 +4,7 @@
 # Deployment Script for Prior Authorization Resources
 #
 # Usage:
-#   ./deploy.sh <Cosmos Admin Password> <ACR Password>
+#   ./deploy.sh <Cosmos Admin Password> <ACR Password> <AAD Client Secret>
 #
 # Description:
 #   This script deploys Azure resources defined in the main Bicep file.
@@ -26,13 +26,13 @@ set -e
 # Description: Displays the correct script usage.
 # -----------------------------------------------------------------------------
 print_usage() {
-    echo "Usage: $0 <Cosmos Admin Password> <ACR Password>"
+    echo "Usage: $0 <Cosmos Admin Password> <ACR Password> <AAD Client Secret>"
 }
 
 # -----------------------------------------------------------------------------
 # Argument Validation
 # -----------------------------------------------------------------------------
-if [ $# -lt 2 ]; then
+if [ $# -lt 3 ]; then
     echo "Error: Insufficient arguments provided."
     print_usage
     exit 1
@@ -41,6 +41,7 @@ fi
 # Assign arguments to variables
 cosmosAdminPassword="$1"
 acrPassword="$2"
+clientSecret="$3"
 
 # -----------------------------------------------------------------------------
 # Generate a Unique 7-Digit Identifier
@@ -97,8 +98,13 @@ measure_time "Deploying main Bicep template" \
             tags={} \
             location="$region" \
             cosmosAdministratorPassword="$cosmosAdminPassword" \
-            acrContainerImage="priorauthdemo.azurecr.io/priorauth-frontend:v2" \
-            acrUsername="priorauthdemo" \
-            acrPassword="$acrPassword"
+            acrContainerImage="msftpriorauth.azurecr.io/priorauth-frontend:v2" \
+            acrUsername="msftpriorauth" \
+            acrPassword="$acrPassword" \
+            appRegistrationName="prior-auth-demo" \
+            aadClientId="2d30fb06-5f39-4d52-96c3-01ea8331e6f6" \
+            aadClientSecret="$clientSecret" \
+            aadTenantId="7621c2b4-468f-45a0-a5ae-270c4fad8d75" \
+            authProvider="none"
 
 echo "Deployment completed successfully."
