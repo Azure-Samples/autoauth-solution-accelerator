@@ -8,7 +8,7 @@ param tags object
 param containerAppName string
 
 @description('Container Image for the Container App')
-param acrContainerImage string
+param acrContainerImage string = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 
 @description('Username for the Azure Container Registry (ACR)')
 param acrUsername string

@@ -7,8 +7,7 @@ param priorAuthName string = 'priorAuth'
 param tags object = {}
 
 @description('ACR container image url')
-@secure()
-param acrContainerImage string
+param acrContainerImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
 
 @description('Admin user for the ACR registry of the container image')
 @secure()
@@ -194,7 +193,7 @@ module containerApp 'modules/containerapp.bicep' = {
         name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_ID'
         value: 'gpt-4o'
       }
-      { 
+      {
         name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_01'
         value: 'gpt-4o'
       }
@@ -262,7 +261,7 @@ module containerApp 'modules/containerapp.bicep' = {
         name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
         value: appInsights.outputs.appInsightsConnectionString
       }
-    ]    
+    ]
     environmentName: 'managedEnv-${name}-${uniqueSuffix}'
     appInsightsWorkspaceId: logAnalytics.outputs.logAnalyticsId
     workloadProfileName: 'Consumption'

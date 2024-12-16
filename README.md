@@ -184,6 +184,8 @@ docker push priorauthdemo.azurecr.io/priorauth-frontend:v1
 Included in this repository are our configurations to quickly deploy the infrastructure, you can use `az cli` to create it similarly:
 
 ```bash
+# May require installing azure-cli-ml extension
+# az extension add --name azure-cli-ml
 az deployment group create \
     --debug \
     --resource-group "<resourceGroup>" \
@@ -203,7 +205,7 @@ az deployment group create \
 
 Refer to the scripts in `devops/infra/scripts` folder for build and cleanup capabilities.
 
-Alternatively, one-click deployment is possible: 
+Alternatively, one-click deployment is possible:
 
 > *Warning*: Templates below will not populate correctly until this repository is made publicly available.
 
