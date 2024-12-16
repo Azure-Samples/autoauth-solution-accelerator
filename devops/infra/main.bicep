@@ -12,11 +12,11 @@ param acrContainerImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
 
 @description('Admin user for the ACR registry of the container image')
 @secure()
-param acrUsername string = ''
+param acrUsername string
 
 @description('Admin password for the ACR registry of the container image')
 @secure()
-param acrPassword string = ''
+param acrPassword string
 
 @description('Admin password for the cluster')
 @secure()
