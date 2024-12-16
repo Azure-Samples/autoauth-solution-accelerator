@@ -1,4 +1,3 @@
-// Execute this main file to deploy Prior Authorization related resources in a basic configuration
 @minLength(2)
 @maxLength(12)
 @description('Name for the PriorAuth resource and used to derive the name of dependent resources.')
@@ -52,10 +51,26 @@ param embeddingModelDimension string = '1536'
 @description('Storage Blob Container name to land the files for Prior Auth')
 param storageBlobContainerName string = 'default'
 
+@description('AAD Client ID (App Registration ID) for the Container App.')
+param aadClientId string = ''
+
+@description('AAD Client Secret for the Container App.')
+@secure()
+param aadClientSecret string = ''
+
+@description('AAD Tenant ID for the Container App.')
+param aadTenantId string = ''
+
+@description('Allowed provider scope for the identity. Only Microsoft AAD is currently supported. Also only select if plan on provisioning with Entra account, personal accounts do not have required permissions.')
+@allowed([
+  'aad' // Microsoft Azure Active Directory
+  'none' // Placeholder for future support (e.g., Google, GitHub)
+])
+param authProvider string = 'none'
+
 var name = toLower('${priorAuthName}')
 var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 7)
 var storageServiceName = toLower(replace('storage-${name}-${uniqueSuffix}', '-', ''))
-
 
 // @TODO: Replace with AVM module
 module docIntelligence 'modules/docintelligence.bicep' = {
@@ -153,6 +168,10 @@ module containerApp 'modules/containerapp.bicep' = {
     acrContainerImage: acrContainerImage
     acrUsername: acrUsername
     acrPassword: acrPassword
+    authProvider: authProvider
+    aadClientId: aadClientId
+    aadTenantId: aadTenantId
+    aadClientSecret: aadClientSecret
     containerEnvArray: [
       {
         name: 'AZURE_OPENAI_KEY'

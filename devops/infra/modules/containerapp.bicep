@@ -35,6 +35,22 @@ param ingressPort int = 8501
 ])
 param workloadProfileName string = 'Consumption'
 
+@allowed([
+  'aad'
+  'none'
+])
+param authProvider string = 'none'
+
+@description('AAD Client ID (App Registration ID) for the Container App. Required if authProvider is "aad".')
+param aadClientId string = ''
+
+@description('AAD Tenant ID for the Container App. Required if authProvider is "aad".')
+param aadTenantId string = ''
+
+@description('AAD Client Secret for the Container App. Required if authProvider is "aad".')
+@secure()
+param aadClientSecret string = ''
+
 // Ensure names are lowercase to comply with Azure naming conventions
 var containerAppNameCleaned = toLower(containerAppName)
 var environmentNameCleaned = toLower(environmentName)
@@ -72,10 +88,20 @@ var registries = {
   passwordSecretRef: 'acr-password-secret'
 }
 
-var secrets = {
-  name: 'acr-password-secret'
-  value: acrPassword
-}
+var secrets = concat(
+  [
+    {
+      name: 'acr-password-secret'
+      value: acrPassword
+    }
+  ],
+  authProvider == 'aad' ? [
+    {
+      name: 'microsoft-provider-authentication-secret'
+      value: aadClientSecret
+    }
+  ] : []
+)
 
 var ingress = {
   external: true
@@ -87,6 +113,30 @@ var ingress = {
   }
   additionalPortMappings: []
 }
+
+var authentication = authProvider == 'aad' ? {
+  platform: {
+    enabled: true
+  }
+  identityProviders: {
+    azureActiveDirectory: {
+      enabled: true
+      clientId: aadClientId
+      login: {
+        loginParameters: []
+      }
+    }
+  }
+  globalValidation: {
+    unauthenticatedClientAction: 'RedirectToLoginPage'
+    redirectToProvider: 'AzureActiveDirectory'
+    excludedPaths: []
+  }
+  httpSettings: {
+    requireAuthentication: true
+    authResponseHeaders: {}
+  }
+} : null
 
 // Resource: Managed Environment
 resource managedEnvironment 'Microsoft.App/managedEnvironments@2024-02-02-preview' = {
@@ -118,7 +168,7 @@ resource containerAppJob 'Microsoft.App/jobs@2024-02-02-preview' = {
   properties: {
     environmentId: managedEnvironment.id
     configuration: {
-      secrets: [secrets]
+      secrets: secrets
       registries: [registries]
       replicaTimeout: 1800
       replicaRetryLimit: 0
@@ -189,7 +239,7 @@ resource containerAppResource 'Microsoft.App/containerapps@2024-02-02-preview' =
   properties: {
     environmentId: managedEnvironment.id
     configuration: {
-      secrets: [secrets]
+      secrets: secrets
       registries: [registries]
       activeRevisionsMode: 'Single'
       ingress: ingress
@@ -204,8 +254,49 @@ resource containerAppResource 'Microsoft.App/containerapps@2024-02-02-preview' =
   }
 }
 
+resource containerAppAuthConfig 'Microsoft.App/containerApps/authConfigs@2024-03-01' = if (authProvider == 'aad') {
+  parent: containerAppResource
+  name: 'current'
+  properties: {
+    platform: {
+      enabled: true
+    }
+    globalValidation: {
+      unauthenticatedClientAction: 'RedirectToLoginPage'
+      redirectToProvider: 'azureactivedirectory'
+    }
+    identityProviders: {
+      azureActiveDirectory: {
+        registration: {
+          openIdIssuer: '${environment().authentication.loginEndpoint}${aadTenantId}/v2.0'
+          clientId: aadClientId
+          clientSecretSettingName: 'microsoft-provider-authentication-secret'
+        }
+        validation: {
+          allowedAudiences: []
+          defaultAuthorizationPolicy: {
+            allowedPrincipals: {}
+            allowedApplications: [
+              aadClientId
+            ]
+          }
+        }
+        isAutoProvisioned: false
+      }
+    }
+    login: {
+      routes: {}
+      preserveUrlFragmentsForLogins: false
+      cookieExpiration: {}
+      nonce: {}
+    }
+    encryptionSettings: {}
+  }
+}
+
 // Outputs
 output containerAppId string = containerAppResource.id
 output containerAppName string = containerAppResource.name
 output managedEnvironmentId string = managedEnvironment.id
 output managedEnvironmentName string = managedEnvironment.name
+output containerAppUrl string = 'https://${containerAppResource.properties.configuration.ingress.fqdn}'

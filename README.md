@@ -153,7 +153,22 @@ We have encapsulated the necessary steps to deploy the assets into Azure, requir
 
 > **Temporary:** Ability to build and push Docker images
 
-Try it:
+Try it now:
+
+### (Optional) Step 0. Enable Authorization for the Application
+
+To utilize the repository with authentication enabled on the deployment, you will need to bring your own identity provider. The template supports Microsoft Entra AD, which you will need to create an App Registration. Follow the app registration guide [here](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app?tabs=certificate)
+
+>[Warning!]
+>Creating an application registration does not support personal accounts to access, so you will need to have an account for your Microsoft tenant in order to create the application registration.
+
+Ahead of deployment, you will need the following informaton:
+
+* App Registration Client Secret
+* App Registration Client ID
+* App Registration Tenant ID
+
+Once you have the above, you are good to proceed to the remaining steps. If you do not have authorization, feel free to deploy the application with `none` when prompted on an identity provider. You may always change this later.
 
 ### Step 1. Build the Docker Image
 
@@ -177,11 +192,15 @@ az deployment group create \
     --template-file "devops/infra/main.bicep" \
     --parameters priorAuthName="priorAuth" \
                  tags={} \
-                 location="eastus2" \
+                 location="<region>" \
                  cosmosAdministratorPassword="<password>" \
                  acrContainerImage="priorauthdemo.azurecr.io/priorauth-frontend:v2" \
-                 acrUsername="priorauthdemo" \
-                 acrPassword="<acrPassword>"
+                 acrUsername="<acrUsername>" \
+                 acrPassword="<acrPassword>" \
+                 aadClientId="<clientId>" \
+                 aadClientSecret="<<clientSecret>>" \
+                 aadTenantId="<tenant>>" \
+                 authProvider="aad"
 ```
 
 Refer to the scripts in `devops/infra/scripts` folder for build and cleanup capabilities.
@@ -193,7 +212,15 @@ Alternatively, one-click deployment is possible:
 [![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 [![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 
-### Step 3: Access Streamlit UI and Upload Policy Documents
+If you requested deployment with an identity provider, please go to the next step. All else, go to step 4.
+
+### (Optional) Step 3: Configure App Registration Authentication
+
+In order to complete the login, you must allow your newly deployed container application to be permissable for login from your app registration. This is an additional step to ensure your authentication flow redirects only to permissable web URLs. Read more [here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-configuration#configure-authentication-settings)
+
+After you configured the authentication to your security specifications, you will want to add a Web URI supporting the new deployment. Navigate to `Authentication` under Manage, and you will want to add a platform configuration. Select `Web`, and when prompted you will want to submit a value of: `<containerAppUrl>/.auth/login/aad/callback`
+
+### Step 4: Access Streamlit UI and Upload Policy Documents
 
 Review your deployment and use your browser to navigate to the URL assigned to your container app. Upload your policy documents, and watch AutoAuth work.
 
@@ -283,6 +310,7 @@ Before running the application, policies must be indexed to enable accurate sear
    streamlit run app/streamlit/Home.py
    ```
 
+   >[!WARNING]
    > Errors may return on failed import statements on some operating systems, be sure to include the folder path in your `PYTHONPATH` similarly: `export PYTHONPATH=$PYTHONPATH:$(pwd) && python ...`
 
 ### Step 5: Data Sources
