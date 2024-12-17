@@ -6,6 +6,7 @@ build-backend = "flit_core.buildapi"
 name = "example-project"
 authors = [
   {name = "Pablo Salvador", email = "pablosalvadorlopez11@gmail.com"}
+  {name = "Marcin Jimenez", email = "marcin.jimenez@gmail.com"}
 ]
 description = "An example project demonstrating pyproject.toml"
 readme = "README.md"

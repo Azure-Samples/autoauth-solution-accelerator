@@ -247,7 +247,7 @@ class AzureOpenAIManager:
         conversation_history: List[Dict[str, str]] = [],
         max_completion_tokens: int = 5000,
         stream: bool = False,
-        model: str = "o1-preview",
+        model: str = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_01", "o1-preview"),
         **kwargs,
     ) -> Optional[Union[str, Dict[str, Any]]]:
         """
@@ -276,7 +276,7 @@ class AzureOpenAIManager:
             response = self.openai_client.chat.completions.create(
                 model=model,
                 messages=messages_for_api,
-                max_completion_tokens=max_completion_tokens,
+                # max_completion_tokens=max_completion_tokens,
                 stream=stream,
                 **kwargs,
             )

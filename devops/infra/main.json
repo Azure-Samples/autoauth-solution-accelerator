@@ -1,0 +1,1599 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.30.23.60470",
+      "templateHash": "17756159631237565669"
+    }
+  },
+  "parameters": {
+    "priorAuthName": {
+      "type": "string",
+      "defaultValue": "priorAuth",
+      "minLength": 2,
+      "maxLength": 12,
+      "metadata": {
+        "description": "Name for the PriorAuth resource and used to derive the name of dependent resources."
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {},
+      "metadata": {
+        "description": "Set of tags to apply to all resources."
+      }
+    },
+    "acrContainerImage": {
+      "type": "securestring",
+      "metadata": {
+        "description": "ACR container image url"
+      }
+    },
+    "acrUsername": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin user for the ACR registry of the container image"
+      }
+    },
+    "acrPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the ACR registry of the container image"
+      }
+    },
+    "cosmosAdministratorPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the cluster"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "The location into which the resources should be deployed."
+      }
+    },
+    "openAiApiVersion": {
+      "type": "string",
+      "defaultValue": "2024-08-01-preview",
+      "metadata": {
+        "description": "API Version of the OpenAI API"
+      }
+    },
+    "chatCompletionModels": {
+      "type": "array",
+      "defaultValue": [
+        {
+          "name": "gpt-4o",
+          "version": "2024-08-06",
+          "skuName": "GlobalStandard",
+          "capacity": 25
+        }
+      ],
+      "metadata": {
+        "description": "List of completion models to be deployed to the OpenAI account."
+      }
+    },
+    "embeddingModel": {
+      "type": "object",
+      "defaultValue": {
+        "name": "text-embedding-ada-002",
+        "version": "2",
+        "skuName": "Standard",
+        "capacity": 16
+      },
+      "metadata": {
+        "description": "List of embedding models to be deployed to the OpenAI account."
+      }
+    },
+    "embeddingModelDimension": {
+      "type": "string",
+      "defaultValue": "1536",
+      "metadata": {
+        "description": "Embedding model size for the OpenAI Embedding deployment"
+      }
+    },
+    "storageBlobContainerName": {
+      "type": "string",
+      "defaultValue": "default",
+      "metadata": {
+        "description": "Storage Blob Container name to land the files for Prior Auth"
+      }
+    },
+    "appRegistrationName": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "App Registration Name"
+      }
+    },
+    "aadClientId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "AAD Client ID (App Registration ID) for the Container App."
+      }
+    },
+    "aadClientSecret": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "AAD Client Secret for the Container App."
+      }
+    },
+    "aadTenantId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "AAD Tenant ID for the Container App."
+      }
+    },
+    "authProvider": {
+      "type": "string",
+      "defaultValue": "none",
+      "allowedValues": [
+        "aad",
+        "none"
+      ],
+      "metadata": {
+        "description": "Allowed provider scope for the identity. Only Microsoft AAD is currently supported. Also only select if plan on provisioning with Entra account, personal accounts do not have required permissions."
+      }
+    }
+  },
+  "variables": {
+    "name": "[toLower(format('{0}', parameters('priorAuthName')))]",
+    "uniqueSuffix": "[substring(uniqueString(resourceGroup().id), 0, 7)]",
+    "storageServiceName": "[toLower(replace(format('storage-{0}-{1}', variables('name'), variables('uniqueSuffix')), '-', ''))]",
+    "encodedPassword": "[uriComponent(parameters('cosmosAdministratorPassword'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiServiceName": {
+            "value": "[format('doc-intelligence-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "aiServiceSkuName": {
+            "value": "S0"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "15791306279606983313"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "aiServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the AI service"
+              }
+            },
+            "aiServiceSkuName": {
+              "type": "string",
+              "defaultValue": "S0",
+              "allowedValues": [
+                "S0"
+              ],
+              "metadata": {
+                "description": "AI service SKU"
+              }
+            }
+          },
+          "variables": {
+            "aiServiceNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.CognitiveServices/accounts",
+              "apiVersion": "2023-05-01",
+              "name": "[variables('aiServiceNameCleaned')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "[parameters('aiServiceSkuName')]"
+              },
+              "kind": "AIServices",
+              "properties": {
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false,
+                "apiProperties": {
+                  "statisticsEnabled": false
+                }
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "tags": "[parameters('tags')]"
+            }
+          ],
+          "outputs": {
+            "aiServicesId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned'))]"
+            },
+            "aiServicesEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint]"
+            },
+            "aiServicesName": {
+              "type": "string",
+              "value": "[variables('aiServiceNameCleaned')]"
+            },
+            "aiServicesPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01', 'full').identity.principalId]"
+            },
+            "aiServicesKey": {
+              "type": "string",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').key1]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiServiceName": {
+            "value": "[format('multiservice-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "aiServiceSkuName": {
+            "value": "S0"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "2020181929981449900"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "aiServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the AI service"
+              }
+            },
+            "aiServiceSkuName": {
+              "type": "string",
+              "defaultValue": "S0",
+              "allowedValues": [
+                "S0"
+              ],
+              "metadata": {
+                "description": "AI service SKU"
+              }
+            }
+          },
+          "variables": {
+            "aiServiceNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.CognitiveServices/accounts",
+              "apiVersion": "2023-05-01",
+              "name": "[variables('aiServiceNameCleaned')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "[parameters('aiServiceSkuName')]"
+              },
+              "kind": "CognitiveServices",
+              "properties": {
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false,
+                "apiProperties": {
+                  "statisticsEnabled": false
+                },
+                "customSubDomainName": "[variables('aiServiceNameCleaned')]"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "tags": "[parameters('tags')]"
+            }
+          ],
+          "outputs": {
+            "aiServicesId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned'))]"
+            },
+            "aiServicesEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint]"
+            },
+            "aiServicesName": {
+              "type": "string",
+              "value": "[variables('aiServiceNameCleaned')]"
+            },
+            "aiServicesPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01', 'full').identity.principalId]"
+            },
+            "aiServicesPrimaryKey": {
+              "type": "string",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').key1]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiServiceName": {
+            "value": "[format('openai-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "aiServiceSkuName": {
+            "value": "S0"
+          },
+          "embeddingModel": {
+            "value": "[parameters('embeddingModel')]"
+          },
+          "chatCompletionModels": {
+            "value": "[parameters('chatCompletionModels')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "6997403857487115399"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "aiServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the AI service"
+              }
+            },
+            "aiServiceSkuName": {
+              "type": "string",
+              "defaultValue": "S0",
+              "allowedValues": [
+                "S0"
+              ],
+              "metadata": {
+                "description": "AI service SKU"
+              }
+            },
+            "chatCompletionModels": {
+              "type": "array",
+              "defaultValue": [
+                {
+                  "name": "gpt-4o",
+                  "version": "2024-08-06",
+                  "skuName": "GlobalStandard",
+                  "capacity": 25
+                }
+              ],
+              "metadata": {
+                "description": "List of chat completion models to be deployed to the OpenAI account."
+              }
+            },
+            "embeddingModel": {
+              "type": "object",
+              "defaultValue": {
+                "name": "text-embedding-ada-002",
+                "version": "2",
+                "skuName": "Standard",
+                "capacity": 16
+              },
+              "metadata": {
+                "description": "List of embedding models to be deployed to the OpenAI account."
+              }
+            }
+          },
+          "variables": {
+            "combinedModels": "[concat(parameters('chatCompletionModels'), createArray(parameters('embeddingModel')))]",
+            "aiServiceNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.CognitiveServices/accounts",
+              "apiVersion": "2023-05-01",
+              "name": "[variables('aiServiceNameCleaned')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "[parameters('aiServiceSkuName')]"
+              },
+              "kind": "OpenAI",
+              "properties": {
+                "publicNetworkAccess": "Enabled",
+                "disableLocalAuth": false,
+                "apiProperties": {
+                  "statisticsEnabled": false
+                },
+                "customSubDomainName": "[variables('aiServiceNameCleaned')]"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
+              "tags": "[parameters('tags')]"
+            },
+            {
+              "copy": {
+                "name": "modelDeployments",
+                "count": "[length(variables('combinedModels'))]",
+                "mode": "serial",
+                "batchSize": 1
+              },
+              "type": "Microsoft.CognitiveServices/accounts/deployments",
+              "apiVersion": "2024-06-01-preview",
+              "name": "[format('{0}/{1}', variables('aiServiceNameCleaned'), format('{0}', variables('combinedModels')[copyIndex()].name))]",
+              "sku": {
+                "name": "[variables('combinedModels')[copyIndex()].skuName]",
+                "capacity": "[variables('combinedModels')[copyIndex()].capacity]"
+              },
+              "properties": {
+                "model": {
+                  "format": "OpenAI",
+                  "name": "[variables('combinedModels')[copyIndex()].name]",
+                  "version": "[variables('combinedModels')[copyIndex()].version]"
+                },
+                "currentCapacity": "[variables('combinedModels')[copyIndex()].capacity]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "aiServicesId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned'))]"
+            },
+            "aiServicesEndpoint": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint]"
+            },
+            "aiServicesName": {
+              "type": "string",
+              "value": "[variables('aiServiceNameCleaned')]"
+            },
+            "aiServicesPrincipalId": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01', 'full').identity.principalId]"
+            },
+            "aiServicesKey": {
+              "type": "string",
+              "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').key1]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiServiceName": {
+            "value": "[format('search-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "aiServiceSkuName": {
+            "value": "basic"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "17700940583222044618"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "aiServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Search service"
+              }
+            },
+            "aiServiceSkuName": {
+              "type": "string",
+              "defaultValue": "basic",
+              "allowedValues": [
+                "basic"
+              ],
+              "metadata": {
+                "description": "Search service SKU"
+              }
+            }
+          },
+          "variables": {
+            "searchNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Search/searchServices",
+              "apiVersion": "2024-06-01-preview",
+              "name": "[variables('searchNameCleaned')]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "[parameters('aiServiceSkuName')]"
+              },
+              "properties": {
+                "publicNetworkAccess": "Enabled",
+                "hostingMode": "default"
+              },
+              "tags": "[parameters('tags')]"
+            }
+          ],
+          "outputs": {
+            "searchServiceId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Search/searchServices', variables('searchNameCleaned'))]"
+            },
+            "searchServiceName": {
+              "type": "string",
+              "value": "[variables('searchNameCleaned')]"
+            },
+            "searchServicePrimaryKey": {
+              "type": "string",
+              "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices', variables('searchNameCleaned')), '2024-06-01-preview').primaryKey]"
+            },
+            "searchServiceEndpoint": {
+              "type": "string",
+              "value": "[format('https://{0}.search.windows.net', variables('searchNameCleaned'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiServiceName": {
+            "value": "[variables('storageServiceName')]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "aiServiceSkuName": {
+            "value": "Standard_LRS"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "2048693613377525224"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "aiServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Storage account"
+              }
+            },
+            "aiServiceSkuName": {
+              "type": "string",
+              "defaultValue": "Standard_LRS",
+              "allowedValues": [
+                "Standard_LRS",
+                "Standard_GRS",
+                "Standard_RAGRS",
+                "Standard_ZRS"
+              ],
+              "metadata": {
+                "description": "Storage SKU"
+              }
+            }
+          },
+          "variables": {
+            "storageNameCleaned": "[toLower(replace(parameters('aiServiceName'), '-', ''))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Storage/storageAccounts",
+              "apiVersion": "2023-05-01",
+              "name": "[take(variables('storageNameCleaned'), 24)]",
+              "location": "[parameters('location')]",
+              "sku": {
+                "name": "[parameters('aiServiceSkuName')]"
+              },
+              "kind": "StorageV2",
+              "properties": {
+                "publicNetworkAccess": "Enabled",
+                "supportsHttpsTrafficOnly": true
+              },
+              "tags": "[parameters('tags')]"
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices",
+              "apiVersion": "2023-01-01",
+              "name": "[format('{0}/{1}', take(variables('storageNameCleaned'), 24), 'default')]",
+              "properties": {
+                "deleteRetentionPolicy": {
+                  "enabled": true,
+                  "days": 7
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', take(variables('storageNameCleaned'), 24))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2023-01-01",
+              "name": "[format('{0}/{1}/{2}', take(variables('storageNameCleaned'), 24), 'default', 'default')]",
+              "properties": {},
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', take(variables('storageNameCleaned'), 24), 'default')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2023-01-01",
+              "name": "[format('{0}/{1}/{2}', take(variables('storageNameCleaned'), 24), 'default', 'pre-auth-policies')]",
+              "properties": {},
+              "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts/blobServices', take(variables('storageNameCleaned'), 24), 'default')]"
+              ]
+            }
+          ],
+          "outputs": {
+            "storageAccountId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Storage/storageAccounts', take(variables('storageNameCleaned'), 24))]"
+            },
+            "storageAccountName": {
+              "type": "string",
+              "value": "[take(variables('storageNameCleaned'), 24)]"
+            },
+            "storageAccountPrimaryKey": {
+              "type": "string",
+              "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', take(variables('storageNameCleaned'), 24)), '2023-05-01').keys[0].value]"
+            },
+            "storageAccountPrimaryConnectionString": {
+              "type": "string",
+              "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net', take(variables('storageNameCleaned'), 24), listKeys(resourceId('Microsoft.Storage/storageAccounts', take(variables('storageNameCleaned'), 24)), '2023-05-01').keys[0].value)]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('appinsights-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiServiceName": {
+            "value": "[format('appinsights-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "8293880178388146050"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "aiServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Application Insights resource"
+              }
+            }
+          },
+          "variables": {
+            "appInsightsNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/components",
+              "apiVersion": "2020-02-02",
+              "name": "[variables('appInsightsNameCleaned')]",
+              "location": "[parameters('location')]",
+              "kind": "web",
+              "properties": {
+                "Application_Type": "web",
+                "publicNetworkAccessForIngestion": "Enabled",
+                "publicNetworkAccessForQuery": "Enabled"
+              },
+              "tags": "[parameters('tags')]"
+            }
+          ],
+          "outputs": {
+            "appInsightsId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.Insights/components', variables('appInsightsNameCleaned'))]"
+            },
+            "appInsightsName": {
+              "type": "string",
+              "value": "[variables('appInsightsNameCleaned')]"
+            },
+            "appInsightsConnectionString": {
+              "type": "string",
+              "value": "[reference(resourceId('Microsoft.Insights/components', variables('appInsightsNameCleaned')), '2020-02-02').ConnectionString]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "aiServiceName": {
+            "value": "[format('cosmosdb-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "cosmosAdministratorPassword": {
+            "value": "[parameters('cosmosAdministratorPassword')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "18266270289093716053"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "aiServiceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Mongo cluster"
+              }
+            },
+            "cosmosAdministratorUsername": {
+              "type": "string",
+              "defaultValue": "adminuser",
+              "metadata": {
+                "description": "Administrator username for the Mongo cluster"
+              }
+            },
+            "cosmosAdministratorPassword": {
+              "type": "string",
+              "metadata": {
+                "description": "Admin password for the cluster"
+              }
+            }
+          },
+          "variables": {
+            "mongoNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]",
+            "encodedPassword": "[uriComponent(parameters('cosmosAdministratorPassword'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.DocumentDB/mongoClusters",
+              "apiVersion": "2024-07-01",
+              "name": "[variables('mongoNameCleaned')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "administrator": {
+                  "userName": "[parameters('cosmosAdministratorUsername')]",
+                  "password": "[parameters('cosmosAdministratorPassword')]"
+                },
+                "serverVersion": "7.0",
+                "compute": {
+                  "tier": "M30"
+                },
+                "storage": {
+                  "sizeGb": 32
+                },
+                "sharding": {
+                  "shardCount": 1
+                },
+                "highAvailability": {
+                  "targetMode": "Disabled"
+                },
+                "publicNetworkAccess": "Enabled",
+                "previewFeatures": [
+                  "GeoReplicas"
+                ]
+              }
+            }
+          ],
+          "outputs": {
+            "mongoClusterId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongoNameCleaned'))]"
+            },
+            "mongoClusterName": {
+              "type": "string",
+              "value": "[variables('mongoNameCleaned')]"
+            },
+            "mongoConnectionString": {
+              "type": "string",
+              "value": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000', parameters('cosmosAdministratorUsername'), variables('encodedPassword'), variables('mongoNameCleaned'))]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('loganalytics-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "logAnalyticsName": {
+            "value": "[format('loganalytics-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "16846269895886684865"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "logAnalyticsName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Log Analytics Workspace"
+              }
+            }
+          },
+          "variables": {
+            "logAnalyticsCleaned": "[replace(parameters('logAnalyticsName'), '-', '')]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.OperationalInsights/workspaces",
+              "apiVersion": "2020-08-01",
+              "name": "[variables('logAnalyticsCleaned')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "sku": {
+                  "name": "PerGB2018"
+                },
+                "retentionInDays": 30,
+                "workspaceCapping": {}
+              }
+            }
+          ],
+          "outputs": {
+            "logAnalyticsId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('logAnalyticsCleaned'))]"
+            },
+            "logAnalyticsName": {
+              "type": "string",
+              "value": "[variables('logAnalyticsCleaned')]"
+            }
+          }
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2022-09-01",
+      "name": "[format('containerapp-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "containerAppName": {
+            "value": "[format('pe-fe-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "acrContainerImage": {
+            "value": "[parameters('acrContainerImage')]"
+          },
+          "acrUsername": {
+            "value": "[parameters('acrUsername')]"
+          },
+          "acrPassword": {
+            "value": "[parameters('acrPassword')]"
+          },
+          "authProvider": {
+            "value": "[parameters('authProvider')]"
+          },
+          "aadClientId": {
+            "value": "[parameters('aadClientId')]"
+          },
+          "aadTenantId": {
+            "value": "[parameters('aadTenantId')]"
+          },
+          "aadClientSecret": {
+            "value": "[parameters('aadClientSecret')]"
+          },
+          "containerEnvArray": {
+            "value": [
+              {
+                "name": "AZURE_OPENAI_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesKey.value]"
+              },
+              {
+                "name": "AZURE_OPENAI_ENDPOINT",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
+              },
+              {
+                "name": "AZURE_OPENAI_API_VERSION",
+                "value": "[parameters('openAiApiVersion')]"
+              },
+              {
+                "name": "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
+                "value": "[parameters('embeddingModel').name]"
+              },
+              {
+                "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_ID",
+                "value": "gpt-4o"
+              },
+              {
+                "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
+                "value": "gpt-4o"
+              },
+              {
+                "name": "AZURE_OPENAI_EMBEDDING_DIMENSIONS",
+                "value": "[parameters('embeddingModelDimension')]"
+              },
+              {
+                "name": "AZURE_SEARCH_SERVICE_NAME",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServiceName.value]"
+              },
+              {
+                "name": "AZURE_SEARCH_INDEX_NAME",
+                "value": "ai-policies-index"
+              },
+              {
+                "name": "AZURE_AI_SEARCH_ADMIN_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServicePrimaryKey.value]"
+              },
+              {
+                "name": "AZURE_AI_SEARCH_SERVICE_ENDPOINT",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServiceEndpoint.value]"
+              },
+              {
+                "name": "AZURE_STORAGE_ACCOUNT_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountPrimaryKey.value]"
+              },
+              {
+                "name": "AZURE_BLOB_CONTAINER_NAME",
+                "value": "[parameters('storageBlobContainerName')]"
+              },
+              {
+                "name": "AZURE_STORAGE_ACCOUNT_NAME",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountName.value]"
+              },
+              {
+                "name": "AZURE_STORAGE_CONNECTION_STRING",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountPrimaryConnectionString.value]"
+              },
+              {
+                "name": "AZURE_AI_SERVICES_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesPrimaryKey.value]"
+              },
+              {
+                "name": "AZURE_COSMOS_DB_DATABASE_NAME",
+                "value": "priorauthsessions"
+              },
+              {
+                "name": "AZURE_COSMOS_DB_COLLECTION_NAME",
+                "value": "temp"
+              },
+              {
+                "name": "AZURE_COSMOS_CONNECTION_STRING",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.mongoConnectionString.value]"
+              },
+              {
+                "name": "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
+              },
+              {
+                "name": "AZURE_DOCUMENT_INTELLIGENCE_KEY",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesKey.value]"
+              },
+              {
+                "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('appinsights-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.appInsightsConnectionString.value]"
+              }
+            ]
+          },
+          "environmentName": {
+            "value": "[format('managedEnv-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+          },
+          "appInsightsWorkspaceId": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('loganalytics-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.logAnalyticsId.value]"
+          },
+          "workloadProfileName": {
+            "value": "Consumption"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.30.23.60470",
+              "templateHash": "3560191080767430508"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "metadata": {
+                "description": "Azure region of the deployment"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "metadata": {
+                "description": "Tags to add to the resources"
+              }
+            },
+            "containerAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Container App"
+              }
+            },
+            "acrContainerImage": {
+              "type": "string",
+              "metadata": {
+                "description": "Container Image for the Container App"
+              }
+            },
+            "acrUsername": {
+              "type": "string",
+              "metadata": {
+                "description": "Username for the Azure Container Registry (ACR)"
+              }
+            },
+            "acrPassword": {
+              "type": "securestring",
+              "metadata": {
+                "description": "Password for the Azure Container Registry (ACR)"
+              }
+            },
+            "containerEnvArray": {
+              "type": "array",
+              "metadata": {
+                "description": "Key value env array for the Container App"
+              }
+            },
+            "environmentName": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Managed Environment"
+              }
+            },
+            "appInsightsWorkspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "ID of the Log Analytics Workspace"
+              }
+            },
+            "ingressPort": {
+              "type": "int",
+              "defaultValue": 8501,
+              "metadata": {
+                "description": "Ingress configuration for the Container App."
+              }
+            },
+            "workloadProfileName": {
+              "type": "string",
+              "defaultValue": "Consumption",
+              "allowedValues": [
+                "Consumption"
+              ],
+              "metadata": {
+                "description": "SKU name for the Managed Environment. Allowed values: Consumption"
+              }
+            },
+            "authProvider": {
+              "type": "string",
+              "defaultValue": "none",
+              "allowedValues": [
+                "aad",
+                "none"
+              ]
+            },
+            "aadClientId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "AAD Client ID (App Registration ID) for the Container App. Required if authProvider is \"aad\"."
+              }
+            },
+            "aadTenantId": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "AAD Tenant ID for the Container App. Required if authProvider is \"aad\"."
+              }
+            },
+            "aadClientSecret": {
+              "type": "securestring",
+              "defaultValue": "",
+              "metadata": {
+                "description": "AAD Client Secret for the Container App. Required if authProvider is \"aad\"."
+              }
+            }
+          },
+          "variables": {
+            "containerAppNameCleaned": "[toLower(parameters('containerAppName'))]",
+            "environmentNameCleaned": "[toLower(parameters('environmentName'))]",
+            "registryServer": "[split(parameters('acrContainerImage'), '/')[0]]",
+            "containerAppJobContributorRoleId": "b9a307c4-5aa3-4b52-ba60-2b17c136cd7b",
+            "frontendContainers": {
+              "name": "[format('{0}-fe', variables('containerAppNameCleaned'))]",
+              "image": "[parameters('acrContainerImage')]",
+              "command": [],
+              "args": [],
+              "resources": {
+                "cpu": "[json('2.0')]",
+                "memory": "4Gi"
+              },
+              "env": "[parameters('containerEnvArray')]"
+            },
+            "jobAppContainers": {
+              "name": "[format('{0}-job', variables('containerAppNameCleaned'))]",
+              "image": "[parameters('acrContainerImage')]",
+              "command": [
+                "/bin/bash",
+                "-c",
+                "python /app/src/pipeline/indexerSetup.py --target '/app'"
+              ],
+              "args": [],
+              "resources": {
+                "cpu": "[json('2.0')]",
+                "memory": "4Gi"
+              },
+              "env": "[parameters('containerEnvArray')]"
+            },
+            "registries": {
+              "server": "[variables('registryServer')]",
+              "username": "[parameters('acrUsername')]",
+              "passwordSecretRef": "acr-password-secret"
+            },
+            "secrets": "[concat(createArray(createObject('name', 'acr-password-secret', 'value', parameters('acrPassword'))), if(equals(parameters('authProvider'), 'aad'), createArray(createObject('name', 'microsoft-provider-authentication-secret', 'value', parameters('aadClientSecret'))), createArray()))]",
+            "ingress": {
+              "external": true,
+              "transport": "Auto",
+              "allowInsecure": false,
+              "targetPort": "[parameters('ingressPort')]",
+              "stickySessions": {
+                "affinity": "none"
+              },
+              "additionalPortMappings": []
+            },
+            "authentication": "[if(equals(parameters('authProvider'), 'aad'), createObject('platform', createObject('enabled', true()), 'identityProviders', createObject('azureActiveDirectory', createObject('enabled', true(), 'clientId', parameters('aadClientId'), 'login', createObject('loginParameters', createArray()))), 'globalValidation', createObject('unauthenticatedClientAction', 'RedirectToLoginPage', 'redirectToProvider', 'AzureActiveDirectory', 'excludedPaths', createArray()), 'httpSettings', createObject('requireAuthentication', true(), 'authResponseHeaders', createObject())), null())]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/managedEnvironments",
+              "apiVersion": "2024-02-02-preview",
+              "name": "[variables('environmentNameCleaned')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "appLogsConfiguration": {
+                  "destination": "log-analytics",
+                  "logAnalyticsConfiguration": {
+                    "customerId": "[reference(parameters('appInsightsWorkspaceId'), '2020-08-01').customerId]",
+                    "sharedKey": "[listKeys(parameters('appInsightsWorkspaceId'), '2020-08-01').primarySharedKey]"
+                  }
+                },
+                "publicNetworkAccess": "Enabled",
+                "workloadProfiles": [
+                  {
+                    "name": "[parameters('workloadProfileName')]",
+                    "workloadProfileType": "[parameters('workloadProfileName')]"
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.App/jobs",
+              "apiVersion": "2024-02-02-preview",
+              "name": "[format('{0}-job', variables('containerAppNameCleaned'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
+                "configuration": {
+                  "secrets": "[variables('secrets')]",
+                  "registries": [
+                    "[variables('registries')]"
+                  ],
+                  "replicaTimeout": 1800,
+                  "replicaRetryLimit": 0,
+                  "triggerType": "Manual",
+                  "manualTriggerConfig": {
+                    "replicaCompletionCount": 1,
+                    "parallelism": 1
+                  }
+                },
+                "template": {
+                  "containers": [
+                    "[variables('jobAppContainers')]"
+                  ]
+                },
+                "workloadProfileName": "[parameters('workloadProfileName')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+              "apiVersion": "2023-07-31-preview",
+              "name": "script-identity",
+              "location": "[parameters('location')]"
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.App/jobs/{0}', format('{0}-job', variables('containerAppNameCleaned')))]",
+              "name": "[guid(resourceId('Microsoft.Authorization/roleDefinitions', variables('containerAppJobContributorRoleId')), resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity'), resourceId('Microsoft.App/jobs', format('{0}-job', variables('containerAppNameCleaned'))))]",
+              "properties": {
+                "principalType": "ServicePrincipal",
+                "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity'), '2023-07-31-preview').principalId]",
+                "roleDefinitionId": "[resourceId('Microsoft.Authorization/roleDefinitions', variables('containerAppJobContributorRoleId'))]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/jobs', format('{0}-job', variables('containerAppNameCleaned')))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.Resources/deploymentScripts",
+              "apiVersion": "2023-08-01",
+              "name": "[format('{0}-trigger', variables('containerAppNameCleaned'))]",
+              "location": "[parameters('location')]",
+              "kind": "AzureCLI",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity'))]": {}
+                }
+              },
+              "properties": {
+                "azCliVersion": "2.59.0",
+                "arguments": "[format('{0}-job {1}', variables('containerAppNameCleaned'), resourceGroup().name)]",
+                "retentionInterval": "PT1H",
+                "scriptContent": "      #!/bin/bash\n      set -e\n      az containerapp job start -n $1 -g $2\n    "
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/jobs', format('{0}-job', variables('containerAppNameCleaned')))]",
+                "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'script-identity')]"
+              ]
+            },
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2024-02-02-preview",
+              "name": "[variables('containerAppNameCleaned')]",
+              "kind": "containerapps",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
+                "configuration": {
+                  "secrets": "[variables('secrets')]",
+                  "registries": [
+                    "[variables('registries')]"
+                  ],
+                  "activeRevisionsMode": "Single",
+                  "ingress": "[variables('ingress')]"
+                },
+                "template": {
+                  "containers": [
+                    "[variables('frontendContainers')]"
+                  ],
+                  "scale": {
+                    "minReplicas": 0
+                  }
+                },
+                "workloadProfileName": "[parameters('workloadProfileName')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]"
+              ]
+            },
+            {
+              "condition": "[equals(parameters('authProvider'), 'aad')]",
+              "type": "Microsoft.App/containerApps/authConfigs",
+              "apiVersion": "2024-03-01",
+              "name": "[format('{0}/{1}', variables('containerAppNameCleaned'), 'current')]",
+              "properties": {
+                "platform": {
+                  "enabled": true
+                },
+                "globalValidation": {
+                  "unauthenticatedClientAction": "RedirectToLoginPage",
+                  "redirectToProvider": "azureactivedirectory"
+                },
+                "identityProviders": {
+                  "azureActiveDirectory": {
+                    "registration": {
+                      "openIdIssuer": "[format('{0}{1}/v2.0', environment().authentication.loginEndpoint, parameters('aadTenantId'))]",
+                      "clientId": "[parameters('aadClientId')]",
+                      "clientSecretSettingName": "microsoft-provider-authentication-secret"
+                    },
+                    "validation": {
+                      "allowedAudiences": [],
+                      "defaultAuthorizationPolicy": {
+                        "allowedPrincipals": {},
+                        "allowedApplications": [
+                          "[parameters('aadClientId')]"
+                        ]
+                      }
+                    },
+                    "isAutoProvisioned": false
+                  }
+                },
+                "login": {
+                  "routes": {},
+                  "preserveUrlFragmentsForLogins": false,
+                  "cookieExpiration": {},
+                  "nonce": {}
+                },
+                "encryptionSettings": {}
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.App/containerApps', variables('containerAppNameCleaned'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "containerAppId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/containerApps', variables('containerAppNameCleaned'))]"
+            },
+            "containerAppName": {
+              "type": "string",
+              "value": "[variables('containerAppNameCleaned')]"
+            },
+            "managedEnvironmentId": {
+              "type": "string",
+              "value": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]"
+            },
+            "managedEnvironmentName": {
+              "type": "string",
+              "value": "[variables('environmentNameCleaned')]"
+            },
+            "containerAppUrl": {
+              "type": "string",
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.App/containerApps', variables('containerAppNameCleaned')), '2024-02-02-preview').configuration.ingress.fqdn)]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', format('appinsights-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('loganalytics-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]"
+      ]
+    }
+  ]
+}
