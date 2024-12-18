@@ -1,5 +1,10 @@
 title: "Your Project Documentation"
-description: "Documentation site for GBB AI HLS Factory Prior Auth"
-baseurl: "" # Leave empty if deploying at the repository root
-url: "https://pablosalvador10.github.io" # Your GitHub Pages URL
-theme: minima # You can use the default Jekyll theme
+description: "Comprehensive documentation for Your Project."
+baseurl: "" # Set if deploying to a subpath
+url: "https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth/" # Replace with your GitHub Pages URL
+theme: minima # Using the Minima theme for simplicity
+markdown: kramdown
+highlighter: rouge
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
