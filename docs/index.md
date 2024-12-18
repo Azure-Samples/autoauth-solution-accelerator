@@ -1,8 +1,9 @@
 ---
-layout: default
-title: Welcome
+title: "Home"
 ---
 
-# Welcome to Your Documentation
+# Streamlining Prior Authorization with Azure AI
 
-This is the homepage for your GitHub Pages site. Add links to your documentation here.
+![Azure Logo](./_assets/images/azure_logo.png)
+
+Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors before delivering specific treatments or medications...

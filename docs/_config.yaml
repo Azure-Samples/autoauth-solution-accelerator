@@ -1,10 +1,5 @@
-title: "Your Project Documentation"
-description: "Comprehensive documentation for Your Project."
-baseurl: "" # Set if deploying to a subpath
-url: "https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth/" # Replace with your GitHub Pages URL
-theme: minima # Using the Minima theme for simplicity
+title: "AutoAuth Documentation"
+description: "Streamlining Prior Authorization with Azure AI"
+theme: just-the-docs
+remote_theme: just-the-docs/just-the-docs
 markdown: kramdown
-highlighter: rouge
-plugins:
-  - jekyll-feed
-  - jekyll-seo-tag
