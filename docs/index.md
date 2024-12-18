@@ -1,48 +1,30 @@
 ---
+layout: default
 title: "Home"
+nav_order: 1
+description: "Streamlining Prior Authorization with Azure AI"
+permalink: /
 ---
 
-# Streamlining Prior Authorization with Azure AI
+# 🚀 Streamlining Prior Authorization with Azure AI  
 
-![Azure Logo](./_assets/images/azure_logo.png)
-
-Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors before delivering specific treatments or medications...
-
-![alt text](./_assets/images/paworflow.png)
-
-# 🔍 Identifying Challenges and Leveraging Opportunities
-
-## ⏳ Time and Cost Implications
-
-### Providers:
-- **41 Requests per Week:** Physicians handle an average of 41 PA requests per week, consuming 13 hours [1].
-- **High Burden:** 88% of providers report significant administrative burden [1].
-
-### Payors:
-- **Manual Processing Costs:** 75% of tasks are manual, costing up to $3.14 per transaction [2].
-- **AI Efficiency:** Automation cuts processing costs by up to 40% [2].
+![Azure Logo](../_assets/images/azure_logo.png){: width="50" align="left" style="margin-right: 15px;"}
 
 ---
 
-## 🚨 Impact on Patient Outcomes
+## 🔍 Overview  
 
-- **93% Delays Access:** PA delays access to care, leading to abandonment in 82% of cases [1].
-- **Mortality Risk:** Delays increase mortality rates by 3.2% for critical treatments like cancer [3].
+Prior Authorization (PA) is a critical step in healthcare for approvals from payors before delivering treatments. While necessary, the process creates **delays, administrative burdens**, and **patient harm**.
 
----
-
-### 📊 Key Statistics:
-
-| Metric                                  | Impact            |
-|-----------------------------------------|-------------------|
-| Cost Reduction                          | 40% (high volume) |
-| Manual Task Automation                  | 75%               |
-| Treatment Delays                        | 93% report delays |
-| Administrative Burden (Providers)       | 88% report high   |
+![PA Workflow](../_assets/images/paworflow.png){: width="600" align="center" style="padding: 10px;"}
 
 ---
 
-**References:**  
-1. [American Medical Association](https://www.ama-assn.org/)  
-2. [Sagility Health](https://sagilityhealth.com/)  
-3. [McKinsey AI Reports](https://mckinsey.com)
+### 🌟 Navigation  
+
+1. **[Challenges & Opportunities](challenges.md)**  
+2. **[AutoAuth Solution](autoauth_solution.md)**  
+3. **[Technical Architecture](technical_architecture.md)**  
+4. **[Deployment](deployment.md)**  
+
+---
