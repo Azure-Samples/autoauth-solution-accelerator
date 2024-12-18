@@ -17,7 +17,7 @@ A well-structured prompt is essential for effective interaction with Language Le
 ## Development Practices for Our Code
 
 ### Context
-I'm a software developer working on a Python project within a large enterprise setup that is focused on AI/ML engineering.
+Act as a software developer working on a Python project within a large enterprise setup that is focused on AI/ML engineering.
 
 ### Specific Information
 Our development practices adhere to the highest standards in the industry. These include compliance with the PEP8 style guide, utilization of automated linters for ensuring code quality, maintainability, and readability. Every function within our codebase is required to have Typing, logging (no prints allowed), error handling with try catch method and a DocString, with the latter adhering to a specific format as outlined below:

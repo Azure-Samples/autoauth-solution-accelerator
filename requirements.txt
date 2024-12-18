@@ -38,3 +38,10 @@ PyMuPDF
 # Async and event loop tools
 asyncio==3.4.3
 tenacity==8.5.0
+
+semantic_kernel
+azure-monitor-opentelemetry 
+azure-ai-inference[opentelemetry] 
+opentelemetry-exporter-otlp 
+azure-ai-projects 
+opentelemetry-instrumentation-httpx
