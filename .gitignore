@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*tmp*
 
 # C extensions
 *.so
@@ -165,3 +166,5 @@ outputs
 multirun
 
 temp/
+.DS_Store
+utils/data/cases/001/a/tmp/01_a_form.pdf
