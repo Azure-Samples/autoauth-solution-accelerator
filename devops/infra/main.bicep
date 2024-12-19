@@ -7,22 +7,19 @@ param priorAuthName string = 'priorAuth'
 param tags object = {}
 
 @description('ACR container image url')
-param acrContainerImage string = 'mcr.microsoft.com/k8se/quickstart:latest'
+param acrContainerImage string = 'msftpriorauth.azurecr.io/priorauth-frontend:v2'
 
 @description('Admin user for the ACR registry of the container image')
 @secure()
-param acrUsername string
+param acrUsername string = ''
 
 @description('Admin password for the ACR registry of the container image')
 @secure()
-param acrPassword string
+param acrPassword string = ''
 
 @description('Admin password for the cluster')
 @secure()
 param cosmosAdministratorPassword string
-
-@description('The location into which the resources should be deployed.')
-param location string = resourceGroup().location
 
 @description('API Version of the OpenAI API')
 param openAiApiVersion string = '2024-08-01-preview'
@@ -71,6 +68,7 @@ param authProvider string = 'none'
 var name = toLower('${priorAuthName}')
 var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 7)
 var storageServiceName = toLower(replace('storage-${name}-${uniqueSuffix}', '-', ''))
+var location = resourceGroup().location
 
 // @TODO: Replace with AVM module
 module docIntelligence 'modules/docintelligence.bicep' = {
