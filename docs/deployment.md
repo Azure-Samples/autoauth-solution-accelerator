@@ -111,6 +111,9 @@ The table below explains the parameters in the ARM template, including their des
 2. **Conditional Parameters**: If the `authProvider` is set to `aad`, you must provide `aadClientId`, `aadClientSecret`, and `aadTenantId`. For unauthenticated deployment, set `authProvider` to `none`.
 3. **Model Configuration**: Update `chatCompletionModels` and `embeddingModel` parameters to include your desired OpenAI models. Ensure sufficient capacity is allocated.
 
+> [!TIP]
+> By default, the application launches with GPT-4o capacity. The system performance and results perform much better with the `o1` model, which you can configure by editing the `chatCompletionModels` deployment parameter and the `AZURE_OPENAI_CHAT_DEPLOYMENT_01` parameter of the compute deployment to use the same `o1` deployment.
+
 ##### Example Configuration
 
 ```json
