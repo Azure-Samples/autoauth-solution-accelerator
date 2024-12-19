@@ -79,7 +79,6 @@ class AzureSearchPlugin:
                 top=top
             )
             extracted_results = self._format_azure_search_results(results)
-            logging.info(f"Extracted results: {extracted_results}")
             self.logger.info(f"Extracted results: {extracted_results}")
             return extracted_results
         except Exception as e:
@@ -171,7 +170,6 @@ class AzureSearchPlugin:
                 top=top
             )
             extracted_results = self._format_azure_search_results(results)
-            logging.info(f"Extracted results: {extracted_results}")
             self.logger.info(f"Extracted results: {extracted_results}")
             return extracted_results
         except Exception as e:
@@ -206,8 +204,8 @@ class AzureSearchPlugin:
                 query_type=QueryType.SIMPLE,
                 top=top
             )
-            extracted_results = self._extract_search_results(results)
-            print(extracted_results)
+            extracted_results = self._format_azure_search_results(results)
+            self.logger.info(f"Extracted results: {extracted_results}")
             return extracted_results
         except Exception as e:
             self.logger.error(f"{function_id} - Error during hybrid search: {e}")
