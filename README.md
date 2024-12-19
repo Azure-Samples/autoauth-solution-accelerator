@@ -6,7 +6,7 @@
 ![Issues](https://img.shields.io/github/issues/pablosalvador10/gbbai-azure-ai-capacity)
 ![License](https://img.shields.io/github/license/pablosalvador10/gbbai-azure-ai-capacity)
 
-> [!TIP]
+> [!NOTE]
 > Get started with your OpenAI-enabled Azure subscription today!
 
 [![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
@@ -47,8 +47,9 @@ Ready to dive in? With just one click, you can deploy the core infrastructure an
 [![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 [![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 
-*Want to customize or learn more about configuration?*  
-**[Read the detailed instructions on our GitHub Pages ➜](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**
+> [!TIP]
+> *Want to customize or learn more about configuration?*  
+> **[Read the detailed instructions on our GitHub Pages ➜](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**
 
 ## 🤝 Contributors & License
 
