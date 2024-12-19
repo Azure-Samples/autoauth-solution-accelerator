@@ -7,7 +7,7 @@
 ![License](https://img.shields.io/github/license/pablosalvador10/gbbai-azure-ai-capacity)
 
 > [!NOTE]
-> Get started with your OpenAI-enabled Azure subscription today!
+> Want to get started right away? Deploy with your OpenAI-enabled Azure subscription today!
 
 [![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 [![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
@@ -36,9 +36,23 @@ This repository aims to **streamline and automate** the PA process using Azure A
 
 ## 🎉 Why This Repository?
 
-- **Faster Decisions**: Transform days-long turnaround into hours, cutting through administrative overhead.
-- **Cost Efficiency**: Reduce manual workloads and operational costs, freeing human experts for higher-value tasks.
-- **Improved Patient Outcomes**: Speed up treatment approvals, reduce care delays, and enhance transparency.
+1. **Faster Decisions & Cost Efficiency**:  
+   Transform days-long PA turnarounds into hours, drastically reducing administrative overhead and associated costs.
+
+2. **Improved Patient Outcomes**:  
+   Accelerate treatment approvals, minimize delays in critical care, and enhance overall patient satisfaction.
+
+3. **Automated Infrastructure**:  
+   Utilize pre-built Azure Bicep templates and one-click deployment to set up the necessary infrastructure—Azure OpenAI, Storage, Cognitive Services—without manual, time-consuming configurations.
+
+4. **LLMOps & Evaluation with AI Studio**:  
+   Leverage Azure AI Studio for continuous model performance evaluation and prompt optimization. Implement robust LLMOps practices, ensuring consistent improvements in accuracy and reliability over time.
+
+5. **Agentic Interactions via Semantic Kernel**:  
+   Integrate Semantic Kernel to enable agentic interactions with the LLM, coordinating policy retrieval, data extraction, and decision-making steps efficiently and autonomously.
+
+6. **Research-Proven Prompts & Fine-Tuning**:  
+   Benefit from research-backed prompt engineering strategies that improve precision and reduce hallucinations in model outputs, ensuring that the system’s recommendations align closely with clinical and policy requirements.
 
 ## 🚀 Quick Start: One-Click Deploy
 
@@ -51,29 +65,37 @@ Ready to dive in? With just one click, you can deploy the core infrastructure an
 > *Want to customize or learn more about configuration?*  
 > **[Read the detailed instructions on our GitHub Pages ➜](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**
 
+## ✅ What's Next?
+
+### Near-Term Goals
+- [ ] **Public Image Availability**: Host container images publicly (e.g., on GitHub Container Registry) for easier and more flexible deployments.
+- [ ] **Multi-Language & Region Support**: Adapt LLM models and policies for multiple languages and healthcare regulatory environments.  
+- [ ] **API Management (APIM) Integration**: Introduce APIM for secure, scalable, and controlled access to the service’s endpoints.  
+- [ ] **Deeper LLMOps with AI Studio**: Extend AI Studio integration for advanced model lifecycle management, enhanced logging, continuous monitoring, and end-to-end orchestration.
+
 ## 🤝 Contributors & License
 
 ### Contributors
 
 <table>
 <tr>
-    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+    <td align="center" style="word-wrap: break-word; width: 150px; height: 150px">
         <a href=https://github.com/pablosalvador10>
-            <img src=https://avatars.githubusercontent.com/u/31255154?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt="Pablo Salvador Lopez"/>
+            <img src=https://avatars.githubusercontent.com/u/31255154?v=4 width="100" style="border-radius:50%;padding-top:10px" alt="Pablo Salvador Lopez"/>
             <br />
             <sub style="font-size:14px"><b>Pablo Salvador Lopez</b></sub>
         </a>
     </td>
-    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+    <td align="center" style="word-wrap: break-word; width: 150px; height: 150px">
         <a href=https://github.com/marcjimz>
-            <img src=https://avatars.githubusercontent.com/u/94473824?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt="Jin Lee"/>
+            <img src=https://avatars.githubusercontent.com/u/94473824?v=4 width="100" style="border-radius:50%;padding-top:10px" alt="Jin Lee"/>
             <br />
             <sub style="font-size:14px"><b>Jin Lee</b></sub>
         </a>
     </td>
-    <td align="center" style="word-wrap: break-word; width: 150.0; height: 150.0">
+    <td align="center" style="word-wrap: break-word; width: 150px; height: 150px">
         <a href=https://github.com/marcjimz>
-            <img src=https://avatars.githubusercontent.com/u/4607826?v=4 width="100;"  style="border-radius:50%;align-items:center;justify-content:center;overflow:hidden;padding-top:10px" alt="Marcin Jimenez"/>
+            <img src=https://avatars.githubusercontent.com/u/4607826?v=4 width="100" style="border-radius:50%;padding-top:10px" alt="Marcin Jimenez"/>
             <br />
             <sub style="font-size:14px"><b>Marcin Jimenez</b></sub>
         </a>
