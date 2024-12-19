@@ -251,7 +251,7 @@ module containerApp 'modules/containerapp.bicep' = {
       }
       {
         name: 'AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT'
-        value: docIntelligence.outputs.aiServicesEndpoint
+        value: docIntelligence.outputs.aiServiceDocIntelligenceEndpoint
       }
       {
         name: 'AZURE_DOCUMENT_INTELLIGENCE_KEY'

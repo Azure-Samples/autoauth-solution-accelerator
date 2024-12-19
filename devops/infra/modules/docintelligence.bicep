@@ -28,6 +28,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
     apiProperties: {
       statisticsEnabled: false
     }
+    customSubDomainName: aiServiceNameCleaned
   }
   identity: {
     type: 'SystemAssigned'
@@ -39,6 +40,7 @@ var docAiKeys = aiServices.listKeys()
 
 output aiServicesId string = aiServices.id
 output aiServicesEndpoint string = aiServices.properties.endpoint
+output aiServiceDocIntelligenceEndpoint string = 'https://${aiServiceNameCleaned}.cognitiveservices.azure.com/'
 output aiServicesName string = aiServices.name
 output aiServicesPrincipalId string = aiServices.identity.principalId
 output aiServicesKey string = docAiKeys.key1
