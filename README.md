@@ -7,7 +7,7 @@
 ![License](https://img.shields.io/github/license/pablosalvador10/gbbai-azure-ai-capacity)
 
 > [!NOTE]
-> Want to get started right away? Deploy with your OpenAI-enabled Azure subscription today!
+> Want to get started right away? In minutes, deploy with your OpenAI-enabled Azure subscription today!
 
 [![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 [![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)

@@ -6,23 +6,23 @@ description: "Streamlining Prior Authorization with Azure AI"
 permalink: /
 ---
 
-# 🚀 **Streamlining Prior Authorization with Azure AI** 
+# 🚀 Streamlining Prior Authorization with Azure AI
 
----
+Welcome to the documentation for **AutoAuth**, a solution designed to modernize and streamline the Prior Authorization (PA) process in healthcare using Azure AI services, advanced LLM reasoning, and agentic workflows.
 
-## 🔍 Overview  
+## Why AutoAuth?
 
-Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors (insurance companies) before delivering specific treatments or medications. While essential for cost control and care management, the process has become inefficient, creating substantial delays, administrative overheads, and negative outcomes for all stakeholders—providers, payors, and patients.
+- **Faster Approvals**: Shrink the PA cycle from days to hours.
+- **Cost Savings**: Reduce operational expenses tied to manual review processes.
+- **Patient-Centric**: Improve patient outcomes by minimizing delays in critical treatments.
 
-![PA Workflow](./images/paworkflow.png){: width="800" align="center" style="padding: 10px;"}
+## Getting Started
 
----
+1. **[Challenges & Opportunities](challenges.md)**: Understand the pain points and real-world impact of inefficient PA.  
+2. **[AutoAuth Solution](solution.md)**: Learn how our approach uses AI, LLMOps, and research-backed prompts to solve these challenges.  
+3. **[Technical Architecture](architecture.md)**: Dive into the components and data flow powering AutoAuth.  
+4. **[Deployment Guide](deployment.md)**: Follow step-by-step instructions for one-click deployment into your Azure environment.  
+<!-- 5. **[Customization & Advanced Setup](customization.md)**: Tailor the solution, tweak prompts, and integrate with your own data sources.  
+6. **[Future Roadmap](roadmap.md)**: Explore what’s next, including advanced capabilities, CI/CD, APIM integration, and multi-language support. -->
 
-### 🌟 Navigation  
-
-1. **[PA: The Industry Problem, Challenges & Opportunities](challenges.md)**
-2. **[AutoAuth Solution](autoauth_solution.md)**  
-3. **[Technical Architecture](technical_architecture.md)**  
-4. **[Deployment](deployment.md)**  
-
----
+**Ready to begin?** Jump into [Challenges & Opportunities](challenges.md) or [Deploy Now](deployment.md).

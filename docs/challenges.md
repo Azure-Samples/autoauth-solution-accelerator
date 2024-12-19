@@ -4,45 +4,25 @@ title: "Challenges & Opportunities"
 nav_order: 2
 ---
 
-# 🔍 Identifying Challenges and Leveraging Opportunities  
+# 🔍 The Industry Problem, Challenges & Opportunities
 
----
+Prior Authorization (PA) serves as a critical checkpoint before delivering certain healthcare treatments. Despite its importance, today’s PA processes are plagued by delays, manual reviews, and costly inefficiencies.
 
-## ⏳ **Time and Cost Implications**  
+![Challenge Diagram](./images/prior_auth_flow.png)
 
-### Providers:  
-- **41 Requests per Week**: Physicians handle ~41 PA requests weekly, consuming **13 hours**.  
-- **High Burden**: 88% of providers report significant administrative burdens.  
+## Key Pain Points
 
-### Payors:  
-- **Manual Processing**: 75% of tasks are manual, costing **$3.14 per request**.  
-- **Automation Gains**: AI reduces costs by up to **40%**.  
+- **Provider Burden**: Physicians handle ~41 PA requests/week, consuming ~13 hours, leading to administrative fatigue.  
+- **Payor Inefficiencies**: Up to 75% of PA tasks remain manual, costing payors ~$3.14 per request.  
+- **Patient Impact**: 93% of physicians report PA delays patient care; many patients abandon treatment due to long waiting times.
 
----
+## Regulatory and Industry Trends
 
-## 🚨 **Impact on Patient Outcomes**  
+- **Mandates for Transparency**: Emerging standards like CMS rules push for greater data sharing, FHIR-based APIs, and faster turnaround times.
+- **Demand for Automation**: Growing interest in AI/ML to reduce manual tasks, cut costs, and improve accuracy.
 
-- **93%** of providers report PA delays access to necessary care.  
-- **82%** of patients abandon treatments due to these delays.  
-- **3.2% Increase** in mortality for delayed critical care (e.g., cancer).  
-
----
-
-### 📊 **Key Statistics**  
-
-| **Metric**                           | **Impact**          |  
-|--------------------------------------|---------------------|  
-| Cost Reduction for Payors            | 40% (high volume)   |  
-| Manual Task Automation               | 75%                |  
-| Treatment Delays                     | 93% report delays   |  
-| Provider Administrative Burden       | 88% report high     |  
-
----
-
-### References  
+## References
 
 1. [American Medical Association](https://www.ama-assn.org/)  
 2. [Sagility Health](https://sagilityhealth.com/)  
-3. [McKinsey AI Reports](https://mckinsey.com)  
-
----
+3. [McKinsey AI Insights](https://www.mckinsey.com/)
