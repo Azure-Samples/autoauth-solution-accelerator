@@ -18,8 +18,8 @@ Quickly deploy the AutoAuth framework into your Azure environment using one-clic
 
 Use the provided button to deploy all necessary infrastructure:
 
-[![Deploy To Azure](../utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Frefs%2Fheads%2Fmain%2Fdevops%2Finfra%2Fmain.json)  
-[![Visualize](../utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Frefs%2Fheads%2Fmain%2Fdevops%2Finfra%2Fmain.json)
+[![Deploy To Azure](./images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Frefs%2Fheads%2Fmain%2Fdevops%2Finfra%2Fmain.json)  
+[![Visualize](./images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Frefs%2Fheads%2Fmain%2Fdevops%2Finfra%2Fmain.json)
 
 ## Steps
 
@@ -130,26 +130,7 @@ The table below explains the parameters in the ARM template, including their des
   "aadClientSecret": "myAADClientSecret",
   "aadTenantId": "myAADTenantId"
 }
-
----
-
-# Streamlining Prior Authorization with Azure AI <img src="./utils/images/azure_logo.png" alt="Azure Logo" style="width:30px;height:30px;vertical-align:sub;"/>
-
-![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
-![AI](https://img.shields.io/badge/AI-enthusiast-7F52FF.svg)
-![GitHub stars](https://img.shields.io/github/stars/pablosalvador10/gbbai-azure-ai-capacity?style=social)
-![Issues](https://img.shields.io/github/issues/pablosalvador10/gbbai-azure-ai-capacity)
-![License](https://img.shields.io/github/license/pablosalvador10/gbbai-azure-ai-capacity)
-
-Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors (insurance companies) before delivering specific treatments or medications. While essential for cost control and care management, the process has become inefficient, creating substantial delays, administrative overheads, and negative outcomes for all stakeholders—providers, payors, and patients.
-
-![alt text](utils/images/paworflow.png)
-
-### 🔍 Identifying Challenges and Leveraging Opportunities
-
-Let's uncover the daily pain points faced by providers and payors, and understand the new landscape for Prior Authorization (PA) with the upcoming 2026 regulations.
-
----
+```
 
 ## Azure Native Services
 
@@ -165,9 +146,7 @@ Let's uncover the daily pain points faced by providers and payors, and understan
 | **Log Analytics**          | Azure Log Analytics for query-based monitoring.                                                  | `Microsoft.OperationalInsights/workspaces`| Retention: 30 days.                                                                                      |
 | **Container Apps**         | Azure Container Apps for running microservices.                                                  | `Microsoft.App/containerApps`            | CPU: 2.0 cores, Memory: 4 GiB per container. Ingress port: 8501.                                         |
 
----
-
-## Getting Started with AutoAuth Framework
+## Getting Started Locally with AutoAuth Framework
 
 ### Step 1: Create and Activate the Conda Environment
 
