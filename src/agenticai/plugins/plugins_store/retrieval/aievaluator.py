@@ -101,7 +101,7 @@ class AIPolicyEvaluationPlugin:
     async def evaluate_search_results(self, 
         query_text: Annotated[str, "The user's search query."], 
         search_results: Annotated[List[Dict[str, str]], "The list of search results to evaluate."]
-    ) -> Annotated[PolicyEvaluationResult, "The evaluated result, containing policy paths, reasoning, and retry flag."]:
+    ) -> Annotated[str, "The evaluated result, containing policy paths, reasoning, and retry flag."]:
         """
         Evaluate search results against a query and extract the most relevant policy paths.
         
@@ -159,24 +159,9 @@ class AIPolicyEvaluationPlugin:
             )
             raw_output = response["response"].strip()
             self.logger.debug(f"Raw AI output: {raw_output}")
-
-            try:
-                evaluation_result = PolicyEvaluationResult.model_validate_json(raw_output)
-            except ValidationError as e:
-                self.logger.error(f"Validation error: {e.json()}")
-                return PolicyEvaluationResult(
-                    policies=[],
-                    reasoning=["Validation failed. Check if the AI output is a valid JSON structure."],
-                    retry=True
-                )
-
             self.logger.info("Search results evaluated successfully.")
-            return evaluation_result
+            return raw_output
 
         except Exception as e:
             self.logger.error(f"Error during evaluation: {e}")
-            return PolicyEvaluationResult(
-                policies=[],
-                reasoning=[f"Exception occurred: {str(e)}"],
-                retry=True
-            )
+            return "Error during evaluation: {e}"
