@@ -82,19 +82,21 @@ var jobAppContainers = {
 }
 
 
-var registries = {
-  server: registryServer
-  username: acrUsername
-  passwordSecretRef: 'acr-password-secret'
-}
+var registries = acrUsername != '' && acrPassword != '' ? [
+  {
+    server: registryServer
+    username: acrUsername
+    passwordSecretRef: 'acr-password-secret'
+  }
+] : []
 
 var secrets = concat(
-  [
+  (acrUsername != '' && acrPassword != '') ? [
     {
       name: 'acr-password-secret'
       value: acrPassword
     }
-  ],
+  ] : [],
   authProvider == 'aad' ? [
     {
       name: 'microsoft-provider-authentication-secret'
@@ -113,30 +115,6 @@ var ingress = {
   }
   additionalPortMappings: []
 }
-
-var authentication = authProvider == 'aad' ? {
-  platform: {
-    enabled: true
-  }
-  identityProviders: {
-    azureActiveDirectory: {
-      enabled: true
-      clientId: aadClientId
-      login: {
-        loginParameters: []
-      }
-    }
-  }
-  globalValidation: {
-    unauthenticatedClientAction: 'RedirectToLoginPage'
-    redirectToProvider: 'AzureActiveDirectory'
-    excludedPaths: []
-  }
-  httpSettings: {
-    requireAuthentication: true
-    authResponseHeaders: {}
-  }
-} : null
 
 // Resource: Managed Environment
 resource managedEnvironment 'Microsoft.App/managedEnvironments@2024-02-02-preview' = {
@@ -169,7 +147,7 @@ resource containerAppJob 'Microsoft.App/jobs@2024-02-02-preview' = {
     environmentId: managedEnvironment.id
     configuration: {
       secrets: secrets
-      registries: [registries]
+      registries: registries
       replicaTimeout: 1800
       replicaRetryLimit: 0
       triggerType: 'Manual'
@@ -240,7 +218,7 @@ resource containerAppResource 'Microsoft.App/containerapps@2024-02-02-preview' =
     environmentId: managedEnvironment.id
     configuration: {
       secrets: secrets
-      registries: [registries]
+      registries: registries
       activeRevisionsMode: 'Single'
       ingress: ingress
     }

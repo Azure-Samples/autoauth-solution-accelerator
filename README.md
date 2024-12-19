@@ -68,7 +68,7 @@ Ready to dive in? With just one click, you can deploy the core infrastructure an
 ## ✅ What's Next?
 
 ### Near-Term Goals
-- [ ] **Public Image Availability**: Host container images publicly (e.g., on GitHub Container Registry) for easier and more flexible deployments.
+- [ ] **Public Image Availability**: Host container images publicly (e.g., on Azure Container Registry) for easier and more flexible deployments, built by this repo and CI/CD.
 - [ ] **Multi-Language & Region Support**: Adapt LLM models and policies for multiple languages and healthcare regulatory environments.  
 - [ ] **API Management (APIM) Integration**: Introduce APIM for secure, scalable, and controlled access to the service’s endpoints.  
 - [ ] **Deeper LLMOps with AI Studio**: Extend AI Studio integration for advanced model lifecycle management, enhanced logging, continuous monitoring, and end-to-end orchestration.
