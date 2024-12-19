@@ -53,6 +53,7 @@ To deploy the application with an identity provider, such as **Microsoft Entra I
 3. **Deploy Without Authentication** *(Optional)*:
    - If you want to deploy without an identity provider initially, set `authProvider="none"` during the deployment process. You can enable authentication later by updating the parameters.
 
+> [!WARNING]
 > **Important**: Personal Microsoft accounts are not supported for creating app registrations. Ensure you are using a Microsoft tenant account with sufficient permissions.
 
 ---
@@ -74,6 +75,7 @@ To enable the login flow for your deployed container application, you must confi
 3. **Save Changes**:
    - Review and save the configuration to ensure proper authentication flow.
 
+> [!TIP]
 > **Note**: The `<containerAppUrl>` is the URL of your deployed container application. Replace it with the actual URL once your deployment is complete.
 
 4. **Test Authentication**:
