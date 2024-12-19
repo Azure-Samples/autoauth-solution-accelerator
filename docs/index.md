@@ -22,7 +22,5 @@ Welcome to the documentation for **AutoAuth**, a solution designed to modernize 
 2. **[AutoAuth Solution](solution.md)**: Learn how our approach uses AI, LLMOps, and research-backed prompts to solve these challenges.  
 3. **[Technical Architecture](architecture.md)**: Dive into the components and data flow powering AutoAuth.  
 4. **[Deployment Guide](deployment.md)**: Follow step-by-step instructions for one-click deployment into your Azure environment.  
-<!-- 5. **[Customization & Advanced Setup](customization.md)**: Tailor the solution, tweak prompts, and integrate with your own data sources.  
-6. **[Future Roadmap](roadmap.md)**: Explore what’s next, including advanced capabilities, CI/CD, APIM integration, and multi-language support. -->
 
 **Ready to begin?** Jump into [Challenges & Opportunities](challenges.md) or [Deploy Now](deployment.md).
