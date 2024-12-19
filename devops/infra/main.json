@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "15028259323657200570"
+      "templateHash": "4230377829520349636"
     }
   },
   "parameters": {
@@ -1224,7 +1224,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "8452876605359855536"
+              "templateHash": "11982796248768268293"
             }
           },
           "parameters": {
@@ -1361,12 +1361,8 @@
               },
               "env": "[parameters('containerEnvArray')]"
             },
-            "registries": {
-              "server": "[variables('registryServer')]",
-              "username": "[parameters('acrUsername')]",
-              "passwordSecretRef": "acr-password-secret"
-            },
-            "secrets": "[concat(createArray(createObject('name', 'acr-password-secret', 'value', parameters('acrPassword'))), if(equals(parameters('authProvider'), 'aad'), createArray(createObject('name', 'microsoft-provider-authentication-secret', 'value', parameters('aadClientSecret'))), createArray()))]",
+            "registries": "[if(and(not(equals(parameters('acrUsername'), '')), not(equals(parameters('acrPassword'), ''))), createArray(createObject('server', variables('registryServer'), 'username', parameters('acrUsername'), 'passwordSecretRef', 'acr-password-secret')), createArray())]",
+            "secrets": "[concat(if(and(not(equals(parameters('acrUsername'), '')), not(equals(parameters('acrPassword'), ''))), createArray(createObject('name', 'acr-password-secret', 'value', parameters('acrPassword'))), createArray()), if(equals(parameters('authProvider'), 'aad'), createArray(createObject('name', 'microsoft-provider-authentication-secret', 'value', parameters('aadClientSecret'))), createArray()))]",
             "ingress": {
               "external": true,
               "transport": "Auto",
@@ -1376,8 +1372,7 @@
                 "affinity": "none"
               },
               "additionalPortMappings": []
-            },
-            "authentication": "[if(equals(parameters('authProvider'), 'aad'), createObject('platform', createObject('enabled', true()), 'identityProviders', createObject('azureActiveDirectory', createObject('enabled', true(), 'clientId', parameters('aadClientId'), 'login', createObject('loginParameters', createArray()))), 'globalValidation', createObject('unauthenticatedClientAction', 'RedirectToLoginPage', 'redirectToProvider', 'AzureActiveDirectory', 'excludedPaths', createArray()), 'httpSettings', createObject('requireAuthentication', true(), 'authResponseHeaders', createObject())), null())]"
+            }
           },
           "resources": [
             {
@@ -1413,9 +1408,7 @@
                 "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
                 "configuration": {
                   "secrets": "[variables('secrets')]",
-                  "registries": [
-                    "[variables('registries')]"
-                  ],
+                  "registries": "[variables('registries')]",
                   "replicaTimeout": 1800,
                   "replicaRetryLimit": 0,
                   "triggerType": "Manual",
@@ -1490,9 +1483,7 @@
                 "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
                 "configuration": {
                   "secrets": "[variables('secrets')]",
-                  "registries": [
-                    "[variables('registries')]"
-                  ],
+                  "registries": "[variables('registries')]",
                   "activeRevisionsMode": "Single",
                   "ingress": "[variables('ingress')]"
                 },
