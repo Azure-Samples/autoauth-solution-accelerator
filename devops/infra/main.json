@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "17756159631237565669"
+      "templateHash": "16521343404629840548"
     }
   },
   "parameters": {
@@ -26,7 +26,8 @@
       }
     },
     "acrContainerImage": {
-      "type": "securestring",
+      "type": "string",
+      "defaultValue": "mcr.microsoft.com/k8se/quickstart:latest",
       "metadata": {
         "description": "ACR container image url"
       }
@@ -103,13 +104,6 @@
         "description": "Storage Blob Container name to land the files for Prior Auth"
       }
     },
-    "appRegistrationName": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "App Registration Name"
-      }
-    },
     "aadClientId": {
       "type": "string",
       "defaultValue": "",
@@ -146,8 +140,7 @@
   "variables": {
     "name": "[toLower(format('{0}', parameters('priorAuthName')))]",
     "uniqueSuffix": "[substring(uniqueString(resourceGroup().id), 0, 7)]",
-    "storageServiceName": "[toLower(replace(format('storage-{0}-{1}', variables('name'), variables('uniqueSuffix')), '-', ''))]",
-    "encodedPassword": "[uriComponent(parameters('cosmosAdministratorPassword'))]"
+    "storageServiceName": "[toLower(replace(format('storage-{0}-{1}', variables('name'), variables('uniqueSuffix')), '-', ''))]"
   },
   "resources": [
     {
@@ -180,7 +173,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "15791306279606983313"
+              "templateHash": "13187125603664042907"
             }
           },
           "parameters": {
@@ -231,7 +224,8 @@
                 "disableLocalAuth": false,
                 "apiProperties": {
                   "statisticsEnabled": false
-                }
+                },
+                "customSubDomainName": "[variables('aiServiceNameCleaned')]"
               },
               "identity": {
                 "type": "SystemAssigned"
@@ -247,6 +241,10 @@
             "aiServicesEndpoint": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint]"
+            },
+            "aiServiceDocIntelligenceEndpoint": {
+              "type": "string",
+              "value": "[format('https://{0}.cognitiveservices.azure.com/', variables('aiServiceNameCleaned'))]"
             },
             "aiServicesName": {
               "type": "string",
@@ -910,7 +908,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "18266270289093716053"
+              "templateHash": "18162967948690809104"
             }
           },
           "parameters": {
@@ -940,7 +938,7 @@
               }
             },
             "cosmosAdministratorPassword": {
-              "type": "string",
+              "type": "securestring",
               "metadata": {
                 "description": "Admin password for the cluster"
               }
@@ -1201,7 +1199,7 @@
               },
               {
                 "name": "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT",
-                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServiceDocIntelligenceEndpoint.value]"
               },
               {
                 "name": "AZURE_DOCUMENT_INTELLIGENCE_KEY",
@@ -1230,7 +1228,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "3560191080767430508"
+              "templateHash": "8452876605359855536"
             }
           },
           "parameters": {
@@ -1254,6 +1252,7 @@
             },
             "acrContainerImage": {
               "type": "string",
+              "defaultValue": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
               "metadata": {
                 "description": "Container Image for the Container App"
               }
