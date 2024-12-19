@@ -170,16 +170,7 @@ Ahead of deployment, you will need the following informaton:
 
 Once you have the above, you are good to proceed to the remaining steps. If you do not have authorization, feel free to deploy the application with `none` when prompted on an identity provider. You may always change this later.
 
-### Step 1. Build the Docker Image
-
-You will need to build the docker image for this repository to work, and you are free to make any changes. You can create the repository on an Azure Container Registry of your choice, similarly:
-
-```bash
-docker build -t priorauthdemo.azurecr.io/priorauth-frontend:v1 --file devops/container/Dockerfile .
-docker push priorauthdemo.azurecr.io/priorauth-frontend:v1
-```
-
-### Step 2. Create the Infrastructure
+### Step 1. Create the Infrastructure
 
 Included in this repository are our configurations to quickly deploy the infrastructure, you can use `az cli` to create it similarly:
 
@@ -209,18 +200,18 @@ Alternatively, one-click deployment is possible:
 
 > *Warning*: Templates below will not populate correctly until this repository is made publicly available.
 
-[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
-[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
+[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Frefs%2Fheads%2Fmain%2Fdevops%2Finfra%2Fmain.json)
+[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Frefs%2Fheads%2Fmain%2Fdevops%2Finfra%2Fmain.json)
 
 If you requested deployment with an identity provider, please go to the next step. All else, go to step 4.
 
-### (Optional) Step 3: Configure App Registration Authentication
+### (Optional) Step 2: Configure App Registration Authentication
 
 In order to complete the login, you must allow your newly deployed container application to be permissable for login from your app registration. This is an additional step to ensure your authentication flow redirects only to permissable web URLs. Read more [here](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad?tabs=workforce-configuration#configure-authentication-settings)
 
 After you configured the authentication to your security specifications, you will want to add a Web URI supporting the new deployment. Navigate to `Authentication` under Manage, and you will want to add a platform configuration. Select `Web`, and when prompted you will want to submit a value of: `<containerAppUrl>/.auth/login/aad/callback`
 
-### Step 4: Access Streamlit UI and Upload Policy Documents
+### Step 3: Access Streamlit UI and Upload Policy Documents
 
 Review your deployment and use your browser to navigate to the URL assigned to your container app. Upload your policy documents, and watch AutoAuth work.
 
