@@ -73,12 +73,6 @@ Want to see AutoAuth in action right away? Use the One-Click Deploy option to in
 [![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 [![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 
-### 🚀 What You Get with One-Click Deploy
-
-- **End-to-End Deployment**: Front-end UI and back-end API fully set up in your Azure subscription.
-- **No Coding Required**: No manual configuration—just click, deploy, and explore.
-- **Complete Workflow Automation**: From ingestion of prior authorization (PA) requests to automated decisions.
-- **💡 Pro Tip**: Ideal if you want to quickly experience AutoAuth's complete functionality with minimal setup.
 
 ### Option 2: Use the AutoAuth SDK to Build Custom Microservices
 
@@ -102,7 +96,7 @@ pa_pipeline = PAProcessingPipeline(send_cloud_logs=True)
 await pa_pipeline.run(uploaded_files=files, use_o1=True)
 ```
 
-### ⚙️ Build and Expand the SDK
+#### ⚙️ Build and Expand the SDK
 
 For those looking for greater flexibility, the AutoAuth SDK enables you to embed PA microservices into your existing applications. You can customize, integrate, and extend the PA workflows to suit your specific needs. This approach provides a highly modular, code-first experience for developers who want to build their own solutions.
 
