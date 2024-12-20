@@ -1,4 +1,4 @@
-# 🚀 Streamlining Prior Authorization with Azure AI
+# 🤖 AutoAuth: Streamlining Prior Authorization with Azure AI
 
 ![Python](https://img.shields.io/badge/python-3.9+-blue.svg)
 ![AI](https://img.shields.io/badge/AI-enthusiast-7F52FF.svg)
@@ -61,14 +61,28 @@ This repository aims to **streamline and automate** the PA process using Azure A
 
 ## 🚀 Quick Start
 
-### Deploy AutoAuth Application (Front-End Included) using One-Click Deploy
+AutoAuth offers two flexible options to get started:
 
-Ready to dive in? With just one click, you can deploy the core infrastructure and start exploring the solution.
+ + Deploy the Full AutoAuth Application (Front-End + Back-End) with One-Click Deploy
+ - Integrate the AutoAuth SDK to Customize and Embed PA Microservices in Your Application
+
+### Option 1: One-Click Deploy (Full Application with UI)
+
+Want to see AutoAuth in action right away? Use the One-Click Deploy option to instantly set up the core infrastructure, including the front-end and back-end, in your Azure environment. With just a single click, you’ll have everything you need to start exploring AutoAuth's end-to-end capabilities.
 
 [![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 [![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 
-### Use AutoAuth SDK
+### 🚀 What You Get with One-Click Deploy
+
+- **End-to-End Deployment**: Front-end UI and back-end API fully set up in your Azure subscription.
+- **No Coding Required**: No manual configuration—just click, deploy, and explore.
+- **Complete Workflow Automation**: From ingestion of prior authorization (PA) requests to automated decisions.
+- **💡 Pro Tip**: Ideal if you want to quickly experience AutoAuth's complete functionality with minimal setup.
+
+### Option 2: Use the AutoAuth SDK to Build Custom Microservices
+
+For those looking for greater flexibility, the AutoAuth SDK enables you to embed PA microservices into your existing applications. You can customize, integrate, and extend the PA workflows to suit your specific needs. This approach provides a highly modular, code-first experience for developers who want to build their own solutions.
 
 > [!TIP]
 > *Want to customize or learn more about configuration?*  
@@ -88,17 +102,17 @@ pa_pipeline = PAProcessingPipeline(send_cloud_logs=True)
 await pa_pipeline.run(uploaded_files=files, use_o1=True)
 ```
 
-##### ⚙️ Build & Expand the SDK
+### ⚙️ Build and Expand the SDK
 
-Our SDK is designed to be modular, easily extendable, and customizable. Built with FastAPI for seamless API integration, you can quickly expose endpoints and integrate them into your system. This approach ensures fast, secure, and scalable API deployments.
+For those looking for greater flexibility, the AutoAuth SDK enables you to embed PA microservices into your existing applications. You can customize, integrate, and extend the PA workflows to suit your specific needs. This approach provides a highly modular, code-first experience for developers who want to build their own solutions.
 
-### Key Features
+#### Key Features of the AutoAuth SDK
 
-- 📡 **Plug-and-Play API Integration with FastAPI**: Effortlessly integrate the SDK into your existing systems, enabling quick and efficient API deployment.
-- 🔄 **Modular and Extensible for Custom PA Workflows**: Tailor the SDK to fit your specific needs by customizing and extending its capabilities.
-- ⚡ **Quick Deployment**: The SDK is ready to use with minimal setup, allowing you to deploy and start automating workflows rapidly.
+- 📡 **Plug-and-Play API Integration with FastAPI**: Quickly expose Prior Authorization (PA) workflows as REST APIs, enabling system-to-system integrations.
+- 🔄 **Modular and Extensible for Custom PA Workflows**: Customize and extend the SDK to fit your business logic and workflows.
+- ⚡ **Rapid Deployment and Integration**: Minimal setup required to start automating PA workflows. Use FastAPI or other framework to expose endpoints and interact with the PA logic programmatically.
 
-With our SDK, you can deploy, customize, and integrate Prior Authorization workflows into any system, ensuring faster automation and comprehensive end-to-end process coverage.
+With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Authorization workflows or select specific components to integrate into your system. Whether you require a full application or a microservice solution, AutoAuth provides the tools you need.
 
 
 ## ✅ What's Next?
