@@ -66,15 +66,14 @@ AutoAuth offers two flexible options to get started:
  + Deploy the Full AutoAuth Application (Front-End + Back-End) with One-Click Deploy
  - Integrate the AutoAuth SDK to Customize and Embed PA Microservices in Your Application
 
-### Option 1: One-Click Deploy (Full Application with UI)
+### One-Click Deploy (Full Application with UI)
 
 Want to see AutoAuth in action right away? Use the One-Click Deploy option to instantly set up the core infrastructure, including the front-end and back-end, in your Azure environment. With just a single click, you’ll have everything you need to start exploring AutoAuth's end-to-end capabilities.
 
 [![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 [![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fdevops%2Finfra%2Fmain.json)
 
-
-### Option 2: Use the AutoAuth SDK to Build Custom Microservices
+### Use the AutoAuth SDK to Build Custom Microservices
 
 For those looking for greater flexibility, the AutoAuth SDK enables you to embed PA microservices into your existing applications. You can customize, integrate, and extend the PA workflows to suit your specific needs. This approach provides a highly modular, code-first experience for developers who want to build their own solutions.
 
@@ -95,6 +94,8 @@ pa_pipeline = PAProcessingPipeline(send_cloud_logs=True)
 # Run the pipeline with uploaded files
 await pa_pipeline.run(uploaded_files=files, use_o1=True)
 ```
+> [!TIP]
+> To test the PA processing pipeline and get started, please refer to the notebook [`02-test-pa-workflow.ipynb`](./02-test-pa-workflow.ipynb).
 
 #### ⚙️ Build and Expand the SDK
 
