@@ -1,21 +1,21 @@
 ---
 layout: default
 title: "Technical Architecture"
-nav_order: 4
+nav_order: 5
 ---
 
 # ⚙️ Technical Architecture
 
 AutoAuth’s architecture orchestrates multiple Azure services and techniques to seamlessly process requests, retrieve policies, and generate recommendations.
 
-![Architecture](./images/diagram.png)
+![Architecture](./images/diagram_latest.png)
 
 ## High-Level Overview
 
-- **Document Ingestion**: Store unstructured documents in Azure Blob Storage.
-- **Processing & Extraction**: Apply OCR with Azure Document Intelligence to transform scanned documents into machine-readable text.
-- **Indexing & Retrieval**: Use Azure Cognitive Search with a hybrid approach (vector embeddings + BM25) to find relevant policy documents.
-- **Reasoning**: Leverage Azure OpenAI to evaluate policies against clinical inputs, guided by agentic pipelines (Semantic Kernel).
+- **Knowledge Base Construction**: Establish a centralized repository of Prior Authorization (PA) policies and guidelines to streamline the decision-making process.
+- **Unstructured Clinical Data Processing**: Extract and structure patient-specific clinical information from raw data sources using advanced Large Language Model (LLM)-based techniques.
+- **Agentic RAG**: Identify the most relevant PA policy for a clinical case using a multi-layered retrieval approach, supported by Azure AI Search and LLM as the formulator and judge, guided by agentic pipelines.
+- **Claims Processing**: Leverage Azure OpenAI to evaluate policies against clinical inputs, cross-reference patient, physician, and clinical details against policy criteria. Classify the Prior Authorization (PA) claim as Approved, Denied, or Needs More Information, providing clear, evidence-based explanations and policy references to support a comprehensive human final determination.
 
 ## Components
 
