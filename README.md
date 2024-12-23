@@ -25,7 +25,7 @@ This repository aims to **streamline and automate** the PA process using Azure A
 
 ![PA Workflow](utils/images/paworflow.png)
 
-**Note:** Our methodology, developed in collaboration with clinicals experts (MD and PharmD), is research-based and includes comprehensive case studies. For an in-depth understanding, please refer to our article on Hashnode. [article on Hashnode]([https://hashnode.com/draft/67634f1f4a00b0daf47a772f](https://pabloaicorner.hashnode.dev/streamlining-prior-authorization-with-generative-ai)).
+**Note:** Our methodology, developed in collaboration with clinicals experts (MD and PharmD), is research-based and includes comprehensive case studies. For an in-depth understanding, please refer to our [article on Hashnode.](https://pabloaicorner.hashnode.dev/streamlining-prior-authorization-with-generative-ai).
 
 ## 🤖 Introducing AutoAuth
 
