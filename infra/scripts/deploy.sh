@@ -101,7 +101,6 @@ measure_time "Deploying main Bicep template" \
             acrContainerImage="msftpriorauth.azurecr.io/priorauth-frontend:v2" \
             acrUsername="msftpriorauth" \
             acrPassword="$acrPassword" \
-            appRegistrationName="prior-auth-demo" \
             aadClientId="2d30fb06-5f39-4d52-96c3-01ea8331e6f6" \
             aadClientSecret="$clientSecret" \
             aadTenantId="7621c2b4-468f-45a0-a5ae-270c4fad8d75" \

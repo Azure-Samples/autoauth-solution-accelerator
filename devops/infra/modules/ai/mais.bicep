@@ -21,7 +21,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   sku: {
     name: aiServiceSkuName
   }
-  kind: 'AIServices'
+  kind: 'CognitiveServices'
   properties: {
     publicNetworkAccess: 'Enabled'
     disableLocalAuth: false
@@ -36,11 +36,10 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   tags: tags
 }
 
-var docAiKeys = aiServices.listKeys()
+var maisKey = aiServices.listKeys()
 
 output aiServicesId string = aiServices.id
 output aiServicesEndpoint string = aiServices.properties.endpoint
-output aiServiceDocIntelligenceEndpoint string = 'https://${aiServiceNameCleaned}.cognitiveservices.azure.com/'
 output aiServicesName string = aiServices.name
 output aiServicesPrincipalId string = aiServices.identity.principalId
-output aiServicesKey string = docAiKeys.key1
+output aiServicesPrimaryKey string = maisKey.key1

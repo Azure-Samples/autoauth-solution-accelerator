@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "17756159631237565669"
+      "templateHash": "4230377829520349636"
     }
   },
   "parameters": {
@@ -26,19 +26,22 @@
       }
     },
     "acrContainerImage": {
-      "type": "securestring",
+      "type": "string",
+      "defaultValue": "msftpriorauth.azurecr.io/priorauth-frontend:v2",
       "metadata": {
         "description": "ACR container image url"
       }
     },
     "acrUsername": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Admin user for the ACR registry of the container image"
       }
     },
     "acrPassword": {
       "type": "securestring",
+      "defaultValue": "",
       "metadata": {
         "description": "Admin password for the ACR registry of the container image"
       }
@@ -47,13 +50,6 @@
       "type": "securestring",
       "metadata": {
         "description": "Admin password for the cluster"
-      }
-    },
-    "location": {
-      "type": "string",
-      "defaultValue": "[resourceGroup().location]",
-      "metadata": {
-        "description": "The location into which the resources should be deployed."
       }
     },
     "openAiApiVersion": {
@@ -103,13 +99,6 @@
         "description": "Storage Blob Container name to land the files for Prior Auth"
       }
     },
-    "appRegistrationName": {
-      "type": "string",
-      "defaultValue": "",
-      "metadata": {
-        "description": "App Registration Name"
-      }
-    },
     "aadClientId": {
       "type": "string",
       "defaultValue": "",
@@ -147,7 +136,7 @@
     "name": "[toLower(format('{0}', parameters('priorAuthName')))]",
     "uniqueSuffix": "[substring(uniqueString(resourceGroup().id), 0, 7)]",
     "storageServiceName": "[toLower(replace(format('storage-{0}-{1}', variables('name'), variables('uniqueSuffix')), '-', ''))]",
-    "encodedPassword": "[uriComponent(parameters('cosmosAdministratorPassword'))]"
+    "location": "[resourceGroup().location]"
   },
   "resources": [
     {
@@ -164,7 +153,7 @@
             "value": "[format('doc-intelligence-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -180,7 +169,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "15791306279606983313"
+              "templateHash": "13187125603664042907"
             }
           },
           "parameters": {
@@ -231,7 +220,8 @@
                 "disableLocalAuth": false,
                 "apiProperties": {
                   "statisticsEnabled": false
-                }
+                },
+                "customSubDomainName": "[variables('aiServiceNameCleaned')]"
               },
               "identity": {
                 "type": "SystemAssigned"
@@ -247,6 +237,10 @@
             "aiServicesEndpoint": {
               "type": "string",
               "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint]"
+            },
+            "aiServiceDocIntelligenceEndpoint": {
+              "type": "string",
+              "value": "[format('https://{0}.cognitiveservices.azure.com/', variables('aiServiceNameCleaned'))]"
             },
             "aiServicesName": {
               "type": "string",
@@ -278,7 +272,7 @@
             "value": "[format('multiservice-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -393,7 +387,7 @@
             "value": "[format('openai-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -567,7 +561,7 @@
             "value": "[format('search-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -670,7 +664,7 @@
             "value": "[variables('storageServiceName')]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -809,7 +803,7 @@
             "value": "[format('appinsights-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -894,7 +888,7 @@
             "value": "[format('cosmosdb-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -910,7 +904,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "18266270289093716053"
+              "templateHash": "18162967948690809104"
             }
           },
           "parameters": {
@@ -940,7 +934,7 @@
               }
             },
             "cosmosAdministratorPassword": {
-              "type": "string",
+              "type": "securestring",
               "metadata": {
                 "description": "Admin password for the cluster"
               }
@@ -1013,7 +1007,7 @@
             "value": "[format('loganalytics-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
           },
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -1092,7 +1086,7 @@
         "mode": "Incremental",
         "parameters": {
           "location": {
-            "value": "[parameters('location')]"
+            "value": "[variables('location')]"
           },
           "tags": {
             "value": "[parameters('tags')]"
@@ -1201,7 +1195,7 @@
               },
               {
                 "name": "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT",
-                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
+                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServiceDocIntelligenceEndpoint.value]"
               },
               {
                 "name": "AZURE_DOCUMENT_INTELLIGENCE_KEY",
@@ -1230,7 +1224,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "3560191080767430508"
+              "templateHash": "11982796248768268293"
             }
           },
           "parameters": {
@@ -1254,6 +1248,7 @@
             },
             "acrContainerImage": {
               "type": "string",
+              "defaultValue": "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest",
               "metadata": {
                 "description": "Container Image for the Container App"
               }
@@ -1366,12 +1361,8 @@
               },
               "env": "[parameters('containerEnvArray')]"
             },
-            "registries": {
-              "server": "[variables('registryServer')]",
-              "username": "[parameters('acrUsername')]",
-              "passwordSecretRef": "acr-password-secret"
-            },
-            "secrets": "[concat(createArray(createObject('name', 'acr-password-secret', 'value', parameters('acrPassword'))), if(equals(parameters('authProvider'), 'aad'), createArray(createObject('name', 'microsoft-provider-authentication-secret', 'value', parameters('aadClientSecret'))), createArray()))]",
+            "registries": "[if(and(not(equals(parameters('acrUsername'), '')), not(equals(parameters('acrPassword'), ''))), createArray(createObject('server', variables('registryServer'), 'username', parameters('acrUsername'), 'passwordSecretRef', 'acr-password-secret')), createArray())]",
+            "secrets": "[concat(if(and(not(equals(parameters('acrUsername'), '')), not(equals(parameters('acrPassword'), ''))), createArray(createObject('name', 'acr-password-secret', 'value', parameters('acrPassword'))), createArray()), if(equals(parameters('authProvider'), 'aad'), createArray(createObject('name', 'microsoft-provider-authentication-secret', 'value', parameters('aadClientSecret'))), createArray()))]",
             "ingress": {
               "external": true,
               "transport": "Auto",
@@ -1381,8 +1372,7 @@
                 "affinity": "none"
               },
               "additionalPortMappings": []
-            },
-            "authentication": "[if(equals(parameters('authProvider'), 'aad'), createObject('platform', createObject('enabled', true()), 'identityProviders', createObject('azureActiveDirectory', createObject('enabled', true(), 'clientId', parameters('aadClientId'), 'login', createObject('loginParameters', createArray()))), 'globalValidation', createObject('unauthenticatedClientAction', 'RedirectToLoginPage', 'redirectToProvider', 'AzureActiveDirectory', 'excludedPaths', createArray()), 'httpSettings', createObject('requireAuthentication', true(), 'authResponseHeaders', createObject())), null())]"
+            }
           },
           "resources": [
             {
@@ -1418,9 +1408,7 @@
                 "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
                 "configuration": {
                   "secrets": "[variables('secrets')]",
-                  "registries": [
-                    "[variables('registries')]"
-                  ],
+                  "registries": "[variables('registries')]",
                   "replicaTimeout": 1800,
                   "replicaRetryLimit": 0,
                   "triggerType": "Manual",
@@ -1495,9 +1483,7 @@
                 "environmentId": "[resourceId('Microsoft.App/managedEnvironments', variables('environmentNameCleaned'))]",
                 "configuration": {
                   "secrets": "[variables('secrets')]",
-                  "registries": [
-                    "[variables('registries')]"
-                  ],
+                  "registries": "[variables('registries')]",
                   "activeRevisionsMode": "Single",
                   "ingress": "[variables('ingress')]"
                 },
