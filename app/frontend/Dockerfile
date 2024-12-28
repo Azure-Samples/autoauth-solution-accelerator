@@ -31,5 +31,5 @@ ENV STREAMLIT_CONFIG_FILE=/app/.streamlit/config.toml
 EXPOSE 8501
 
 ENTRYPOINT ["streamlit", "run"]
-CMD ["app/streamlit/Home.py"]
+CMD ["app/frontend/streamlit/Home.py"]
 

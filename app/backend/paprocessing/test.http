@@ -13,28 +13,4 @@ Content-Type: application/json
   "use_o1": true,
   "streamlit": false
 }
-   
-
-# POST https://doc-indexer.yellowtree-64f92beb.eastus.azurecontainerapps.io/indexing_documents HTTP/1.1
-# Host: doc-indexer.yellowtree-64f92beb.eastus.azurecontainerapps.io
-# Content-Type: application/json
-
-# {
-#     "file_paths": ["https://testeastusdev001.blob.core.windows.net/customskillspdf/instruction-manual-fieldvue-dvc6200-hw2-digital-valve-controller-en-123052.pdf"],
-#     "splitter_params": {
-#         "splitter_type": "by_title_brute_force",
-#         "ocr": true,
-#         "ocr_output_format": "markdown",
-#         "pages": "1-2",
-#         "use_encoder": false,
-#         "chunk_size": 512,
-#         "chunk_overlap": 100,
-#         "verbose": true,
-#         "keep_separator": true,
-#         "is_separator_regex": false
-#     },
-#     "indexer_config": {
-#         "index_name": "test-index-002",
-#         "embedding_azure_deployment_name": "foundational-canadaeast-ada"
-#     }
-# }
+  

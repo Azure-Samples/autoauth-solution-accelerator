@@ -102,11 +102,11 @@ class AgenticRAG:
         
         # Use provided values or default to self attributes
         system_message_content = system_message_content or self.prompt_manager.get_prompt(self.query_expansion_config['system_prompt'])
-        self.max_tokens = max_tokens or self.query_expansion_config['max_tokens'] 
-        self.top_p = top_p or self.query_expansion_config['top_p']
-        self.temperature = temperature or self.query_expansion_config['temperature']
-        self.frequency_penalty = frequency_penalty or self.query_expansion_config['frequency_penalty']
-        self.presence_penalty = presence_penalty or self.query_expansion_config['presence_penalty']
+        max_tokens = max_tokens or self.query_expansion_config['max_tokens'] 
+        top_p = top_p or self.query_expansion_config['top_p']
+        temperature = temperature or self.query_expansion_config['temperature']
+        frequency_penalty = frequency_penalty or self.query_expansion_config['frequency_penalty']
+        presence_penalty = presence_penalty or self.query_expansion_config['presence_penalty']
 
         prompt = self.prompt_manager.create_prompt_formulator_user(clinical_info)
         response = await self.azure_openai_client.generate_chat_response(
@@ -265,6 +265,8 @@ class AgenticRAG:
             frequency_penalty=frequency_penalty,
             presence_penalty=presence_penalty,
         )
+        self.logger.info(f'''{self.prefix}/n Evaluation response:
+                         {response.get('response', {})}''')
         return response.get("response", {"policies": [], "reasoning": [], "retry": True})
     
     

@@ -194,40 +194,44 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         st.session_state["messages"] = []
         st.session_state["current_case_id"] = case_id
 
-        plan_info = document.get("treatment_request", {})
-        final_determination = document.get("final_determination", "N/A")
+        plan_info = document['ocr_ner_results']['clinical_info']['treatment_request']
+        patient_info = document['ocr_ner_results']['patient_info']
+        physician_info = document['ocr_ner_results']['physician_info']
+        clinical_info = document['ocr_ner_results']['clinical_info']
+        final_determination = document.get("pa_determination_results", "N/A")
         attachments_info = document.get("raw_uploaded_files", [])
-        policy_text = document.get("policy_text", [])
+        #TODO add policy text
+        policy_text = document['agenticrag_results']['policies']
 
         summary = f"""
         Final Determination: {final_determination}
 
         Patient Information:
-            - **Name:** {document.get('physician_name', 'Not provided')}
-            - **Specialty:** {document.get('specialty', 'Not provided')}
+            - **Name:** {patient_info.get('physician_name', 'Not provided')}
+            - **Specialty:** {patient_info.get('specialty', 'Not provided')}
             - **Contact:**
-            - **Office Phone:** {document.get('physician_contact', {}).get('office_phone', 'Not provided')}
-            - **Fax:** {document.get('physician_contact', {}).get('fax', 'Not provided')}
-            - **Office Address:** {document.get('physician_contact', {}).get('office_address', 'Not provided')}
+            - **Office Phone:** {patient_info.get('physician_contact', {}).get('office_phone', 'Not provided')}
+            - **Fax:** {patient_info.get('physician_contact', {}).get('fax', 'Not provided')}
+            - **Office Address:** {patient_info.get('physician_contact', {}).get('office_address', 'Not provided')}
 
         Physician Information:
-            - **Name:** {document.get('physician_name', 'Not provided')}
-            - **Specialty:** {document.get('specialty', 'Not provided')}
+            - **Name:** {physician_info.get('physician_name', 'Not provided')}
+            - **Specialty:** {physician_info.get('specialty', 'Not provided')}
             - **Contact:**
-            - **Office Phone:** {document.get('physician_contact', {}).get('office_phone', 'Not provided')}
-            - **Fax:** {document.get('physician_contact', {}).get('fax', 'Not provided')}
-            - **Office Address:** {document.get('physician_contact', {}).get('office_address', 'Not provided')}
+            - **Office Phone:** {physician_info.get('physician_contact', {}).get('office_phone', 'Not provided')}
+            - **Fax:** {physician_info.get('physician_contact', {}).get('fax', 'Not provided')}
+            - **Office Address:** {physician_info.get('physician_contact', {}).get('office_address', 'Not provided')}
 
         Clinical Information:
-            - **Diagnosis:** {document.get('diagnosis', 'Not provided')}
-            - **ICD-10 code:** {document.get('icd_10_code', 'Not provided')}
-            - **Detailed History of Prior Treatments and Results:** {document.get('prior_treatments_and_results', 'Not provided')}
-            - **Specific drugs already taken by patient and if the patient failed these prior treatments:** {document.get('specific_drugs_taken_and_failures', 'Not provided')}
-            - **Alternative Drugs Required by the Specific PA Form:** {document.get('alternative_drugs_required', 'Not provided')}
-            - **Relevant Lab Results or Diagnostic Imaging:** {document.get('relevant_lab_results_or_imaging', 'Not provided')}
-            - **Documented Symptom Severity and Impact on Daily Life:** {document.get('symptom_severity_and_impact', 'Not provided')}
-            - **Prognosis and Risk if Treatment Is Not Approved:** {document.get('prognosis_and_risk_if_not_approved', 'Not provided')}
-            - **Clinical Rationale for Urgency:** {document.get('clinical_rationale_for_urgency', 'Not provided')}
+            - **Diagnosis:** {clinical_info.get('diagnosis', 'Not provided')}
+            - **ICD-10 code:** {clinical_info.get('icd_10_code', 'Not provided')}
+            - **Detailed History of Prior Treatments and Results:** {clinical_info.get('prior_treatments_and_results', 'Not provided')}
+            - **Specific drugs already taken by patient and if the patient failed these prior treatments:** {clinical_info.get('specific_drugs_taken_and_failures', 'Not provided')}
+            - **Alternative Drugs Required by the Specific PA Form:** {clinical_info.get('alternative_drugs_required', 'Not provided')}
+            - **Relevant Lab Results or Diagnostic Imaging:** {clinical_info.get('relevant_lab_results_or_imaging', 'Not provided')}
+            - **Documented Symptom Severity and Impact on Daily Life:** {clinical_info.get('symptom_severity_and_impact', 'Not provided')}
+            - **Prognosis and Risk if Treatment Is Not Approved:** {clinical_info.get('prognosis_and_risk_if_not_approved', 'Not provided')}
+            - **Clinical Rationale for Urgency:** {clinical_info.get('clinical_rationale_for_urgency', 'Not provided')}
             - **Plan for Treatment or Request for Prior Authorization:**
                 - **Name of the Medication or Procedure Being Requested:** {plan_info.get('name_of_medication_or_procedure', 'Not provided')}
                 - **Code of the Medication or Procedure:** {plan_info.get('code_of_medication_or_procedure', 'Not provided')}
@@ -384,22 +388,22 @@ def display_case_data(document, results_container):
         )
         with tab1:
             st.header("📋 AI Determination")
-            final_determination = document.get("final_determination", "N/A")
+            final_determination = document.get("pa_determination_results", "N/A")
             st.markdown(f"{final_determination}")
 
         with tab2:
             st.header("🩺 Clinical Information")
-            data_clinical = format_clinical_info(document)
+            data_clinical = format_clinical_info(document.get("ocr_ner_results", {}))
             st.markdown(data_clinical)
 
         with tab3:
             st.header("👨‍⚕️ Physician Information")
-            data_physician = format_physician_info(document)
+            data_physician = format_physician_info(document.get("ocr_ner_results", {}))
             st.markdown(data_physician)
 
         with tab4:
             st.header("👤 Patient Information")
-            data_patient = format_patient_info(document)
+            data_patient = format_patient_info(document.get("ocr_ner_results", {}))
             st.markdown(data_patient)
 
         with tab5:
@@ -433,6 +437,7 @@ def save_uploaded_files(uploaded_files):
     return file_paths, temp_dir
 
 def format_patient_info(document):
+    document = document.get("patient_info", {})
     return f"""
     - **Name:** {document.get('patient_name', 'Not provided')}
     - **Date of Birth:** {document.get('patient_date_of_birth', 'Not provided')}
@@ -442,6 +447,7 @@ def format_patient_info(document):
     """
 
 def format_physician_info(document):
+    document = document.get("physician_info", {})
     return f"""
     - **Name:** {document.get('physician_name', 'Not provided')}
     - **Specialty:** {document.get('specialty', 'Not provided')}
@@ -452,6 +458,7 @@ def format_physician_info(document):
     """
 
 def format_clinical_info(document):
+    document = document.get("clinical_info", {})
     plan_info = document.get("treatment_request", {})
     return f"""
     - **Diagnosis:** {document.get('diagnosis', 'Not provided')}

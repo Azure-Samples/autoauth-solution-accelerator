@@ -1,0 +1,232 @@
+{
+    "extracted_output": {
+        "ocr_ner_results": {
+            "patient_info": {
+                "patient_name": "John Doe",
+                "patient_date_of_birth": "01/15/1980",
+                "patient_id": "Cigna123456789",
+                "patient_address": "123 Main St, Springfield, IL 62704",
+                "patient_phone_number": "(217) 555-1234"
+            },
+            "physician_info": {
+                "physician_name": "Dr. John A. Smith, MD",
+                "specialty": "Cardiology",
+                "physician_contact": {
+                    "office_phone": "(123) 456-7890",
+                    "fax": "(123) 456-7891",
+                    "office_address": "123 Medical Plaza, Suite 456, Springfield, IL 62704"
+                }
+            },
+            "clinical_info": {
+                "diagnosis": "Chronic Obstructive Pulmonary Disease (COPD); Hypertension",
+                "icd_10_code": "J44.9; I10",
+                "prior_treatments_and_results": "Albuterol inhaler - used for 6 months, partial relief; Lisinopril - used for 1 year, controlled blood pressure; Fluticasone/Salmeterol - used for 3 months, no significant improvement",
+                "specific_drugs_taken_and_failures": "Albuterol inhaler - partial relief; Fluticasone/Salmeterol - no significant improvement",
+                "alternative_drugs_required": "Patient must have tried at least two second-generation medications",
+                "relevant_lab_results_or_imaging": "Pulmonary function test (PFT) on 01/15/2023 - FEV1/FVC ratio: 0.65, indicating moderate obstruction; Chest X-ray on 12/20/2022 - hyperinflation of lungs, no acute infiltrates",
+                "symptom_severity_and_impact": "Patient experiences shortness of breath with minimal exertion, limiting daily activities such as walking and climbing stairs; frequent exacerbations requiring emergency visits",
+                "prognosis_and_risk_if_not_approved": "Without the requested treatment, the patient's COPD is likely to worsen, leading to increased hospitalizations and a decline in quality of life",
+                "clinical_rationale_for_urgency": "Immediate treatment is necessary to prevent further deterioration of lung function and reduce the frequency of exacerbations",
+                "treatment_request": {
+                    "name_of_medication_or_procedure": "Trelegy Ellipta",
+                    "code_of_medication_or_procedure": "NDC 0173-0895-10",
+                    "dosage": "1 inhalation once daily",
+                    "duration": "Ongoing",
+                    "rationale": "Trelegy Ellipta is indicated for the maintenance treatment of COPD and has shown to improve lung function and reduce exacerbations in patients who have not responded adequately to other treatments",
+                    "presumed_eligibility": "Patient has tried and failed two second-generation medications, meeting the criteria for Trelegy Ellipta"
+                }
+            }
+        }
+    },
+    "similarity_scores": {
+        "patient_info": {
+            "patient_name": 24.0,
+            "patient_date_of_birth": 60.0,
+            "patient_id": 19.047619047619047,
+            "patient_address": 46.37681159420289,
+            "patient_phone_number": 46.15384615384615
+        },
+        "physician_info": {
+            "physician_name": 32.25806451612904,
+            "specialty": 30.000000000000004,
+            "physician_contact": {
+                "office_phone": 57.14285714285714,
+                "fax": 57.14285714285714,
+                "office_address": 28.57142857142857
+            }
+        },
+        "clinical_info": {
+            "diagnosis": 28.282828282828287,
+            "icd_10_code": 38.46153846153846,
+            "prior_treatments_and_results": 36.70886075949367,
+            "specific_drugs_taken_and_failures": 33.484162895927604,
+            "alternative_drugs_required": 17.948717948717952,
+            "relevant_lab_results_or_imaging": 24.39678284182306,
+            "symptom_severity_and_impact": 39.02439024390244,
+            "prognosis_and_risk_if_not_approved": 40.36697247706422,
+            "clinical_rationale_for_urgency": 42.85714285714286,
+            "treatment_request": {
+                "name_of_medication_or_procedure": 16.666666666666664,
+                "code_of_medication_or_procedure": 14.28571428571429,
+                "dosage": 22.22222222222222,
+                "duration": 100.0,
+                "rationale": 37.83783783783784,
+                "presumed_eligibility": 46.35761589403974
+            }
+        }
+    },
+    "detailed_comparison": [
+        {
+            "key": "patient_name",
+            "extracted_value": "John Doe",
+            "expected_value": "Maxie Millionaire",
+            "similarity_score": 24.0
+        },
+        {
+            "key": "patient_date_of_birth",
+            "extracted_value": "01/15/1980",
+            "expected_value": "06/15/2022",
+            "similarity_score": 60.0
+        },
+        {
+            "key": "patient_id",
+            "extracted_value": "Cigna123456789",
+            "expected_value": "7656432",
+            "similarity_score": 19.047619047619047
+        },
+        {
+            "key": "patient_address",
+            "extracted_value": "123 Main St, Springfield, IL 62704",
+            "expected_value": "14126 Garnett St, Boston, MA, 02108",
+            "similarity_score": 46.37681159420289
+        },
+        {
+            "key": "patient_phone_number",
+            "extracted_value": "(217) 555-1234",
+            "expected_value": "555-987-2254",
+            "similarity_score": 46.15384615384615
+        },
+        {
+            "key": "physician_name",
+            "extracted_value": "Dr. John A. Smith, MD",
+            "expected_value": "Dr. Lennox",
+            "similarity_score": 32.25806451612904
+        },
+        {
+            "key": "specialty",
+            "extracted_value": "Cardiology",
+            "expected_value": "Pediatrics",
+            "similarity_score": 30.000000000000004
+        },
+        {
+            "key": "office_phone",
+            "extracted_value": "(123) 456-7890",
+            "expected_value": "(555) 345-7865",
+            "similarity_score": 57.14285714285714
+        },
+        {
+            "key": "fax",
+            "extracted_value": "(123) 456-7891",
+            "expected_value": "(555) 345-7866",
+            "similarity_score": 57.14285714285714
+        },
+        {
+            "key": "office_address",
+            "extracted_value": "123 Medical Plaza, Suite 456, Springfield, IL 62704",
+            "expected_value": "84 North Avenue, Boston, MA 02108",
+            "similarity_score": 28.57142857142857
+        },
+        {
+            "key": "diagnosis",
+            "extracted_value": "Chronic Obstructive Pulmonary Disease (COPD); Hypertension",
+            "expected_value": "Lennox-Gastaut Syndrome; Infantile Spasms",
+            "similarity_score": 28.282828282828287
+        },
+        {
+            "key": "icd_10_code",
+            "extracted_value": "J44.9; I10",
+            "expected_value": "G40.811; G40.821",
+            "similarity_score": 38.46153846153846
+        },
+        {
+            "key": "prior_treatments_and_results",
+            "extracted_value": "Albuterol inhaler - used for 6 months, partial relief; Lisinopril - used for 1 year, controlled blood pressure; Fluticasone/Salmeterol - used for 3 months, no significant improvement",
+            "expected_value": "Valproic Acid: 4 weeks, failed; Lamotrigine: current therapy, failed; Rufinamide: 8 weeks, failed; Topiramate: current therapy, failed",
+            "similarity_score": 36.70886075949367
+        },
+        {
+            "key": "specific_drugs_taken_and_failures",
+            "extracted_value": "Albuterol inhaler - partial relief; Fluticasone/Salmeterol - no significant improvement",
+            "expected_value": "Valproic Acid: 4 weeks, failed; Lamotrigine: current therapy, failed; Rufinamide: 8 weeks, failed; Topiramate: current therapy, failed",
+            "similarity_score": 33.484162895927604
+        },
+        {
+            "key": "alternative_drugs_required",
+            "extracted_value": "Patient must have tried at least two second-generation medications",
+            "expected_value": "Not provided",
+            "similarity_score": 17.948717948717952
+        },
+        {
+            "key": "relevant_lab_results_or_imaging",
+            "extracted_value": "Pulmonary function test (PFT) on 01/15/2023 - FEV1/FVC ratio: 0.65, indicating moderate obstruction; Chest X-ray on 12/20/2022 - hyperinflation of lungs, no acute infiltrates",
+            "expected_value": "EEG: Slow spike-and-wave discharges, generalized background slowing, infantile spasms, potential atonic seizures; MRI Brain: Mild cortical atrophy, otherwise unremarkable; CBC: WBC 6.5 x 10^9/L, Hemoglobin 11.5 g/dL, Hematocrit 34%, MCV 72 fL, MCH 23 pg, MCHC 32 g/dL, Platelet Count 250 x 10^9/L; CMP: Glucose 90 mg/dL, BUN 10 mg/dL, Creatinine 0.5 mg/dL, Sodium 140 mEq/L, Potassium 4.1 mEq/L, Chloride 104 mEq/L, Bicarbonate 24 mEq/L, Calcium 9.0 mg/dL, Total Protein 6.5 g/dL, Albumin 4.0 g/dL, Alkaline Phosphatase 150 U/L, AST 20 U/L, ALT 18 U/L, Bilirubin 0.5 mg/dL",
+            "similarity_score": 24.39678284182306
+        },
+        {
+            "key": "symptom_severity_and_impact",
+            "extracted_value": "Patient experiences shortness of breath with minimal exertion, limiting daily activities such as walking and climbing stairs; frequent exacerbations requiring emergency visits",
+            "expected_value": "Increased seizure frequency, new atonic seizure activity, appears more sleepy, mild hypotonia in upper body, hyperreflexia in upper and lower extremities",
+            "similarity_score": 39.02439024390244
+        },
+        {
+            "key": "prognosis_and_risk_if_not_approved",
+            "extracted_value": "Without the requested treatment, the patient's COPD is likely to worsen, leading to increased hospitalizations and a decline in quality of life",
+            "expected_value": "Increased seizure frequency and severity, potential for worsening condition",
+            "similarity_score": 40.36697247706422
+        },
+        {
+            "key": "clinical_rationale_for_urgency",
+            "extracted_value": "Immediate treatment is necessary to prevent further deterioration of lung function and reduce the frequency of exacerbations",
+            "expected_value": "Patient's seizures are worse in frequency and more varied in semiology despite trial of several AEDs",
+            "similarity_score": 42.85714285714286
+        },
+        {
+            "key": "name_of_medication_or_procedure",
+            "extracted_value": "Trelegy Ellipta",
+            "expected_value": "Epidiolex",
+            "similarity_score": 16.666666666666664
+        },
+        {
+            "key": "code_of_medication_or_procedure",
+            "extracted_value": "NDC 0173-0895-10",
+            "expected_value": "Not provided",
+            "similarity_score": 14.28571428571429
+        },
+        {
+            "key": "dosage",
+            "extracted_value": "1 inhalation once daily",
+            "expected_value": "100 mg/mL, take 2.5mg/kg/day divided in two doses for one week, then increase to 5mg/kg/day divided in two doses",
+            "similarity_score": 22.22222222222222
+        },
+        {
+            "key": "duration",
+            "extracted_value": "Ongoing",
+            "expected_value": "Ongoing",
+            "similarity_score": 100.0
+        },
+        {
+            "key": "rationale",
+            "extracted_value": "Trelegy Ellipta is indicated for the maintenance treatment of COPD and has shown to improve lung function and reduce exacerbations in patients who have not responded adequately to other treatments",
+            "expected_value": "Patient's seizures are worse in frequency and more varied in semiology despite trial of several AEDs",
+            "similarity_score": 37.83783783783784
+        },
+        {
+            "key": "presumed_eligibility",
+            "extracted_value": "Patient has tried and failed two second-generation medications, meeting the criteria for Trelegy Ellipta",
+            "expected_value": "Yes, patient has tried and failed multiple AEDs",
+            "similarity_score": 46.35761589403974
+        }
+    ],
+    "pass": true,
+    "timestamp": "2024-12-28T11:24:16.611232"
+}

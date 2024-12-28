@@ -207,13 +207,7 @@ class PAProcessingPipeline:
             azure_openai_client=self.azure_openai_client,
             azure_openai_client_o1=self.azure_openai_client_o1,
             prompt_manager=self.prompt_manager,
-            max_tokens=self.max_tokens,
-            top_p=self.top_p,
-            temperature=self.temperature,
-            frequency_penalty=self.frequency_penalty,
-            presence_penalty=self.presence_penalty,
-            SYSTEM_PROMPT_PRIOR_AUTH=self.SYSTEM_PROMPT_PRIOR_AUTH,
-            local=self.local
+            caseId=self.caseId,
         )
 
     def upload_files_to_blob(
@@ -571,7 +565,7 @@ class PAProcessingPipeline:
                     progress += 1
                     progress_bar.progress(progress / total_steps)
     
-                final_determination, final_conv_history = await self.auto_pa_determinator.generate_final_determination(
+                final_determination, final_conv_history = await self.auto_pa_determinator.run(
                     caseId=self.caseId,
                     patient_info=patient_info,
                     physician_info=physician_info,
@@ -582,7 +576,7 @@ class PAProcessingPipeline:
                 )
     
                 self.log_output(
-                    {"final_determination": final_determination},
+                    {"pa_determination_results": final_determination},
                     final_conv_history,
                     step="llm_determination",
                 )
