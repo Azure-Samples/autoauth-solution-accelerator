@@ -4,6 +4,10 @@ streamlit-chat==0.1.1
 matplotlib==3.9.2
 seaborn==0.13.2
 
+## microservices 
+fastapi 
+uvicorn
+
 # AI and OpenAI integration
 openai==1.52.0
 tiktoken==0.8.0
@@ -33,6 +37,7 @@ Jinja2==3.1.4
 pymongo==4.10.1
 colorama
 PyMuPDF
+rapidfuzz
 
 # HTTPX fix for OpenAI
 httpx==0.27.2

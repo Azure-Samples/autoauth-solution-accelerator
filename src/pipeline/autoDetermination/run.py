@@ -5,7 +5,7 @@ from colorama import Fore
 from utils.ml_logging import get_logger
 
 from src.aoai.aoai_helper import AzureOpenAIManager
-from src.pipeline.prompt_manager import PromptManager
+from src.pipeline.promptEngineering.prompt_manager import PromptManager
 
 class AutoPADeterminator:
     """

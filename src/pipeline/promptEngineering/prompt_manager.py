@@ -1,5 +1,5 @@
 import os
-from typing import Any
+from typing import Any, List, Dict
 
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
@@ -43,26 +43,6 @@ class PromptManager:
             return template.render(**kwargs)
         except Exception as e:
             raise ValueError(f"Error rendering template '{template_name}': {e}")
-
-    def create_prompt_query_expansion(self, clinical_info: BaseModel) -> str:
-        """
-        Create a prompt for query expansion using clinical information.
-
-        Args:
-            clinical_info (BaseModel): A model instance containing clinical information.
-
-        Returns:
-            str: The rendered query expansion prompt.
-        """
-        return self.get_prompt(
-            "query_expansion_user_prompt.jinja",
-            diagnosis=clinical_info.diagnosis,
-            medication_or_procedure=clinical_info.treatment_request.name_of_medication_or_procedure,
-            code=clinical_info.treatment_request.code_of_medication_or_procedure,
-            dosage=clinical_info.treatment_request.dosage,
-            duration=clinical_info.treatment_request.duration,
-            rationale=clinical_info.treatment_request.rationale,
-        )
 
     def create_prompt_pa(
         self,
@@ -147,3 +127,72 @@ class PromptManager:
                 template_name,
                 policy_text=policy_text,
             )
+
+    def create_prompt_query_classifier_user(self, query: str) -> str:
+        """
+        Create a user prompt for query classification.
+
+        Args:
+            query (str): The user query, e.g. "What is the process for prior authorization for Humira?"
+        
+        Returns:
+            str: The rendered prompt (query_classifier_user_prompt.jinja) with instructions 
+                 on classifying the query as 'keyword' or 'semantic'.
+        """
+        return self.get_prompt(
+            "query_classifier_user_prompt.jinja",
+            query=query,
+        )
+
+    def create_prompt_formulator_user(
+        self,
+        clinical_info: BaseModel
+    ) -> str:
+        """
+        Create a user prompt for query formulation (using query expansion).
+
+        Args:
+            clinical_info (BaseModel): A model instance containing clinical information.
+
+        Returns:
+            str: The rendered prompt (formulator_user_prompt.jinja) that guides how to 
+                 construct an optimized search query with synonyms, related terms, etc.
+        """
+        return self.get_prompt(
+            "formulator_user_prompt.jinja",
+            diagnosis=clinical_info.diagnosis,
+            medication_or_procedure=clinical_info.treatment_request.name_of_medication_or_procedure,
+            code=clinical_info.treatment_request.code_of_medication_or_procedure,
+            dosage=clinical_info.treatment_request.dosage,
+            duration=clinical_info.treatment_request.duration,
+            rationale=clinical_info.treatment_request.rationale,
+        )
+
+    def create_prompt_evaluator_user(
+        self,
+        query: str,
+        search_results: List[Dict[str, Any]]
+    ) -> str:
+        """
+        Create a user prompt for evaluating policy search results.
+
+        Args:
+            query (str): The user's query regarding prior authorization (e.g. "What is 
+                         the prior authorization policy for Epidiolex for LGS?")
+            search_results (List[Dict[str, Any]]): A list of retrieved policies, each containing:
+                - 'id': Unique identifier
+                - 'path': URL or file path
+                - 'content': Extracted policy text
+                - 'caption': Summary or short description
+            
+        Returns:
+            str: The rendered prompt (evaluator_user_prompt.jinja) instructing how to 
+                 evaluate these policies against the query, deduplicate, and form 
+                 a final JSON-like response.
+        """
+        return self.get_prompt(
+            "evaluator_user_prompt.jinja",
+            query=query,
+            SearchResults=search_results,
+        )
+

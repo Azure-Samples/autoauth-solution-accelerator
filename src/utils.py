@@ -1,6 +1,7 @@
 import os
 import pickle
-from typing import Any, Union
+from typing import Any, Union, Dict
+import yaml
 
 import pandas as pd
 
@@ -8,6 +9,24 @@ from utils.ml_logging import get_logger
 
 # Set up logging
 logger = get_logger()
+
+def _load_config(self, config_file: str) -> Dict[str, Any]:
+    """
+    Load the configuration file.
+
+    Args:
+        config_file (str): Path to the YAML configuration file.
+
+    Returns:
+        Dict[str, Any]: Configuration dictionary.
+    """
+    if not os.path.exists(config_file):
+        self.logger.error(f"Configuration file {config_file} not found.")
+        return {}
+
+    with open(config_file, "r") as file:
+        return yaml.safe_load(file)
+
 
 
 def save_dataframe(

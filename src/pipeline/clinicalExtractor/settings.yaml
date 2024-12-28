@@ -1,0 +1,40 @@
+run:
+  logging:
+    level: "INFO"
+    name: "extractionLLM"
+    enable_tracing: true
+  azure_blob:
+    container_name: "container"
+
+patient_extraction:
+  temperature: 0
+  max_tokens: 3000
+  top_p: 1.0
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  system_prompt: "ner_patient_system.jinja"
+  user_prompt: "ner_patient_user.jinja"
+
+physician_extraction:
+  temperature: 0
+  max_tokens: 3000
+  top_p: 1.0
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  system_prompt: "ner_physician_system.jinja"
+  user_prompt: "ner_physician_user.jinja"
+
+clinical_extraction:
+  temperature: 0
+  max_tokens: 3000
+  top_p: 1.0
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  system_prompt: "ner_clinician_system.jinja"
+  user_prompt: "ner_clinician_user.jinja"
+
+
+
+
+
+

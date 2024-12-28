@@ -81,8 +81,17 @@ run_streamlit:
 streamlite_conf: 
 	streamlit config show
 
-run_app_test:
-	$(PYTHON_INTERPRETER) app/run.py
+run_frontend_app:
+	$(PYTHON_INTERPRETER) app/frontend/streamlit/Home.py
+
+run_backend_paprocessing_api:
+	$(PYTHON_INTERPRETER) app/backend/paprocessing/app.py
+
+run_agentic_rag_evals:
+	$(PYTHON_INTERPRETER) src/pipeline/agenticRag/evals.py
+
+run_clinicalExtractor_evals:
+	$(PYTHON_INTERPRETER) src/pipeline/clinicalExtractor/evals.py
 
 run_pylint:
 	@echo "Running linter"

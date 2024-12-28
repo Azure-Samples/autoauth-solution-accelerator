@@ -1,0 +1,39 @@
+run:
+  logging:
+    level: "INFO"
+    name: "agenticRag"
+    enable_tracing: true
+  azure_blob:
+    container_name: "container"
+
+query_expansion:
+  max_tokens: 2048
+  top_p: 0.85
+  temperature: 0.7
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  system_prompt: "formulator_system_prompt.jinja"
+  user_prompt: "formulator_user_prompt.jinja"
+
+evaluation:
+  max_tokens: 1500
+  top_p: 0.9
+  temperature: 0.65
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  system_prompt: "evaluator_user_prompt.jinja"
+  user_prompt: "evaluator_system_prompt.jinja"
+
+retrieval:
+  index_name: ai-policies-index
+  semantic_configuration_name: "my-semantic-config"
+  vector_field: "vector"
+  k_nearest_neighbors: 5
+  weight: 0.5
+  top: 5
+
+
+
+
+
+
