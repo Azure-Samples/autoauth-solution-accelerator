@@ -27,13 +27,13 @@ from src.documentintelligence.document_intelligence_helper import (
     AzureDocumentIntelligenceManager,
 )
 from src.entraid.generate_id import generate_unique_id
-from src.pipeline.paprocessing.helpers import find_all_files
-from src.pipeline.paprocessing.models import (
+from src.pipeline.paprocessing.utils import find_all_files
+from src.pipeline.models import (
     ClinicalInformation,
     PatientInformation,
     PhysicianInformation,
 )
-from src.pipeline.paprocessing.pdfhandler import OCRHelper
+from src.extractors.pdfhandler import OCRHelper
 from src.pipeline.prompt_manager import PromptManager
 from src.storage.blob_helper import AzureBlobManager
 from utils.ml_logging import get_logger

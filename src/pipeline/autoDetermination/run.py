@@ -1,11 +1,12 @@
-# auto_pa_determinator.py
+# TODO: Improve logic + Add docstrings and type hints
 import os
 from typing import Any, Callable, List, Tuple, Optional
 from colorama import Fore
 from utils.ml_logging import get_logger
+from src.pipeline.utils import load_config
 
 from src.aoai.aoai_helper import AzureOpenAIManager
-from src.pipeline.prompt_manager import PromptManager
+from src.pipeline.promptEngineering.prompt_manager import PromptManager
 
 class AutoPADeterminator:
     """
@@ -15,16 +16,11 @@ class AutoPADeterminator:
 
     def __init__(
         self,
+        config_file: str = "autoDetermination\\settings.yaml",
         azure_openai_client: Optional[AzureOpenAIManager] = None,
         azure_openai_client_o1: Optional[AzureOpenAIManager] = None,
         prompt_manager: Optional[PromptManager] = None,
-        max_tokens: int = 2048,
-        top_p: float = 0.8,
-        temperature: float = 0.7,
-        frequency_penalty: float = 0.0,
-        presence_penalty: float = 0.0,
-        SYSTEM_PROMPT_PRIOR_AUTH: Optional[str] = None,
-        local: bool = False
+        caseId: Optional[str] = None,
     ) -> None:
         """
         Initialize the AutoPADeterminator.
@@ -33,17 +29,17 @@ class AutoPADeterminator:
             azure_openai_client: AzureOpenAIManager for main LLM calls. If None, init from env.
             azure_openai_client_o1: AzureOpenAIManager for O1 model calls. If None, init from env.
             prompt_manager: PromptManager instance for prompt templates. If None, create a new one.
-            max_tokens: Max tokens for LLM responses.
-            top_p: top_p for LLM responses.
-            temperature: Temperature for LLM responses.
-            frequency_penalty: Frequency penalty for LLM responses.
-            presence_penalty: Presence penalty for LLM responses.
-            SYSTEM_PROMPT_PRIOR_AUTH: System prompt for final determination. If None, fetched from prompt_manager.
-            local: Whether to operate in local/tracing mode.
         """
-        self.logger = get_logger(
-            name="PAProcessing - Auto Determination", level=10, tracing_enabled=local
-        )
+        self.caseId = caseId
+        self.prefix = f"[caseID: {self.caseId}] " if self.caseId else ""
+        self.config = load_config(config_file)
+        self.run_config = self.config.get("run", {})
+        self.four0_auto_determination_config = self.run_config.get("4o_auto_determination", {})
+        self.o1_auto_determination_config = self.run_config.get("o1_autoDetermination", {})
+
+        self.logger = get_logger(name=self.run_config['logging']['name'], 
+                                 level=self.run_config['logging']['level'], 
+                                 tracing_enabled=self.run_config['logging']['enable_tracing'])
 
         if azure_openai_client is None:
             api_key = os.getenv("AZURE_OPENAI_KEY", None)
@@ -58,26 +54,16 @@ class AutoPADeterminator:
         self.azure_openai_client_o1 = azure_openai_client_o1
 
         self.prompt_manager = prompt_manager or PromptManager()
-        self.max_tokens = max_tokens
-        self.top_p = top_p
-        self.temperature = temperature
-        self.frequency_penalty = frequency_penalty
-        self.presence_penalty = presence_penalty
 
-        # Fallback to prompt_manager if not provided
-        self.SYSTEM_PROMPT_PRIOR_AUTH = SYSTEM_PROMPT_PRIOR_AUTH or self.prompt_manager.get_prompt("prior_auth_system_prompt.jinja")
-
-        self.local = local
-
-    async def generate_final_determination(
+    async def run(
         self,
-        caseId: str,
         patient_info: Any,
         physician_info: Any,
         clinical_info: Any,
         policy_text: str,
         summarize_policy_callback: Callable[[str], Any],
-        use_o1: bool = False
+        use_o1: bool = False,
+        caseId: Optional[str] = None,
     ) -> Tuple[str, List[str]]:
         """
         Generate the final determination for the PA request. If maximum context length is exceeded,
@@ -95,6 +81,10 @@ class AutoPADeterminator:
         Returns:
             A tuple containing the final determination text and the conversation history.
         """
+        if caseId:
+            self.caseId = caseId
+            self.prefix = f"[caseID: {self.caseId}] "
+
         user_prompt_pa = self.prompt_manager.create_prompt_pa(
             patient_info, physician_info, clinical_info, policy_text, use_o1
         )
@@ -117,7 +107,7 @@ class AutoPADeterminator:
                     api_response = await model_client.generate_chat_response_o1(
                         query=summarized_prompt,
                         conversation_history=[],
-                        max_completion_tokens=15000,
+                        max_completion_tokens=self.o1_auto_determination_config.get("max_completion_tokens", 15000),
                     )
                 return api_response
             except Exception as e:
@@ -137,16 +127,25 @@ class AutoPADeterminator:
             for attempt in range(1, max_retries + 1):
                 try:
                     self.logger.info(Fore.CYAN + f"Using 4o model for final determination, attempt {attempt} for {caseId}...")
+                
+                    # Use provided values or default to self attributes
+                    system_message_content = system_message_content or self.prompt_manager.get_prompt(self.four0_auto_determination_config['system_prompt'])
+                    max_tokens = self.four0_auto_determination_config['max_tokens'] 
+                    top_p = self.four0_auto_determination_config['top_p']
+                    temperature = self.four0_auto_determination_config['temperature']
+                    frequency_penalty = self.four0_auto_determination_config['frequency_penalty']
+                    presence_penalty = self.four0_auto_determination_config['presence_penalty']
+
                     api_response_determination = await self.azure_openai_client.generate_chat_response(
                         query=user_prompt_pa,
-                        system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
+                        system_message_content=system_message_content,
                         conversation_history=[],
                         response_format="text",
-                        max_tokens=self.max_tokens,
-                        top_p=self.top_p,
-                        temperature=self.temperature,
-                        frequency_penalty=self.frequency_penalty,
-                        presence_penalty=self.presence_penalty,
+                        max_tokens=max_tokens,
+                        top_p=top_p,
+                        temperature=temperature,
+                        frequency_penalty=frequency_penalty,
+                        presence_penalty=presence_penalty,
                     )
                     if api_response_determination == "maximum context length":
                         summarized_policy = await summarize_policy_callback(policy_text)
@@ -155,14 +154,14 @@ class AutoPADeterminator:
                         )
                         api_response_determination = await self.azure_openai_client.generate_chat_response(
                             query=summarized_prompt,
-                            system_message_content=self.SYSTEM_PROMPT_PRIOR_AUTH,
+                            system_message_content=system_message_content,
                             conversation_history=[],
                             response_format="text",
-                            max_tokens=self.max_tokens,
-                            top_p=self.top_p,
-                            temperature=self.temperature,
-                            frequency_penalty=self.frequency_penalty,
-                            presence_penalty=self.presence_penalty,
+                            max_tokens=max_tokens,
+                            top_p=top_p,
+                            temperature=temperature,
+                            frequency_penalty=frequency_penalty,
+                            presence_penalty=presence_penalty,
                         )
                     break
                 except Exception as e:

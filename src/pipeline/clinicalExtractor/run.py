@@ -4,10 +4,11 @@ import os
 from typing import Any, Dict, List, Optional, Type, Union
 from pydantic import BaseModel, ValidationError
 from colorama import Fore
+from src.pipeline.utils import load_config
 
 from utils.ml_logging import get_logger
 from src.aoai.aoai_helper import AzureOpenAIManager
-from src.pipeline.prompt_manager import PromptManager
+from src.pipeline.promptEngineering.prompt_manager import PromptManager
 
 
 class ClinicalDataExtractor:
@@ -23,20 +24,10 @@ class ClinicalDataExtractor:
 
     def __init__(
         self,
+        config_file: str = "ClinicalExtractor\\settings.yaml",
         azure_openai_client: Optional[AzureOpenAIManager] = None,
         prompt_manager: Optional[PromptManager] = None,
-        max_tokens: int = 2048,
-        top_p: float = 0.8,
-        temperature: float = 0.7,
-        frequency_penalty: float = 0.0,
-        presence_penalty: float = 0.0,
-        PATIENT_PROMPT_NER_SYSTEM: Optional[str] = None,
-        PHYSICIAN_PROMPT_NER_SYSTEM: Optional[str] = None,
-        CLINICIAN_PROMPT_NER_SYSTEM: Optional[str] = None,
-        PATIENT_PROMPT_NER_USER: Optional[str] = None,
-        PHYSICIAN_PROMPT_NER_USER: Optional[str] = None,
-        CLINICIAN_PROMPT_NER_USER: Optional[str] = None,
-        local: bool = False
+        caseId: Optional[str] = None,
     ) -> None:
         """
         Initialize the ClinicalDataExtractor.
@@ -44,22 +35,20 @@ class ClinicalDataExtractor:
         Args:
             azure_openai_client: Optional AzureOpenAIManager instance. If None, initialized from environment.
             prompt_manager: Optional PromptManager instance. If None, a new one is created.
-            max_tokens: Maximum tokens for LLM responses.
-            top_p: top_p value for LLM sampling.
-            temperature: Temperature for LLM sampling.
-            frequency_penalty: Frequency penalty for LLM responses.
-            presence_penalty: Presence penalty for LLM responses.
-            PATIENT_PROMPT_NER_SYSTEM: System prompt for patient NER. If None, fetched from prompt_manager.
-            PHYSICIAN_PROMPT_NER_SYSTEM: System prompt for physician NER. If None, fetched from prompt_manager.
-            CLINICIAN_PROMPT_NER_SYSTEM: System prompt for clinician NER. If None, fetched from prompt_manager.
-            PATIENT_PROMPT_NER_USER: User prompt for patient NER. If None, fetched from prompt_manager.
-            PHYSICIAN_PROMPT_NER_USER: User prompt for physician NER. If None, fetched from prompt_manager.
-            CLINICIAN_PROMPT_NER_USER: User prompt for clinician NER. If None, fetched from prompt_manager.
-            local: Whether to enable local/tracing logging mode.
+            
         """
-        self.logger = get_logger(
-            name="ClinicalDataExtractor", level=10, tracing_enabled=local
-        )
+        self.config = load_config(config_file)
+        self.run_config = self.config.get("run", {})
+        self.patient_extraction_conf = self.config.get("patient_extraction", {})
+        self.physician_extraction_conf = self.config.get("physician_extraction", {})
+        self.clinical_extraction_conf = self.config.get("clinical_extraction", {})
+        self.caseId = caseId
+        self.prefix = f"[caseID: {self.caseId}] " if self.caseId else ""
+
+
+        self.logger = get_logger(name=self.run_config['logging']['name'], 
+                                 level=self.run_config['logging']['level'], 
+                                 tracing_enabled=self.run_config['logging']['enable_tracing'])
 
         if azure_openai_client is None:
             api_key = os.getenv("AZURE_OPENAI_KEY", None)
@@ -69,22 +58,7 @@ class ClinicalDataExtractor:
         self.azure_openai_client = azure_openai_client
 
         self.prompt_manager = prompt_manager or PromptManager()
-
-        self.max_tokens = max_tokens
-        self.top_p = top_p
-        self.temperature = temperature
-        self.frequency_penalty = frequency_penalty
-        self.presence_penalty = presence_penalty
-
-        # Fall back to prompt_manager if prompts not provided
-        self.PATIENT_PROMPT_NER_SYSTEM = PATIENT_PROMPT_NER_SYSTEM or self.prompt_manager.get_prompt("ner_patient_system.jinja")
-        self.PHYSICIAN_PROMPT_NER_SYSTEM = PHYSICIAN_PROMPT_NER_SYSTEM or self.prompt_manager.get_prompt("ner_physician_system.jinja")
-        self.CLINICIAN_PROMPT_NER_SYSTEM = CLINICIAN_PROMPT_NER_SYSTEM or self.prompt_manager.get_prompt("ner_clinician_system.jinja")
-        self.PATIENT_PROMPT_NER_USER = PATIENT_PROMPT_NER_USER or self.prompt_manager.get_prompt("ner_patient_user.jinja")
-        self.PHYSICIAN_PROMPT_NER_USER = PHYSICIAN_PROMPT_NER_USER or self.prompt_manager.get_prompt("ner_physician_user.jinja")
-        self.CLINICIAN_PROMPT_NER_USER = CLINICIAN_PROMPT_NER_USER or self.prompt_manager.get_prompt("ner_clinician_user.jinja")
-
-        self.local = local
+       
 
     async def validate_with_field_level_correction(
         self, data: Dict[str, Any], model_class: Type[BaseModel]
@@ -148,19 +122,29 @@ class ClinicalDataExtractor:
             A tuple containing the validated patient data model and the conversation history.
         """
         try:
-            self.logger.info(Fore.CYAN + "\nExtracting patient data...")
+            self.logger.info(Fore.CYAN + f"{self.prefix}\nExtracting patient data...")
+
+            # Use provided values or default to self attributes
+            system_message_content = self.prompt_manager.get_prompt(self.patient_extraction_conf['system_prompt'])
+            user_prompt = self.prompt_manager.get_prompt(self.patient_extraction_conf['user_prompt'])
+            max_tokens = self.patient_extraction_conf['max_tokens'] 
+            top_p = self.patient_extraction_conf['top_p']
+            temperature = self.patient_extraction_conf['temperature']
+            frequency_penalty = self.patient_extraction_conf['frequency_penalty']
+            presence_penalty = self.patient_extraction_conf['presence_penalty']
+
             api_response_patient = (
                 await self.azure_openai_client.generate_chat_response(
-                    query=self.PATIENT_PROMPT_NER_USER,
-                    system_message_content=self.PATIENT_PROMPT_NER_SYSTEM,
+                    query=user_prompt,
+                    system_message_content=system_message_content,
                     image_paths=image_files,
                     conversation_history=[],
                     response_format="json_object",
-                    max_tokens=self.max_tokens,
-                    top_p=self.top_p,
-                    temperature=self.temperature,
-                    frequency_penalty=self.frequency_penalty,
-                    presence_penalty=self.presence_penalty,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    temperature=temperature,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
                 )
             )
             validated_data = await self.validate_with_field_level_correction(
@@ -185,19 +169,28 @@ class ClinicalDataExtractor:
             A tuple containing the validated physician data model and the conversation history.
         """
         try:
-            self.logger.info(Fore.CYAN + "\nExtracting physician data...")
+            self.logger.info(Fore.CYAN + f"{self.prefix}\nExtracting physician data...")
+            # Use provided values or default to self attributes
+            system_message_content = self.prompt_manager.get_prompt(self.physician_extraction_conf['system_prompt'])
+            user_prompt = self.prompt_manager.get_prompt(self.physician_extraction_conf['user_prompt'])
+            max_tokens = self.physician_extraction_conf['max_tokens'] 
+            top_p = self.physician_extraction_conf['top_p']
+            temperature = self.physician_extraction_conf['temperature']
+            frequency_penalty = self.physician_extraction_conf['frequency_penalty']
+            presence_penalty = self.physician_extraction_conf['presence_penalty']
+
             api_response_physician = (
                 await self.azure_openai_client.generate_chat_response(
-                    query=self.PHYSICIAN_PROMPT_NER_USER,
-                    system_message_content=self.PHYSICIAN_PROMPT_NER_SYSTEM,
+                    query=user_prompt,
+                    system_message_content=system_message_content,
                     image_paths=image_files,
                     conversation_history=[],
                     response_format="json_object",
-                    max_tokens=self.max_tokens,
-                    top_p=self.top_p,
-                    temperature=self.temperature,
-                    frequency_penalty=self.frequency_penalty,
-                    presence_penalty=self.presence_penalty,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    temperature=temperature,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
                 )
             )
             validated_data = await self.validate_with_field_level_correction(
@@ -222,19 +215,28 @@ class ClinicalDataExtractor:
             A tuple containing the validated clinical data model and the conversation history.
         """
         try:
-            self.logger.info(Fore.CYAN + "\nExtracting clinician data...")
+            self.logger.info(Fore.CYAN + f"{self.prefix}\nExtracting clinician data...")
+            # Use provided values or default to self attributes
+            system_message_content = self.prompt_manager.get_prompt(self.clinical_extraction_conf['system_prompt'])
+            user_prompt = self.prompt_manager.get_prompt(self.clinical_extraction_conf['user_prompt'])
+            max_tokens = self.clinical_extraction_conf['max_tokens'] 
+            top_p = self.clinical_extraction_conf['top_p']
+            temperature = self.clinical_extraction_conf['temperature']
+            frequency_penalty = self.clinical_extraction_conf['frequency_penalty']
+            presence_penalty = self.clinical_extraction_conf['presence_penalty']
+
             api_response_clinician = (
                 await self.azure_openai_client.generate_chat_response(
-                    query=self.CLINICIAN_PROMPT_NER_USER,
-                    system_message_content=self.CLINICIAN_PROMPT_NER_SYSTEM,
+                    query=user_prompt,
+                    system_message_content=system_message_content,
                     image_paths=image_files,
                     conversation_history=[],
                     response_format="json_object",
-                    max_tokens=self.max_tokens,
-                    top_p=self.top_p,
-                    temperature=self.temperature,
-                    frequency_penalty=self.frequency_penalty,
-                    presence_penalty=self.presence_penalty,
+                    max_tokens=max_tokens,
+                    top_p=top_p,
+                    temperature=temperature,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
                 )
             )
             validated_data = await self.validate_with_field_level_correction(
@@ -245,7 +247,7 @@ class ClinicalDataExtractor:
             self.logger.error(f"Error extracting clinician data: {e}")
             return None, []
 
-    async def extract_all_data(
+    async def run(
         self,
         image_files: List[str],
         PatientInformation: Type[BaseModel],
@@ -269,25 +271,19 @@ class ClinicalDataExtractor:
             physician_data_task = self.extract_physician_data(image_files, PhysicianInformation)
             clinician_data_task = self.extract_clinician_data(image_files, ClinicalInformation)
 
-            (patient_data, patient_hist), (physician_data, phys_hist), (clinician_data, clin_hist) = await asyncio.gather(
+            (patient_data, _), (physician_data, _), (clinician_data, _) = await asyncio.gather(
                 patient_data_task, physician_data_task, clinician_data_task
             )
 
             return {
                 "patient_data": patient_data,
-                "patient_conv_history": patient_hist,
                 "physician_data": physician_data,
-                "physician_conv_history": phys_hist,
                 "clinician_data": clinician_data,
-                "clinician_conv_history": clin_hist,
             }
         except Exception as e:
             self.logger.error(f"Error extracting all data: {e}")
             return {
                 "patient_data": None,
-                "patient_conv_history": [],
                 "physician_data": None,
-                "physician_conv_history": [],
                 "clinician_data": None,
-                "clinician_conv_history": [],
             }

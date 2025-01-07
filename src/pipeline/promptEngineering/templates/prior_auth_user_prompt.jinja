@@ -1,0 +1,168 @@
+You are tasked with analyzing a prior authorization request for a medical treatment or medication. Use the provided patient information, physician information, clinical information, and policy text to make an informed decision.
+
+- Purpose: Determine whether the prior authorization request should be Approved, Denied, or if More Information is Needed.
+- Approach: Follow a step-by-step analysis to compare the provided information against the policy criteria.
+- Output: Provide a clear final decision and a detailed rationale based solely on the facts and policy provided.
+
+## Data provided 
+
+### Patient Information:
+- **Patient Name**: {{ patient_name }}
+- **Patient Date of Birth**: {{ patient_dob }}
+- **Patient ID**: {{ patient_id }}
+- **Patient Address**: {{ patient_address }}
+- **Patient Phone Number**: {{ patient_phone }}
+
+### Physician Information:
+- **Physician Name**: {{ physician_name }}
+- **Specialty**: {{ specialty }}
+- **Physician Contact**:
+  - **Office Phone**: {{ physician_phone }}
+  - **Fax**: {{ physician_fax }}
+  - **Address**: {{ physician_address }}
+
+### Clinical Information:
+- **Diagnosis**: {{ diagnosis }}
+- **ICD-10 Code**: {{ icd10_code }}
+- **Detailed History of Prior Treatments and Results**: {{ prior_treatments }}
+- **Specific Drugs Already Taken and Treatment Outcomes**: {{ specific_drugs }}
+- **Alternative Drugs Required by PA Form**: {{ alternative_drugs_required }}
+- **Relevant Lab Results or Diagnostic Imaging**: {{ lab_results }}
+- **Documented Symptom Severity and Impact on Daily Life**: {{ symptom_severity }}
+- **Prognosis and Risk if Treatment Is Not Approved**: {{ prognosis_risk }}
+- **Clinical Rationale for Urgency (if applicable)**: {{ urgency_rationale }}
+
+### Plan for Treatment or Request for Prior Authorization:
+- **Name of the Medication or Procedure Being Requested**: {{ requested_medication }}
+- **Code of the Medication or Procedure**: {{ medication_code }}
+- **Dosage**: {{ dosage }}
+- **Duration**: {{ duration }}
+- **Rationale for the Medication or Procedure**: {{ medication_rationale }}
+- **Presumed Eligibility Based on PA Form Answers**: {{ presumed_eligibility }}
+
+### Policy Text:
+{{ policy_text }}
+
+## Step-by-Step Analysis:
+
+Using the provided policy text, patient information, physician information, and clinical information, conduct a thorough analysis of the prior authorization request to determine the appropriate decision. Apply a step-by-step reasoning approach ("tree of thought") to evaluate the request.
+
+1. **Analyze Policy Criteria**:
+   - **Thoroughly read and comprehend** the entire policy text relevant to the requested medication or procedure.
+   - **Extract and meticulously list every key criterion and requirement** from the policy text, ensuring no detail is overlooked. This includes, but is not limited to:
+     - **Specific Conditions and Diagnoses**.
+     - **Prior Treatment Requirements**.
+     - **Dosage Limitations and Guidelines**.
+     - **Patient Eligibility Criteria**.
+     - **Physician Qualifications**.
+     - **Required Diagnostic Tests or Lab Results**.
+     - **Exclusions and Contraindications**.
+     - **Authorization Duration and Renewal Criteria**.
+   - **Pay special attention to qualifying statements** such as "and", "or", "must", "should", "unless", "except", and "if".
+   - **Document each criterion clearly** for reference in subsequent steps.
+
+2. **Review Patient's Clinical Information**:
+   - Compare the patient's clinical information against each policy criterion identified in Step 1.
+   - For each criterion:
+     - **Diagnosis and ICD-10 Code**:
+       - Confirm if the patient's diagnosis and ICD-10 code meet the policy requirements.
+     - **Detailed History of Prior Treatments**:
+       - Assess whether the patient has undergone the required prior treatments, including specifics on medication type, number of medications in each class tried, duration of each trial, and clinical outcomes.
+     - **Specific Drugs and Treatment Outcomes**:
+       - Evaluate if the patient has taken specific drugs as required by the policy and the outcomes of those treatments. Pay attention to drug class, number of medications in each class, and duration of each trial. Assume that "medication" refers to a pharmaceutical drug only, and not a different alternative treatment such as diet. 
+     - **Alternative Drugs Required by PA Form**:
+       - Determine if the patient has tried alternative drugs as mandated by the policy. Pay attention to medication class or generation, the number of medications tried in each class, and whether or not these meet the requirements mandated by the policy. Assume "medication" means pharmaceutical drug only. 
+     - **Relevant Lab Results or Diagnostic Imaging**:
+       - Verify if lab results or imaging support the diagnosis and meet policy criteria.
+     - **Documented Symptom Severity and Impact**:
+       - Assess if the patient's symptom severity and impact on daily life align with policy requirements.
+     - **Prognosis and Risk if Treatment Is Not Approved**:
+       - Consider the potential risks outlined by the patient information in relation to policy guidelines.
+     - **Clinical Rationale for Urgency**:
+       - Determine if any urgency meets policy criteria for expedited approval.
+
+3. **Analyze Physician Information**:
+   - Compare the physician's information against the policy criteria.
+   - For each criterion:
+     - **Physician's Specialty and Credentials**:
+       - Verify that the physician's specialty meets any policy requirements.
+     - **Physician's Rationale for Treatment**:
+       - Evaluate the physician's justification for the treatment in the context of policy guidelines.
+     - **Physician Compliance with Policy**:
+       - Ensure the physician meets any other qualifications required by the policy.
+
+4. **Evaluate Plan for Treatment or Request for Prior Authorization**:
+   - Compare the treatment plan details against the policy criteria.
+   - For each criterion:
+     - **Medication or Procedure Details**:
+       - Confirm that the requested medication or procedure is approved under the policy for the patient's condition.
+     - **Dosage and Duration**:
+       - Ensure the proposed dosage and duration comply with policy limitations.
+     - **Rationale and Eligibility**:
+       - Assess whether the rationale for treatment aligns with policy guidelines.
+     - **Presumed Eligibility**:
+       - Evaluate any presumed eligibility based on PA form answers in the context of policy requirements.
+
+5. **Compare Policy Criteria with All Information**:
+   - Summarize how each aspect of the patient's and physician's information aligns with the policy criteria.
+   - Indicate whether each criterion is **fully met**, **partially met**, or **not met**.
+   - Provide evidence and references to the policy text for each assessment.
+
+6. **Identify Gaps or Missing Information**:
+   - Note any missing details that prevent a full evaluation.
+   - Specify additional information required, if any.
+
+7. **Make a Rational Decision**:
+   - Based on the comprehensive comparison, decide if the request should be **Approved**, **Denied**, or if **More Information is Needed**.
+   - Justify the decision with logical reasoning and evidence from the provided information and policy text.
+
+## Decision Criteria:
+1. **Approved**: The request meets all the criteria outlined in the policy text.
+2. **Denied**: The request does not meet the criteria outlined in the policy text. If any criterion is not met or is only partially met, the request must be rejected.
+3. **Needs More Information**: Additional information is required to make a decision. Specify what additional information is needed and why it is necessary. If a specific criterion from the policy text is not demonstrated in the clinical information (such as prior or alternative treatments), assume it is absent and REJECT the request. If other physician or patient information is not clear or ambiguous, additional information can be requested.
+
+## Notes:
+
+#### References to Policy Text:
+- Cite specific sections or clauses from the policy that support your analysis.
+- Provide quotations or excerpts to justify your reasoning.
+
+#### Explanation of Alignment or Discrepancies:
+- Clearly explain how each piece of information aligns with or deviates from the policy criteria.
+- Detail the impact of any discrepancies on the decision.
+
+#### Rationale for Prior Auth AI Determination:
+- Summarize key findings from the analysis.
+- Provide a clear, logical, and evidence-based justification for the final decision.
+
+"""Output Format"""
+
+**Prior Auth AI Determination**
+[Approved / Denied / Needs More Information]
+
+**Rationale**
+
+**Summary of Findings**
+- Briefly summarize how the request aligns with the policy criteria.
+
+**Detailed Analysis**
+
+**Policy Criteria Assessment**
+- Criterion 1: [State the criterion]
+  - Assessment: Fully Met / Partially Met / Not Met
+  - Evidence: Cite specific information from the patient or physician details.
+  - Policy Reference: Cite relevant sections from the policy text.
+- Criterion 2: [State the criterion]
+  - Assessment: Fully Met / Partially Met / Not Met
+  - Evidence: ...
+  - Policy Reference: ...
+(Continue for all relevant criteria)
+
+**Missing Information (if applicable)**
+- Information Needed: Specify what is missing.
+- Reason: Explain why this information is necessary according to the policy.
+
+**Note**
+- Ensure that all conclusions are based solely on the provided information and policy text.
+- Do not make assumptions beyond what is given.
+- Provide clear and concise justifications for each assessment.

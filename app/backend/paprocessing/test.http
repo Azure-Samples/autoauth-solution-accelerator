@@ -1,0 +1,16 @@
+POST http://localhost:8000/process_pa HTTP/1.1
+Host: localhost:8000
+Content-Type: application/json
+
+{
+  "uploaded_files": [
+    "https://storageaeastusfactory.blob.core.windows.net/pre-auth-policies/pa_proccesing_runs/eac70ae6/raw_uploaded_files/01_b_notes.pdf",
+    "https://storageaeastusfactory.blob.core.windows.net/pre-auth-policies/pa_proccesing_runs/eac70ae6/raw_uploaded_files/01_b_imaging.pdf",
+    "https://storageaeastusfactory.blob.core.windows.net/pre-auth-policies/pa_proccesing_runs/eac70ae6/raw_uploaded_files/01_b_labs.pdf",
+    "https://storageaeastusfactory.blob.core.windows.net/pre-auth-policies/pa_proccesing_runs/eac70ae6/raw_uploaded_files/01_b_form.pdf"
+  ],
+  "caseId": "CASE-ABC123",
+  "use_o1": true,
+  "streamlit": false
+}
+  

@@ -1,0 +1,232 @@
+{
+    "extracted_output": {
+        "ocr_ner_results": {
+            "patient_info": {
+                "patient_name": "John Doe",
+                "patient_date_of_birth": "01/15/1980",
+                "patient_id": "Cigna123456789",
+                "patient_address": "123 Main St, Springfield, IL 62704",
+                "patient_phone_number": "(217) 555-1234"
+            },
+            "physician_info": {
+                "physician_name": "Dr. John A. Smith, MD",
+                "specialty": "Cardiology",
+                "physician_contact": {
+                    "office_phone": "(123) 456-7890",
+                    "fax": "(123) 456-7891",
+                    "office_address": "123 Medical Plaza, Suite 456, Springfield, IL 62704"
+                }
+            },
+            "clinical_info": {
+                "diagnosis": "Major Depressive Disorder; Generalized Anxiety Disorder",
+                "icd_10_code": "F32.9; F41.1",
+                "prior_treatments_and_results": "Fluoxetine 20 mg daily for 6 months - partial response; Sertraline 50 mg daily for 3 months - no response; Cognitive Behavioral Therapy for 12 weeks - minimal improvement",
+                "specific_drugs_taken_and_failures": "Fluoxetine 20 mg daily for 6 months - partial response; Sertraline 50 mg daily for 3 months - no response",
+                "alternative_drugs_required": "Patient must have tried at least two second-generation antidepressants",
+                "relevant_lab_results_or_imaging": "Not provided",
+                "symptom_severity_and_impact": "Patient reports significant impairment in daily functioning, including difficulty maintaining employment and social relationships; severe insomnia and fatigue",
+                "prognosis_and_risk_if_not_approved": "Without appropriate treatment, the patient's condition is likely to worsen, leading to increased risk of hospitalization and further decline in quality of life",
+                "clinical_rationale_for_urgency": "Immediate treatment is necessary to prevent further deterioration of the patient's mental health and to improve daily functioning",
+                "treatment_request": {
+                    "name_of_medication_or_procedure": "Escitalopram",
+                    "code_of_medication_or_procedure": "NDC 0456-2005-01",
+                    "dosage": "10 mg daily",
+                    "duration": "Ongoing, with follow-up evaluation in 4 weeks",
+                    "rationale": "Escitalopram is recommended due to its efficacy in treating both depression and anxiety, and the patient's lack of response to previous treatments",
+                    "presumed_eligibility": "Patient has tried and failed two second-generation antidepressants, meeting the criteria for Escitalopram"
+                }
+            }
+        }
+    },
+    "similarity_scores": {
+        "patient_info": {
+            "patient_name": 30.000000000000004,
+            "patient_date_of_birth": 50.0,
+            "patient_id": 57.14285714285714,
+            "patient_address": 44.776119402985074,
+            "patient_phone_number": 61.53846153846154
+        },
+        "physician_info": {
+            "physician_name": 37.83783783783784,
+            "specialty": 30.000000000000004,
+            "physician_contact": {
+                "office_phone": 30.76923076923077,
+                "fax": 30.76923076923077,
+                "office_address": 42.69662921348315
+            }
+        },
+        "clinical_info": {
+            "diagnosis": 34.40860215053764,
+            "icd_10_code": 40.0,
+            "prior_treatments_and_results": 9.890109890109889,
+            "specific_drugs_taken_and_failures": 15.384615384615385,
+            "alternative_drugs_required": 17.07317073170732,
+            "relevant_lab_results_or_imaging": 1.305767138193692,
+            "symptom_severity_and_impact": 32.53012048192772,
+            "prognosis_and_risk_if_not_approved": 37.704918032786885,
+            "clinical_rationale_for_urgency": 46.68769716088328,
+            "treatment_request": {
+                "name_of_medication_or_procedure": 27.27272727272727,
+                "code_of_medication_or_procedure": 14.28571428571429,
+                "dosage": 12.154696132596687,
+                "duration": 35.29411764705882,
+                "rationale": 39.82300884955752,
+                "presumed_eligibility": 11.965811965811968
+            }
+        }
+    },
+    "detailed_comparison": [
+        {
+            "key": "patient_name",
+            "extracted_value": "John Doe",
+            "expected_value": "Sarah Sample",
+            "similarity_score": 30.000000000000004
+        },
+        {
+            "key": "patient_date_of_birth",
+            "extracted_value": "01/15/1980",
+            "expected_value": "10/19/2014",
+            "similarity_score": 50.0
+        },
+        {
+            "key": "patient_id",
+            "extracted_value": "Cigna123456789",
+            "expected_value": "4567890",
+            "similarity_score": 57.14285714285714
+        },
+        {
+            "key": "patient_address",
+            "extracted_value": "123 Main St, Springfield, IL 62704",
+            "expected_value": "28 W Comet Ave, Chicago, IL 60607",
+            "similarity_score": 44.776119402985074
+        },
+        {
+            "key": "patient_phone_number",
+            "extracted_value": "(217) 555-1234",
+            "expected_value": "555-123-4567",
+            "similarity_score": 61.53846153846154
+        },
+        {
+            "key": "physician_name",
+            "extracted_value": "Dr. John A. Smith, MD",
+            "expected_value": "Shiva Pedram, MD",
+            "similarity_score": 37.83783783783784
+        },
+        {
+            "key": "specialty",
+            "extracted_value": "Cardiology",
+            "expected_value": "Pediatrics",
+            "similarity_score": 30.000000000000004
+        },
+        {
+            "key": "office_phone",
+            "extracted_value": "(123) 456-7890",
+            "expected_value": "555-991-2750",
+            "similarity_score": 30.76923076923077
+        },
+        {
+            "key": "fax",
+            "extracted_value": "(123) 456-7891",
+            "expected_value": "555-786-5643",
+            "similarity_score": 30.76923076923077
+        },
+        {
+            "key": "office_address",
+            "extracted_value": "123 Medical Plaza, Suite 456, Springfield, IL 62704",
+            "expected_value": "5721 S Maryland Ave, Chicago, IL 60637",
+            "similarity_score": 42.69662921348315
+        },
+        {
+            "key": "diagnosis",
+            "extracted_value": "Major Depressive Disorder; Generalized Anxiety Disorder",
+            "expected_value": "Crohn's Disease; Anemia 2/2 blood loss",
+            "similarity_score": 34.40860215053764
+        },
+        {
+            "key": "icd_10_code",
+            "extracted_value": "F32.9; F41.1",
+            "expected_value": "K50.90; D50.9",
+            "similarity_score": 40.0
+        },
+        {
+            "key": "prior_treatments_and_results",
+            "extracted_value": "Fluoxetine 20 mg daily for 6 months - partial response; Sertraline 50 mg daily for 3 months - no response; Cognitive Behavioral Therapy for 12 weeks - minimal improvement",
+            "expected_value": "Not provided",
+            "similarity_score": 9.890109890109889
+        },
+        {
+            "key": "specific_drugs_taken_and_failures",
+            "extracted_value": "Fluoxetine 20 mg daily for 6 months - partial response; Sertraline 50 mg daily for 3 months - no response",
+            "expected_value": "Not provided",
+            "similarity_score": 15.384615384615385
+        },
+        {
+            "key": "alternative_drugs_required",
+            "extracted_value": "Patient must have tried at least two second-generation antidepressants",
+            "expected_value": "Not provided",
+            "similarity_score": 17.07317073170732
+        },
+        {
+            "key": "relevant_lab_results_or_imaging",
+            "extracted_value": "Not provided",
+            "expected_value": "Hemoglobin: 9.0 g/dL (11.5 - 15.5 g/dL); Hematocrit: 32% (34.5% - 44.5%); Red Blood Cells (RBC): 3.5 million/\u00b5L (4.0 - 5.5 million/\u00b5L); Mean Corpuscular Volume (MCV): 78 fL (80 - 100 fL); Mean Corpuscular Hemoglobin (MCH): 28 pg (27 - 31 pg); Mean Corpuscular Hemoglobin Concentration (MCHC): 34 g/dL (32 - 36 g/dL); Platelets: 450,000 cells/\u00b5L (150,000 - 400,000 cells/\u00b5L); White Blood Cells (WBC): 12,000 cells/\u00b5L (4,500 - 13,500 cells/\u00b5L); Bands (Immature Neutrophils): 5% (0 - 5%); Neutrophils: 75% (40 - 70%); Lymphocytes: 18% (20 - 50%); Monocytes: 4% (2 - 8%); Eosinophils: 1% (0 - 5%); Basophils: 0% (0 - 1%); Glucose: 90 mg/dL (70 - 100 mg/dL); BUN: 15 mg/dL (7 - 20 mg/dL); Creatinine: 0.5 mg/dL (0.3 - 0.7 mg/dL); Sodium: 138 mEq/L (135 - 145 mEq/L); Potassium: 4.0 mEq/L (3.5 - 5.0 mEq/L); Chloride: 102 mEq/L (98 - 107 mEq/L); Bicarbonate: 24 mEq/L (22 - 30 mEq/L); Calcium: 9.2 mg/dL (8.5 - 10.5 mg/dL); ESR: 15 mm/h (<20 mm/h); CRP: 12 mg/L (<5 mg/L); Fecal Calprotectin: 100 \u00b5g/g (<50 \u00b5g/g); Fecal Occult Blood: Positive (Negative); AST: 25 U/L (10 - 40 U/L); ALT: 22 U/L (7 - 56 U/L); ALP: 120 U/L (40 - 150 U/L); Bilirubin (Total): 0.6 mg/dL (0.1 - 1.2 mg/dL); Ferritin: 15 ng/mL (12 - 150 ng/mL); Iron: 40 \u00b5g/dL (50 - 150 \u00b5g/dL); Total Iron Binding Capacity (TIBC): 450 \u00b5g/dL (250 - 450 \u00b5g/dL); Folate Level: 5 ng/mL (4 - 20 ng/mL); Vitamin B12 Level: 300 pg/mL (200 - 900 pg/mL); EGD Findings: Biopsies obtained and pending; Esophagus: Normal appearance; Stomach: Gastritis, erythema present; Duodenum: Mild to moderate duodenitis with edema; Colonoscopy Findings: Biopsies obtained and pending; Ileum: Patchy inflammation with areas of erythema and ulceration; Colon: Diffuse inflammation. Granularity and friability present; Rectum: Mild inflammation; no significant ulceration; MRI enterography: pending",
+            "similarity_score": 1.305767138193692
+        },
+        {
+            "key": "symptom_severity_and_impact",
+            "extracted_value": "Patient reports significant impairment in daily functioning, including difficulty maintaining employment and social relationships; severe insomnia and fatigue",
+            "expected_value": "Patient has multiple episodes of abdominal cramping and bowel movements with visible hematochezia; Patient appears pale, tired but interactive; Positive for fatigue, pallor, abdominal pain, hematochezia, dizziness, blood loss (by rectum); HR 110 bpm; BP 110/70 mmHg; RR: 20 bpm; Temp: 98.6\u00b0F (37\u00b0C); Mild tachycardia present; Pallor present",
+            "similarity_score": 32.53012048192772
+        },
+        {
+            "key": "prognosis_and_risk_if_not_approved",
+            "extracted_value": "Without appropriate treatment, the patient's condition is likely to worsen, leading to increased risk of hospitalization and further decline in quality of life",
+            "expected_value": "Continues to have frequent blood in stools and anemia as well as abdominal discomfort",
+            "similarity_score": 37.704918032786885
+        },
+        {
+            "key": "clinical_rationale_for_urgency",
+            "extracted_value": "Immediate treatment is necessary to prevent further deterioration of the patient's mental health and to improve daily functioning",
+            "expected_value": "Urgent (In checking this box, I attest to the fact that applying the standard review time frame may seriously jeopardize the customer's life, health, or ability to regain maximum function)",
+            "similarity_score": 46.68769716088328
+        },
+        {
+            "key": "name_of_medication_or_procedure",
+            "extracted_value": "Escitalopram",
+            "expected_value": "Adalimumab",
+            "similarity_score": 27.27272727272727
+        },
+        {
+            "key": "code_of_medication_or_procedure",
+            "extracted_value": "NDC 0456-2005-01",
+            "expected_value": "Not provided",
+            "similarity_score": 14.28571428571429
+        },
+        {
+            "key": "dosage",
+            "extracted_value": "10 mg daily",
+            "expected_value": "160 mg (given as four 40 mg injections on day 1) followed by 80 mg (given as two 40 mg injections) two weeks later. 40 mg every other week starting 2 weeks from 2nd dose.",
+            "similarity_score": 12.154696132596687
+        },
+        {
+            "key": "duration",
+            "extracted_value": "Ongoing, with follow-up evaluation in 4 weeks",
+            "expected_value": "6 months; 16 injections",
+            "similarity_score": 35.29411764705882
+        },
+        {
+            "key": "rationale",
+            "extracted_value": "Escitalopram is recommended due to its efficacy in treating both depression and anxiety, and the patient's lack of response to previous treatments",
+            "expected_value": "Patient will likely need to initiate biologic therapy given severity of symptoms",
+            "similarity_score": 39.82300884955752
+        },
+        {
+            "key": "presumed_eligibility",
+            "extracted_value": "Patient has tried and failed two second-generation antidepressants, meeting the criteria for Escitalopram",
+            "expected_value": "Not provided",
+            "similarity_score": 11.965811965811968
+        }
+    ],
+    "pass": true,
+    "timestamp": "2024-12-28T11:24:16.594582"
+}

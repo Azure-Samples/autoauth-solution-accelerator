@@ -1,67 +1,51 @@
 import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 from azure.search.documents import SearchClient
+from azure.core.credentials import AzureKeyCredential
 from azure.search.documents.models import (
     QueryAnswerType,
     QueryCaptionType,
     QueryType,
     VectorizableTextQuery,
 )
-from colorama import Fore
 from utils.ml_logging import get_logger
-
+from src.pipeline.utils import load_config
 from src.storage.blob_helper import AzureBlobManager
 from src.documentintelligence.document_intelligence_helper import AzureDocumentIntelligenceManager
 from src.aoai.aoai_helper import AzureOpenAIManager
-from src.pipeline.prompt_manager import PromptManager
+from src.pipeline.promptEngineering.prompt_manager import PromptManager
 
 class AgenticRAG:
     """
-    This class handles Retrieval-Augmented Generation (RAG):
-    - It expands the user's clinical information query.
-    - Searches for relevant policy documents.
-    - Retrieves and summarizes the policy as needed.
-
-    If system prompts are not provided, they are fetched from the prompt_manager.
+    Enhanced Retrieval-Augmented Generation (RAG) pipeline with sequential processing:
+    1. Query Expansion
+    2. Policy Retrieval
+    3. Evaluation with retries if necessary.
     """
 
     def __init__(
         self,
+        config_file: str = "agenticRag\\settings.yaml",
         azure_openai_client: Optional[AzureOpenAIManager] = None,
         prompt_manager: Optional[PromptManager] = None,
         search_client: Optional[SearchClient] = None,
         azure_blob_manager: Optional[AzureBlobManager] = None,
         document_intelligence_client: Optional[AzureDocumentIntelligenceManager] = None,
-        max_tokens: int = 2048,
-        top_p: float = 0.8,
-        temperature: float = 0.7,
-        frequency_penalty: float = 0.0,
-        presence_penalty: float = 0.0,
-        SYSTEM_PROMPT_QUERY_EXPANSION: Optional[str] = None,
-        SYSTEM_PROMPT_SUMMARIZE_POLICY: Optional[str] = None,
-        local: bool = False
+        caseId: Optional[str] = None,
     ) -> None:
-        """
-        Initialize the AgenticRAG.
+        
+        self.config = load_config(config_file)
+        self.run_config = self.config.get("run", {})
+        self.query_expansion_config = self.config.get("query_expansion", {})
+        self.policy_retrieval_config = self.config.get("retrieval", {})
+        self.evaluation_config = self.config.get("evaluation", {})
+        self.caseId = caseId
+        self.prefix = f"[caseID: {self.caseId}] " if self.caseId else ""
 
-        Args:
-            azure_openai_client: AzureOpenAIManager instance. If None, initialized from env.
-            prompt_manager: PromptManager instance for prompt templates. If None, new instance created.
-            search_client: Azure SearchClient instance. If None, tries to init from environment.
-            azure_blob_manager: AzureBlobManager. If None, tries to init from environment.
-            document_intelligence_client: AzureDocumentIntelligenceManager. If None, init from env.
-            max_tokens: Max tokens for LLM responses.
-            top_p: top_p for LLM responses.
-            temperature: Temperature for LLM responses.
-            frequency_penalty: Frequency penalty for LLM responses.
-            presence_penalty: Presence penalty for LLM responses.
-            SYSTEM_PROMPT_QUERY_EXPANSION: System prompt for query expansion. If None, fetched from prompt_manager.
-            SYSTEM_PROMPT_SUMMARIZE_POLICY: System prompt for policy summarization. If None, from prompt_manager.
-            local: Whether to operate in local/tracing mode.
-        """
-        self.logger = get_logger(
-            name="AgenticRAG", level=10, tracing_enabled=local
-        )
+
+        self.logger = get_logger(name=self.run_config['logging']['name'], 
+                                 level=self.run_config['logging']['level'], 
+                                 tracing_enabled=self.run_config['logging']['enable_tracing'])
 
         if azure_openai_client is None:
             api_key = os.getenv("AZURE_OPENAI_KEY", None)
@@ -75,153 +59,272 @@ class AgenticRAG:
         if search_client is None:
             endpoint = os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT")
             index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
-            search_client = SearchClient(endpoint=endpoint, index_name=index_name, credential=None)
+            azure_search_admin_key = os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")
+            search_client = SearchClient(endpoint=endpoint, 
+                                         index_name=index_name, 
+                                         credential=AzureKeyCredential(azure_search_admin_key))
         self.search_client = search_client
 
-        if azure_blob_manager is None:
-            account_name = os.getenv("AZURE_STORAGE_ACCOUNT_NAME")
-            account_key = os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
-            azure_blob_manager = AzureBlobManager(
-                storage_account_name=account_name,
-                account_key=account_key,
-                container_name="container"
-            )
-        self.blob_manager = azure_blob_manager
+        self.blob_manager = azure_blob_manager or AzureBlobManager(
+            storage_account_name=os.getenv("AZURE_STORAGE_ACCOUNT_NAME"),
+            account_key=os.getenv("AZURE_STORAGE_ACCOUNT_KEY"),
+            container_name=self.run_config['azure_blob']['container_name']
+        )
 
-        if document_intelligence_client is None:
-            endpoint = os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
-            key = os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
-            document_intelligence_client = AzureDocumentIntelligenceManager(
-                azure_endpoint=endpoint,
-                azure_key=key
-            )
-        self.document_intelligence_client = document_intelligence_client
-
-        self.max_tokens = max_tokens
-        self.top_p = top_p
-        self.temperature = temperature
-        self.frequency_penalty = frequency_penalty
-        self.presence_penalty = presence_penalty
-
-        # Fallback to prompt_manager if not provided
-        self.SYSTEM_PROMPT_QUERY_EXPANSION = SYSTEM_PROMPT_QUERY_EXPANSION or self.prompt_manager.get_prompt("query_expansion_system_prompt.jinja")
-        self.SYSTEM_PROMPT_SUMMARIZE_POLICY = SYSTEM_PROMPT_SUMMARIZE_POLICY or self.prompt_manager.get_prompt("summarize_policy_system.jinja")
-
-        self.local = local
-
-    async def expand_query_and_search_policy(
-        self, clinical_info: Any
-    ) -> Dict[str, Any]:
+        self.document_intelligence_client = document_intelligence_client or AzureDocumentIntelligenceManager(
+            azure_endpoint=os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"),
+            azure_key=os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
+        )
+            
+    async def expand_query(self, clinical_info: Any, 
+                           system_message_content: Optional[str] = None,
+                           max_tokens: Optional[int] = None,
+                           top_p: Optional[float] = None,
+                           temperature: Optional[float] = None,
+                           frequency_penalty: Optional[float] = None,
+                           presence_penalty: Optional[float] = None) -> str:
         """
-        Expand the user's clinical information into a more optimized query and search for relevant policy.
-
+        Expands the user-provided clinical information into an optimized query.
+    
         Args:
-            clinical_info: The clinical information (e.g. from extracted data).
-
+            clinical_info (Any): Input clinical information.
+            system_message_content (Optional[str]): System message content for the prompt. Defaults to self.SYSTEM_PROMPT_QUERY_EXPANSION.
+            max_tokens (Optional[int]): Maximum number of tokens for the response. Defaults to self.max_tokens.
+            top_p (Optional[float]): Top-p sampling parameter. Defaults to self.top_p.
+            temperature (Optional[float]): Sampling temperature. Defaults to self.temperature.
+            frequency_penalty (Optional[float]): Frequency penalty. Defaults to self.frequency_penalty.
+            presence_penalty (Optional[float]): Presence penalty. Defaults to self.presence_penalty.
+    
         Returns:
-            A dictionary containing an API response with an optimized query.
+            str: Expanded query.
         """
-        self.logger.info(Fore.CYAN + "Expanding query and searching for policy...")
-        self.logger.info(f"Input clinical information: {clinical_info}")
-        prompt_query_expansion = self.prompt_manager.create_prompt_query_expansion(clinical_info)
-        api_response_query = await self.azure_openai_client.generate_chat_response(
-            query=prompt_query_expansion,
-            system_message_content=self.SYSTEM_PROMPT_QUERY_EXPANSION,
+        self.logger.info(f"{self.prefix}Expanding query...")
+        
+        # Use provided values or default to self attributes
+        system_message_content = system_message_content or self.prompt_manager.get_prompt(self.query_expansion_config['system_prompt'])
+        max_tokens = max_tokens or self.query_expansion_config['max_tokens'] 
+        top_p = top_p or self.query_expansion_config['top_p']
+        temperature = temperature or self.query_expansion_config['temperature']
+        frequency_penalty = frequency_penalty or self.query_expansion_config['frequency_penalty']
+        presence_penalty = presence_penalty or self.query_expansion_config['presence_penalty']
+
+        prompt = self.prompt_manager.create_prompt_formulator_user(clinical_info)
+        response = await self.azure_openai_client.generate_chat_response(
+            query=prompt,
+            system_message_content=system_message_content,
             conversation_history=[],
             response_format="json_object",
-            max_tokens=self.max_tokens,
-            top_p=self.top_p,
-            temperature=self.temperature,
-            frequency_penalty=self.frequency_penalty,
-            presence_penalty=self.presence_penalty,
+            max_tokens=max_tokens,
+            top_p=top_p,
+            temperature=temperature,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
         )
-        return api_response_query
-
-    def locate_policy(self, api_response: Dict[str, Any]) -> str:
+        return response.get("response", {}).get("optimized_query", "")
+    
+    def _format_azure_search_results(self, results: list, truncate: int = 2000) -> str:
         """
-        Locate the policy based on the optimized query from the AI response.
-
-        Args:
-            api_response: The AI response containing the optimized query.
-
-        Returns:
-            The path/URL of the located policy or an error message if not found.
+        Formats Azure AI Search results into a structured, readable string.
+        
+        Each result contains:
+        - Chunk ID
+        - Reranker Score
+        - Source Document Path
+        - Content (truncated to the specified number of characters if too long)
+        - Caption (highlighted if available)
+        
+        :param results: List of results from the Azure AI Search API.
+        :param truncate: Maximum number of characters to include in the content before truncating.
+        :return: Formatted string representation of the search results.
         """
-        try:
-            optimized_query = api_response["response"]["optimized_query"]
-            vector_query = VectorizableTextQuery(
-                text=optimized_query, k_nearest_neighbors=5, fields="vector", weight=0.5
+        formatted_results = []
+
+        for result in results:
+            # Access all properties like a dictionary
+            chunk_id = result['chunk_id'] if 'chunk_id' in result else 'N/A'
+            reranker_score = result['@search.reranker_score'] if '@search.reranker_score' in result else 'N/A'
+            source_doc_path = result['parent_path'] if 'parent_path' in result else 'N/A'
+            content = result['chunk'] if 'chunk' in result else 'N/A'
+            
+            # Truncate content to specified number of characters
+            content = content[:truncate] + "..." if len(content) > truncate else content
+
+            # Extract caption (highlighted caption if available)
+            captions = result['@search.captions'] if '@search.captions' in result else []
+            caption = "Caption not available"
+            if captions:
+                first_caption = captions[0]
+                if first_caption.highlights:
+                    caption = first_caption.highlights
+                elif first_caption.text:
+                    caption = first_caption.text
+
+            # Format each result section
+            result_string = (
+                f"========================================\n"
+                f"🆔 ID: {chunk_id}\n"
+                f"📂 Source Doc Path: {source_doc_path}\n"
+                f"📜 Content: {content}\n"
+                f"💡 Caption: {caption}\n"
+                f"========================================"
             )
 
-            results = self.search_client.search(
-                search_text=optimized_query,
-                vector_queries=[vector_query],
-                query_type=QueryType.SEMANTIC,
-                semantic_configuration_name="my-semantic-config",
-                query_caption=QueryCaptionType.EXTRACTIVE,
-                query_answer=QueryAnswerType.EXTRACTIVE,
-                top=5,
-            )
+            formatted_results.append(result_string)
 
-            first_result = next(iter(results), None)
-            if first_result:
-                parent_path = first_result.get("parent_path", "Path not found")
-                return parent_path
-            else:
-                self.logger.warning("No results found")
-                return "No results found"
-        except Exception as e:
-            self.logger.error(f"Error locating policy: {e}")
-            return "Error locating policy"
+        # Join all the formatted results into a single string
+        return "\n\n".join(formatted_results)
 
-    def get_policy_text_from_blob(self, blob_url: str) -> str:
+    def retrieve_policies(
+        self, 
+        query: str, 
+        k_nearest_neighbors: Optional[int] = None,
+        weight: Optional[float] = None,
+        top: Optional[int] = None,
+        semantic_config: Optional[str] = None,
+        vector_field: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
         """
-        Retrieve policy text from the specified blob URL using Document Intelligence.
-
+        Retrieves policies based on the expanded query.
+        
         Args:
-            blob_url: The URL to the policy blob.
+            query (str): Expanded query.
+            k_nearest_neighbors (Optional[int]): Number of nearest neighbors to retrieve. Defaults to 5.
+            weight (Optional[float]): Weight for the vector query. Defaults to 0.5.
+            top (Optional[int]): Number of top results to retrieve. Defaults to 5.
+            semantic_config (Optional[str]): Semantic configuration name. Defaults to "my-semantic-config".
+            vector_field (Optional[str]): Fields to use for the vector query. Defaults to "vector".
 
         Returns:
-            The text content of the downloaded policy document.
+            List[Dict[str, Any]]: Retrieved policy documents.
         """
-        try:
-            blob_content = self.blob_manager.download_blob_to_bytes(blob_url)
-            if blob_content is None:
-                raise Exception(f"Failed to download blob from URL: {blob_url}")
-            self.logger.info(f"Blob content downloaded successfully from {blob_url}")
+        self.logger.info(f"{self.prefix}Retrieving policies...")
+        semantic_config = self.policy_retrieval_config["semantic_configuration_name"] or semantic_config
+        vector_field = self.policy_retrieval_config["vector_field"] or vector_field
+        k_nearest_neighbors = self.policy_retrieval_config["k_nearest_neighbors"] or k_nearest_neighbors
+        weight = self.policy_retrieval_config["weight"] or weight
+        top = self.policy_retrieval_config["top"] or top
 
-            policy_text = self.document_intelligence_client.analyze_document(
-                document_input=blob_content,
-                model_type="prebuilt-layout",
-                output_format="markdown",
-            )
-            self.logger.info(f"Document analyzed successfully for blob {blob_url}")
-            return policy_text.content
-        except Exception as e:
-            self.logger.error(f"Failed to get policy text from blob {blob_url}: {e}")
-            return ""
+        vector_query = VectorizableTextQuery(
+            text=query, k_nearest_neighbors=k_nearest_neighbors, fields=vector_field, weight=weight
+        )
+        results = self.search_client.search(
+            search_text=query,
+            vector_queries=[vector_query],
+            query_type=QueryType.SEMANTIC,
+            semantic_configuration_name=semantic_config,
+            query_caption=QueryCaptionType.EXTRACTIVE,
+            query_answer=QueryAnswerType.EXTRACTIVE,
+            top=top
+        )
+        return self._format_azure_search_results(results, truncate=2000)
 
-    async def summarize_policy(self, policy_text: str) -> str:
+    async def evaluate_results(self, query: str, search_results: List[Dict[str, Any]], 
+                               system_message_content: Optional[str] = None,
+                               max_tokens: Optional[int] = None,
+                               top_p: Optional[float] = None,
+                               temperature: Optional[float] = None,
+                               frequency_penalty: Optional[float] = None,
+                               presence_penalty: Optional[float] = None) -> Dict[str, Any]:
         """
-        Summarize a given policy text using the LLM.
-
+        Evaluates the search results using Azure OpenAI.
+    
         Args:
-            policy_text: The full text of the policy document.
-
+            query (str): Original user query.
+            search_results (List[Dict[str, Any]]): Retrieved search results.
+            system_message_content (Optional[str]): System message content for the prompt.
+            conversation_history (Optional[List[Dict[str, Any]]]): Conversation history for the prompt. Defaults to an empty list.
+            response_format (str): Format of the response. Defaults to "json_object".
+            max_tokens (Optional[int]): Maximum number of tokens for the response. Defaults to self.max_tokens.
+            top_p (Optional[float]): Top-p sampling parameter. Defaults to self.top_p.
+            temperature (Optional[float]): Sampling temperature. Defaults to self.temperature.
+            frequency_penalty (Optional[float]): Frequency penalty. Defaults to self.frequency_penalty.
+            presence_penalty (Optional[float]): Presence penalty. Defaults to self.presence_penalty.
+    
         Returns:
-            A summarized version of the policy text.
+            Dict[str, Any]: Evaluation results with policies, reasoning, and retry flag.
         """
-        self.logger.info(Fore.CYAN + "Summarizing Policy...")
-        prompt_user_query_summary = self.prompt_manager.create_prompt_summary_policy(policy_text)
-        api_response_query = await self.azure_openai_client.generate_chat_response(
-            query=prompt_user_query_summary,
-            system_message_content=self.SYSTEM_PROMPT_SUMMARIZE_POLICY,
+        self.logger.info(f"{self.prefix}Evaluating search results...")
+        
+        # Use provided values or default to self attributes
+        system_message_content = system_message_content or self.prompt_manager.get_prompt(self.query_expansion_config['system_prompt'])
+        max_tokens = max_tokens or self.query_expansion_config['max_tokens'] 
+        top_p = top_p or self.query_expansion_config['top_p']
+        temperature = temperature or self.query_expansion_config['temperature']
+        frequency_penalty = frequency_penalty or self.query_expansion_config['frequency_penalty']
+        presence_penalty = presence_penalty or self.query_expansion_config['presence_penalty']
+    
+        prompt = self.prompt_manager.create_prompt_evaluator_user(query, search_results)
+        response = await self.azure_openai_client.generate_chat_response(
+            query=prompt,
+            system_message_content=system_message_content,
             conversation_history=[],
-            response_format="text",
-            max_tokens=4096,
-            top_p=self.top_p,
-            temperature=self.temperature,
-            frequency_penalty=self.frequency_penalty,
-            presence_penalty=self.presence_penalty,
+            response_format="json_object",
+            max_tokens=max_tokens,
+            top_p=top_p,
+            temperature=temperature,
+            frequency_penalty=frequency_penalty,
+            presence_penalty=presence_penalty,
         )
-        return api_response_query["response"]
+        self.logger.info(f'''{self.prefix}/n Evaluation response:
+                         {response.get('response', {})}''')
+        return response.get("response", {"policies": [], "reasoning": [], "retry": True})
+    
+    
+    async def run(self, clinical_info: Any, max_retries: int = 3) -> Dict[str, Any]:
+        """
+        Orchestrates the complete RAG process:
+        1. Query Expansion
+        2. Policy Retrieval
+        3. Evaluation
+        with retries if necessary and minimal error handling.
+    
+        Args:
+            clinical_info (Any): User-provided clinical information.
+            max_retries (int): Maximum number of retries for the process. Default is 3.
+    
+        Returns:
+            Dict[str, Any]: Dictionary containing the query, policies found, and evaluation results.
+        """
+    
+        for attempt in range(max_retries):
+            self.logger.info(f"{self.prefix}Starting AgenticRAG attempt {attempt + 1} of {max_retries}")
+            try:
+                # Step 1: Query Expansion
+                expanded_query = await self.expand_query(clinical_info)
+                if not expanded_query:
+                    self.logger.warning(f"{self.prefix}Query expansion failed. Retrying...")
+                    continue
+    
+                self.logger.info(f"{self.prefix}Expanded Query: {expanded_query}")
+    
+                # Step 2: Policy Retrieval
+                search_results = self.retrieve_policies(expanded_query)
+                if not search_results:
+                    self.logger.warning(f"{self.prefix}No search results found. Retrying...")
+                    continue
+    
+                self.logger.info(f"{self.prefix}Search results retrieved successfully")
+    
+                # Step 3: Evaluation
+                evaluation = await self.evaluate_results(expanded_query, search_results)
+                if not evaluation["retry"]:
+                    self.logger.info(f"{self.prefix}Evaluation successful. Policies: {evaluation.get('policies', [])}")
+                    return {
+                        "query": expanded_query,
+                        "policies": evaluation.get("policies", []),
+                        "evaluation": evaluation
+                    }
+    
+                self.logger.info(f"{self.prefix}Evaluation retry flag set to true. Retrying...")
+            except Exception as e:
+                self.logger.error(
+                    f"{self.prefix}An unexpected error occurred on attempt {attempt + 1} of {max_retries}: {e}. Retrying..."
+                )
+                continue
+    
+        self.logger.error(f"{self.prefix}Max retries reached. Returning empty list of policies.")
+        return {
+            "query": None,
+            "policies": [],
+            "evaluation": None
+        }
