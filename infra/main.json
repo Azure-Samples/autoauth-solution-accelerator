@@ -5,16 +5,10 @@
     "_generator": {
       "name": "bicep",
       "version": "0.32.4.45862",
-      "templateHash": "4364513871324567477"
+      "templateHash": "6779375513642358424"
     }
   },
   "parameters": {
-    "principalId": {
-      "type": "string",
-      "metadata": {
-        "description": "The principal ID of the user or service principal that will be granted access to the resources."
-      }
-    },
     "environmentName": {
       "type": "string",
       "minLength": 1,
@@ -42,12 +36,6 @@
       "defaultValue": false,
       "metadata": {
         "description": "Flag to indicate if Backend app image exists. This is managed by AZD"
-      }
-    },
-    "cosmosAdministratorPassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Admin password for the cluster"
       }
     },
     "priorAuthName": {
@@ -82,8 +70,8 @@
         {
           "name": "gpt-4o",
           "version": "2024-08-06",
-          "skuName": "GlobalStandard",
-          "capacity": 25
+          "skuName": "Standard",
+          "capacity": 500
         }
       ],
       "metadata": {
@@ -96,7 +84,7 @@
         "name": "text-embedding-3-large",
         "version": "1",
         "skuName": "Standard",
-        "capacity": 16
+        "capacity": 500
       },
       "metadata": {
         "description": "List of embedding models to be deployed to the OpenAI account."
@@ -142,9 +130,6 @@
           "tags": {
             "value": "[variables('azd_tags')]"
           },
-          "cosmosAdministratorPassword": {
-            "value": "[parameters('cosmosAdministratorPassword')]"
-          },
           "frontendExists": {
             "value": "[parameters('frontendExists')]"
           },
@@ -177,7 +162,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.32.4.45862",
-              "templateHash": "8138052363014987431"
+              "templateHash": "3837372815546977008"
             }
           },
           "parameters": {
@@ -203,12 +188,6 @@
               "defaultValue": {},
               "metadata": {
                 "description": "Set of tags to apply to all resources."
-              }
-            },
-            "cosmosAdministratorPassword": {
-              "type": "securestring",
-              "metadata": {
-                "description": "Admin password for the cluster"
               }
             },
             "cosmosDbCollectionName": {
@@ -588,7 +567,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.32.4.45862",
-                      "templateHash": "7338189086510205370"
+                      "templateHash": "5461868850494361903"
                     }
                   },
                   "parameters": {
@@ -640,7 +619,7 @@
                         "name": "text-embedding-ada-002",
                         "version": "2",
                         "skuName": "Standard",
-                        "capacity": 16
+                        "capacity": 250
                       },
                       "metadata": {
                         "description": "List of embedding models to be deployed to the OpenAI account."
@@ -995,9 +974,6 @@
                   },
                   "tags": {
                     "value": "[parameters('tags')]"
-                  },
-                  "cosmosAdministratorPassword": {
-                    "value": "[parameters('cosmosAdministratorPassword')]"
                   }
                 },
                 "template": {
@@ -1007,7 +983,7 @@
                     "_generator": {
                       "name": "bicep",
                       "version": "0.32.4.45862",
-                      "templateHash": "2923483620102362513"
+                      "templateHash": "6548210223307936535"
                     }
                   },
                   "parameters": {
@@ -1028,61 +1004,46 @@
                       "metadata": {
                         "description": "Name of the Mongo cluster"
                       }
-                    },
-                    "cosmosAdministratorUsername": {
-                      "type": "string",
-                      "defaultValue": "adminuser",
-                      "metadata": {
-                        "description": "Administrator username for the Mongo cluster"
-                      }
-                    },
-                    "cosmosAdministratorPassword": {
-                      "type": "securestring",
-                      "metadata": {
-                        "description": "Admin password for the cluster"
-                      }
                     }
                   },
                   "variables": {
-                    "mongoNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]",
-                    "encodedPassword": "[uriComponent(parameters('cosmosAdministratorPassword'))]"
+                    "mongoNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
                   },
                   "resources": [
                     {
-                      "type": "Microsoft.DocumentDB/mongoClusters",
-                      "apiVersion": "2024-07-01",
+                      "type": "Microsoft.DocumentDB/databaseAccounts",
+                      "apiVersion": "2024-11-15",
                       "name": "[variables('mongoNameCleaned')]",
                       "location": "[parameters('location')]",
                       "tags": "[parameters('tags')]",
+                      "kind": "MongoDB",
                       "properties": {
-                        "administrator": {
-                          "userName": "[parameters('cosmosAdministratorUsername')]",
-                          "password": "[parameters('cosmosAdministratorPassword')]"
+                        "databaseAccountOfferType": "Standard",
+                        "locations": [
+                          {
+                            "locationName": "[parameters('location')]",
+                            "failoverPriority": 0
+                          }
+                        ],
+                        "apiProperties": {
+                          "serverVersion": "7.0"
                         },
-                        "serverVersion": "7.0",
-                        "compute": {
-                          "tier": "M30"
+                        "capabilities": [
+                          {
+                            "name": "EnableMongo"
+                          }
+                        ],
+                        "consistencyPolicy": {
+                          "defaultConsistencyLevel": "Session"
                         },
-                        "storage": {
-                          "sizeGb": 32
-                        },
-                        "sharding": {
-                          "shardCount": 1
-                        },
-                        "highAvailability": {
-                          "targetMode": "Disabled"
-                        },
-                        "publicNetworkAccess": "Enabled",
-                        "previewFeatures": [
-                          "GeoReplicas"
-                        ]
+                        "publicNetworkAccess": "Enabled"
                       }
                     }
                   ],
                   "outputs": {
                     "mongoClusterId": {
                       "type": "string",
-                      "value": "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongoNameCleaned'))]"
+                      "value": "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('mongoNameCleaned'))]"
                     },
                     "mongoClusterName": {
                       "type": "string",
@@ -1090,7 +1051,7 @@
                     },
                     "mongoConnectionString": {
                       "type": "string",
-                      "value": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000', parameters('cosmosAdministratorUsername'), variables('encodedPassword'), variables('mongoNameCleaned'))]"
+                      "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('mongoNameCleaned')), '2024-11-15').connectionStrings[0].connectionString]"
                     }
                   }
                 }
@@ -9089,11 +9050,11 @@
                           },
                           {
                             "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_ID",
-                            "value": "gpt-4o"
+                            "value": "[parameters('chatCompletionModels')[0].name]"
                           },
                           {
                             "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
-                            "value": "gpt-4o"
+                            "value": "[parameters('chatCompletionModels')[0].name]"
                           },
                           {
                             "name": "AZURE_OPENAI_EMBEDDING_DIMENSIONS",
@@ -9138,10 +9099,6 @@
                           {
                             "name": "AZURE_AI_SEARCH_ADMIN_KEY",
                             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServicePrimaryKey.value]"
-                          },
-                          {
-                            "name": "AZURE_STORAGE_ACCOUNT_KEY",
-                            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountPrimaryKey.value]"
                           },
                           {
                             "name": "AZURE_STORAGE_CONNECTION_STRING",
@@ -10247,11 +10204,11 @@
                           },
                           {
                             "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_ID",
-                            "value": "gpt-4o"
+                            "value": "[parameters('chatCompletionModels')[0].name]"
                           },
                           {
                             "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
-                            "value": "gpt-4o"
+                            "value": "[parameters('chatCompletionModels')[0].name]"
                           },
                           {
                             "name": "AZURE_OPENAI_EMBEDDING_DIMENSIONS",
@@ -10296,10 +10253,6 @@
                           {
                             "name": "AZURE_AI_SEARCH_ADMIN_KEY",
                             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServicePrimaryKey.value]"
-                          },
-                          {
-                            "name": "AZURE_STORAGE_ACCOUNT_KEY",
-                            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountPrimaryKey.value]"
                           },
                           {
                             "name": "AZURE_STORAGE_CONNECTION_STRING",
@@ -11397,11 +11350,11 @@
                           },
                           {
                             "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_ID",
-                            "value": "gpt-4o"
+                            "value": "[parameters('chatCompletionModels')[0].name]"
                           },
                           {
                             "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
-                            "value": "gpt-4o"
+                            "value": "[parameters('chatCompletionModels')[0].name]"
                           },
                           {
                             "name": "AZURE_OPENAI_EMBEDDING_DIMENSIONS",
@@ -11446,10 +11399,6 @@
                           {
                             "name": "AZURE_AI_SEARCH_ADMIN_KEY",
                             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServicePrimaryKey.value]"
-                          },
-                          {
-                            "name": "AZURE_STORAGE_ACCOUNT_KEY",
-                            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountPrimaryKey.value]"
                           },
                           {
                             "name": "AZURE_STORAGE_CONNECTION_STRING",
@@ -12643,11 +12592,11 @@
             },
             "AZURE_OPENAI_CHAT_DEPLOYMENT_ID": {
               "type": "string",
-              "value": "gpt-4o"
+              "value": "[parameters('chatCompletionModels')[0].name]"
             },
             "AZURE_OPENAI_CHAT_DEPLOYMENT_01": {
               "type": "string",
-              "value": "gpt-4o"
+              "value": "[parameters('chatCompletionModels')[0].name]"
             },
             "AZURE_OPENAI_EMBEDDING_DIMENSIONS": {
               "type": "string",
@@ -12671,7 +12620,7 @@
             },
             "AZURE_STORAGE_ACCOUNT_KEY": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountPrimaryKey.value]"
+              "value": ""
             },
             "AZURE_BLOB_CONTAINER_NAME": {
               "type": "string",
@@ -12845,6 +12794,10 @@
     "AZURE_AI_SEARCH_SERVICE_ENDPOINT": {
       "type": "string",
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_AI_SEARCH_SERVICE_ENDPOINT.value]"
+    },
+    "AZURE_RESOURCE_GROUP": {
+      "type": "string",
+      "value": "[format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))]"
     }
   }
 }

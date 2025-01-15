@@ -125,3 +125,4 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAI
 output AZURE_CONTAINER_ENVIRONMENT_ID string = resources.outputs.AZURE_CONTAINER_ENVIRONMENT_ID
 output AZURE_OPENAI_KEY string = resources.outputs.AZURE_OPENAI_KEY
 output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = resources.outputs.AZURE_AI_SEARCH_SERVICE_ENDPOINT
+output AZURE_RESOURCE_GROUP string = rg.name
