@@ -32,9 +32,3 @@ clinical_extraction:
   presence_penalty: 0.0
   system_prompt: "ner_clinician_system.jinja"
   user_prompt: "ner_clinician_user.jinja"
-
-
-
-
-
-

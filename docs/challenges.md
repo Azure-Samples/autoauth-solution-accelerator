@@ -41,7 +41,7 @@ Prior Authorization (PA) serves as a critical checkpoint before delivering certa
 
 ![Prior Authorization Workflow](./images/paworflow.png)
 
-1. **Operational Inefficiencies**: 
+1. **Operational Inefficiencies**:
     - Providers often lack real-time insight into PA requirements.
     - Transparency issues result in delays and bottlenecks.
 
@@ -64,6 +64,6 @@ By leveraging **AI-driven automation**, PA processes can be streamlined with the
 ---
 
 ### References
-1. [American Medical Association](https://www.ama-assn.org/)  
-2. [Sagility Health](https://sagilityhealth.com/)  
+1. [American Medical Association](https://www.ama-assn.org/)
+2. [Sagility Health](https://sagilityhealth.com/)
 3. [McKinsey AI Insights](https://www.mckinsey.com/)

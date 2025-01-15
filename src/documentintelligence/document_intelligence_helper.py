@@ -1,13 +1,14 @@
+import base64
 import os
-from functools import lru_cache
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient, models
-
-# from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest, Document
 from azure.core.credentials import AzureKeyCredential
 from azure.core.polling import LROPoller
+
+# from azure.ai.formrecognizer import DocumentAnalysisClient
+from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 from langchain_core.documents import Document as LangchainDocument
 
@@ -54,14 +55,19 @@ class AzureDocumentIntelligenceManager:
         self.azure_key = azure_key or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
 
         # Validate required configurations for Document Analysis Client
-        if not self.azure_endpoint or not self.azure_key:
+        if not self.azure_endpoint:
             raise ValueError(
                 "Azure endpoint and key must be provided either as parameters or in environment variables."
             )
 
+        # credential = DefaultAzureCredential()
+        # if self.azure_key:
+        #   credential = AzureKeyCredential(self.azure_key)
+
         self.document_analysis_client = DocumentIntelligenceClient(
             endpoint=self.azure_endpoint,
             credential=AzureKeyCredential(self.azure_key),
+            api_version="2024-11-30",
             headers={"x-ms-useragent": "langchain-parser/1.0.0"},
             polling_interval=30,
         )
@@ -74,7 +80,10 @@ class AzureDocumentIntelligenceManager:
                 account_key=account_key,
             )
         else:
-            self.blob_manager = None
+            # self.blob_manager = None
+            self.blob_manager = AzureBlobManager(
+                storage_account_name=storage_account_name, container_name=container_name
+            )
 
     def analyze_document(
         self,
@@ -155,18 +164,25 @@ class AzureDocumentIntelligenceManager:
             elif "blob.core.windows.net" in document_input:
                 logger.info("Blob URL detected. Extracting content.")
                 content_bytes = self.blob_manager.download_blob_to_bytes(document_input)
-                poller = self.document_analysis_client.begin_analyze_document(
-                    model_id=model_type,
-                    analyze_request=AnalyzeDocumentRequest(base64_source=content_bytes),
-                    pages=pages,
-                    locale=locale,
-                    string_index_type=string_index_type,
-                    features=features,
-                    query_fields=query_fields,
-                    output_content_format=output_format if output_format else "text",
-                    content_type=content_type,
-                    **kwargs,
-                )
+                try:
+                    analyze_request = AnalyzeDocumentRequest(bytes_source=content_bytes)
+                    poller = self.document_analysis_client.begin_analyze_document(
+                        model_id=model_type,
+                        analyze_request=analyze_request,
+                        pages=pages,
+                        locale=locale,
+                        string_index_type=string_index_type,
+                        features=features,
+                        query_fields=query_fields,
+                        output_content_format=output_format
+                        if output_format
+                        else "text",
+                        content_type=content_type,
+                        **kwargs,
+                    )
+                except Exception as e:
+                    logger.error(f"Error analyzing document from blob URL: {e}")
+                    raise
             else:
                 poller = self.document_analysis_client.begin_analyze_document(
                     model_id=model_type,

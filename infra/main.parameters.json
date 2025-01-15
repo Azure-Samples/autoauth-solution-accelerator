@@ -1,0 +1,68 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": {
+      "value": "${AZURE_ENV_NAME:-defaultEnv}"
+    },
+    "location": {
+      "value": "${AZURE_LOCATION:-eastus}"
+    },
+    "priorAuthName": {
+      "value": "${PRIOR_AUTH_NAME:-priorAuth}"
+    },
+    "frontendExists": {
+      "value": "${SERVICE_FRONTEND_RESOURCE_EXISTS:-false}"
+    },
+    "backendExists": {
+      "value": "${SERVICE_BACKEND_RESOURCE_EXISTS:-false}"
+    },
+    "acrContainerImage": {
+      "value": "${ACR_CONTAINER_IMAGE:-}"
+    },
+    "principalId": {
+      "value": "${PRINCIPAL_ID:-}"
+    },
+    "acrUsername": {
+      "value": "${ACR_USERNAME:-}"
+    },
+    "acrPassword": {
+      "value": "${ACR_PASSWORD:-}"
+    },
+    "openAiApiVersion": {
+      "value": "${OPENAI_API_VERSION:-2024-08-01-preview}"
+    },
+    "chatCompletionModels": {
+      "value": [
+        {
+          "name": "gpt-4o",
+          "version": "2024-08-06",
+          "skuName": "Standard",
+          "capacity": 100
+        }
+      ]
+    },
+    "embeddingModel": {
+      "value": {
+        "name": "text-embedding-3-large",
+        "version": "1",
+        "skuName": "Standard",
+        "capacity": 100
+      }
+    },
+    "embeddingModelDimension": {
+      "value": "${EMBEDDING_MODEL_DIMENSION:-3072}"
+    },
+    "storageBlobContainerName": {
+      "value": "${STORAGE_BLOB_CONTAINER_NAME:-default}"
+    }
+    ,
+    "tags": {
+      "value": {
+        "project": "${PROJECT_NAME:-priorAuth}",
+        "owner": "${OWNER_NAME:-contoso}",
+        "costCenter": "${COST_CENTER:-00000}"
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: gbb-ai-hls-factory-prior-auth
+metadata:
+  template: priorAuth-aca@1.11.0
+services:
+  frontend: # <-- This is the name of your service (tag:azdServiceName in bicep config)
+    project: app/frontend
+    host: containerapp
+    language: python
+    docker:
+      path: Dockerfile
+      context: ../../
+      remoteBuild: true
+    hooks:
+      postdeploy:
+        posix:
+          shell: sh
+          interactive: true
+          continueOnError: false
+          run: ../../utils/azd/hooks/postdeploy.sh
+
+        windows:
+          shell: pwsh
+          interactive: true
+          continueOnError: false
+          run: ..\..\utils\azd\hooks\postdeploy.ps1
+
+  backend: # <-- This is the name of your service (tag:azdServiceName in bicep config)
+    project: app/backend/paprocessing
+    host: containerapp
+    language: python
+    docker:
+      path: Dockerfile
+      context: ../../../
+      remoteBuild: true
+
+# pipeline:
+#   provider: github
+hooks:
+  preprovision:
+    posix:
+      shell: sh
+      interactive: true
+      continueOnError: false
+      # run: ../utils/azd/hooks/preprovision.sh
+      run: |
+        echo "Setting executable permissions on hook scripts..."
+        chmod +x ./utils/azd/hooks/*.sh
+        # ./utils/azd/hooks/preprovision.sh
+    # windows:
+    #   shell: pwsh
+    #   interactive: true
+    #   continueOnError: false
+    #   # run: ../utils/azd/hooks/preprovision.ps1
+    #   run: .\utils\azd\hooks\preprovision.ps1
+  postprovision:
+    posix:
+      shell: sh
+      interactive: true
+      continueOnError: false
+      run: ./utils/azd/hooks/postprovision.sh
+
+    windows:
+      shell: pwsh
+      interactive: true
+      continueOnError: false
+      run: .\utils\azd\hooks\postprovision.ps1
+
+  postdown:
+    posix:
+      shell: sh
+      interactive: true
+      continueOnError: false
+      run: azd env set CONTAINER_JOB_RUN false
+
+    windows:
+      shell: pwsh
+      interactive: true
+      continueOnError: false
+      run: azd env set CONTAINER_JOB_RUN false

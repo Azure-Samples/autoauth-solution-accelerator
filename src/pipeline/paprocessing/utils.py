@@ -30,4 +30,3 @@ def find_all_files(root_folder: str, extensions: Union[List[str], str]) -> List[
                 files_list.append(str(Path(root) / file))
     logger.info(f"Found {len(files_list)} files with extensions {extensions}")
     return files_list
-

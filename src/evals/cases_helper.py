@@ -1,19 +1,22 @@
 import asyncio
-from datetime import datetime
-from typing import Dict, Any, List, Union
-import os
 import json
+import os
+import shutil
+from datetime import datetime
+from typing import Any, Dict, List, Union
+
 from rapidfuzz import fuzz
-from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
+
 from src.extractors.pdfhandler import OCRHelper
-from src.storage.blob_helper import AzureBlobManager
+from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
 from src.pipeline.promptEngineering.models import (
     ClinicalInformation,
     PatientInformation,
     PhysicianInformation,
 )
+from src.storage.blob_helper import AzureBlobManager
 from utils.ml_logging import get_logger
-import shutil
+
 
 class CaseManager:
     def __init__(self, cases: Dict[str, Any]):
@@ -79,7 +82,9 @@ class CaseManager:
 
         return remote_files
 
-    def process_uploaded_files(self, uploaded_files: Union[str, List[str]]) -> List[str]:
+    def process_uploaded_files(
+        self, uploaded_files: Union[str, List[str]]
+    ) -> List[str]:
         """
         Process uploaded files and extract images.
 
@@ -110,7 +115,12 @@ class CaseManager:
 
         return image_files
 
-    def evaluate_similarity(self, extracted: Dict[str, Any], expected: Dict[str, Any], threshold: float = 95.0) -> Dict[str, Any]:
+    def evaluate_similarity(
+        self,
+        extracted: Dict[str, Any],
+        expected: Dict[str, Any],
+        threshold: float = 95.0,
+    ) -> Dict[str, Any]:
         """
         Evaluate similarity scores for each key-value pair.
 
@@ -125,7 +135,9 @@ class CaseManager:
         similarity_scores = {}
         detailed_comparison = []
         for key, expected_value in expected.items():
-            if isinstance(expected_value, dict) and isinstance(extracted.get(key), dict):
+            if isinstance(expected_value, dict) and isinstance(
+                extracted.get(key), dict
+            ):
                 nested_scores = self.evaluate_similarity(
                     extracted.get(key, {}), expected_value, threshold
                 )
@@ -135,19 +147,25 @@ class CaseManager:
                 extracted_value = extracted.get(key, "")
                 score = fuzz.ratio(str(extracted_value), str(expected_value))
                 similarity_scores[key] = score
-                detailed_comparison.append({
-                    "key": key,
-                    "extracted_value": extracted_value,
-                    "expected_value": expected_value,
-                    "similarity_score": score
-                })
+                detailed_comparison.append(
+                    {
+                        "key": key,
+                        "extracted_value": extracted_value,
+                        "expected_value": expected_value,
+                        "similarity_score": score,
+                    }
+                )
 
         pass_status = all(
             score >= threshold
             for score in similarity_scores.values()
             if isinstance(score, (int, float))
         )
-        return {"similarity_scores": similarity_scores, "detailed_comparison": detailed_comparison, "pass": pass_status}
+        return {
+            "similarity_scores": similarity_scores,
+            "detailed_comparison": detailed_comparison,
+            "pass": pass_status,
+        }
 
     async def process_case(self, case_id: str, threshold: float = 95.0):
         """
@@ -197,7 +215,9 @@ class CaseManager:
             }
 
             # Log detailed comparison
-            self.logger.info(f"Case {case_id} detailed comparison: {evaluation['detailed_comparison']}")
+            self.logger.info(
+                f"Case {case_id} detailed comparison: {evaluation['detailed_comparison']}"
+            )
 
         except Exception as e:
             self.logger.error(f"Error processing case {case_id}: {e}")
@@ -237,7 +257,9 @@ class CaseManager:
             output_dir: The base directory to save the results.
         """
         for case_id, result in self.results.items():
-            case_dir = os.path.join(output_dir, case_id, datetime.now().strftime("%Y%m%d_%H%M%S"))
+            case_dir = os.path.join(
+                output_dir, case_id, datetime.now().strftime("%Y%m%d_%H%M%S")
+            )
             os.makedirs(case_dir, exist_ok=True)
             result_file = os.path.join(case_dir, "evaluation_results.json")
             with open(result_file, "w") as f:

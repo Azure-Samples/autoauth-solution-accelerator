@@ -1,19 +1,22 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-import os
 import argparse
+import os
 import sys
-from dotenv import load_dotenv
-from src.pipeline.policyIndexer.run import PolicyIndexingPipeline, IndexerRunner
+
+from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
 from azure.search.documents.models import (
-    VectorizableTextQuery,
-    QueryType,
+    QueryAnswerType,
     QueryCaptionType,
-    QueryAnswerType
+    QueryType,
+    VectorizableTextQuery,
 )
-from azure.core.credentials import AzureKeyCredential
+from dotenv import load_dotenv
+
+from src.pipeline.policyIndexer.run import IndexerRunner, PolicyIndexingPipeline
+
 
 def parse_arguments():
     """
@@ -24,12 +27,13 @@ def parse_arguments():
         description="Script to change the working directory and perform indexing of policies."
     )
     parser.add_argument(
-        '--target',
+        "--target",
         type=str,
-        help='Path to the target directory. If not provided, uses the TARGET_DIRECTORY environment variable.',
-        default=None
+        help="Path to the target directory. If not provided, uses the TARGET_DIRECTORY environment variable.",
+        default=None,
     )
     return parser.parse_args()
+
 
 def change_directory(target_directory):
     """
@@ -47,16 +51,19 @@ def change_directory(target_directory):
         print(f"Directory {target_directory} does not exist. Exiting.")
         sys.exit(1)
 
+
 def main():
     print("Loading environment variables from .env file...")
     load_dotenv()
 
     # Parse command-line arguments
     args = parse_arguments()
-    target_directory = args.target or os.getenv('TARGET_DIRECTORY')
+    target_directory = args.target or os.getenv("TARGET_DIRECTORY")
 
     if not target_directory:
-        print("Error: No target directory specified. Use the --target argument or set the TARGET_DIRECTORY environment variable.")
+        print(
+            "Error: No target directory specified. Use the --target argument or set the TARGET_DIRECTORY environment variable."
+        )
         sys.exit(1)
 
     # Change to the target directory
@@ -100,9 +107,7 @@ def main():
 
     # Test Search
     print("Setting up SearchClient...")
-    credential = (
-        AzureKeyCredential(os.getenv("AZURE_AI_SEARCH_ADMIN_KEY"))
-    )
+    credential = AzureKeyCredential(os.getenv("AZURE_AI_SEARCH_ADMIN_KEY"))
     index_name = os.getenv("AZURE_AI_SEARCH_INDEX_NAME", "ai-policies-index")
 
     search_client = SearchClient(
@@ -136,7 +141,9 @@ def main():
         print(f"Reranker Score: {result['@search.reranker_score']}")
         print(f"Source_doc_path: {result['parent_path']}")
         content = (
-            result["chunk"][:500] + "..." if len(result["chunk"]) > 500 else result["chunk"]
+            result["chunk"][:500] + "..."
+            if len(result["chunk"]) > 500
+            else result["chunk"]
         )
         print(f"Content: {content}")
 
@@ -150,6 +157,7 @@ def main():
         print("=" * 40)
 
     print("Search operation completed successfully.")
+
 
 if __name__ == "__main__":
     print("Starting script execution...")

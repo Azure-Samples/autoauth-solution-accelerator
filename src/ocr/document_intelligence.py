@@ -3,11 +3,12 @@ from functools import lru_cache
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient, models
-
-# from azure.ai.formrecognizer import DocumentAnalysisClient
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest, Document
 from azure.core.credentials import AzureKeyCredential
 from azure.core.polling import LROPoller
+
+# from azure.ai.formrecognizer import DocumentAnalysisClient
+from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 from langchain_core.documents import Document as LangchainDocument
 
@@ -39,19 +40,23 @@ class AzureDocumentIntelligenceManager:
         self.azure_endpoint = azure_endpoint
         self.azure_key = azure_key
 
-        if not self.azure_endpoint or not self.azure_key:
+        if not self.azure_endpoint:
             self.load_environment_variables_from_env_file()
 
-        if not self.azure_endpoint or not self.azure_key:
+        if not self.azure_endpoint:
             raise ValueError(
                 "Azure endpoint and key must be provided either as parameters or in a .env file."
             )
 
         self.blob_manager = AzureBlobDataExtractor(container_name=container_name)
 
+        # credential = DefaultAzureCredential()
+        # if self.azure_key:
+        credential = AzureKeyCredential(self.azure_key)
+
         self.document_analysis_client = DocumentIntelligenceClient(
             endpoint=self.azure_endpoint,
-            credential=AzureKeyCredential(self.azure_key),
+            credential=credential,
             headers={"x-ms-useragent": "langchain-parser/1.0.0"},
             polling_interval=30,
         )
@@ -71,7 +76,7 @@ class AzureDocumentIntelligenceManager:
         # Check for any missing required environment variables
         required_vars = {
             "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT": self.azure_endpoint,
-            "AZURE_DOCUMENT_INTELLIGENCE_KEY": self.azure_key,
+            # "AZURE_DOCUMENT_INTELLIGENCE_KEY": self.azure_key,
         }
 
         missing_vars = [var for var, value in required_vars.items() if not value]

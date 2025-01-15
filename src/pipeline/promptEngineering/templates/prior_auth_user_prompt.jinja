@@ -4,7 +4,7 @@ You are tasked with analyzing a prior authorization request for a medical treatm
 - Approach: Follow a step-by-step analysis to compare the provided information against the policy criteria.
 - Output: Provide a clear final decision and a detailed rationale based solely on the facts and policy provided.
 
-## Data provided 
+## Data provided
 
 ### Patient Information:
 - **Patient Name**: {{ patient_name }}
@@ -69,9 +69,9 @@ Using the provided policy text, patient information, physician information, and 
      - **Detailed History of Prior Treatments**:
        - Assess whether the patient has undergone the required prior treatments, including specifics on medication type, number of medications in each class tried, duration of each trial, and clinical outcomes.
      - **Specific Drugs and Treatment Outcomes**:
-       - Evaluate if the patient has taken specific drugs as required by the policy and the outcomes of those treatments. Pay attention to drug class, number of medications in each class, and duration of each trial. Assume that "medication" refers to a pharmaceutical drug only, and not a different alternative treatment such as diet. 
+       - Evaluate if the patient has taken specific drugs as required by the policy and the outcomes of those treatments. Pay attention to drug class, number of medications in each class, and duration of each trial. Assume that "medication" refers to a pharmaceutical drug only, and not a different alternative treatment such as diet.
      - **Alternative Drugs Required by PA Form**:
-       - Determine if the patient has tried alternative drugs as mandated by the policy. Pay attention to medication class or generation, the number of medications tried in each class, and whether or not these meet the requirements mandated by the policy. Assume "medication" means pharmaceutical drug only. 
+       - Determine if the patient has tried alternative drugs as mandated by the policy. Pay attention to medication class or generation, the number of medications tried in each class, and whether or not these meet the requirements mandated by the policy. Assume "medication" means pharmaceutical drug only.
      - **Relevant Lab Results or Diagnostic Imaging**:
        - Verify if lab results or imaging support the diagnosis and meet policy criteria.
      - **Documented Symptom Severity and Impact**:

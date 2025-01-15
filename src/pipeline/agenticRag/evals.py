@@ -1,6 +1,7 @@
-import os
 import asyncio
+import os
 import sys
+
 from src.pipeline.agenticRag.run import AgenticRAG
 from src.pipeline.promptEngineering.models import ClinicalInformation, TreatmentRequest
 
@@ -50,8 +51,8 @@ my_clinical_info = ClinicalInformation(
         ),
         duration="6 months; 16 injections",
         rationale="Patient will likely need to initiate biologic therapy given severity of symptoms",
-        presumed_eligibility="Not provided"
-    )
+        presumed_eligibility="Not provided",
+    ),
 )
 
 negative_clinical_info = ClinicalInformation(
@@ -70,9 +71,10 @@ negative_clinical_info = ClinicalInformation(
         dosage="500 mg daily",
         duration="1 week",
         rationale="Support immune system",
-        presumed_eligibility="Not provided"
-    )
+        presumed_eligibility="Not provided",
+    ),
 )
+
 
 async def test_agenticrag_run():
     try:
@@ -87,10 +89,13 @@ async def test_agenticrag_run():
         print(f"Policies: {policies}")
         print(f"Evaluation: {evaluation}")
 
-        expected_policies = ["https://storageaeastusfactory.blob.core.windows.net/pre-auth-policies/policies_ocr/001.pdf"]
+        expected_policies = [
+            "https://storageaeastusfactory.blob.core.windows.net/pre-auth-policies/policies_ocr/001.pdf"
+        ]
 
-        assert policies == expected_policies, \
-            f"Unexpected policies: {policies}, expected: {expected_policies}"
+        assert (
+            policies == expected_policies
+        ), f"Unexpected policies: {policies}, expected: {expected_policies}"
         print("E2E Positive Test Passed!")
     except AssertionError as e:
         print("E2E Positive Test Failed:", e)
@@ -99,9 +104,12 @@ async def test_agenticrag_run():
         print("An error occurred during the test:", e)
         sys.exit(1)
 
+
 async def test_agenticrag_run_negative():
     try:
-        result = await agenticrag.run(clinical_info=negative_clinical_info, max_retries=3)
+        result = await agenticrag.run(
+            clinical_info=negative_clinical_info, max_retries=3
+        )
         print("Negative Test Result:", result)
 
         query = result.get("query")
@@ -114,8 +122,9 @@ async def test_agenticrag_run_negative():
 
         expected_policies = []
 
-        assert policies == expected_policies, \
-            f"Unexpected policies: {policies}, expected: {expected_policies}"
+        assert (
+            policies == expected_policies
+        ), f"Unexpected policies: {policies}, expected: {expected_policies}"
         print("E2E Negative Test Passed!")
     except AssertionError as e:
         print("E2E Negative Test Failed:", e)
@@ -123,6 +132,7 @@ async def test_agenticrag_run_negative():
     except Exception as e:
         print("An error occurred during the test:", e)
         sys.exit(1)
+
 
 if __name__ == "__main__":
     asyncio.run(test_agenticrag_run())

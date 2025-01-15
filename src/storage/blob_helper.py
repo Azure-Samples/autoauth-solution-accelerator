@@ -1,8 +1,9 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
 from azure.core.credentials import AzureNamedKeyCredential
+from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobClient, BlobServiceClient
 from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential
@@ -53,14 +54,16 @@ class AzureBlobManager:
                 raise ValueError(
                     "Container name must be provided either as a parameter or in the .env file."
                 )
-            if not self.account_key:
-                raise ValueError(
-                    "Storage account key must be provided either as a parameter or in the .env file."
+            credential = DefaultAzureCredential()
+            storage_conn_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+            if "ResourceId=" not in storage_conn_string:
+                if not self.account_key:
+                    raise ValueError(
+                        "Storage account key must be provided either as a parameter or in the .env file."
+                    )
+                credential = AzureNamedKeyCredential(
+                    self.storage_account_name, self.account_key
                 )
-
-            credential = AzureNamedKeyCredential(
-                self.storage_account_name, self.account_key
-            )
             self.blob_service_client = BlobServiceClient(
                 account_url=f"https://{self.storage_account_name}.blob.core.windows.net",
                 credential=credential,
@@ -324,9 +327,7 @@ class AzureBlobManager:
         if remote_blob_path.startswith("http"):
             return BlobClient.from_blob_url(
                 blob_url=remote_blob_path,
-                credential=AzureNamedKeyCredential(
-                    self.storage_account_name, self.account_key
-                ),
+                credential=self.blob_service_client.credential,
             )
         else:
             return self.container_client.get_blob_client(remote_blob_path)

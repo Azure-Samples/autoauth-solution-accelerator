@@ -18,8 +18,8 @@ Quickly deploy the AutoAuth framework into your Azure environment using one-clic
 
 Use the provided button to deploy all necessary infrastructure:
 
-[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fmain%2Fdevops%2Finfra%2Fmain.json)
-[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fmain%2Fdevops%2Finfra%2Fmain.json)
+[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Finfra%2Fmain.json)
+[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Finfra%2Fmain.json)
 
 ## Steps
 
@@ -31,7 +31,7 @@ Once complete, you’ll have a fully provisioned environment, ready for indexing
 
 ## Authentication & Customization
 
-- If using identity providers, configure Microsoft Entra ID as outlined in the [Customization](#customization-and-advanced-configurations) section below. Set `authProvider` to `aad` to protect the container application deployment with your app registration. 
+- If using identity providers, configure Microsoft Entra ID as outlined in the [Customization](#customization-and-advanced-configurations) section below. Set `authProvider` to `aad` to protect the container application deployment with your app registration.
 - Adjust environment variables and prompts as needed to tailor the solution to your workflow.
 
 ## Entra Authentication Module: Optional Steps for Configuring Identity
@@ -70,7 +70,7 @@ To enable the login flow for your deployed container application, you must confi
    - Under **Manage**, select **Authentication**.
    - Add a **Platform Configuration**:
      - Choose **Web**.
-     - Add the redirect URI for your container app:  
+     - Add the redirect URI for your container app:
        `<containerAppUrl>/.auth/login/aad/callback`
 
 3. **Save Changes**:
@@ -84,7 +84,7 @@ To enable the login flow for your deployed container application, you must confi
 
 ## Infrastructure Parameters
 
-The table below explains the parameters in the ARM template, including their descriptions, default values, and whether they are required. 
+The table below explains the parameters in the ARM template, including their descriptions, default values, and whether they are required.
 
 | Parameter Name            | Type         | Description                                                                                              | Default Value                                | Required |
 |---------------------------|--------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------|----------|

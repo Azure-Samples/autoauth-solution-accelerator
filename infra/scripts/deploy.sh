@@ -65,10 +65,10 @@ measure_time() {
     shift
     echo "Starting: $cmd_description"
     start_time=$(date +%s)
-    
+
     # Execute the command
     "$@"
-    
+
     end_time=$(date +%s)
     duration=$((end_time - start_time))
     echo "Completed: $cmd_description in $duration seconds"

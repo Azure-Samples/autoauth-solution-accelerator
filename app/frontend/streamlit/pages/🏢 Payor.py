@@ -1,15 +1,15 @@
 import asyncio
+import io
 import os
-import tempfile
-from typing import List
 import shutil
+import tempfile
+import zipfile
+from typing import List
 
 import dotenv
 import streamlit as st
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
-import zipfile
-import io
 
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
@@ -90,9 +90,7 @@ def cleanup_temp_dir(temp_dir) -> None:
             shutil.rmtree(temp_dir)
             logger.info(f"Cleaned up temporary directory: {temp_dir}")
     except Exception as e:
-        logger.error(
-            f"Failed to clean up temporary directory '{temp_dir}': {e}"
-        )
+        logger.error(f"Failed to clean up temporary directory '{temp_dir}': {e}")
 
 
 def configure_sidebar(results_container):
@@ -111,36 +109,38 @@ def configure_sidebar(results_container):
         )
 
         with st.expander("⚠️ Disclaimer"):
-            st.markdown("""
+            st.markdown(
+                """
             **Please do not upload personal or sensitive information.** All documents submitted are for analysis purposes only. Ensure all data is anonymized and contains no personally identifiable information (PII).
-            
-            For testing, you can download a sample PA case by clicking the button below.          
-                        
-            """)
-        
+
+            For testing, you can download a sample PA case by clicking the button below.
+
+            """
+            )
+
             files_to_zip = [
-                "utils/data/cases/003/b/doctor_notes/003_b (note) .pdf", 
-                "utils/data/cases/003/b/labs/003_b (labs) .pdf", 
+                "utils/data/cases/003/b/doctor_notes/003_b (note) .pdf",
+                "utils/data/cases/003/b/labs/003_b (labs) .pdf",
                 "utils/data/cases/003/b/pa_form/003_b (form).pdf",
                 "utils/data/cases/003/a/doctor_notes/003_a (note) .pdf",
                 "utils/data/cases/003/a/labs/003_a (labs).pdf",
-                "utils/data/cases/003/a/pa_form/003_a (form).pdf"
+                "utils/data/cases/003/a/pa_form/003_a (form).pdf",
             ]
-        
+
             existing_files = []
             for file_path in files_to_zip:
                 if os.path.exists(file_path):
                     existing_files.append(file_path)
                 else:
                     st.warning(f"⚠️ File not found and will be skipped: {file_path}")
-        
+
             if existing_files:
                 zip_buffer = io.BytesIO()
                 with zipfile.ZipFile(zip_buffer, "w") as zip_file:
                     for file_name in existing_files:
                         with open(file_name, "rb") as f:
                             zip_file.writestr(os.path.basename(file_name), f.read())
-        
+
                 st.download_button(
                     label="⬇️ Download Sample Files",
                     data=zip_buffer.getvalue(),
@@ -152,22 +152,20 @@ def configure_sidebar(results_container):
                 st.info("ℹ️ Sample files are not available for download at this time.")
 
         st.write(
-        """
+            """
         <div style="text-align:center; font-size:30px; margin-top:10px;">
             ...
         </div>
         """,
-        unsafe_allow_html=True,
+            unsafe_allow_html=True,
         )
-        
+
         st.markdown("")
 
         # File uploader
         uploaded_files = st.file_uploader(
             "Upload PA Case Files",
-            type=[
-                "png", "jpg", "jpeg", "pdf"
-            ],
+            type=["png", "jpg", "jpeg", "pdf"],
             accept_multiple_files=True,
             help="Upload documents for AI analysis. If you don't have data available, please download sample files from the Disclaimer section above.",
         )
@@ -175,9 +173,11 @@ def configure_sidebar(results_container):
         if uploaded_files:
             st.session_state["uploaded_files"] = uploaded_files
 
-SYSTEM_MESSAGE_LATENCY = """You are a clinical assistant specializing in the prior 
-                        authorization process. Your goal is to assist with any questions related to the provision, 
+
+SYSTEM_MESSAGE_LATENCY = """You are a clinical assistant specializing in the prior
+                        authorization process. Your goal is to assist with any questions related to the provision,
                         evaluation, and determination of prior authorization requests."""
+
 
 def initialize_chatbot(case_id=None, document=None) -> None:
     st.markdown(
@@ -194,14 +194,14 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         st.session_state["messages"] = []
         st.session_state["current_case_id"] = case_id
 
-        plan_info = document['ocr_ner_results']['clinical_info']['treatment_request']
-        patient_info = document['ocr_ner_results']['patient_info']
-        physician_info = document['ocr_ner_results']['physician_info']
-        clinical_info = document['ocr_ner_results']['clinical_info']
+        plan_info = document["ocr_ner_results"]["clinical_info"]["treatment_request"]
+        patient_info = document["ocr_ner_results"]["patient_info"]
+        physician_info = document["ocr_ner_results"]["physician_info"]
+        clinical_info = document["ocr_ner_results"]["clinical_info"]
         final_determination = document.get("pa_determination_results", "N/A")
         attachments_info = document.get("raw_uploaded_files", [])
-        #TODO add policy text
-        policy_text = document['agenticrag_results']['policies']
+        # TODO add policy text
+        policy_text = document["agenticrag_results"]["policies"]
 
         summary = f"""
         Final Determination: {final_determination}
@@ -313,6 +313,7 @@ def initialize_chatbot(case_id=None, document=None) -> None:
                     {"role": "assistant", "content": ai_response}
                 )
 
+
 async def generate_ai_response(
     user_prompt: str,
     system_prompt: str,
@@ -346,6 +347,7 @@ async def generate_ai_response(
         logger.error(f"Error generating AI response: {e}")
         return {}
 
+
 async def run_pipeline_with_spinner(uploaded_files, use_o1):
     caseID = generate_unique_id()
     with st.spinner("Processing... Please wait."):
@@ -353,27 +355,30 @@ async def run_pipeline_with_spinner(uploaded_files, use_o1):
             st.toast("Using the o1 model for final determination.", icon="🔥")
 
         pa_processing = PAProcessingPipeline(send_cloud_logs=True)
-        
+
         await pa_processing.run(
             uploaded_files, streamlit=True, caseId=caseID, use_o1=use_o1
         )
-    
-    last_key = next(iter(pa_processing.results.keys()))
-    
-    if 'case_ids' not in st.session_state:
-        st.session_state['case_ids'] = []
-    
-    if last_key not in st.session_state['case_ids']:
-        st.session_state['case_ids'].append(last_key)
-    
-    if 'pa_processing_results' not in st.session_state:
-        st.session_state['pa_processing_results'] = {}
-    
-    st.session_state['pa_processing_results'][last_key] = pa_processing.results[last_key]
 
-    st.session_state['uploaded_files'] = []
+    last_key = next(iter(pa_processing.results.keys()))
+
+    if "case_ids" not in st.session_state:
+        st.session_state["case_ids"] = []
+
+    if last_key not in st.session_state["case_ids"]:
+        st.session_state["case_ids"].append(last_key)
+
+    if "pa_processing_results" not in st.session_state:
+        st.session_state["pa_processing_results"] = {}
+
+    st.session_state["pa_processing_results"][last_key] = pa_processing.results[
+        last_key
+    ]
+
+    st.session_state["uploaded_files"] = []
 
     return last_key
+
 
 def display_case_data(document, results_container):
     with results_container:
@@ -426,6 +431,7 @@ def display_case_data(document, results_container):
             else:
                 st.markdown("No supporting documents found.")
 
+
 def save_uploaded_files(uploaded_files):
     temp_dir = tempfile.mkdtemp()
     file_paths = []
@@ -435,6 +441,7 @@ def save_uploaded_files(uploaded_files):
             f.write(uploaded_file.getbuffer())
         file_paths.append(file_path)
     return file_paths, temp_dir
+
 
 def format_patient_info(document):
     document = document.get("patient_info", {})
@@ -446,6 +453,7 @@ def format_patient_info(document):
     - **Phone Number:** {document.get('patient_phone_number', 'Not provided')}
     """
 
+
 def format_physician_info(document):
     document = document.get("physician_info", {})
     return f"""
@@ -456,6 +464,7 @@ def format_physician_info(document):
       - **Fax:** {document.get('physician_contact', {}).get('fax', 'Not provided')}
       - **Office Address:** {document.get('physician_contact', {}).get('office_address', 'Not provided')}
     """
+
 
 def format_clinical_info(document):
     document = document.get("clinical_info", {})
@@ -477,6 +486,7 @@ def format_clinical_info(document):
       - **Duration:** {plan_info.get('duration', 'Not provided')}
       - **Rationale:** {plan_info.get('rationale', 'Not provided')}
     """
+
 
 def main() -> None:
     """
@@ -536,12 +546,13 @@ def main() -> None:
     st.sidebar.markdown("</div>", unsafe_allow_html=True)
 
     st.sidebar.markdown("")
-    st.sidebar.markdown("""💬 **Questions about the policy or AI results?** **AutoAuth Chat** is here to assist you. Try it !""")
+    st.sidebar.markdown(
+        """💬 **Questions about the policy or AI results?** **AutoAuth Chat** is here to assist you. Try it !"""
+    )
 
     if submit_to_ai and uploaded_files:
         uploaded_file_paths, temp_dir = save_uploaded_files(uploaded_files)
         try:
-
             with results_container:
                 selected_case_id = asyncio.run(
                     run_pipeline_with_spinner(uploaded_file_paths, USE_O1)
@@ -565,8 +576,10 @@ def main() -> None:
         )
 
     if selected_case_id:
-        if 'pa_processing_results' in st.session_state:
-            document = st.session_state['pa_processing_results'].get(selected_case_id, {})
+        if "pa_processing_results" in st.session_state:
+            document = st.session_state["pa_processing_results"].get(
+                selected_case_id, {}
+            )
         else:
             document = {}
         if document:
@@ -605,6 +618,7 @@ def main() -> None:
         """,
         unsafe_allow_html=True,
     )
+
 
 if __name__ == "__main__":
     main()

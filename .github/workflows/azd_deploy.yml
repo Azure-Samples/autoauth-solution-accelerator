@@ -1,0 +1,76 @@
+name: "🚀 Deploy to Azure using AZD 💪"
+
+# Run when commits are pushed to main
+on:
+  workflow_dispatch:
+    inputs:
+        action:
+            description: 'Action to perform'
+            required: false
+            default: 'all'
+            type: choice
+            options:
+                - all
+                - provision
+                - deploy
+  push:
+    # Run when commits are pushed to mainline branch (main or master)
+    # Set this to the mainline branch you are using
+    branches:
+      - main
+    paths:
+      - '.github/workflows/azd_deploy.yml'
+      - 'src'
+      - 'app'
+      - 'infra'
+      - 'Dockerfile'
+
+# Set up permissions for deploying with secretless Azure federated credentials
+# https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux#set-up-azure-login-with-openid-connect-authentication
+permissions:
+  id-token: write
+  contents: read
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install azd
+        uses: Azure/setup-azd@v1.0.0
+
+      - name: Log in with Azure (Federated Credentials)
+        run: |
+          azd auth login `
+            --client-id "$Env:AZURE_CLIENT_ID" `
+            --federated-credential-provider "github" `
+            --tenant-id "$Env:AZURE_TENANT_ID"
+        shell: pwsh
+
+        # This step provisions the infrastructure only if there are changes in the 'infra' directory,
+        # or if the action input is set to 'all' or 'provision'.
+        # It runs the 'azd provision' command with no prompts.
+        # The environment variables 'AZD_INITIAL_ENVIRONMENT_CONFIG' and 'cosmosAdministratorPassword'
+        # are set using the corresponding secrets from the repository.
+      - name: Provision Infrastructure
+        id: provision
+        run: azd provision --no-prompt
+        env:
+          cosmosAdministratorPassword: ${{ secrets.COSMOS_ADMINISTRATOR_PASSWORD }}
+
+          # azd uses a pipeline secret called AZD_INITIAL_ENVIRONMENT_CONFIG to automatically save
+          # and set the value of all the required parameters in the pipeline.
+          # You only need to reference this secret in your pipeline:
+          AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+
+      - name: Deploy Application
+        if: ${{ steps.provision.outputs.provisioned == 'true' || contains(github.event.head_commit.message, '/src/') || contains(github.event.head_commit.message, '/app/') || github.event.inputs.action == 'all' || github.event.inputs.action == 'provision' }}
+        run: azd deploy --no-prompt

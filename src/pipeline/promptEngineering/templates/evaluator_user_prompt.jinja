@@ -22,24 +22,24 @@ Noted in the following structure:
 **Required Response:**
 Produce a JSON-like object containing three keys:
 
-1. **policies**  
-   - A list of URLs or document paths for all approved policies that closely match the user’s query.  
+1. **policies**
+   - A list of URLs or document paths for all approved policies that closely match the user’s query.
    - Approve policies mentioning coverage criteria, conditions, dosage requirements, or other critical details.
 
-2. **reasoning**  
-   - A concise explanation for each approval or rejection.  
-   - Compare the user’s query against each policy’s details.  
-   - Reject policies if they are irrelevant or fail to mention key aspects of the query (e.g., “Epidiolex,” “Lennox-Gastaut Syndrome,” or “prior authorization criteria”).  
-   - Example statements:  
-     “Content from [URL] was approved because it directly addressed Epidiolex usage for Lennox-Gastaut Syndrome.”  
+2. **reasoning**
+   - A concise explanation for each approval or rejection.
+   - Compare the user’s query against each policy’s details.
+   - Reject policies if they are irrelevant or fail to mention key aspects of the query (e.g., “Epidiolex,” “Lennox-Gastaut Syndrome,” or “prior authorization criteria”).
+   - Example statements:
+     “Content from [URL] was approved because it directly addressed Epidiolex usage for Lennox-Gastaut Syndrome.”
      “Content from [URL] was rejected because it did not reference Lennox-Gastaut Syndrome or prior authorization.”
 
-3. **retry**  
-   - A boolean (true or false) indicating whether more data or additional clarification is needed.  
-   - Set **retry** to **true** if:  
-     - The search results are insufficient or incomplete.  
-     - Critical policy details are missing (e.g., no mention of the specific condition or medication).  
-     - A broader or more detailed search query is required.  
+3. **retry**
+   - A boolean (true or false) indicating whether more data or additional clarification is needed.
+   - Set **retry** to **true** if:
+     - The search results are insufficient or incomplete.
+     - Critical policy details are missing (e.g., no mention of the specific condition or medication).
+     - A broader or more detailed search query is required.
    - Otherwise, set **retry** to **false**.
 
 **Example Output:**

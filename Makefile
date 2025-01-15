@@ -78,7 +78,7 @@ remove_conda_env:
 run_streamlit:
 	streamlit run app/frontend/streamlit/Home.py
 
-streamlite_conf: 
+streamlite_conf:
 	streamlit config show
 
 run_frontend_app:
@@ -98,7 +98,7 @@ run_pylint:
 	find . -type f -name "*.py" ! -path "./tests/*" | xargs pylint -disable=logging-fstring-interpolation > utils/pylint_report/pylint_report.txt
 
 
-## Deployment App 
+## Deployment App
 
 # Use .ONESHELL to run all commands in a single shell instance
 .ONESHELL:
@@ -109,9 +109,9 @@ all: build run
 
 .PHONY: build
 # Build the Docker image for the app using Azure Container Registry
-build: 
+build:
 	@bash devops/container/benchmarking_app/deployapp.sh build_and_push_container
-	
+
 
 .PHONY: run
 # Run the Docker container locally, mapping port 8501

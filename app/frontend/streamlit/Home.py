@@ -3,8 +3,7 @@ Home.py serves as the foundational script for constructing the home page of a St
 """
 
 import base64
-import os
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 # Load environment variables
 import dotenv
@@ -12,6 +11,7 @@ import streamlit as st
 
 # Load environment variables if not already loaded
 dotenv.load_dotenv(".env")
+
 
 def get_image_base64(image_path: str) -> str:
     """
@@ -53,6 +53,7 @@ def get_main_content() -> str:
     </h1>
     """
 
+
 @st.cache_data()
 def create_support_center_content():
     content = {
@@ -90,6 +91,7 @@ def create_support_center_content():
     }
     return content
 
+
 def display_support_center():
     st.sidebar.markdown("## 🛠️ Support Center")
     tab1, tab2 = st.sidebar.tabs(["📘 How-To Guide", "🌟 Feedback!"])
@@ -105,7 +107,6 @@ def display_support_center():
         st.markdown(content["Feedback"])
 
 
-
 @st.cache_data()
 def get_markdown_content() -> str:
     """
@@ -115,7 +116,7 @@ def get_markdown_content() -> str:
     workflow = get_image_base64("./utils/images/prior_auth.png")
     return f"""
     Prior Authorization (PA) is a process in healthcare where providers must seek approval from payors (insurance companies) before delivering specific treatments or medications. While essential for cost control and care management, the process has become inefficient, creating substantial delays, administrative overheads, and negative outcomes for all stakeholders—providers, payors, and patients.
-    
+
     <br>
     <img src="data:image/png;base64,{workflow}" alt="Prior Authorization Flow" style="display: block; margin-left: auto; margin-right: auto; width: 100%;"/>
     <br>
@@ -188,9 +189,9 @@ def get_markdown_content() -> str:
     </div>
 
     ### 🤖👩‍⚕️ Introducing AutoAuth: Streamlining Prior Authorization
-    
+
     **AutoAuth** is an AI-powered solution designed to optimize the Prior Authorization (PA) process. By leveraging advanced technology, AutoAuth ensures faster and more accurate PA decisions, reducing administrative burdens and enhancing patient care.
-    
+
     Visit the **Payor** page to explore our tailored solution for payors, aimed at improving efficiency and reducing operational costs.
     """
 
@@ -217,6 +218,7 @@ def get_footer_content() -> str:
     </div>
     """
 
+
 def main() -> None:
     """
     Main function to run the Streamlit app.
@@ -232,7 +234,7 @@ def main() -> None:
     st.markdown(get_markdown_content(), unsafe_allow_html=True)
     st.write(get_footer_content(), unsafe_allow_html=True)
     st.sidebar.write(
-    """
+        """
     <div style="text-align:center; font-size:30px; margin-top:10px;">
         ...
     </div>
@@ -248,7 +250,9 @@ def main() -> None:
                 </a>
     </div>
     """,
-    unsafe_allow_html=True)
+        unsafe_allow_html=True,
+    )
+
 
 if __name__ == "__main__":
     main()

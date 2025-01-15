@@ -1,13 +1,20 @@
-import os
 import logging
-from typing import Any, Dict, List, Optional, Literal
-from pydantic import PrivateAttr, Field
+import os
+from typing import Any, Dict, List, Literal, Optional
+
+from pydantic import Field, PrivateAttr
 from semantic_kernel import Kernel
 from semantic_kernel.agents import ChatCompletionAgent
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
-from semantic_kernel.connectors.ai.prompt_execution_settings import PromptExecutionSettings
-from semantic_kernel.connectors.ai.function_choice_behavior import FunctionChoiceBehavior
-from semantic_kernel.connectors.ai.open_ai import OpenAIChatPromptExecutionSettings
+from semantic_kernel.connectors.ai.function_choice_behavior import (
+    FunctionChoiceBehavior,
+)
+from semantic_kernel.connectors.ai.open_ai import (
+    AzureChatCompletion,
+    OpenAIChatPromptExecutionSettings,
+)
+from semantic_kernel.connectors.ai.prompt_execution_settings import (
+    PromptExecutionSettings,
+)
 
 from src.agenticai.skills import Skills
 from utils.ml_logging import get_logger
@@ -25,11 +32,15 @@ class Agent(ChatCompletionAgent):
 
     The agent is designed to be efficient, scalable, and memory-conscious.
     """
-    skills: Optional[List[Literal["retrieval", "main", "rewriting", "evaluation"]]] = Field(
-        default=None,
-        description="List of allowed plugin names to load as skills."
+
+    skills: Optional[
+        List[Literal["retrieval", "main", "rewriting", "evaluation"]]
+    ] = Field(
+        default=None, description="List of allowed plugin names to load as skills."
     )
-    tracing_enabled: bool = Field(default=False, description="Flag to enable or disable tracing.")
+    tracing_enabled: bool = Field(
+        default=False, description="Flag to enable or disable tracing."
+    )
     _logger: logging.Logger = PrivateAttr()
     _skills_manager: Skills = PrivateAttr(default=None)
 
@@ -40,7 +51,9 @@ class Agent(ChatCompletionAgent):
         id: Optional[str] = None,
         description: Optional[str] = None,
         instructions: Optional[str] = None,
-        skills: Optional[List[Literal["retrieval", "main", "rewriting", "evaluation"]]] = None,
+        skills: Optional[
+            List[Literal["retrieval", "main", "rewriting", "evaluation"]]
+        ] = None,
         execution_settings: Optional[PromptExecutionSettings] = None,
         function_choice_behavior: Optional[FunctionChoiceBehavior] = None,
         tracing_enabled: bool = False,
@@ -90,7 +103,7 @@ class Agent(ChatCompletionAgent):
         self._logger = get_logger(
             name=f"CustomAgent-{self.name}" if self.name else "CustomAgent",
             level=10,
-            tracing_enabled=self.tracing_enabled
+            tracing_enabled=self.tracing_enabled,
         )
         self._logger.debug("CustomAgent fully initialized.")
         if self.skills:
@@ -123,19 +136,25 @@ class Agent(ChatCompletionAgent):
                     }.items()
                     if not var_value
                 ]
-                raise ValueError(f"Missing environment variables: {', '.join(missing_vars)}")
+                raise ValueError(
+                    f"Missing environment variables: {', '.join(missing_vars)}"
+                )
 
             kernel = Kernel()
-            kernel.add_service(AzureChatCompletion(
-                service_id=service_id,
-                deployment_name=deployment_name,
-                api_key=api_key,
-                endpoint=endpoint,
-                api_version=api_version,
-            ))
+            kernel.add_service(
+                AzureChatCompletion(
+                    service_id=service_id,
+                    deployment_name=deployment_name,
+                    api_key=api_key,
+                    endpoint=endpoint,
+                    api_version=api_version,
+                )
+            )
             return kernel
         except ValueError as e:
-            logging.getLogger(__name__).error("Failed to create kernel with Azure Chat Completion.", exc_info=True)
+            logging.getLogger(__name__).error(
+                "Failed to create kernel with Azure Chat Completion.", exc_info=True
+            )
             raise e
 
     def _configure_execution_settings(
@@ -158,15 +177,20 @@ class Agent(ChatCompletionAgent):
                     # If user_settings is provided but not the correct type, convert it.
                     new_settings = OpenAIChatPromptExecutionSettings(
                         service_id=service_id,
-                        temperature=user_settings.extension_data.get("temperature", 0.0),
+                        temperature=user_settings.extension_data.get(
+                            "temperature", 0.0
+                        ),
                         max_tokens=user_settings.extension_data.get("max_tokens", 2000),
                         top_p=user_settings.extension_data.get("top_p", 0.8),
-                        function_choice_behavior=function_choice_behavior or user_settings.function_choice_behavior
+                        function_choice_behavior=function_choice_behavior
+                        or user_settings.function_choice_behavior,
                     )
                     return new_settings
                 else:
                     if function_choice_behavior:
-                        user_settings.function_choice_behavior = function_choice_behavior
+                        user_settings.function_choice_behavior = (
+                            function_choice_behavior
+                        )
                     return user_settings
 
             # If no user_settings provided, create a new OpenAIChatPromptExecutionSettings
@@ -175,14 +199,18 @@ class Agent(ChatCompletionAgent):
                 temperature=0.0,
                 max_tokens=2000,
                 top_p=0.8,
-                function_choice_behavior=function_choice_behavior or FunctionChoiceBehavior.Auto(),
+                function_choice_behavior=function_choice_behavior
+                or FunctionChoiceBehavior.Auto(),
             )
         except Exception as e:
-            logging.getLogger(__name__).error("Failed to configure execution settings.", exc_info=True)
+            logging.getLogger(__name__).error(
+                "Failed to configure execution settings.", exc_info=True
+            )
             raise e
 
-
-    def _load_skills(self, skills: List[Literal["retrieval", "main", "rewriting", "evaluation"]]) -> None:
+    def _load_skills(
+        self, skills: List[Literal["retrieval", "main", "rewriting", "evaluation"]]
+    ) -> None:
         """
         Load the specified plugin skills using the Skills manager and integrate them into the kernel.
 
@@ -190,7 +218,7 @@ class Agent(ChatCompletionAgent):
         :return: None
         :raises FileNotFoundError: If a specified skill directory does not exist.
         """
-        
+
         self._skills_manager.load_skills(skills)
 
         for skill_name in skills:
@@ -202,5 +230,7 @@ class Agent(ChatCompletionAgent):
                 self.kernel.add_plugin(parent_directory=parent, plugin_name=name)
                 self._logger.info("Successfully integrated plugin: %s", skill_name)
             except Exception as e:
-                self._logger.error("Failed to integrate plugin: %s", skill_name, exc_info=True)
+                self._logger.error(
+                    "Failed to integrate plugin: %s", skill_name, exc_info=True
+                )
                 raise e

@@ -3,10 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 *tmp*
-
+*.env
 # C extensions
 *.so
-
+paprocessing_env
 # Distribution / packaging
 .Python
 build/
@@ -168,3 +168,4 @@ multirun
 temp/
 .DS_Store
 utils/data/cases/001/a/tmp/01_a_form.pdf
+.azure

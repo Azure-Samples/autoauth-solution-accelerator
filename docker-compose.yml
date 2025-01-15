@@ -1,0 +1,18 @@
+# For local development purposes only. Use the azure.yaml to configure the e2e deployment
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: ./app/frontend/Dockerfile
+    ports:
+      - "8081:8501"
+    env_file:
+      - .env
+  backend:
+    build:
+      context: .
+      dockerfile: ./app/backend/Dockerfile
+    ports:
+      - "9000:9000"
+    env_file:
+      - .env

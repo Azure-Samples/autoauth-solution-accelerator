@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 logging.basicConfig(level=logging.INFO)
 
@@ -31,7 +31,9 @@ def extract_json_from_message(message_content: str) -> str:
     """Extract the JSON block from the message content."""
     try:
         if "```json" in message_content:
-            message_content = message_content.replace("```json", "").replace("```", "").strip()
+            message_content = (
+                message_content.replace("```json", "").replace("```", "").strip()
+            )
         logging.info(f"Extracted JSON from message: {message_content}")
         return message_content
     except Exception as e:
@@ -45,7 +47,7 @@ def parse_json_content(message_content: str) -> Dict[str, Any]:
         if not message_content:
             logging.warning("Message content is empty, cannot parse JSON.")
             return {}
-        
+
         logging.info(f"Parsing message content as JSON: {message_content}")
         parsed_json = json.loads(message_content)
         logging.info(f"Parsed JSON successfully: {parsed_json}")
@@ -54,7 +56,9 @@ def parse_json_content(message_content: str) -> Dict[str, Any]:
         logging.error(f"JSON decode error: {e}. Content: {message_content}")
         return {}
     except Exception as e:
-        logging.error(f"Unexpected error while parsing JSON: {e}. Content: {message_content}")
+        logging.error(
+            f"Unexpected error while parsing JSON: {e}. Content: {message_content}"
+        )
         return {}
 
 
@@ -65,11 +69,11 @@ def extract_policies_from_parsed_json(parsed_json: Dict[str, Any]) -> List[str]:
         return []
 
     policies = parsed_json.get("policies", [])
-    
+
     if not isinstance(policies, list):
         logging.error(f"Expected 'policies' to be a list, but got: {type(policies)}")
         return []
-    
+
     logging.info(f"Extracted policies: {policies}")
     return policies
 

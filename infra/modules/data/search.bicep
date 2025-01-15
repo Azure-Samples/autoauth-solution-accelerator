@@ -21,6 +21,9 @@ resource searchService 'Microsoft.Search/searchServices@2024-06-01-preview' = {
   sku: {
     name: aiServiceSkuName
   }
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
     publicNetworkAccess: 'Enabled'
     hostingMode: 'default'
@@ -30,6 +33,7 @@ resource searchService 'Microsoft.Search/searchServices@2024-06-01-preview' = {
 
 var searchKeys = searchService.listAdminKeys()
 
+output searchServiceIdentityPrincipalId string = searchService.identity.principalId
 output searchServiceId string = searchService.id
 output searchServiceName string = searchService.name
 output searchServicePrimaryKey string = searchKeys.primaryKey

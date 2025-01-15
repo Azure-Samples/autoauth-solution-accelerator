@@ -28,7 +28,7 @@ param embeddingModel object = {
     name: 'text-embedding-ada-002'
     version: '2'
     skuName: 'Standard'
-    capacity: 16
+    capacity: 250
 }
 
 var combinedModels = concat(chatCompletionModels, [embeddingModel])

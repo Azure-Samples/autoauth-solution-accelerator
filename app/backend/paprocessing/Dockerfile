@@ -9,8 +9,8 @@ WORKDIR /app
 # Add the current directory contents into the container at /app
 COPY src /app/src
 COPY app /app/app
-COPY utils/ml_logging.py /app/utils/ml_logging.py 
-COPY utils/__init__.py /app/utils/__init__.py  
+COPY utils/ml_logging.py /app/utils/ml_logging.py
+COPY utils/__init__.py /app/utils/__init__.py
 COPY requirements.txt /app/requirements.txt
 
 # Install any needed packages specified in requirements.txt

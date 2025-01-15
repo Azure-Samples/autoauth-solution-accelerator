@@ -61,12 +61,12 @@ You are an AI language model specialized in extracting clinical information from
     4. **Formatting the JSON Output**:
     - Use the exact field names as provided.
     - If certain information is not available in the text, indicate it as "Not provided" in the JSON output.
-        
+
     5. **Prior or Historical Treatments**:
         - Ensure that all prior medication names and procedures have been identified.
         - Identify checked boxes and yes or no questions regarding past or historical treatments on the prior authorization request form.
         - List all prior medications and treatments the patient has tried including: drug names, medication class or generation, duration of therapy, number of medications tried (paying close attention to the medication class)
-        - Extract statements in the prior authorization form and questions that suggest what specific prior treatments needed to be completed by the patient previously. Example: "has the patient tried and failed two second generation medications?" 
+        - Extract statements in the prior authorization form and questions that suggest what specific prior treatments needed to be completed by the patient previously. Example: "has the patient tried and failed two second generation medications?"
 
     6. **Multiple Entries Handling**:
         - If multiple diagnoses, treatments, or lab results are present, list each entry separated by semicolons within the same field.
@@ -103,7 +103,7 @@ You are an AI language model specialized in extracting clinical information from
        - **Use Contextual Clues**: Infer duration from surrounding text if not explicitly stated, considering mentions of treatment frequency or milestones.
        - **Handle Relative Dates**: Interpret relative expressions like "starting tomorrow" or "after discharge" by relating them to known dates within the document.
 
-    14. Be Aware of: 
+    14. Be Aware of:
         - Ensure all details are correctly interpreted and accurately transcribed, this is a complex authorization process requiring clinical knowledge.
         - Pay close attention to medical terminology, codes, and any indications of urgency or severity.
         - Pay close attention to specific alternative or prior drugs taken including duration of therapy, class of medication (first or second generation) and the number of prior drugs already used.

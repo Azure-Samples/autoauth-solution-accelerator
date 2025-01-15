@@ -2,13 +2,14 @@
 import asyncio
 import os
 from typing import Any, Dict, List, Optional, Type, Union
-from pydantic import BaseModel, ValidationError
-from colorama import Fore
-from src.pipeline.utils import load_config
 
-from utils.ml_logging import get_logger
+from colorama import Fore
+from pydantic import BaseModel, ValidationError
+
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.pipeline.promptEngineering.prompt_manager import PromptManager
+from src.pipeline.utils import load_config
+from utils.ml_logging import get_logger
 
 
 class ClinicalDataExtractor:
@@ -24,7 +25,7 @@ class ClinicalDataExtractor:
 
     def __init__(
         self,
-        config_file: str = "ClinicalExtractor\\settings.yaml",
+        config_file: str = os.path.join("clinicalExtractor", "settings.yaml"),
         azure_openai_client: Optional[AzureOpenAIManager] = None,
         prompt_manager: Optional[PromptManager] = None,
         caseId: Optional[str] = None,
@@ -35,7 +36,7 @@ class ClinicalDataExtractor:
         Args:
             azure_openai_client: Optional AzureOpenAIManager instance. If None, initialized from environment.
             prompt_manager: Optional PromptManager instance. If None, a new one is created.
-            
+
         """
         self.config = load_config(config_file)
         self.run_config = self.config.get("run", {})
@@ -45,20 +46,28 @@ class ClinicalDataExtractor:
         self.caseId = caseId
         self.prefix = f"[caseID: {self.caseId}] " if self.caseId else ""
 
-
-        self.logger = get_logger(name=self.run_config['logging']['name'], 
-                                 level=self.run_config['logging']['level'], 
-                                 tracing_enabled=self.run_config['logging']['enable_tracing'])
+        try:
+            self.logger = get_logger(
+                name=self.run_config["logging"]["name"],
+                level=self.run_config["logging"]["level"],
+                tracing_enabled=self.run_config["logging"]["enable_tracing"],
+            )
+        except KeyError as e:
+            print(
+                f"KeyError: {e}. Please check your configuration file for missing keys."
+            )
+            raise
 
         if azure_openai_client is None:
             api_key = os.getenv("AZURE_OPENAI_KEY", None)
             if api_key is None:
-                self.logger.warning("No AZURE_OPENAI_KEY found. ClinicalDataExtractor may fail.")
+                self.logger.warning(
+                    "No AZURE_OPENAI_KEY found. ClinicalDataExtractor may fail."
+                )
             azure_openai_client = AzureOpenAIManager(api_key=api_key)
         self.azure_openai_client = azure_openai_client
 
         self.prompt_manager = prompt_manager or PromptManager()
-       
 
     async def validate_with_field_level_correction(
         self, data: Dict[str, Any], model_class: Type[BaseModel]
@@ -125,13 +134,17 @@ class ClinicalDataExtractor:
             self.logger.info(Fore.CYAN + f"{self.prefix}\nExtracting patient data...")
 
             # Use provided values or default to self attributes
-            system_message_content = self.prompt_manager.get_prompt(self.patient_extraction_conf['system_prompt'])
-            user_prompt = self.prompt_manager.get_prompt(self.patient_extraction_conf['user_prompt'])
-            max_tokens = self.patient_extraction_conf['max_tokens'] 
-            top_p = self.patient_extraction_conf['top_p']
-            temperature = self.patient_extraction_conf['temperature']
-            frequency_penalty = self.patient_extraction_conf['frequency_penalty']
-            presence_penalty = self.patient_extraction_conf['presence_penalty']
+            system_message_content = self.prompt_manager.get_prompt(
+                self.patient_extraction_conf["system_prompt"]
+            )
+            user_prompt = self.prompt_manager.get_prompt(
+                self.patient_extraction_conf["user_prompt"]
+            )
+            max_tokens = self.patient_extraction_conf["max_tokens"]
+            top_p = self.patient_extraction_conf["top_p"]
+            temperature = self.patient_extraction_conf["temperature"]
+            frequency_penalty = self.patient_extraction_conf["frequency_penalty"]
+            presence_penalty = self.patient_extraction_conf["presence_penalty"]
 
             api_response_patient = (
                 await self.azure_openai_client.generate_chat_response(
@@ -171,13 +184,17 @@ class ClinicalDataExtractor:
         try:
             self.logger.info(Fore.CYAN + f"{self.prefix}\nExtracting physician data...")
             # Use provided values or default to self attributes
-            system_message_content = self.prompt_manager.get_prompt(self.physician_extraction_conf['system_prompt'])
-            user_prompt = self.prompt_manager.get_prompt(self.physician_extraction_conf['user_prompt'])
-            max_tokens = self.physician_extraction_conf['max_tokens'] 
-            top_p = self.physician_extraction_conf['top_p']
-            temperature = self.physician_extraction_conf['temperature']
-            frequency_penalty = self.physician_extraction_conf['frequency_penalty']
-            presence_penalty = self.physician_extraction_conf['presence_penalty']
+            system_message_content = self.prompt_manager.get_prompt(
+                self.physician_extraction_conf["system_prompt"]
+            )
+            user_prompt = self.prompt_manager.get_prompt(
+                self.physician_extraction_conf["user_prompt"]
+            )
+            max_tokens = self.physician_extraction_conf["max_tokens"]
+            top_p = self.physician_extraction_conf["top_p"]
+            temperature = self.physician_extraction_conf["temperature"]
+            frequency_penalty = self.physician_extraction_conf["frequency_penalty"]
+            presence_penalty = self.physician_extraction_conf["presence_penalty"]
 
             api_response_physician = (
                 await self.azure_openai_client.generate_chat_response(
@@ -217,13 +234,17 @@ class ClinicalDataExtractor:
         try:
             self.logger.info(Fore.CYAN + f"{self.prefix}\nExtracting clinician data...")
             # Use provided values or default to self attributes
-            system_message_content = self.prompt_manager.get_prompt(self.clinical_extraction_conf['system_prompt'])
-            user_prompt = self.prompt_manager.get_prompt(self.clinical_extraction_conf['user_prompt'])
-            max_tokens = self.clinical_extraction_conf['max_tokens'] 
-            top_p = self.clinical_extraction_conf['top_p']
-            temperature = self.clinical_extraction_conf['temperature']
-            frequency_penalty = self.clinical_extraction_conf['frequency_penalty']
-            presence_penalty = self.clinical_extraction_conf['presence_penalty']
+            system_message_content = self.prompt_manager.get_prompt(
+                self.clinical_extraction_conf["system_prompt"]
+            )
+            user_prompt = self.prompt_manager.get_prompt(
+                self.clinical_extraction_conf["user_prompt"]
+            )
+            max_tokens = self.clinical_extraction_conf["max_tokens"]
+            top_p = self.clinical_extraction_conf["top_p"]
+            temperature = self.clinical_extraction_conf["temperature"]
+            frequency_penalty = self.clinical_extraction_conf["frequency_penalty"]
+            presence_penalty = self.clinical_extraction_conf["presence_penalty"]
 
             api_response_clinician = (
                 await self.azure_openai_client.generate_chat_response(
@@ -252,7 +273,7 @@ class ClinicalDataExtractor:
         image_files: List[str],
         PatientInformation: Type[BaseModel],
         PhysicianInformation: Type[BaseModel],
-        ClinicalInformation: Type[BaseModel]
+        ClinicalInformation: Type[BaseModel],
     ) -> Dict[str, Any]:
         """
         Extract patient, physician, and clinical data concurrently.
@@ -267,11 +288,21 @@ class ClinicalDataExtractor:
             A dictionary containing patient, physician, and clinician data along with their conversation histories.
         """
         try:
-            patient_data_task = self.extract_patient_data(image_files, PatientInformation)
-            physician_data_task = self.extract_physician_data(image_files, PhysicianInformation)
-            clinician_data_task = self.extract_clinician_data(image_files, ClinicalInformation)
+            patient_data_task = self.extract_patient_data(
+                image_files, PatientInformation
+            )
+            physician_data_task = self.extract_physician_data(
+                image_files, PhysicianInformation
+            )
+            clinician_data_task = self.extract_clinician_data(
+                image_files, ClinicalInformation
+            )
 
-            (patient_data, _), (physician_data, _), (clinician_data, _) = await asyncio.gather(
+            (
+                (patient_data, _),
+                (physician_data, _),
+                (clinician_data, _),
+            ) = await asyncio.gather(
                 patient_data_task, physician_data_task, clinician_data_task
             )
 

@@ -1,7 +1,3 @@
-from typing import Optional
-
-from azure.core.credentials import AzureKeyCredential
-
 from src.aoai.aoai_helper import AzureOpenAIManager
 
 

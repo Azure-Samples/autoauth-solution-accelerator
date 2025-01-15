@@ -31,9 +31,3 @@ retrieval:
   k_nearest_neighbors: 5
   weight: 0.5
   top: 5
-
-
-
-
-
-

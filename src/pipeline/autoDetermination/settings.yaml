@@ -18,10 +18,3 @@ o1_autoDetermination:
   max_completion_tokens: 15000
   user_prompt: "prior_auth_o1_user_prompt.jinja"
   use_o1: True
-
-
-
-
-
-
-

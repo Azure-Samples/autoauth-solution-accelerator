@@ -1,11 +1,13 @@
 import os
-import yaml
 from typing import Any, Dict
+
+import yaml
 
 from utils.ml_logging import get_logger
 
 # Set up logging
 logger = get_logger()
+
 
 def load_config(config_file: str = "config.yaml") -> Dict[str, Any]:
     """
@@ -31,7 +33,9 @@ def load_config(config_file: str = "config.yaml") -> Dict[str, Any]:
         with open(config_file, "r", encoding="utf-8") as file:
             data = yaml.safe_load(file)
             if not data:
-                logger.warning(f"Configuration file is empty or invalid YAML: {config_file}")
+                logger.warning(
+                    f"Configuration file is empty or invalid YAML: {config_file}"
+                )
                 return {}
             return data
     except yaml.YAMLError as yaml_error:

@@ -4,8 +4,8 @@ streamlit-chat==0.1.1
 matplotlib==3.9.2
 seaborn==0.13.2
 
-## microservices 
-fastapi 
+## microservices
+fastapi
 uvicorn
 
 # AI and OpenAI integration
@@ -18,7 +18,9 @@ langchain-core==0.1.8
 # Azure SDKs
 azure-identity==1.19.0
 azure-mgmt-resource==23.1.1
-azure-ai-documentintelligence==1.0.0b3
+# azure-ai-documentintelligence==1.0.0b3
+azure-ai-documentintelligence==1.0.0b4
+
 azure-cosmos==4.7.0
 azure-search-documents==11.6.0b5
 azure-storage-blob==12.23.1
@@ -47,8 +49,8 @@ asyncio==3.4.3
 tenacity==8.5.0
 
 semantic_kernel
-azure-monitor-opentelemetry 
-azure-ai-inference[opentelemetry] 
-opentelemetry-exporter-otlp 
-azure-ai-projects 
+azure-monitor-opentelemetry
+azure-ai-inference[opentelemetry]
+opentelemetry-exporter-otlp
+azure-ai-projects
 opentelemetry-instrumentation-httpx

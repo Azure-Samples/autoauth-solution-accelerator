@@ -5,12 +5,13 @@
 import os
 from typing import Optional
 
-from azure.identity import DefaultAzureCredential
+from azure.ai.inference.tracing import AIInferenceInstrumentor
 from azure.ai.projects import AIProjectClient
 from azure.core.settings import settings
-from azure.ai.inference.tracing import AIInferenceInstrumentor
+from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+
 from utils.ml_logging import get_logger
 
 
@@ -33,9 +34,11 @@ class AIFoundryManager:
         Raises:
             ValueError: If the project connection string is not provided.
         """
-        self.logger = get_logger(name="AIFoundryManager", level=10, tracing_enabled=False)
-        self.project_connection_string: str = (
-            project_connection_string or os.getenv("AZURE_AI_FOUNDRY_CONNECTION_STRING")
+        self.logger = get_logger(
+            name="AIFoundryManager", level=10, tracing_enabled=False
+        )
+        self.project_connection_string: str = project_connection_string or os.getenv(
+            "AZURE_AI_FOUNDRY_CONNECTION_STRING"
         )
         self.project: Optional[AIProjectClient] = None
         self._validate_configurations()
@@ -78,8 +81,12 @@ class AIFoundryManager:
             Exception: If telemetry initialization fails.
         """
         if not self.project:
-            self.logger.error("AIProjectClient is not initialized. Call initialize_project() first.")
-            raise Exception("AIProjectClient is not initialized. Call initialize_project() first.")
+            self.logger.error(
+                "AIProjectClient is not initialized. Call initialize_project() first."
+            )
+            raise Exception(
+                "AIProjectClient is not initialized. Call initialize_project() first."
+            )
 
         try:
             settings.tracing_implementation = "opentelemetry"
@@ -90,13 +97,19 @@ class AIFoundryManager:
             self.logger.info("AI Inference API instrumented for tracing.")
 
             # Retrieve the Application Insights connection string from your AI project
-            application_insights_connection_string = self.project.telemetry.get_connection_string()
+            application_insights_connection_string = (
+                self.project.telemetry.get_connection_string()
+            )
 
             if application_insights_connection_string:
-                configure_azure_monitor(connection_string=application_insights_connection_string)
+                configure_azure_monitor(
+                    connection_string=application_insights_connection_string
+                )
                 self.logger.info("Azure Monitor configured for Application Insights.")
             else:
-                self.logger.error("Application Insights is not enabled for this project.")
+                self.logger.error(
+                    "Application Insights is not enabled for this project."
+                )
                 raise Exception("Application Insights is not enabled for this project.")
 
             HTTPXClientInstrumentor().instrument()

@@ -1,5 +1,6 @@
 import os
 from typing import Any, Dict, Optional
+
 from azure.search.documents import SearchClient
 from azure.search.documents.models import (
     QueryAnswerType,
@@ -8,12 +9,15 @@ from azure.search.documents.models import (
     VectorizableTextQuery,
 )
 from colorama import Fore
+
+from src.aoai.aoai_helper import AzureOpenAIManager
+from src.documentintelligence.document_intelligence_helper import (
+    AzureDocumentIntelligenceManager,
+)
+from src.pipeline.promptEngineering.prompt_manager import PromptManager
+from src.storage.blob_helper import AzureBlobManager
 from utils.ml_logging import get_logger
 
-from src.storage.blob_helper import AzureBlobManager
-from src.documentintelligence.document_intelligence_helper import AzureDocumentIntelligenceManager
-from src.aoai.aoai_helper import AzureOpenAIManager
-from src.pipeline.promptEngineering.prompt_manager import PromptManager
 
 class AgenticRAG:
     """
@@ -39,7 +43,7 @@ class AgenticRAG:
         presence_penalty: float = 0.0,
         SYSTEM_PROMPT_QUERY_EXPANSION: Optional[str] = None,
         SYSTEM_PROMPT_SUMMARIZE_POLICY: Optional[str] = None,
-        local: bool = False
+        local: bool = False,
     ) -> None:
         """
         Initialize the AgenticRAG.
@@ -59,9 +63,7 @@ class AgenticRAG:
             SYSTEM_PROMPT_SUMMARIZE_POLICY: System prompt for policy summarization. If None, from prompt_manager.
             local: Whether to operate in local/tracing mode.
         """
-        self.logger = get_logger(
-            name="AgenticRAG", level=10, tracing_enabled=local
-        )
+        self.logger = get_logger(name="AgenticRAG", level=10, tracing_enabled=local)
 
         if azure_openai_client is None:
             api_key = os.getenv("AZURE_OPENAI_KEY", None)
@@ -75,7 +77,9 @@ class AgenticRAG:
         if search_client is None:
             endpoint = os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT")
             index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
-            search_client = SearchClient(endpoint=endpoint, index_name=index_name, credential=None)
+            search_client = SearchClient(
+                endpoint=endpoint, index_name=index_name, credential=None
+            )
         self.search_client = search_client
 
         if azure_blob_manager is None:
@@ -84,7 +88,7 @@ class AgenticRAG:
             azure_blob_manager = AzureBlobManager(
                 storage_account_name=account_name,
                 account_key=account_key,
-                container_name="container"
+                container_name="container",
             )
         self.blob_manager = azure_blob_manager
 
@@ -92,8 +96,7 @@ class AgenticRAG:
             endpoint = os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT")
             key = os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
             document_intelligence_client = AzureDocumentIntelligenceManager(
-                azure_endpoint=endpoint,
-                azure_key=key
+                azure_endpoint=endpoint, azure_key=key
             )
         self.document_intelligence_client = document_intelligence_client
 
@@ -104,8 +107,14 @@ class AgenticRAG:
         self.presence_penalty = presence_penalty
 
         # Fallback to prompt_manager if not provided
-        self.SYSTEM_PROMPT_QUERY_EXPANSION = SYSTEM_PROMPT_QUERY_EXPANSION or self.prompt_manager.get_prompt("query_expansion_system_prompt.jinja")
-        self.SYSTEM_PROMPT_SUMMARIZE_POLICY = SYSTEM_PROMPT_SUMMARIZE_POLICY or self.prompt_manager.get_prompt("summarize_policy_system.jinja")
+        self.SYSTEM_PROMPT_QUERY_EXPANSION = (
+            SYSTEM_PROMPT_QUERY_EXPANSION
+            or self.prompt_manager.get_prompt("query_expansion_system_prompt.jinja")
+        )
+        self.SYSTEM_PROMPT_SUMMARIZE_POLICY = (
+            SYSTEM_PROMPT_SUMMARIZE_POLICY
+            or self.prompt_manager.get_prompt("summarize_policy_system.jinja")
+        )
 
         self.local = local
 
@@ -123,7 +132,9 @@ class AgenticRAG:
         """
         self.logger.info(Fore.CYAN + "Expanding query and searching for policy...")
         self.logger.info(f"Input clinical information: {clinical_info}")
-        prompt_query_expansion = self.prompt_manager.create_prompt_formulator_user(clinical_info)
+        prompt_query_expansion = self.prompt_manager.create_prompt_formulator_user(
+            clinical_info
+        )
         api_response_query = await self.azure_openai_client.generate_chat_response(
             query=prompt_query_expansion,
             system_message_content=self.SYSTEM_PROMPT_QUERY_EXPANSION,
@@ -212,7 +223,9 @@ class AgenticRAG:
             A summarized version of the policy text.
         """
         self.logger.info(Fore.CYAN + "Summarizing Policy...")
-        prompt_user_query_summary = self.prompt_manager.create_prompt_summary_policy(policy_text)
+        prompt_user_query_summary = self.prompt_manager.create_prompt_summary_policy(
+            policy_text
+        )
         api_response_query = await self.azure_openai_client.generate_chat_response(
             query=prompt_user_query_summary,
             system_message_content=self.SYSTEM_PROMPT_SUMMARIZE_POLICY,

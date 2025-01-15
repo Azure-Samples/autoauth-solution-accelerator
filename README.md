@@ -42,45 +42,53 @@ This repository aims to **streamline and automate** the PA process using Azure A
 
 ## 🎉 Why This Repository?
 
-1. **Faster Decisions & Cost Efficiency**:  
+1. **Faster Decisions & Cost Efficiency**:
    Transform days-long PA turnarounds into hours, drastically reducing administrative overhead and associated costs.
 
-2. **Improved Patient Outcomes**:  
+2. **Improved Patient Outcomes**:
    Accelerate treatment approvals, minimize delays in critical care, and enhance overall patient satisfaction.
 
-3. **Automated Infrastructure**:  
+3. **Automated Infrastructure**:
    Utilize pre-built Azure Bicep templates and one-click deployment to set up the necessary infrastructure—Azure OpenAI, Storage, Cognitive Services—without manual, time-consuming configurations.
 
-4. **LLMOps & Evaluation with AI Foundry**:  
+4. **LLMOps & Evaluation with AI Foundry**:
    Leverage Azure AI Foundry for continuous model performance evaluation and prompt optimization. Implement robust LLMOps practices, ensuring consistent improvements in accuracy and reliability over time.
 
-5. **Agentic Interactions via Semantic Kernel**:  
+5. **Agentic Interactions via Semantic Kernel**:
    Integrate Semantic Kernel to enable agentic interactions with the LLM, coordinating policy retrieval, data extraction, and decision-making steps efficiently and autonomously.
 
-6. **Research-Proven Prompts & Fine-Tuning**:  
+6. **Research-Proven Prompts & Fine-Tuning**:
    Benefit from research-backed prompt engineering strategies that improve precision and reduce hallucinations in model outputs, ensuring that the system’s recommendations align closely with clinical and policy requirements.
 
 ## 🚀 Quick Start
 
 AutoAuth offers two flexible options to get started:
 
- + Deploy the Full AutoAuth Application (Front-End + Back-End) with One-Click Deploy
- - Integrate the AutoAuth SDK to Customize and Embed PA Microservices in Your Application
+### One-Click Deploy to Azure
 
-### One-Click Deploy (Full Application with UI)
-
-Want to see AutoAuth in action right away? Use the One-Click Deploy option to instantly set up the core infrastructure, including the front-end and back-end, in your Azure environment. With just a single click, you’ll have everything you need to start exploring AutoAuth's end-to-end capabilities.
-
-[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fmain%2Fdevops%2Finfra%2Fmain.json)
-[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fmain%2Fdevops%2Finfra%2Fmain.json)
-
-### Use the AutoAuth SDK to Build Custom Microservices
-
-For those looking for greater flexibility, the AutoAuth SDK enables you to embed PA microservices into your existing applications. You can customize, integrate, and extend the PA workflows to suit your specific needs. This approach provides a highly modular, code-first experience for developers who want to build their own solutions.
+[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Finfra%2Fmain.json)
+[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Finfra%2Fmain.json)
 
 > [!TIP]
-> *Want to customize or learn more about configuration?*  
+> *Want to customize or learn more about configuration?*
 > **[Read the detailed instructions on our GitHub Pages ➜](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**
+
+To deploy this project end-to-end (infra provision and app deploy) using AZD, follow the guide provided in:
+### End-to-End Deployment Using AZD
+
+More detailed documentation can be found in [docs/azd_deployment.md](docs/azd_deployment.md)
+
+#### Steps:
+
+1. Install [Azure Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd)
+
+1. Run `azd up`
+
+1. Provide the cli values for your deployment
+
+1. Verify your deployment through `azd show`
+
+### PriorAuth SDK
 
 You can seamlessly integrate Prior Authorization (PA) processing into your application using our SDK. The SDK allows you to run PA workflows programmatically, enabling you to automate the end-to-end process.
 
@@ -115,9 +123,9 @@ With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Aut
 
 ### Near-Term Goals.
 - [ ] **Improve One-Click Deployment with Integrated Security and Landing Zone**: Enhance a one-click deployment solution a managed landing zone for streamlined setup and management.
-- [ ] **Multi-Language & Region Support**: Adapt LLM models and policies for multiple languages and healthcare regulatory environments.  
+- [ ] **Multi-Language & Region Support**: Adapt LLM models and policies for multiple languages and healthcare regulatory environments.
 - [ ] **Agentic Framework Leveraging Semantic Kernel**: Integrate the Agentic framework component using the Semantic Kernel as the core for context-aware and intelligent agent orchestration.
-- [ ] **API Management (APIM) Integration**: Introduce APIM for secure, scalable, and controlled access to the service’s endpoints.  
+- [ ] **API Management (APIM) Integration**: Introduce APIM for secure, scalable, and controlled access to the service’s endpoints.
 - [ ] **Deeper LLMOps with AI Foundry**: Extend AI Foundry integration for advanced model lifecycle management, enhanced logging, continuous monitoring, and end-to-end orchestration.
 
 ## 🤝 Contributors & License
@@ -152,6 +160,6 @@ With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Aut
 
 **License:** [MIT License](./LICENSE)
 
-### Disclaimer
-> [!IMPORTANT]
-> This software is provided for demonstration purposes only. It is not intended to be relied upon for any purpose. The creators of this software make no representations or warranties of any kind, express or implied, about the completeness, accuracy, reliability, suitability or availability with respect to the software or the information, products, services, or related graphics contained in the software for any purpose. Any reliance you place on such information is therefore strictly at your own risk.
+---
+
+**Note:** Detailed information, technical architecture, customization steps, references, and further documentation are available on our **[GitHub Pages](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**.

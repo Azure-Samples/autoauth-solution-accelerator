@@ -1,7 +1,7 @@
 import os
 import time
-from typing import Any, Dict, Optional
 from pathlib import Path
+from typing import Any, Dict, Optional
 
 import yaml
 from azure.core.credentials import AzureKeyCredential
@@ -94,6 +94,7 @@ class PolicyIndexingPipeline:
         )
 
         self.azure_openai_endpoint: str = os.environ["AZURE_OPENAI_ENDPOINT"]
+
         self.azure_openai_key: str = os.getenv("AZURE_OPENAI_KEY")
         self.azure_openai_embedding_deployment: str = os.getenv(
             "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-large"
@@ -125,9 +126,16 @@ class PolicyIndexingPipeline:
         self.vector_search_config: Dict[str, Any] = config["vector_search"]
         self.skills_config: Dict[str, Any] = config["skills"]
 
-        self.blob_service_client: BlobServiceClient = (
-            BlobServiceClient.from_connection_string(self.blob_connection_string)
-        )
+        # If the Storage Account Conn String contains a ResourceId, use the DefaultAzureCredential for authentication
+        if "ResourceId" in self.blob_connection_string:
+            account_url = f"https://{os.getenv('AZURE_STORAGE_ACCOUNT_NAME')}.blob.core.windows.net"
+            self.blob_service_client: BlobServiceClient = BlobServiceClient(
+                account_url=account_url, credential=DefaultAzureCredential()
+            )
+        else:
+            self.blob_service_client: BlobServiceClient = (
+                BlobServiceClient.from_connection_string(self.blob_connection_string)
+            )
         self.index_client: SearchIndexClient = SearchIndexClient(
             endpoint=self.endpoint, credential=self.credential
         )
@@ -677,9 +685,12 @@ class IndexerRunner:
             status = self.check_indexer_status()
 
             if status:
-                logger.info(f"Indexer Status: {status.status}")
-                logger.info(f"Last Run Time: {status.last_result.end_time}")
-                logger.info(f"Execution Status: {status.last_result.status}")
+                if status.last_result:
+                    logger.info(f"Indexer Status: {status.status}")
+                    logger.info(f"Last Run Time: {status.last_result.end_time}")
+                    logger.info(f"Execution Status: {status.last_result.status}")
+                else:
+                    logger.warning("No last result available for the indexer.")
 
                 if status.status == "running":
                     if status.last_result.status == "inProgress":

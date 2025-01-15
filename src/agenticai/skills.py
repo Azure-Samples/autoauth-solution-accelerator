@@ -1,11 +1,11 @@
-from typing import Any, Dict, List, Optional, Union, Literal
-from pydantic import BaseModel, PrivateAttr, Field
-import os
 import logging
+import os
+from typing import Any, Dict, List, Literal, Optional, Union
+
+from pydantic import BaseModel, Field, PrivateAttr
 
 from utils.ml_logging import get_logger
-from typing import Any, Dict, List, Optional, Union, Literal
-from pydantic import BaseModel, PrivateAttr, Field
+
 
 class KernelPlugin(BaseModel):
     """
@@ -18,7 +18,9 @@ class KernelPlugin(BaseModel):
 
     plugin_name: str = Field(..., description="The name of the plugin.")
     directory: str = Field(..., description="The plugin directory path.")
-    functions: Dict[str, Any] = Field(default_factory=dict, description="Functions from the plugin.")
+    functions: Dict[str, Any] = Field(
+        default_factory=dict, description="Functions from the plugin."
+    )
 
     @classmethod
     def from_directory(
@@ -59,7 +61,9 @@ class Skills(BaseModel):
     - List available skills (plugin directories) in the parent directory.
     """
 
-    parent_directory: str = Field(..., description="The parent directory containing plugins.")
+    parent_directory: str = Field(
+        ..., description="The parent directory containing plugins."
+    )
     _logger: logging.Logger = PrivateAttr()
     _plugins: Dict[str, KernelPlugin] = PrivateAttr(default_factory=dict)
 
@@ -71,8 +75,14 @@ class Skills(BaseModel):
         :return: None
         """
         super().__init__(parent_directory=parent_directory)
-        object.__setattr__(self, "_logger", get_logger(name="SkillsManager", level=10, tracing_enabled=False))
-        self._logger.debug("Skills manager initialized with parent directory: %s", parent_directory)
+        object.__setattr__(
+            self,
+            "_logger",
+            get_logger(name="SkillsManager", level=10, tracing_enabled=False),
+        )
+        self._logger.debug(
+            "Skills manager initialized with parent directory: %s", parent_directory
+        )
 
     def load_skills(self, skill_names: List[str]) -> None:
         """
@@ -87,13 +97,14 @@ class Skills(BaseModel):
             try:
                 self._logger.debug("Attempting to load skill: %s", skill_name)
                 plugin = KernelPlugin.from_directory(
-                    plugin_name=skill_name,
-                    parent_directory=self.parent_directory
+                    plugin_name=skill_name, parent_directory=self.parent_directory
                 )
                 self._plugins[skill_name] = plugin
                 self._logger.info("Successfully loaded skill: %s", skill_name)
             except Exception as e:
-                self._logger.error("Failed to load skill '%s': %s", skill_name, str(e), exc_info=True)
+                self._logger.error(
+                    "Failed to load skill '%s': %s", skill_name, str(e), exc_info=True
+                )
                 raise e
 
     def get_skill(self, skill_name: str) -> KernelPlugin:
@@ -119,14 +130,18 @@ class Skills(BaseModel):
         :raises FileNotFoundError: If the parent directory does not exist.
         """
         if not os.path.isdir(self.parent_directory):
-            self._logger.error("The parent directory '%s' does not exist.", self.parent_directory)
-            raise FileNotFoundError(f"The parent directory '{self.parent_directory}' does not exist.")
+            self._logger.error(
+                "The parent directory '%s' does not exist.", self.parent_directory
+            )
+            raise FileNotFoundError(
+                f"The parent directory '{self.parent_directory}' does not exist."
+            )
 
         skill_names = []
         for item in os.listdir(self.parent_directory):
             path = os.path.join(self.parent_directory, item)
             # Filter out non-directories and hidden/system directories
-            if os.path.isdir(path) and not item.startswith('_'):
+            if os.path.isdir(path) and not item.startswith("_"):
                 skill_names.append(item)
         self._logger.debug("Available skills found: %s", skill_names)
         return skill_names

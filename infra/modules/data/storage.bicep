@@ -28,8 +28,10 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
   }
   kind: 'StorageV2'
   properties: {
+    minimumTlsVersion: 'TLS1_2'
     publicNetworkAccess: 'Enabled'
     supportsHttpsTrafficOnly: true
+    defaultToOAuthAuthentication: true
   }
   tags: tags
 }
