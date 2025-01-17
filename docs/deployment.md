@@ -86,6 +86,9 @@ To enable the login flow for your deployed container application, you must confi
 
 The table below explains the parameters in the ARM template, including their descriptions, default values, and whether they are required.
 
+> [!WARNING]
+> Due to limited model availability, ensure that the location parameter is set to a supported region for the embedding model you wish to use. For text-embedding-3-large, supported regions include: australiaeast, canadaeast, eastus, eastus2, francecentral, japaneast, norwayeast, polandcentral, southindia, swedencentral, switzerlandnorth, uksouth, westus3
+
 | Parameter Name            | Type         | Description                                                                                              | Default Value                                | Required |
 |---------------------------|--------------|----------------------------------------------------------------------------------------------------------|--------------------------------------------|----------|
 | `priorAuthName`           | `string`     | Name for the PriorAuth resource and used to derive the name of dependent resources.                     | `priorAuth`                                | Yes      |
