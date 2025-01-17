@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.32.4.45862",
-      "templateHash": "6779375513642358424"
+      "templateHash": "9318036165268001999"
     }
   },
   "parameters": {
@@ -19,9 +19,24 @@
     },
     "location": {
       "type": "string",
+      "allowedValues": [
+        "australiaeast",
+        "canadaeast",
+        "eastus",
+        "eastus2",
+        "francecentral",
+        "japaneast",
+        "norwayeast",
+        "polandcentral",
+        "southindia",
+        "swedencentral",
+        "switzerlandnorth",
+        "uksouth",
+        "westus3"
+      ],
       "minLength": 1,
       "metadata": {
-        "description": "Primary location for all resources"
+        "description": "Primary location for all resources. Not all regions are supported due to OpenAI limitations"
       }
     },
     "frontendExists": {
@@ -71,7 +86,7 @@
           "name": "gpt-4o",
           "version": "2024-08-06",
           "skuName": "Standard",
-          "capacity": 500
+          "capacity": 50
         }
       ],
       "metadata": {
@@ -84,7 +99,7 @@
         "name": "text-embedding-3-large",
         "version": "1",
         "skuName": "Standard",
-        "capacity": 500
+        "capacity": 50
       },
       "metadata": {
         "description": "List of embedding models to be deployed to the OpenAI account."
@@ -127,15 +142,6 @@
         },
         "mode": "Incremental",
         "parameters": {
-          "tags": {
-            "value": "[variables('azd_tags')]"
-          },
-          "frontendExists": {
-            "value": "[parameters('frontendExists')]"
-          },
-          "backendExists": {
-            "value": "[parameters('backendExists')]"
-          },
           "priorAuthName": {
             "value": "[parameters('priorAuthName')]"
           },
@@ -153,6 +159,15 @@
           },
           "storageBlobContainerName": {
             "value": "[parameters('storageBlobContainerName')]"
+          },
+          "tags": {
+            "value": "[variables('azd_tags')]"
+          },
+          "frontendExists": {
+            "value": "[parameters('frontendExists')]"
+          },
+          "backendExists": {
+            "value": "[parameters('backendExists')]"
           }
         },
         "template": {

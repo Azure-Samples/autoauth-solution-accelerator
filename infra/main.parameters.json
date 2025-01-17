@@ -6,7 +6,7 @@
       "value": "${AZURE_ENV_NAME:-defaultEnv}"
     },
     "location": {
-      "value": "${AZURE_LOCATION:-eastus}"
+      "value": "${AZURE_LOCATION:-eastus2}"
     },
     "priorAuthName": {
       "value": "${PRIOR_AUTH_NAME:-priorAuth}"

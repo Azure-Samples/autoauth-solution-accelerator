@@ -6,7 +6,22 @@ targetScope = 'subscription'
 param environmentName string
 
 @minLength(1)
-@description('Primary location for all resources')
+@description('Primary location for all resources. Not all regions are supported due to OpenAI limitations')
+@allowed([
+  'australiaeast'
+  'canadaeast'
+  'eastus'
+  'eastus2'
+  'francecentral'
+  'japaneast'
+  'norwayeast'
+  'polandcentral'
+  'southindia'
+  'swedencentral'
+  'switzerlandnorth'
+  'uksouth'
+  'westus3'
+])
 param location string
 
 @description('Flag to indicate if Frontend app image exists. This is managed by AZD')
@@ -14,10 +29,6 @@ param frontendExists bool = false
 
 @description('Flag to indicate if Backend app image exists. This is managed by AZD')
 param backendExists bool = false
-
-// @description('Admin password for the cluster')
-// @secure()
-// param cosmosAdministratorPassword string
 
 @minLength(2)
 @maxLength(12)
@@ -39,7 +50,7 @@ param chatCompletionModels array = [
     name: 'gpt-4o'
     version: '2024-08-06'
     skuName: 'Standard'
-    capacity: 500
+    capacity: 50
   }
 ]
 
@@ -48,7 +59,7 @@ param embeddingModel object = {
     name: 'text-embedding-3-large'
     version: '1'
     skuName: 'Standard'
-    capacity: 500
+    capacity: 50
 }
 
 @description('Embedding model size for the OpenAI Embedding deployment')
@@ -79,17 +90,16 @@ module resources 'resources.bicep' = {
   name: 'resources'
   params: {
     // Required Parameters
-    tags: azd_tags
-    // cosmosAdministratorPassword: cosmosAdministratorPassword
-    // Optional Parameters
-    frontendExists: frontendExists
-    backendExists: backendExists
     priorAuthName: priorAuthName
     openAiApiVersion: openAiApiVersion
     chatCompletionModels: chatCompletionModels
     embeddingModel: embeddingModel
     embeddingModelDimension: embeddingModelDimension
     storageBlobContainerName: storageBlobContainerName
+    // Optional Parameters
+    tags: azd_tags
+    frontendExists: frontendExists
+    backendExists: backendExists
   }
 }
 
