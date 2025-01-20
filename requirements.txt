@@ -5,8 +5,10 @@ matplotlib==3.9.2
 seaborn==0.13.2
 
 ## microservices
-fastapi
+fastapi[standard]
+fastapi-users[beanie]
 uvicorn
+pydantic-settings
 
 # AI and OpenAI integration
 openai==1.52.0
