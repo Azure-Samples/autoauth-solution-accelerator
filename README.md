@@ -6,12 +6,18 @@
 ![Issues](https://img.shields.io/github/issues/pablosalvador10/gbb-ai-hls-factory-prior-auth)
 ![License](https://img.shields.io/github/license/pablosalvador10/gbb-ai-hls-factory-prior-auth)
 
-> [!NOTE]
-> Want to get started right away? In minutes, deploy with your OpenAI-enabled Azure subscription today!
+[![Deploy to Azure with AZD](https://aka.ms/deploytoazurebutton)](#end-to-end-deployment-using-azd)
 
-[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fmain%2Finfra%2Fmain.json)
-[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Fmain%2Finfra%2Fmain.json)
+## 📚 Table of Contents
 
+- [Overview](#-overview)
+- [Introducing AutoAuth](#-introducing-autoauth)
+- [Why This Repository?](#-why-this-repository)
+- [Quick Start](#-quick-start)
+    - [End-to-End Deployment Using AZD](#end-to-end-deployment-using-azd)
+    - [PriorAuth SDK](#priorauth-sdk)
+- [What's Next?](#-whats-next)
+- [Contributors & License](#-contributors--license)
 
 ## 🌍 Overview
 
@@ -62,31 +68,83 @@ This repository aims to **streamline and automate** the PA process using Azure A
 
 ## 🚀 Quick Start
 
-AutoAuth offers two flexible options to get started:
-
-### One-Click Deploy to Azure
-
-[![Deploy To Azure](utils/images/deploytoazure.svg?sanitize=true)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Finfra%2Fmain.json)
-[![Visualize](utils/images/visualizebutton.svg?sanitize=true)](http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2Fpablosalvador10%2Fgbb-ai-hls-factory-prior-auth%2Finfra%2Fmain.json)
-
 > [!TIP]
 > *Want to customize or learn more about configuration?*
 > **[Read the detailed instructions on our GitHub Pages ➜](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**
 
 To deploy this project end-to-end (infra provision and app deploy) using AZD, follow the guide provided in:
 ### End-to-End Deployment Using AZD
+More detailed documentation can be found in [docs/azd_deployment.md](docs/azd_deployment.md).
 
-More detailed documentation can be found in [docs/azd_deployment.md](docs/azd_deployment.md)
+### Steps to Deploy
 
-#### Steps:
+1. **Ensure Necessary Permissions**:
+    - You need `Contributor` permissions to provision resources.
+    - You need `User Access Administrator` permissions to assign roles to the user-assigned identity.
 
-1. Install [Azure Developer CLI](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd)
+2. **Install Azure Developer CLI**:
+    - Follow the [installation guide](https://learn.microsoft.com/en-us/azure/developer/azure-developer-cli/install-azd).
 
-1. Run `azd up`
+3. **Initialize Environment**:
+    - Run `azd init` to set up your Azure Developer CLI environment.
 
-1. Provide the cli values for your deployment
+4. **Deploy**:
+    - Execute `azd up` to deploy the project.
 
-1. Verify your deployment through `azd show`
+5. **Verify Deployment**:
+    - Use `azd show` to confirm your deployment.
+
+### Customizing or Configuring the AZD Deployment
+
+- **Main Workflow Definition**:
+    - [azure.yaml](./azure.yaml): Defines how `azd` will behave (pre/post hooks, infra definition, app deployment, etc.).
+
+- **Pre/Post Provision and Deployment Scripts**:
+    - [utils/azd/hooks](./utils/azd/hooks/): Contains script definitions.
+        - `postprovision` scripts populate your `.env` file for local testing.
+
+- **Infra Bicep Definitions**:
+    - [infra/main.bicep](infra/main.bicep): Main entry point azd hooks into. Currently scoped to the subscription to automate the provisioning of the resource group. The `outputs` defined in this file become accessible within your azd environment (retrievable via `azd env get-values`).
+    - [infra/resources.bicep](infra/resources.bicep): The primary resources for this deployment are stored here.
+    - [infra/main.parameters.json](infra/main.parameters.json): Holds the current default values for the deployment and supports overriding the values from ENV vars.
+    - To test the infra provisioning without deploying the application, you can do so via `azd provision`.
+
+- **Application Definitions**:
+    - AZD handles the deployment of your app image to the newly provisioned container registry/container apps/container app job.
+    - These applications map to the provisioned infra resources through tags, specifically using the service name as defined in [azure.yaml](./azure.yaml).
+
+        ```yaml
+        services:
+            frontend:
+                project: app/frontend
+                host: containerapp
+                language: python
+                docker:
+                    path: Dockerfile
+                    context: ../../
+                    remoteBuild: true
+        ```
+
+        - `services`: Root element for service definitions.
+            - `frontend`: Name of the service.
+                - `project`: Path to the frontend project directory.
+                - `host`: Hosting environment for the service (e.g., containerapp).
+                - `language`: Programming language used for the service (e.g., python).
+                - `docker`: Docker configuration for the service.
+                    - `path`: Path to the Dockerfile.
+                    - `context`: Build context for Docker.
+                    - `remoteBuild`: Indicates if the build should be performed remotely.
+
+        ```arm
+        module frontendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
+            ...
+
+            tags: union(tags, { 'azd-service-name': 'frontend' })
+        }
+        ```
+        - `module frontendContainerApp`: Defines the ARM module for the frontend container app.
+            - `tags`: Metadata tags for the container app, including the service name.
+                - `'azd-service-name'`: Tag to identify the service name (e.g., 'frontend').
 
 ### PriorAuth SDK
 
