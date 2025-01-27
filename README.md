@@ -146,6 +146,8 @@ More detailed documentation can be found in [docs/azd_deployment.md](docs/azd_de
             - `tags`: Metadata tags for the container app, including the service name.
                 - `'azd-service-name'`: Tag to identify the service name (e.g., 'frontend').
 
+    - If you would like to test just the application deployment, you can do so via `azd deploy <service name>` (e.g., `azd deploy frontend`).
+
 ### PriorAuth SDK
 
 You can seamlessly integrate Prior Authorization (PA) processing into your application using our SDK. The SDK allows you to run PA workflows programmatically, enabling you to automate the end-to-end process.
