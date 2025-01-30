@@ -10,14 +10,11 @@ class CustomBaseSettings(BaseSettings):
     )
 
 class Config(CustomBaseSettings):
-    #DATABASE_URL: MongoDsn
-    #DATABASE_ASYNC_URL: MongoDsn
-    DATABASE_URL: str = "mongodb://localhost:27017"
-    DATABASE_ASYNC_URL: str = "mongodb://localhost:27017"
-    DATABASE_POOL_SIZE: int = 16
-    DATABASE_POOL_TTL: int = 60 * 20  # 20 minutes
-    DATABASE_POOL_PRE_PING: bool = True
-
+    #
+    DATABASE_URL: MongoDsn
+    DATABASE_ASYNC_URL: MongoDsn
+    AZURE_COSMOS_DB_DATABASE_NAME: str = ""
+   
     ENVIRONMENT: Environment = Environment.LOCAL
 
     SENTRY_DSN: str | None = None
@@ -28,6 +25,8 @@ class Config(CustomBaseSettings):
 
     APP_VERSION: str = "0.1"
 
+    SECRET_KEY: str
+
     @model_validator(mode="after")
     def validate_sentry_non_local(self) -> "Config":
         if self.ENVIRONMENT.is_deployed and not self.SENTRY_DSN:
@@ -36,8 +35,12 @@ class Config(CustomBaseSettings):
         return self
 
 settings = Config()
+#
+#print("settings.DATABASE_URL:", settings.DATABASE_URL)
+#print("settings.DATABASE_ASYNC_URL:", settings.DATABASE_ASYNC_URL)
 
-app_configs: dict[str, Any] = {"title": "App API"}
+app_configs: dict[str, Any] = {"title": "Prior Auth API App"}
+
 if settings.ENVIRONMENT.is_deployed:
     app_configs["root_path"] = f"/v{settings.APP_VERSION}"
 
