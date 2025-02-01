@@ -1,20 +1,23 @@
 from typing import Any
-from pydantic import model_validator, MongoDsn
+
+from pydantic import MongoDsn, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from .constants import Environment
+
 
 class CustomBaseSettings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_file_encoding="utf-8", extra="ignore"
     )
 
+
 class Config(CustomBaseSettings):
     #
     DATABASE_URL: MongoDsn
     DATABASE_ASYNC_URL: MongoDsn
     AZURE_COSMOS_DB_DATABASE_NAME: str = ""
-   
+
     ENVIRONMENT: Environment = Environment.LOCAL
 
     SENTRY_DSN: str | None = None
@@ -31,13 +34,14 @@ class Config(CustomBaseSettings):
     def validate_sentry_non_local(self) -> "Config":
         if self.ENVIRONMENT.is_deployed and not self.SENTRY_DSN:
             raise ValueError("Sentry is not set")
-        #    
+        #
         return self
+
 
 settings = Config()
 #
-#print("settings.DATABASE_URL:", settings.DATABASE_URL)
-#print("settings.DATABASE_ASYNC_URL:", settings.DATABASE_ASYNC_URL)
+# print("settings.DATABASE_URL:", settings.DATABASE_URL)
+# print("settings.DATABASE_ASYNC_URL:", settings.DATABASE_ASYNC_URL)
 
 app_configs: dict[str, Any] = {"title": "Prior Auth API App"}
 

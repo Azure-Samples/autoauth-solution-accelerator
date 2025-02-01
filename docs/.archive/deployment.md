@@ -1,3 +1,6 @@
+> **NOTICE**: This page has been archived. Please refer to [**azd_deployment.md**](./azd_deployment.md) for the latest deployment instructions.
+
+```
 ---
 layout: default
 title: "Deployment"
@@ -191,3 +194,4 @@ streamlit run app/streamlit/Home.py
 ### Step 5: Data Sources
 
 - Data and test cases are in `utils/data/`.
+```

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "9643843979796575983"
+    }
+  },
+  "parameters": {
+    "exists": {
+      "type": "bool"
+    },
+    "name": {
+      "type": "string"
+    }
+  },
+  "resources": [],
+  "outputs": {
+    "containers": {
+      "type": "array",
+      "value": "[if(parameters('exists'), reference(resourceId('Microsoft.App/containerApps', parameters('name')), '2023-05-02-preview').template.containers, createArray())]"
+    }
+  }
+}

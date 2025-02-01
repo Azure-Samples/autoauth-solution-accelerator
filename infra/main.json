@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.32.4.45862",
-      "templateHash": "9318036165268001999"
+      "version": "0.33.93.31351",
+      "templateHash": "18207231089319522761"
     }
   },
   "parameters": {
@@ -83,10 +83,10 @@
       "type": "array",
       "defaultValue": [
         {
-          "name": "gpt-4o",
-          "version": "2024-08-06",
+          "name": "o1",
+          "version": "2024-12-17",
           "skuName": "Standard",
-          "capacity": 50
+          "capacity": 100
         }
       ],
       "metadata": {
@@ -176,8 +176,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.32.4.45862",
-              "templateHash": "3837372815546977008"
+              "version": "0.33.93.31351",
+              "templateHash": "8500776381135512047"
             }
           },
           "parameters": {
@@ -341,8 +341,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.32.4.45862",
-                      "templateHash": "11280015064312466536"
+                      "version": "0.33.93.31351",
+                      "templateHash": "4461883980771064824"
                     }
                   },
                   "parameters": {
@@ -460,8 +460,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.32.4.45862",
-                      "templateHash": "8599590155065121019"
+                      "version": "0.33.93.31351",
+                      "templateHash": "14264198139338104743"
                     }
                   },
                   "parameters": {
@@ -581,8 +581,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.32.4.45862",
-                      "templateHash": "5461868850494361903"
+                      "version": "0.33.93.31351",
+                      "templateHash": "5226470766090485548"
                     }
                   },
                   "parameters": {
@@ -749,8 +749,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.32.4.45862",
-                      "templateHash": "12701596295264348816"
+                      "version": "0.33.93.31351",
+                      "templateHash": "9778162961165438260"
                     }
                   },
                   "parameters": {
@@ -859,8 +859,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.32.4.45862",
-                      "templateHash": "2638028766387297602"
+                      "version": "0.33.93.31351",
+                      "templateHash": "8681779852569619356"
                     }
                   },
                   "parameters": {
@@ -997,8 +997,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.32.4.45862",
-                      "templateHash": "6548210223307936535"
+                      "version": "0.33.93.31351",
+                      "templateHash": "2865037101428017356"
                     }
                   },
                   "parameters": {
@@ -8952,8 +8952,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.32.4.45862",
-                      "templateHash": "3099741718515307512"
+                      "version": "0.33.93.31351",
+                      "templateHash": "9643843979796575983"
                     }
                   },
                   "parameters": {
@@ -8997,8 +8997,8 @@
                   "metadata": {
                     "_generator": {
                       "name": "bicep",
-                      "version": "0.32.4.45862",
-                      "templateHash": "3099741718515307512"
+                      "version": "0.33.93.31351",
+                      "templateHash": "9643843979796575983"
                     }
                   },
                   "parameters": {
@@ -12708,111 +12708,185 @@
   "outputs": {
     "RESOURCE_GROUP_NAME": {
       "type": "string",
+      "metadata": {
+        "description": "Name of the resource group"
+      },
       "value": "[format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))]"
     },
     "CONTAINER_JOB_NAME": {
       "type": "string",
+      "metadata": {
+        "description": "Name of the container job"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.CONTAINER_JOB_NAME.value]"
     },
     "AZURE_OPENAI_ENDPOINT": {
       "type": "string",
+      "metadata": {
+        "description": "Endpoint for Azure OpenAI"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_OPENAI_ENDPOINT.value]"
     },
     "AZURE_OPENAI_API_VERSION": {
       "type": "string",
+      "metadata": {
+        "description": "API version for Azure OpenAI"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_OPENAI_API_VERSION.value]"
     },
     "AZURE_OPENAI_EMBEDDING_DEPLOYMENT": {
       "type": "string",
+      "metadata": {
+        "description": "Deployment name for Azure OpenAI embedding"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_OPENAI_EMBEDDING_DEPLOYMENT.value]"
     },
     "AZURE_OPENAI_CHAT_DEPLOYMENT_ID": {
       "type": "string",
+      "metadata": {
+        "description": "Deployment ID for Azure OpenAI chat"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_ID.value]"
     },
     "AZURE_OPENAI_CHAT_DEPLOYMENT_01": {
       "type": "string",
+      "metadata": {
+        "description": "Deployment name for Azure OpenAI chat model 01"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01.value]"
     },
     "AZURE_OPENAI_EMBEDDING_DIMENSIONS": {
       "type": "string",
+      "metadata": {
+        "description": "Embedding dimensions for Azure OpenAI"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_OPENAI_EMBEDDING_DIMENSIONS.value]"
     },
     "AZURE_SEARCH_SERVICE_NAME": {
       "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Search service"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_SEARCH_SERVICE_NAME.value]"
     },
     "AZURE_SEARCH_INDEX_NAME": {
       "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Search index"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_SEARCH_INDEX_NAME.value]"
     },
     "AZURE_AI_SEARCH_ADMIN_KEY": {
       "type": "string",
+      "metadata": {
+        "description": "Admin key for Azure AI Search"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_AI_SEARCH_ADMIN_KEY.value]"
     },
     "AZURE_BLOB_CONTAINER_NAME": {
       "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Blob container"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_BLOB_CONTAINER_NAME.value]"
     },
     "AZURE_STORAGE_ACCOUNT_NAME": {
       "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Storage account"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_STORAGE_ACCOUNT_NAME.value]"
     },
     "AZURE_STORAGE_ACCOUNT_KEY": {
       "type": "string",
+      "metadata": {
+        "description": "Key for the Azure Storage account"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_STORAGE_ACCOUNT_KEY.value]"
     },
     "AZURE_STORAGE_CONNECTION_STRING": {
       "type": "string",
+      "metadata": {
+        "description": "Connection string for the Azure Storage account"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_STORAGE_CONNECTION_STRING.value]"
     },
     "AZURE_AI_SERVICES_KEY": {
       "type": "string",
+      "metadata": {
+        "description": "Key for Azure AI services"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_AI_SERVICES_KEY.value]"
     },
     "AZURE_COSMOS_DB_DATABASE_NAME": {
       "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Cosmos DB database"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_COSMOS_DB_DATABASE_NAME.value]"
     },
     "AZURE_COSMOS_DB_COLLECTION_NAME": {
       "type": "string",
+      "metadata": {
+        "description": "Name of the Azure Cosmos DB collection"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_COSMOS_DB_COLLECTION_NAME.value]"
     },
     "AZURE_COSMOS_CONNECTION_STRING": {
       "type": "string",
+      "metadata": {
+        "description": "Connection string for Azure Cosmos DB"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_COSMOS_CONNECTION_STRING.value]"
     },
     "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT": {
       "type": "string",
+      "metadata": {
+        "description": "Endpoint for Azure Document Intelligence"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT.value]"
     },
     "AZURE_DOCUMENT_INTELLIGENCE_KEY": {
       "type": "string",
+      "metadata": {
+        "description": "Key for Azure Document Intelligence"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_DOCUMENT_INTELLIGENCE_KEY.value]"
     },
     "APPLICATIONINSIGHTS_CONNECTION_STRING": {
       "type": "string",
+      "metadata": {
+        "description": "Connection string for Application Insights"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.APPLICATIONINSIGHTS_CONNECTION_STRING.value]"
     },
     "AZURE_CONTAINER_REGISTRY_ENDPOINT": {
       "type": "string",
+      "metadata": {
+        "description": "Endpoint for Azure Container Registry"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT.value]"
     },
     "AZURE_CONTAINER_ENVIRONMENT_ID": {
       "type": "string",
+      "metadata": {
+        "description": "ID for Azure Container Environment"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_CONTAINER_ENVIRONMENT_ID.value]"
     },
     "AZURE_OPENAI_KEY": {
       "type": "string",
+      "metadata": {
+        "description": "Key for Azure OpenAI"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_OPENAI_KEY.value]"
     },
     "AZURE_AI_SEARCH_SERVICE_ENDPOINT": {
       "type": "string",
+      "metadata": {
+        "description": "Service endpoint for Azure AI Search"
+      },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'resources'), '2022-09-01').outputs.AZURE_AI_SEARCH_SERVICE_ENDPOINT.value]"
-    },
-    "AZURE_RESOURCE_GROUP": {
-      "type": "string",
-      "value": "[format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))]"
     }
   }
 }

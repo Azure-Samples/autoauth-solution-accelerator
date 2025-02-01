@@ -1,17 +1,22 @@
 import time
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+
 import sentry_sdk
+
 #
 from beanie import init_beanie
-from fastapi import FastAPI, Request, Depends
+from fastapi import Depends, FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
+
+#
+from app.backend.core.config import app_configs, settings
+
 #
 from .core.database import User, db
-#
-from app.backend.core.config import settings, app_configs
-from .users.schemas import UserCreate, UserRead, UserUpdate
 from .users.manager import auth_backend, current_active_user, fastapi_users
+from .users.schemas import UserCreate, UserRead, UserUpdate
+
 
 @asynccontextmanager
 async def lifespan(_application: FastAPI) -> AsyncGenerator:
@@ -19,6 +24,7 @@ async def lifespan(_application: FastAPI) -> AsyncGenerator:
     await init_beanie(db, document_models=[User], skip_indexes=True)
     yield
     # shutdown
+
 
 app = FastAPI(**app_configs, lifespan=lifespan)
 
@@ -37,6 +43,7 @@ if settings.ENVIRONMENT.is_deployed:
         environment=settings.ENVIRONMENT,
     )
 
+
 # middleware test
 @app.middleware("http")
 async def add_process_time_header(request: Request, call_next):
@@ -45,6 +52,7 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time.perf_counter() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
+
 
 app.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth/jwt", tags=["auth"]
@@ -74,6 +82,7 @@ app.include_router(
 @app.get("/authenticated-route")
 async def authenticated_route(user: User = Depends(current_active_user)):
     return {"message": f"Hello {user.email}!"}
+
 
 @app.get("/healthcheck", include_in_schema=False)
 async def healthcheck() -> dict[str, str]:

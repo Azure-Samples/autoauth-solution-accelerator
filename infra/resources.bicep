@@ -1,3 +1,19 @@
+/*  Module: resources.bicep
+  This Bicep file deploys a set of Azure resources for a “Prior Authorization” scenario.
+  It includes the deployment of AI services, container apps, storage, Cosmos DB, and monitoring.
+  The file also sets up user-assigned identities, manages role assignments, and configures
+  environment variables for containerized applications.
+
+  Services used:
+  - AI Services: OpenAI, Document Intelligence, Multi-Account AI Services
+  - Container Apps: Frontend and Backend container apps, Container registry
+  - Storage: Azure Storage Account
+  - Database: Cosmos DB (MongoDB API)
+  - Monitoring: Azure Monitor, Log Analytics, Application Insights
+  - Identity: User-assigned Managed Identity
+  - Role Assignments: Various role assignments for accessing resources
+*/
+
 // Managed by AZD - Flag for handling of mapping the deployed image to the container app:
 param frontendExists bool = false
 param backendExists bool = false

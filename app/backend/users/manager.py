@@ -8,13 +8,16 @@ from fastapi_users.authentication import (
     BearerTransport,
     JWTStrategy,
 )
+
 #
 from fastapi_users_db_beanie import BeanieUserDatabase, ObjectIDIDMixin
+
 #
 from ..core.config import settings
 from ..core.database import User, get_user_db
 
 SECRET = settings.SECRET_KEY
+
 
 class UserManager(ObjectIDIDMixin, BaseUserManager[User, PydanticObjectId]):
     reset_password_token_secret = SECRET

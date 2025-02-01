@@ -47,10 +47,10 @@ param openAiApiVersion string = '2024-08-01-preview'
 @description('List of completion models to be deployed to the OpenAI account.')
 param chatCompletionModels array = [
   {
-    name: 'gpt-4o'
-    version: '2024-08-06'
+    name: 'o1'
+    version: '2024-12-17'
     skuName: 'Standard'
-    capacity: 50
+    capacity: 100
   }
 ]
 
@@ -76,6 +76,8 @@ var azd_tags = union(tags,{
   'hidden-title': 'Prior Auth ${environmentName}'
   'azd-env-name': environmentName
 })
+
+
 
 // Organize resources in a resource group
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -107,32 +109,80 @@ module resources 'resources.bicep' = {
 // Setting the outputs at main.bicep (or whatever is defined in your azure.yaml's infra block) sets
 //  the environment variables within azd post provisioning
 // ----------------------------------------------------------------------------------------
+@description('Name of the resource group')
 output RESOURCE_GROUP_NAME string = rg.name
+
+@description('Name of the container job')
 output CONTAINER_JOB_NAME string = resources.outputs.CONTAINER_JOB_NAME
 
-// Outputs to initialize local .env file (see azure.yaml postprovisioning)
+@description('Endpoint for Azure OpenAI')
 output AZURE_OPENAI_ENDPOINT string = resources.outputs.AZURE_OPENAI_ENDPOINT
+
+@description('API version for Azure OpenAI')
 output AZURE_OPENAI_API_VERSION string = resources.outputs.AZURE_OPENAI_API_VERSION
+
+@description('Deployment name for Azure OpenAI embedding')
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = resources.outputs.AZURE_OPENAI_EMBEDDING_DEPLOYMENT
+
+@description('Deployment ID for Azure OpenAI chat')
 output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_ID
+
+@description('Deployment name for Azure OpenAI chat model 01')
 output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01
+
+@description('Embedding dimensions for Azure OpenAI')
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = resources.outputs.AZURE_OPENAI_EMBEDDING_DIMENSIONS
+
+@description('Name of the Azure Search service')
 output AZURE_SEARCH_SERVICE_NAME string = resources.outputs.AZURE_SEARCH_SERVICE_NAME
+
+@description('Name of the Azure Search index')
 output AZURE_SEARCH_INDEX_NAME string = resources.outputs.AZURE_SEARCH_INDEX_NAME
+
+@description('Admin key for Azure AI Search')
 output AZURE_AI_SEARCH_ADMIN_KEY string = resources.outputs.AZURE_AI_SEARCH_ADMIN_KEY
+
+@description('Name of the Azure Blob container')
 output AZURE_BLOB_CONTAINER_NAME string = resources.outputs.AZURE_BLOB_CONTAINER_NAME
+
+@description('Name of the Azure Storage account')
 output AZURE_STORAGE_ACCOUNT_NAME string = resources.outputs.AZURE_STORAGE_ACCOUNT_NAME
+
+@description('Key for the Azure Storage account')
 output AZURE_STORAGE_ACCOUNT_KEY string = resources.outputs.AZURE_STORAGE_ACCOUNT_KEY
+
+@description('Connection string for the Azure Storage account')
 output AZURE_STORAGE_CONNECTION_STRING string = resources.outputs.AZURE_STORAGE_CONNECTION_STRING
+
+@description('Key for Azure AI services')
 output AZURE_AI_SERVICES_KEY string = resources.outputs.AZURE_AI_SERVICES_KEY
+
+@description('Name of the Azure Cosmos DB database')
 output AZURE_COSMOS_DB_DATABASE_NAME string = resources.outputs.AZURE_COSMOS_DB_DATABASE_NAME
+
+@description('Name of the Azure Cosmos DB collection')
 output AZURE_COSMOS_DB_COLLECTION_NAME string = resources.outputs.AZURE_COSMOS_DB_COLLECTION_NAME
+
+@description('Connection string for Azure Cosmos DB')
 output AZURE_COSMOS_CONNECTION_STRING string = resources.outputs.AZURE_COSMOS_CONNECTION_STRING
+
+@description('Endpoint for Azure Document Intelligence')
 output AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT string = resources.outputs.AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT
+
+@description('Key for Azure Document Intelligence')
 output AZURE_DOCUMENT_INTELLIGENCE_KEY string = resources.outputs.AZURE_DOCUMENT_INTELLIGENCE_KEY
+
+@description('Connection string for Application Insights')
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = resources.outputs.APPLICATIONINSIGHTS_CONNECTION_STRING
+
+@description('Endpoint for Azure Container Registry')
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
+
+@description('ID for Azure Container Environment')
 output AZURE_CONTAINER_ENVIRONMENT_ID string = resources.outputs.AZURE_CONTAINER_ENVIRONMENT_ID
+
+@description('Key for Azure OpenAI')
 output AZURE_OPENAI_KEY string = resources.outputs.AZURE_OPENAI_KEY
+
+@description('Service endpoint for Azure AI Search')
 output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = resources.outputs.AZURE_AI_SEARCH_SERVICE_ENDPOINT
-output AZURE_RESOURCE_GROUP string = rg.name

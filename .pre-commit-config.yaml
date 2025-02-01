@@ -30,19 +30,19 @@ repos:
   #       args: [--fix, --exit-non-zero-on-fix]
 
   - repo: https://github.com/pre-commit/mirrors-isort
-    rev: "v5.9.3"
+    rev: "v5.10.1"
     hooks:
       - id: isort
         args: ["--profile", "black"]
 
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 25.1.0
     hooks:
       - id: black
         args: ["--config", "pyproject.toml"]
 
   - repo: https://github.com/econchick/interrogate
-    rev: 1.5.0
+    rev: 1.7.0
     hooks:
       - id: interrogate
         args: [src, -v, -i, --fail-under=70, '-e', '**/__init__.py']
@@ -61,3 +61,19 @@ repos:
     - id: debug-statements
     - id: end-of-file-fixer
     - id: trailing-whitespace
+
+  # Bicep/Infra-specific Hooks
+  - repo: https://github.com/Azure4DevOps/check-azure-bicep
+    rev: v0.5.9 # ${LATEST_SHA_OR_VERSION}
+    hooks:
+      # - id: check-azure-bicep
+      - id: check-azure-bicep-format
+
+  # - repo: local
+  #   hooks:
+  #     - id: check-azure-bicep-docs
+  #       name: bicep docs generate
+  #       language: script
+  #       require_serial: true
+  #       entry: ./docs/scripts/GenerateBicepDocs.ps1
+  #       files: .*\.bicep$

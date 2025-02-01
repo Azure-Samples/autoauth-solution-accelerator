@@ -2,6 +2,7 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
+
     "environmentName": {
       "value": "${AZURE_ENV_NAME:-defaultEnv}"
     },
@@ -20,23 +21,14 @@
     "acrContainerImage": {
       "value": "${ACR_CONTAINER_IMAGE:-}"
     },
-    "principalId": {
-      "value": "${PRINCIPAL_ID:-}"
-    },
-    "acrUsername": {
-      "value": "${ACR_USERNAME:-}"
-    },
-    "acrPassword": {
-      "value": "${ACR_PASSWORD:-}"
-    },
     "openAiApiVersion": {
       "value": "${OPENAI_API_VERSION:-2024-08-01-preview}"
     },
     "chatCompletionModels": {
       "value": [
         {
-          "name": "gpt-4o",
-          "version": "2024-08-06",
+          "name": "o1",
+          "version": "2024-12-17",
           "skuName": "Standard",
           "capacity": 100
         }

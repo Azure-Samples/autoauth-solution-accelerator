@@ -1,0 +1,94 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "4461883980771064824"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the AI service"
+      }
+    },
+    "aiServiceSkuName": {
+      "type": "string",
+      "defaultValue": "S0",
+      "allowedValues": [
+        "S0"
+      ],
+      "metadata": {
+        "description": "AI service SKU"
+      }
+    }
+  },
+  "variables": {
+    "aiServiceNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.CognitiveServices/accounts",
+      "apiVersion": "2023-05-01",
+      "name": "[variables('aiServiceNameCleaned')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('aiServiceSkuName')]"
+      },
+      "kind": "AIServices",
+      "properties": {
+        "publicNetworkAccess": "Enabled",
+        "disableLocalAuth": false,
+        "apiProperties": {
+          "statisticsEnabled": false
+        },
+        "customSubDomainName": "[variables('aiServiceNameCleaned')]"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "tags": "[parameters('tags')]"
+    }
+  ],
+  "outputs": {
+    "aiServicesId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned'))]"
+    },
+    "aiServicesEndpoint": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint]"
+    },
+    "aiServiceDocIntelligenceEndpoint": {
+      "type": "string",
+      "value": "[format('https://{0}.cognitiveservices.azure.com/', variables('aiServiceNameCleaned'))]"
+    },
+    "aiServicesName": {
+      "type": "string",
+      "value": "[variables('aiServiceNameCleaned')]"
+    },
+    "aiServicesPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01', 'full').identity.principalId]"
+    },
+    "aiServicesKey": {
+      "type": "string",
+      "value": "[listKeys(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').key1]"
+    }
+  }
+}
