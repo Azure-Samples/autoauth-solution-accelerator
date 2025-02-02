@@ -11,7 +11,7 @@
 
 <div align="center">
     <a href="https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth/azd_deployment.html">
-        <img src="https://img.shields.io/badge/🚀%20Click Me-Deploy%20To%20Azure-blue?style=for-the-badge&logo=github&logoWidth=40" alt="📚 Wiki" height="60">
+        <img src="https://img.shields.io/badge/🚀%20Click Me-Deploy%20To%20Azure-blue?style=for-the-badge&logo=github&logoWidth=20" alt="📚 Wiki" height="32">
     </a>
     </a>
 </div>
