@@ -7,7 +7,7 @@ from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
 
 from src.extractors.utils import get_container_and_blob_name_from_url
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 # Initialize logger
 logger = get_logger()

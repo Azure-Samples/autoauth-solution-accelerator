@@ -36,7 +36,7 @@ from src.pipeline.models import (
 from src.pipeline.paprocessing.utils import find_all_files
 from src.pipeline.prompt_manager import PromptManager
 from src.storage.blob_helper import AzureBlobManager
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 init(autoreset=True)
 

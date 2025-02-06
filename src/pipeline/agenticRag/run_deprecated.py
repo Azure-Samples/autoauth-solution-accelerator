@@ -16,7 +16,7 @@ from src.documentintelligence.document_intelligence_helper import (
 )
 from src.pipeline.promptEngineering.prompt_manager import PromptManager
 from src.storage.blob_helper import AzureBlobManager
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 
 class AgenticRAG:

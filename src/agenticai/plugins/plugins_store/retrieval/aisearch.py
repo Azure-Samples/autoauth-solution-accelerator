@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Annotated, Any, Dict, List, Optional
+from typing import Annotated, Any, Dict, List
 
 from azure.core.credentials import AzureKeyCredential
 from azure.search.documents import SearchClient
@@ -10,17 +10,10 @@ from azure.search.documents.models import (
     QueryType,
     VectorizableTextQuery,
 )
-from semantic_kernel import Kernel
-from semantic_kernel.connectors.ai.chat_completion_client_base import (
-    ChatCompletionClientBase,
-)
-from semantic_kernel.connectors.ai.open_ai import AzureChatCompletion
-from semantic_kernel.contents.chat_history import ChatHistory
 from semantic_kernel.functions import kernel_function
-from semantic_kernel.functions.kernel_arguments import KernelArguments
 from semantic_kernel.utils.logging import setup_logging
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 # Set up logging
 setup_logging()

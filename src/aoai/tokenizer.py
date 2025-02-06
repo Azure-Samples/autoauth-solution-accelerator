@@ -11,7 +11,7 @@ import tiktoken
 from dotenv import load_dotenv
 from PIL import Image
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 # Set up logger
 logger = get_logger()

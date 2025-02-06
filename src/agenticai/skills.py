@@ -1,10 +1,10 @@
 import logging
 import os
-from typing import Any, Dict, List, Literal, Optional, Union
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel, Field, PrivateAttr
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 
 class KernelPlugin(BaseModel):

@@ -33,7 +33,7 @@ from src.pipeline.promptEngineering.models import (
 )
 from src.pipeline.promptEngineering.prompt_manager import PromptManager
 from src.storage.blob_helper import AzureBlobManager
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 init(autoreset=True)
 dotenv.load_dotenv(".env")

@@ -12,7 +12,7 @@ from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 
 class AIFoundryManager:

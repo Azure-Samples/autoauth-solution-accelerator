@@ -1,5 +1,5 @@
 ocr-ner-001-a:
-  id:
+  cases:
     - ocr-ner-001-a.v0
   metrics: [OCRNEREvaluator]
   description: >
@@ -9,9 +9,9 @@ ocr-ner-001-a:
     Evaluations are performed zero-shot without additional fine-tuning.
 
 ocr-ner-001-a.v0:
-  class: evals.ocr:OCRNEREvaluation
+  class: src.evals.custom.ocr_ner_evaluator:OCRNEREvaluator
   args:
-    threshold: 95.0
+    similarity_threshold: 95.0
     uploaded_files: "utils/data/cases/001/a"
     expected_output:
       ocr_ner_results:

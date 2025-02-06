@@ -3,16 +3,14 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 class BaseEvaluator(ABC):
-    def __init__(self, args: Dict[str, Any], threshold: float = 95.0):
+    def __init__(self, args: Dict[str, Any]):
         """
         Base evaluator initializer.
 
         Args:
             args: A dictionary of arguments for the evaluator.
-            threshold: Similarity threshold for evaluations.
         """
         self.args = args
-        self.threshold = threshold
 
     @staticmethod
     def get_required_env_var(var_name: str) -> str:

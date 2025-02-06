@@ -3,7 +3,7 @@ from typing import Any, Dict
 
 import yaml
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 # Set up logging
 logger = get_logger()

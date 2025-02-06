@@ -9,7 +9,7 @@ from pydantic import BaseModel, ValidationError
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.pipeline.promptEngineering.prompt_manager import PromptManager
 from src.pipeline.utils import load_config
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 
 class ClinicalDataExtractor:

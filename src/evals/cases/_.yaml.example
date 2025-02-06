@@ -9,7 +9,7 @@ ocr-ner-002-a:
     Evaluations are performed zero-shot without additional fine-tuning.
 
 ocr-ner-002-a.v0:
-  class: src.evals.custom.ocr_ner_evaluator:OCRNEREvaluator
+  class: evals.custom.ocr_ner_evaluator:OCRNEREvaluator
   args:
     similarity_threshold: 95.0
     uploaded_files: "utils/data/cases/002/a"

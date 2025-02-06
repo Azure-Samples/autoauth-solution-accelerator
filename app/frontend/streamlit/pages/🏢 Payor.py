@@ -15,7 +15,7 @@ from src.aoai.aoai_helper import AzureOpenAIManager
 from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
 from src.entraid.generate_id import generate_unique_id
 from src.pipeline.paprocessing.run import PAProcessingPipeline
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 logger = get_logger()
 

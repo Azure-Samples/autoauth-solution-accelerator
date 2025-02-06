@@ -6,7 +6,7 @@ from semantic_kernel.functions import kernel_function
 from semantic_kernel.utils.logging import setup_logging
 
 from src.aoai.aoai_helper import AzureOpenAIManager
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 # Set up logging
 setup_logging()
