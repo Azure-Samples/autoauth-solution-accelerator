@@ -164,7 +164,7 @@ class AgenticRAG:
         for result in results:
             # Access all properties like a dictionary
             chunk_id = result["chunk_id"] if "chunk_id" in result else "N/A"
-            reranker_score = (
+            (
                 result["@search.reranker_score"]
                 if "@search.reranker_score" in result
                 else "N/A"

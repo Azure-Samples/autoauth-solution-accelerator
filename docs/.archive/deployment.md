@@ -165,7 +165,7 @@ The table below explains the parameters in the ARM template, including their des
 
 ```bash
 conda env create -f environment.yaml
-conda activate vector-indexing-azureaisearch
+conda activate pa-ai-env
 ```
 
 #### For Linux/WSL Users:

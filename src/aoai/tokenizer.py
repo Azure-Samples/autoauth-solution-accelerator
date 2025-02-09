@@ -71,6 +71,7 @@ class AzureOpenAITokenizer:
             logger.warning(f"Model {model} not found. Using cl100k_base encoding.")
             encoding = tiktoken.get_encoding("cl100k_base")
 
+        model = model if model is not None else self.DEFAULT_MODEL
         tokens_per_message = self.TOKENS_PER_MESSAGE.get(model, 3)
         tokens_per_name = self.TOKENS_PER_NAME.get(model, 1)
 

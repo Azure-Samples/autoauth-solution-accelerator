@@ -1,5 +1,5 @@
 isort==5.9.3
-black==23.12.1
+black==25.1.0
 flake8==3.9.2
 interrogate==1.4.0
 pre-commit==2.14.0
@@ -10,3 +10,4 @@ pylint
 pytest
 pytest-cov
 black[jupyter]
+types-PyYAML

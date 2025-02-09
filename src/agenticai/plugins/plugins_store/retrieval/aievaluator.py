@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Annotated, Dict, List
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.utils.logging import setup_logging
 

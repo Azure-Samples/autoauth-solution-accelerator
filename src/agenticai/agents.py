@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, Dict, List, Literal, Optional
+from typing import List, Literal, Optional
 
 from pydantic import Field, PrivateAttr
 from semantic_kernel import Kernel
@@ -33,10 +33,10 @@ class Agent(ChatCompletionAgent):
     The agent is designed to be efficient, scalable, and memory-conscious.
     """
 
-    skills: Optional[
-        List[Literal["retrieval", "main", "rewriting", "evaluation"]]
-    ] = Field(
-        default=None, description="List of allowed plugin names to load as skills."
+    skills: Optional[List[Literal["retrieval", "main", "rewriting", "evaluation"]]] = (
+        Field(
+            default=None, description="List of allowed plugin names to load as skills."
+        )
     )
     tracing_enabled: bool = Field(
         default=False, description="Flag to enable or disable tracing."

@@ -1,4 +1,3 @@
-import base64
 import os
 from typing import Any, Dict, Iterator, List, Optional, Union
 
@@ -8,7 +7,6 @@ from azure.core.credentials import AzureKeyCredential
 from azure.core.polling import LROPoller
 
 # from azure.ai.formrecognizer import DocumentAnalysisClient
-from azure.identity import DefaultAzureCredential
 from dotenv import load_dotenv
 from langchain_core.documents import Document as LangchainDocument
 
@@ -174,9 +172,9 @@ class AzureDocumentIntelligenceManager:
                         string_index_type=string_index_type,
                         features=features,
                         query_fields=query_fields,
-                        output_content_format=output_format
-                        if output_format
-                        else "text",
+                        output_content_format=(
+                            output_format if output_format else "text"
+                        ),
                         content_type=content_type,
                         **kwargs,
                     )

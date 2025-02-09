@@ -3,6 +3,7 @@ import time
 from pathlib import Path
 from typing import Any, Dict, Optional
 
+import dotenv
 import yaml
 from azure.core.credentials import AzureKeyCredential
 from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
@@ -49,7 +50,6 @@ from utils.ml_logging import get_logger
 
 logger = get_logger()
 
-import dotenv
 
 dotenv.load_dotenv(".env")
 

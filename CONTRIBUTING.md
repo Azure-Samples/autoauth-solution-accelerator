@@ -76,7 +76,7 @@ git clone https://github.example.com/{your_project}.git
 2. **Activate the Environment**:
    - Once created, activate it using:
      ```bash
-     conda activate vector-indexing-azureaisearch
+     conda activate pa-ai-env
      ```
 
 > **For Linux Users (or Windows with WSL/Linux setup)**
@@ -91,7 +91,7 @@ git clone https://github.example.com/{your_project}.git
 2. **Activate the Environment**:
    - After creation, activate the new Conda environment with:
      ```bash
-     conda activate vector-indexing-azureaisearch
+     conda activate pa-ai-env
      ```
 
 This procedure prepares your development environment with the necessary Python version and installs all required packages as per your `requirements.txt` and `requirements-codequality.txt`.
@@ -167,7 +167,7 @@ a. **Install Required Extensions**: Download and install the `Python` and `Jupyt
 
 b. **Open the Notebook**: Open the Jupyter Notebook file (`01-indexing-content.ipynb`) in VSCode.
 
-c. **Attach Kernel to VSCode**: After creating the Conda environment, it should be available in the kernel selection dropdown. This dropdown is located in the top-right corner of the VSCode interface. Select your newly created environment (`vector-indexing-azureaisearch`) from the dropdown. This sets it as the kernel for running your Jupyter Notebooks.
+c. **Attach Kernel to VSCode**: After creating the Conda environment, it should be available in the kernel selection dropdown. This dropdown is located in the top-right corner of the VSCode interface. Select your newly created environment (`pa-ai-env`) from the dropdown. This sets it as the kernel for running your Jupyter Notebooks.
 
 d. **Run the Notebook**: Once the kernel is attached, you can run the notebook by clicking on the "Run All" button in the top menu, or by running each cell individually.
 

@@ -132,9 +132,11 @@ class AzureBlobDataExtractor:
             "name": metadata.get("blob_name"),
             "size": metadata.get("size"),
             "content_type": metadata.get("content_type"),
-            "last_modified": metadata.get("last_modified").isoformat()
-            if metadata.get("last_modified")
-            else None,
+            "last_modified": (
+                metadata.get("last_modified").isoformat()
+                if metadata.get("last_modified")
+                else None
+            ),
         }
         return formatted_metadata
 
