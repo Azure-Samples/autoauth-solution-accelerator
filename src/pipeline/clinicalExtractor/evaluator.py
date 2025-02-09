@@ -132,7 +132,7 @@ class EvaluatorPipeline:
         for case_id, case_obj in self.cases.items():
             with case_obj.create_evaluation_dataset() as dataset_path:
                 azure_result = evaluate(
-                    evaluation_name=f"{case_id}::{git_hash}",
+                    evaluation_name=f"{case_id};{git_hash}",
                     data=dataset_path,
                     evaluators={
                         "OCRNEREvaluator": self.global_evaluators.get("OCRNEREvaluator")
