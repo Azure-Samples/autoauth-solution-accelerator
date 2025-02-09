@@ -5,11 +5,16 @@ import yaml
 import importlib
 from typing import Any, Dict, List, Tuple
 
+# Adjust the import path as needed.
+from src.aifoundry.aifoundry_helper import AIFoundryManager
 
 class EvaluatorPipeline:
     def __init__(self, cases_dir: str):
         """
         Initialize the pipeline with the directory containing the case YAML files.
+
+        Additionally, this initializes the Azure AI Foundry connection by ensuring the
+        connection string is set.
 
         Args:
             cases_dir: Path to the folder containing case YAML configuration files.
@@ -19,6 +24,15 @@ class EvaluatorPipeline:
         self.case_configs: List[Tuple[str, str, str, Dict[str, Any]]] = []
         # List of evaluation results (one per test case)
         self.results: List[Dict[str, Any]] = []
+
+        # Initialize the AI Foundry Manager using the provided connection string.
+        # This will raise an exception if the connection string is not set.
+        try:
+            connection_string = os.getenv("AZURE_AI_FOUNDRY_CONNECTION_STRING")
+            self.aif_manager = AIFoundryManager(project_connection_string=connection_string)
+            # Note: Telemetry is not initialized here as it is not required.
+        except Exception as e:
+            raise Exception(f"Failed to initialize AI Foundry: {e}")
 
     def aggregate_data(self) -> None:
         """
