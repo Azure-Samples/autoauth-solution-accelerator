@@ -1,7 +1,8 @@
-import time
 import logging
+import time
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
+
 #
 from beanie import init_beanie
 from fastapi import Depends, FastAPI, Request
@@ -9,18 +10,20 @@ from starlette.middleware.cors import CORSMiddleware
 
 #
 from app.backend.core.config import app_configs, settings
+from src.pipeline.paprocessing.run import PAProcessingPipeline
 
 #
 from .core.database import User, db
+from .paprocessing.models import PAProcessingRequest
 from .users.manager import auth_backend, current_active_user, fastapi_users
 from .users.schemas import UserCreate, UserRead, UserUpdate
-from src.pipeline.paprocessing.run import PAProcessingPipeline
-from .paprocessing.models import PAProcessingRequest
+
 #
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 #
 pa_pipeline = PAProcessingPipeline(send_cloud_logs=True)
+
 
 @asynccontextmanager
 async def lifespan(_application: FastAPI) -> AsyncGenerator:
@@ -76,6 +79,7 @@ app.include_router(
     tags=["users"],
 )
 
+
 @app.get("/authenticated-route")
 async def authenticated_route(user: User = Depends(current_active_user)):
     return {"message": f"Hello {user.email}!"}
@@ -110,12 +114,14 @@ async def process_pa(request: PAProcessingRequest):
         logger.info(
             f"Starting PAProcessingPipeline.run() for caseId={pa_pipeline.caseId}"
         )
-        
+
         print(request.uploaded_files)
 
         # Validate and sanitize input data
-        sanitized_files = [file for file in request.uploaded_files if file.endswith('.pdf')]
-        
+        sanitized_files = [
+            file for file in request.uploaded_files if file.endswith(".pdf")
+        ]
+
         await pa_pipeline.run(
             uploaded_files=sanitized_files,
             streamlit=request.streamlit,
@@ -134,4 +140,8 @@ async def process_pa(request: PAProcessingRequest):
 
     except Exception as e:
         logger.error(f"Failed to process PA request: {str(e)}", exc_info=True)
-        return {"caseId": pa_pipeline.caseId, "error": "An internal error has occurred. Please try again later.", "results": {}}
+        return {
+            "caseId": pa_pipeline.caseId,
+            "error": "An internal error has occurred. Please try again later.",
+            "results": {},
+        }

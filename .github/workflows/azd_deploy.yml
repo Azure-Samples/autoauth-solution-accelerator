@@ -45,7 +45,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install azd
-        uses: Azure/setup-azd@v1.0.0
+        uses: Azure/setup-azd@ae0f8b5482eeac61e940f447327d84c73beb8b1e
 
       - name: Log in with Azure (Federated Credentials)
         run: |
@@ -58,14 +58,10 @@ jobs:
         # This step provisions the infrastructure only if there are changes in the 'infra' directory,
         # or if the action input is set to 'all' or 'provision'.
         # It runs the 'azd provision' command with no prompts.
-        # The environment variables 'AZD_INITIAL_ENVIRONMENT_CONFIG' and 'cosmosAdministratorPassword'
-        # are set using the corresponding secrets from the repository.
       - name: Provision Infrastructure
         id: provision
         run: azd provision --no-prompt
         env:
-          cosmosAdministratorPassword: ${{ secrets.COSMOS_ADMINISTRATOR_PASSWORD }}
-
           # azd uses a pipeline secret called AZD_INITIAL_ENVIRONMENT_CONFIG to automatically save
           # and set the value of all the required parameters in the pipeline.
           # You only need to reference this secret in your pipeline:

@@ -2,6 +2,7 @@
 `azure_openai.py` is a module for managing interactions with the Azure OpenAI API within our application.
 
 """
+
 import base64
 import json
 import mimetypes

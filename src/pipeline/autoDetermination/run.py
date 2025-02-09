@@ -157,11 +157,8 @@ class AutoPADeterminator:
                     )
 
                     # Use provided values or default to self attributes
-                    system_message_content = (
-                        system_message_content
-                        or self.prompt_manager.get_prompt(
-                            self.four0_auto_determination_config["system_prompt"]
-                        )
+                    system_message_content = self.prompt_manager.get_prompt(
+                        self.four0_auto_determination_config["system_prompt"]
                     )
                     max_tokens = self.four0_auto_determination_config["max_tokens"]
                     top_p = self.four0_auto_determination_config["top_p"]

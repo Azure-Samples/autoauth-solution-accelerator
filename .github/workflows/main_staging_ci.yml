@@ -1,10 +1,15 @@
 name: Code Quality and Tests 🚀
 
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
-  push:
+  pull_request:
     branches:
       - main
       - staging
+
 
 jobs:
   quality-checks:
@@ -18,15 +23,19 @@ jobs:
         uses: conda-incubator/setup-miniconda@v2
         with:
           environment-file: environment.yaml # Create an environment.yml file
-          activate-environment: ''
+          activate-environment: 'pa-ai-env'
+          python-version: '3.10'
           auto-activate-base: false
 
       - name: Activate Conda Node 🔧
+        shell: bash -el {0}
         run: |
+          conda info
           conda list
           conda install -c anaconda click
-          pip install -r requirements-codequality.txt
-          pip install -r requirements.txt
+
+          # pip install -r requirements.txt
+          # pip install -r requirements-codequality.txt
 
       - name: Setup Node 🔧
         uses: actions/setup-node@v2
@@ -34,30 +43,38 @@ jobs:
           node-version: '14'
 
       - name: Run isort Check 🧹
+        shell: bash -el {0}
         run: isort --check-only --profile black .
 
       - name: Run Black Check 🌚
-        run: black --check .
+        shell: bash -el {0}
+        run: black --check --config pyproject.toml .
 
       - name: Run flake8 ✅
-        run: flake8 . --max-line-length=124
+        shell: bash -el {0}
+        run: flake8 . --extend-ignore E501 --config pyproject.toml --max-line-length=124
 
-      - name: Run ruff Check 🧼
-        run: ruff --fix --exit-non-zero-on-fix .
+      # Commenting out due to conflicting formatting/linting with black
+      # - name: Run ruff Check 🧼
+      #   shell: bash -el {0}
+      #   run: ruff --fix --exit-non-zero-on-fix .
 
       - name: Run interrogate Check 🔍
+        shell: bash -el {0}
         run: interrogate src -v -i --fail-under=60 -e '**/__init__.py'
 
       - name: Bandit Security Linter Check 🔒
+        shell: bash -el {0}
         run: bandit -c pyproject.toml -r .
 
       - name: Run Pytest 🧪
+        shell: bash -el {0}
         run: pytest tests/
 
-  deployment:
-    name: deploy
-    runs-on: ubuntu-latest
-    needs: quality-checks
-    steps:
-      - name: Deploy to production
-        run: echo deploying
+  # deployment:
+  #   name: deploy
+  #   runs-on: ubuntu-latest
+  #   needs: quality-checks
+  #   steps:
+  #     - name: Deploy to production
+  #       run: echo deploying

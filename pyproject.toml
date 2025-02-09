@@ -52,6 +52,7 @@ exclude = "utils|tests"
 
 [tool.ruff]
 line-length = 124
+ignore = ["E501"]
 
 [tool.isort]
 profile = "black"

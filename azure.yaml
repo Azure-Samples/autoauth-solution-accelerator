@@ -27,12 +27,12 @@ services:
           run: ..\..\utils\azd\hooks\postdeploy.ps1
 
   backend: # <-- This is the name of your service (tag:azdServiceName in bicep config)
-    project: app/backend/paprocessing
+    project: app/backend
     host: containerapp
     language: python
     docker:
       path: Dockerfile
-      context: ../../../
+      context: ../../
       remoteBuild: true
 
 # pipeline:
