@@ -4,6 +4,7 @@ import tempfile
 from contextlib import contextmanager
 from typing import List, Dict, Any, Optional
 
+
 class Evaluation:
     """
     Represents a single evaluation record.
@@ -11,36 +12,38 @@ class Evaluation:
     Attributes:
       - query: The expected output key (e.g. "patient_info.patient_name").
       - response: The AI-generated response.
-      - context: A description of the evaluation context (for OCRNEREvaluation, this is None).
       - ground_truth: The expected value from the YAML.
-      - conversation: A list of messages (for OCRNEREvaluation, this is None).
+      - context: A description of the evaluation context.
+      - conversation: A list of messages.
       - scores: A dictionary of score(s) (e.g. {"semantic_similarity": <score>}).
     """
+
     def __init__(
-        self,
-        query: str,
-        response: str,
-        ground_truth: str,
-        context: Optional[Any] = None,
-        conversation: Optional[Any] = None,
-        scores: Optional[Dict[str, Any]] = None
+            self,
+            query: str,
+            response: str,
+            ground_truth: str,
+            context: Optional[Any] = None,
+            conversation: Optional[Any] = None,
+            scores: Optional[Dict[str, Any]] = None
     ):
         self.query = query
         self.response = response
-        self.context = context
         self.ground_truth = ground_truth
-        self.conversation = conversation
-        self.scores = scores if scores is not None else {}
+
+        # Only set attributes if they are not None or not an empty dict.
+        if context is not None and context != {}:
+            self.context = context
+        if conversation is not None and conversation != {}:
+            self.conversation = conversation
+        if scores is not None and scores != {}:
+            self.scores = scores
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "query": self.query,
-            "response": self.response,
-            "ground_truth": self.ground_truth,
-            "context": self.context,         # For OCRNEREvaluation, this will be None.
-            "conversation": self.conversation, # For OCRNEREvaluation, this will be None.
-            "scores": self.scores
-        }
+        # Build a dictionary from the instance's __dict__.
+        # This will only include attributes that were actually set.
+        return self.__dict__
+
 
 class Case:
     """
@@ -52,6 +55,7 @@ class Case:
       - evaluations: A list of Evaluation objects.
       - azure_eval_result: (Optional) The result returned from the Azure evaluation API.
     """
+
     def __init__(self, case_name: str, case_class: str, evaluations: Optional[List[Evaluation]] = None):
         self.case_name = case_name
         self.case_class = case_class
@@ -67,6 +71,7 @@ class Case:
         temp_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.jsonl', prefix='evaluation_dataset_')
         try:
             for eval_obj in self.evaluations:
+                # Use to_dict() which now only returns attributes that were set.
                 temp_file.write(json.dumps(eval_obj.to_dict()) + "\n")
             temp_file.flush()
             temp_file.close()

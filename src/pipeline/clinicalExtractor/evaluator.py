@@ -3,18 +3,19 @@ import glob
 import os
 import yaml
 import importlib
+import traceback
 
+from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.evals.case import Case, Evaluation
 from azure.ai.evaluation import evaluate
 
-# ------------------------------------------------------------------------------
-# Dummy evaluator functions and project configuration for demonstration.
-# Replace these with your actual evaluator implementations and Azure AI project details.
-groundedness_eval = lambda data: data  # Placeholder evaluator
-answer_length = lambda data: data       # Placeholder evaluator
-azure_ai_project = "my_azure_ai_project"
-# ------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------
+# Initialize the Azure AI project client.
+# It will check for the connection string in the environment variable.
+from azure.identity import DefaultAzureCredential
+from azure.ai.projects import AIProjectClient
 
+# -------------------------------------------------------------------------------
 class EvaluatorPipeline:
     def __init__(self, cases_dir: str):
         """
@@ -27,16 +28,22 @@ class EvaluatorPipeline:
         self.cases = {}         # Dictionary mapping case_id to Case instance
         self.results = []       # For logging raw NER or evaluator responses
         self.global_evaluators = {}  # For example: {"OCRNEREvaluator": instance}
+        self.ai_foundry_manager = AIFoundryManager()
 
     async def preprocess(self):
-        """
-        Asynchronous preprocessing step:
-          - Loads YAML case files and populates self.case_configs.
-          - For each test case, creates a Case instance.
-          - For OCRNEREvaluator cases, immediately generates NER output and populates evaluations.
-            (Here, the "response" is generated and stored but the scores are left as None.
-             The similarity will be computed later in run_evaluations.)
-        """
+        def flatten_fields(expected: dict, generated: dict, prefix: str = "") -> list:
+            evaluations = []
+            for key, expected_val in expected.items():
+                new_prefix = f"{prefix}.{key}" if prefix else key
+                if isinstance(expected_val, dict):
+                    generated_sub = generated.get(key, {}) if isinstance(generated, dict) else {}
+                    evaluations.extend(flatten_fields(expected_val, generated_sub, prefix=new_prefix))
+                else:
+                    actual_val = generated.get(key, "") if isinstance(generated, dict) else ""
+                    # Convert both leaf values to string to be safe.
+                    evaluations.append((new_prefix, str(expected_val), str(actual_val)))
+            return evaluations
+
         case_files = glob.glob(os.path.join(self.cases_dir, "*.yaml"))
         for file_path in case_files:
             with open(file_path, "r") as f:
@@ -61,16 +68,12 @@ class EvaluatorPipeline:
                     continue
                 evaluator_args = test_case_obj.get("args", {})
                 self.case_configs.append((file_path, case_id, evaluator_class_path, evaluator_args))
-                # Create a Case instance for this test case.
                 self.cases[case_id] = Case(case_name=case_id, case_class=evaluator_class_path)
-
-                # For OCRNEREvaluator cases, generate NER responses and populate evaluations.
                 if "OCRNEREvaluator" in evaluator_class_path:
-                    # Ensure evaluator_class_path contains a colon.
                     if ":" not in evaluator_class_path:
-                        print(f"Error: Evaluator class path '{evaluator_class_path}' is not in the format 'module:ClassName'.")
+                        print(
+                            f"Error: Evaluator class path '{evaluator_class_path}' is not in the format 'module:ClassName'.")
                         continue
-                    # Initialize a global instance of OCRNEREvaluator if not already done.
                     if "OCRNEREvaluator" not in self.global_evaluators:
                         try:
                             module_path, class_name = evaluator_class_path.split(":")
@@ -85,51 +88,38 @@ class EvaluatorPipeline:
                         evaluator_instance = self.global_evaluators["OCRNEREvaluator"]
 
                     try:
-                        # Generate NER responses asynchronously.
                         ner_response_result = await evaluator_instance.generate_ner_responses()
                     except Exception as e:
                         print(f"Error generating NER responses for case '{case_id}': {e}")
                         ner_response_result = {}
-                    # Extract the generated output dictionary.
                     generated_output = ner_response_result.get("generated_output", {})
-                    # Retrieve the expected output dictionary from YAML.
                     expected_ocr_output = evaluator_args.get("expected_output", {}).get("ocr_ner_results", {})
-
-                    # Iterate over each top-level key (e.g. "patient_info", "physician_info", etc.)
-                    for top_key, sub_dict in expected_ocr_output.items():
-                        # For each sub-key, create an evaluation record.
-                        for sub_key, expected_val in sub_dict.items():
-                            query = f"{top_key}.{sub_key}"
-                            actual_val = generated_output.get(top_key, {}).get(sub_key, "")
-                            # Do not compute the similarity here; set scores to None.
-                            evaluation_record = Evaluation(
-                                query=query,
-                                response=actual_val,
-                                ground_truth=expected_val,
-                                context=None,
-                                conversation=None,
-                                scores=None  # Leave scores as None until run_evaluations
-                            )
-                            self.cases[case_id].evaluations.append(evaluation_record)
-                            self.results.append({
-                                "case": case_id,
-                                "query": query,
-                                "ner_response": actual_val
-                            })
+                    flattened = flatten_fields(expected_ocr_output, generated_output, prefix="")
+                    for query, expected_val, actual_val in flattened:
+                        evaluation_record = Evaluation(
+                            query=query,
+                            response=actual_val,
+                            ground_truth=expected_val,
+                            context=None,
+                            conversation=None,
+                            scores=None
+                        )
+                        self.cases[case_id].evaluations.append(evaluation_record)
+                        self.results.append({
+                            "case": case_id,
+                            "query": query,
+                            "ner_response": actual_val
+                        })
 
     async def run_evaluations(self):
-        """
-        run_evaluations step:
-          - Loops through each Case.
-          - For each Case, uses its helper method to generate a temporary JSONL file from its evaluations.
-          - Calls the Azure evaluation API (via evaluate()) with the temporary file.
-          - Saves the returned evaluation result in the Case.
-        """
-
         for case_id, case_obj in self.cases.items():
             with case_obj.create_evaluation_dataset() as dataset_path:
+                with open(dataset_path, "r") as f:
+                    contents = f.read()
+                print("Dataset contents:")
+                print(contents)
                 azure_result = evaluate(
-                    data=dataset_path,  # The temporary JSONL file path
+                    data=dataset_path,
                     evaluators={
                         "OCRNEREvaluator": self.global_evaluators.get("OCRNEREvaluator")
                     },
@@ -142,11 +132,9 @@ class EvaluatorPipeline:
                             }
                         }
                     },
-                    # azure_ai_project=azure_ai_project,
-                    # output_path="./myevalresults.json"
+                    azure_ai_project=self.ai_foundry_manager.project_config,
                 )
                 case_obj.azure_eval_result = azure_result
-                print(azure_result)
 
     def post_processing(self) -> dict:
         """
@@ -165,16 +153,14 @@ class EvaluatorPipeline:
         return summary
 
     async def run_pipeline(self) -> dict:
-        """
-        Executes the complete pipeline in three steps:
-          1. Preprocessing
-          2. Running evaluations
-          3. Post-processing
-        """
         await self.preprocess()
+        # for evaluation in self.cases['ocr-ner-001-a.v0'].evaluations:
+        #     import json
+        #     print(json.dumps(evaluation.to_dict()))
         await self.run_evaluations()
-        ### NEED TO ADDITIONALLY CHECK WHY RESPONSES != GENERATED ANSWERS FOR NER, AND FIX.
-        return self.cases['ocr-ner-001-a.v0'].evaluations[0].to_dict()
+        # return {"status": "success"}
+        # # import json
+        # # print(json.dumps(self.post_processing(), indent=3))
         return self.post_processing()
 
 # ------------------------------------------------------------------------------
@@ -185,5 +171,6 @@ if __name__ == "__main__":
         summary = asyncio.run(pipeline.run_pipeline())
         print(summary)
     except Exception as e:
-        print(f"Pipeline failed: {e}")
+        formatted_tb = ''.join(traceback.format_tb(e.__traceback__))
+        print(f"Pipeline failed: {e}, stack trace: {formatted_tb}")
         exit(1)

@@ -1,9 +1,9 @@
 import asyncio
 
-from src.evals.cases_helper import CaseManager
+from src.tmp.evals.cases_helper import CaseManager
 
 if __name__ == "__main__":
-    from src.evals.cases import cases
+    from src.tmp.evals.cases import cases
 
     case_manager = CaseManager(cases)
     try:
