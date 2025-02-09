@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict
 
 class BaseEvaluator(ABC):
-    def __init__(self, args: Dict[str, Any]):
+    def __init__(self, args: dict):
         """
         Base evaluator initializer.
 
@@ -31,14 +31,14 @@ class BaseEvaluator(ABC):
             raise ValueError(f"Missing required environment variable: {var_name}")
         return value
 
-    @abstractmethod
-    async def run(self) -> Dict[str, Any]:
-        """
-        Execute the evaluation.
-
-        This method must be implemented by any subclass.
-
-        Returns:
-            A dictionary with evaluation results.
-        """
-        pass
+    # @abstractmethod
+    # async def run(self) -> Dict[str, Any]:
+    #     """
+    #     Execute the evaluation.
+    #
+    #     This method must be implemented by any subclass.
+    #
+    #     Returns:
+    #         A dictionary with evaluation results.
+    #     """
+    #     pass

@@ -1,7 +1,6 @@
 ocr-ner-001-b:
   cases:
     - ocr-ner-001-b.v0
-  metrics: [OCRNEREvaluator]
   description: >
     Evaluation for OCR/NER extraction on Case ocr-ner-001-b.
     This evaluation verifies that the system correctly handles slight variations in the extracted data.

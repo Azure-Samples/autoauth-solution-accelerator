@@ -1,7 +1,6 @@
 ocr-ner-002-a:
   cases:
     - ocr-ner-002-a.v0
-  metrics: [OCRNEREvaluator]
   description: >
     Evaluation for OCR/NER extraction on Case ocr-ner-002-a.
     This case involves neurology details and verifies the extraction of patient, physician, and clinical information.

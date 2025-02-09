@@ -1,7 +1,6 @@
 ocr-ner-001-a:
   cases:
     - ocr-ner-001-a.v0
-  metrics: [OCRNEREvaluator]
   description: >
     Evaluation for OCR/NER extraction on Case ocr-ner-001-a.
     This evaluation verifies that patient, physician, and clinical details are correctly extracted.

@@ -3,167 +3,181 @@ import glob
 import os
 import yaml
 import importlib
-from typing import Any, Dict, List, Tuple
 
-# Adjust the import path as needed.
-from src.aifoundry.aifoundry_helper import AIFoundryManager
+from src.evals.case import Case, Evaluation
+from azure.ai.evaluation import evaluate
+
+# ------------------------------------------------------------------------------
+# Dummy evaluator functions and project configuration for demonstration.
+# Replace these with your actual evaluator implementations and Azure AI project details.
+groundedness_eval = lambda data: data  # Placeholder evaluator
+answer_length = lambda data: data       # Placeholder evaluator
+azure_ai_project = "my_azure_ai_project"
+# ------------------------------------------------------------------------------
 
 class EvaluatorPipeline:
     def __init__(self, cases_dir: str):
         """
-        Initialize the pipeline with the directory containing the case YAML files.
-
-        Additionally, this initializes the Azure AI Foundry connection by ensuring the
-        connection string is set.
-
-        Args:
-            cases_dir: Path to the folder containing case YAML configuration files.
+        Initialize the pipeline with the directory containing YAML case definitions.
+        Sets up an object (self.cases) to hold Case instances.
+        Also prepares a global evaluators dictionary to hold shared evaluator instances.
         """
         self.cases_dir = cases_dir
-        # List of tuples: (file_path, case_id, evaluator_class_path, evaluator_args)
-        self.case_configs: List[Tuple[str, str, str, Dict[str, Any]]] = []
-        # List of evaluation results (one per test case)
-        self.results: List[Dict[str, Any]] = []
+        self.case_configs = []  # List of tuples: (file_path, case_id, evaluator_class_path, evaluator_args)
+        self.cases = {}         # Dictionary mapping case_id to Case instance
+        self.results = []       # For logging raw NER or evaluator responses
+        self.global_evaluators = {}  # For example: {"OCRNEREvaluator": instance}
 
-        # Initialize the AI Foundry Manager using the provided connection string.
-        # This will raise an exception if the connection string is not set.
-        try:
-            connection_string = os.getenv("AZURE_AI_FOUNDRY_CONNECTION_STRING")
-            self.aif_manager = AIFoundryManager(project_connection_string=connection_string)
-            # Note: Telemetry is not initialized here as it is not required.
-        except Exception as e:
-            raise Exception(f"Failed to initialize AI Foundry: {e}")
-
-    def aggregate_data(self) -> None:
+    async def preprocess(self):
         """
-        Aggregates the data by scanning the cases directory for YAML files and loading their configurations.
-
-        Each YAML file is expected to have:
-          - A root key matching the file name (without extension) that contains metadata including a "cases" array.
-          - For each test case ID in the "cases" array, a sibling key whose value is an object containing:
-              - "class": The evaluator class (in the form "module.submodule:ClassName").
-              - "args": A mapping of keyword arguments to be passed to the evaluator.
+        Asynchronous preprocessing step:
+          - Loads YAML case files and populates self.case_configs.
+          - For each test case, creates a Case instance.
+          - For OCRNEREvaluator cases, immediately generates NER output and populates evaluations.
+            (Here, the "response" is generated and stored but the scores are left as None.
+             The similarity will be computed later in run_evaluations.)
         """
-        # Search for all YAML files in the provided directory.
         case_files = glob.glob(os.path.join(self.cases_dir, "*.yaml"))
         for file_path in case_files:
             with open(file_path, "r") as f:
                 config = yaml.safe_load(f)
-
-            # Derive the expected root key from the file name (without extension)
             file_id = os.path.splitext(os.path.basename(file_path))[0]
             if file_id not in config:
                 print(f"Warning: Expected root key '{file_id}' not found in {file_path}. Skipping.")
                 continue
-
             root_obj = config[file_id]
             cases_list = root_obj.get("cases", [])
             if not cases_list:
                 print(f"Warning: No cases found under root key '{file_id}' in {file_path}. Skipping.")
                 continue
-
-            # For each test case ID listed in the "cases" array, look up its definition.
             for case_id in cases_list:
                 if case_id not in config:
-                    print(f"Warning: Test case '{case_id}' not found in file {file_path}. Skipping this test case.")
+                    print(f"Warning: Test case '{case_id}' not found in file {file_path}. Skipping.")
                     continue
-
                 test_case_obj = config[case_id]
                 evaluator_class_path = test_case_obj.get("class")
                 if not evaluator_class_path:
                     print(f"Warning: No 'class' defined for test case '{case_id}' in file {file_path}. Skipping.")
                     continue
-
                 evaluator_args = test_case_obj.get("args", {})
                 self.case_configs.append((file_path, case_id, evaluator_class_path, evaluator_args))
+                # Create a Case instance for this test case.
+                self.cases[case_id] = Case(case_name=case_id, case_class=evaluator_class_path)
 
-    async def run_evaluations(self) -> None:
+                # For OCRNEREvaluator cases, generate NER responses and populate evaluations.
+                if "OCRNEREvaluator" in evaluator_class_path:
+                    # Ensure evaluator_class_path contains a colon.
+                    if ":" not in evaluator_class_path:
+                        print(f"Error: Evaluator class path '{evaluator_class_path}' is not in the format 'module:ClassName'.")
+                        continue
+                    # Initialize a global instance of OCRNEREvaluator if not already done.
+                    if "OCRNEREvaluator" not in self.global_evaluators:
+                        try:
+                            module_path, class_name = evaluator_class_path.split(":")
+                            module = importlib.import_module(module_path)
+                            evaluator_class = getattr(module, class_name)
+                            evaluator_instance = evaluator_class(args=evaluator_args)
+                            self.global_evaluators["OCRNEREvaluator"] = evaluator_instance
+                        except Exception as e:
+                            print(f"Error initializing OCRNEREvaluator for case '{case_id}': {e}")
+                            continue
+                    else:
+                        evaluator_instance = self.global_evaluators["OCRNEREvaluator"]
+
+                    try:
+                        # Generate NER responses asynchronously.
+                        ner_response_result = await evaluator_instance.generate_ner_responses()
+                    except Exception as e:
+                        print(f"Error generating NER responses for case '{case_id}': {e}")
+                        ner_response_result = {}
+                    # Extract the generated output dictionary.
+                    generated_output = ner_response_result.get("generated_output", {})
+                    # Retrieve the expected output dictionary from YAML.
+                    expected_ocr_output = evaluator_args.get("expected_output", {}).get("ocr_ner_results", {})
+
+                    # Iterate over each top-level key (e.g. "patient_info", "physician_info", etc.)
+                    for top_key, sub_dict in expected_ocr_output.items():
+                        # For each sub-key, create an evaluation record.
+                        for sub_key, expected_val in sub_dict.items():
+                            query = f"{top_key}.{sub_key}"
+                            actual_val = generated_output.get(top_key, {}).get(sub_key, "")
+                            # Do not compute the similarity here; set scores to None.
+                            evaluation_record = Evaluation(
+                                query=query,
+                                response=actual_val,
+                                ground_truth=expected_val,
+                                context=None,
+                                conversation=None,
+                                scores=None  # Leave scores as None until run_evaluations
+                            )
+                            self.cases[case_id].evaluations.append(evaluation_record)
+                            self.results.append({
+                                "case": case_id,
+                                "query": query,
+                                "ner_response": actual_val
+                            })
+
+    async def run_evaluations(self):
         """
-        Runs the evaluation step for each test case configuration asynchronously.
-
-        For each test case, dynamically import the evaluator class, instantiate it with its arguments,
-        and schedule its asynchronous run() method.
-
-        If any evaluator fails, the exception will be propagated and the pipeline will fail.
+        run_evaluations step:
+          - Loops through each Case.
+          - For each Case, uses its helper method to generate a temporary JSONL file from its evaluations.
+          - Calls the Azure evaluation API (via evaluate()) with the temporary file.
+          - Saves the returned evaluation result in the Case.
         """
-        tasks = []
-        for file_path, case_id, evaluator_class_path, evaluator_args in self.case_configs:
-            try:
-                # Expect evaluator_class_path to be in the form "module.submodule:ClassName"
-                module_path, class_name = evaluator_class_path.split(":")
-                module = importlib.import_module(module_path)
-                evaluator_class = getattr(module, class_name)
-            except Exception as e:
-                raise ImportError(
-                    f"Error importing evaluator class from '{evaluator_class_path}' in {file_path} for case '{case_id}': {e}"
+
+        for case_id, case_obj in self.cases.items():
+            with case_obj.create_evaluation_dataset() as dataset_path:
+                azure_result = evaluate(
+                    data=dataset_path,  # The temporary JSONL file path
+                    evaluators={
+                        "OCRNEREvaluator": self.global_evaluators.get("OCRNEREvaluator")
+                    },
+                    evaluator_config={
+                        "OCRNEREvaluator": {
+                            "column_mapping": {
+                                "query": "${data.query}",
+                                "ground_truth": "${data.ground_truth}",
+                                "response": "${data.response}"
+                            }
+                        }
+                    },
+                    # azure_ai_project=azure_ai_project,
+                    # output_path="./myevalresults.json"
                 )
+                case_obj.azure_eval_result = azure_result
+                print(azure_result)
 
-            # Instantiate the evaluator by passing the args dictionary as is.
-            try:
-                evaluator = evaluator_class(args=evaluator_args)
-            except Exception as e:
-                raise Exception(
-                    f"Error instantiating evaluator for test case '{case_id}' in {file_path} with args {evaluator_args}: {e}"
-                )
-
-            # Schedule its asynchronous run() method.
-            tasks.append(asyncio.create_task(evaluator.run()))
-
-        # Await all tasks.
-        # Without return_exceptions=True, if any task fails, an exception will be raised.
-        self.results = await asyncio.gather(*tasks)
-
-    def summarize(self) -> Dict[str, Any]:
+    def post_processing(self) -> dict:
         """
-        Summarizes the results of all evaluations into a JSON-like dictionary.
-
-        The summary includes:
-            - case: the test case ID,
-            - input: the input provided (e.g. "uploaded_files" from args),
-            - expected_output: the expected output (from args),
-            - generated_output: the evaluator's full output,
-            - evaluations: the detailed comparison entries with metrics,
-            - pass: the overall pass/fail status,
-            - dt_started: timestamp when evaluation started,
-            - dt_completed: timestamp when evaluation completed.
-
-        Returns:
-            A dictionary summarizing the evaluation results for each test case.
+        Post-processing step: Summarizes results for each Case,
+        including evaluations and Azure evaluation results.
         """
-        summary: Dict[str, Any] = {"cases": []}
-        for idx, result in enumerate(self.results):
-            file_path, case_id, evaluator_class_path, evaluator_args = self.case_configs[idx]
-            case_summary = {
-                "case": case_id,
-                "input": evaluator_args.get("uploaded_files"),
-                "expected_output": evaluator_args.get("expected_output"),
-                "generated_output": result,  # full evaluator output
-                "evaluations": result.get("evaluations", []),
-                "pass": result.get("pass", False),
-                "dt_started": result.get("dt_started"),
-                "dt_completed": result.get("dt_completed")
-            }
-            summary["cases"].append(case_summary)
+        summary = {"cases": []}
+        for case_id, case_obj in self.cases.items():
+            summary["cases"].append({
+                "case": case_obj.case_name,
+                "case_class": case_obj.case_class,
+                "evaluations": [ev.to_dict() for ev in case_obj.evaluations],
+                "azure_eval_result": case_obj.azure_eval_result
+            })
+        summary["raw_results"] = self.results
         return summary
 
-    async def run_pipeline(self) -> Dict[str, Any]:
+    async def run_pipeline(self) -> dict:
         """
-        Executes the complete pipeline:
-          1. Aggregates data from the YAML cases.
-          2. Runs the evaluations asynchronously.
-          3. Summarizes and returns the final output.
-
-        Returns:
-            A dictionary containing the summary of evaluations across all test cases.
-
-        Raises:
-            Exception: Propagates any exception encountered during evaluations.
+        Executes the complete pipeline in three steps:
+          1. Preprocessing
+          2. Running evaluations
+          3. Post-processing
         """
-        self.aggregate_data()
+        await self.preprocess()
         await self.run_evaluations()
-        return self.summarize()
+        ### NEED TO ADDITIONALLY CHECK WHY RESPONSES != GENERATED ANSWERS FOR NER, AND FIX.
+        return self.cases['ocr-ner-001-a.v0'].evaluations[0].to_dict()
+        return self.post_processing()
 
-
+# ------------------------------------------------------------------------------
 # Example usage when running this module directly.
 if __name__ == "__main__":
     pipeline = EvaluatorPipeline(cases_dir="./src/evals/cases")
