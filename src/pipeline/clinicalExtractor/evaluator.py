@@ -8,6 +8,7 @@ import traceback
 from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.evals.case import Case, Evaluation
 from azure.ai.evaluation import evaluate
+import subprocess
 
 # -------------------------------------------------------------------------------
 # Initialize the Azure AI project client.
@@ -29,6 +30,21 @@ class EvaluatorPipeline:
         self.results = []       # For logging raw NER or evaluator responses
         self.global_evaluators = {}  # For example: {"OCRNEREvaluator": instance}
         self.ai_foundry_manager = AIFoundryManager()
+
+    def get_git_hash(self) -> str:
+        """
+        Retrieves the current Git commit hash (short version).
+        If unable to retrieve it, returns "unknown".
+        """
+        try:
+            git_hash = subprocess.check_output(
+                ["git", "rev-parse", "--short", "HEAD"],
+                stderr=subprocess.STDOUT
+            ).decode().strip()
+            return git_hash
+        except Exception as e:
+            print(f"Error retrieving Git hash: {e}")
+            return "unknown"
 
     async def preprocess(self):
         def flatten_fields(expected: dict, generated: dict, prefix: str = "") -> list:
@@ -112,13 +128,11 @@ class EvaluatorPipeline:
                         })
 
     async def run_evaluations(self):
+        git_hash = self.get_git_hash()
         for case_id, case_obj in self.cases.items():
             with case_obj.create_evaluation_dataset() as dataset_path:
-                with open(dataset_path, "r") as f:
-                    contents = f.read()
-                print("Dataset contents:")
-                print(contents)
                 azure_result = evaluate(
+                    evaluation_name=f"{case_id}::{git_hash}",
                     data=dataset_path,
                     evaluators={
                         "OCRNEREvaluator": self.global_evaluators.get("OCRNEREvaluator")
@@ -133,6 +147,7 @@ class EvaluatorPipeline:
                         }
                     },
                     azure_ai_project=self.ai_foundry_manager.project_config,
+                    fail_on_evaluator_errors=True,
                 )
                 case_obj.azure_eval_result = azure_result
 
