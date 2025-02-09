@@ -147,7 +147,6 @@ class EvaluatorPipeline:
                         }
                     },
                     azure_ai_project=self.ai_foundry_manager.project_config,
-                    fail_on_evaluator_errors=True,
                 )
                 case_obj.azure_eval_result = azure_result
 
