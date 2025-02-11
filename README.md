@@ -140,13 +140,6 @@ With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Aut
         </a>
     </td>
     <td align="center" style="word-wrap: break-word; width: 150px; height: 150px">
-        <a href=https://github.com/naren-msft>
-            <img src=https://avatars.githubusercontent.com/u/4607827?v=4 width="100" style="border-radius:50%;padding-top:10px" alt="Narendra Amirineni"/>
-            <br />
-            <sub style="font-size:14px"><b>Narendra Amirineni</b></sub>
-        </a>
-    </td>
-    <td align="center" style="word-wrap: break-word; width: 150px; height: 150px">
         <a href=https://github.com/marcjimz>
             <img src=https://avatars.githubusercontent.com/u/94473824?v=4 width="100" style="border-radius:50%;padding-top:10px" alt="Jin Lee"/>
             <br />
@@ -160,7 +153,6 @@ With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Aut
             <sub style="font-size:14px"><b>Marcin Jimenez</b></sub>
         </a>
     </td>
-    
 </tr>
 </table>
 
