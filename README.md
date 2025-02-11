@@ -130,7 +130,6 @@ With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Aut
 
 Please read through our [contributing guidelines](./CONTRIBUTING.md). Directions are included for opening issues, coding standards, and notes on development.
 
-
 ### 💻 Steering Committee
 
 |                                                                                                                                                                                                                                                                        |                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                            |
@@ -143,7 +142,7 @@ Please read through our [contributing guidelines](./CONTRIBUTING.md). Directions
 
 |  |  |  |  |  |
 |---|---|---|---|---|
-| <a href="https://github.com/naren-msft"><img src="https://avatars.githubusercontent.com/u/4607827?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Narendra Amirineni](https://github.com/naren-msft)** | <a href="https://github.com/jkaresha"><img src="https://avatars.githubusercontent.com/u/780467?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Joe Karasha](https://github.com/joe-Karasha)** | <a href="https://github.com/juan-trujillo"><img src="https://avatars.githubusercontent.com/u/6484680?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Juan Trujillo](https://github.com/juan-trujillo)** |  |  |
+| <a href="https://github.com/naren-msft"><img src="https://avatars.githubusercontent.com/u/84394081?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Narendra Amirineni](https://github.com/naren-msft)** | <a href="https://github.com/jkaresha"><img src="https://avatars.githubusercontent.com/u/780467?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Joe Karasha](https://github.com/joe-Karasha)** | <a href="https://github.com/juan-trujillo"><img src="https://avatars.githubusercontent.com/u/6484680?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Juan Trujillo](https://github.com/juan-trujillo)** |  |  |
 
 **License:** [MIT License](./LICENSE)
 
