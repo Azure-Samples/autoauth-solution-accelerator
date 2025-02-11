@@ -120,7 +120,7 @@ With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Aut
 ## ✅ What's Next?
 
 ### Near-Term Goals.
-- [ ] **Improve One-Click Deployment with Integrated Security and Landing Zone**: Enhance a one-click deployment solution a managed landing zone for streamlined setup and management.
+- [x] **Improve One-Click Deployment with Integrated Security and Landing Zone**: Enhance a one-click deployment solution a managed landing zone for streamlined setup and management.
 - [ ] **Multi-Language & Region Support**: Adapt LLM models and policies for multiple languages and healthcare regulatory environments.
 - [ ] **Agentic Framework Leveraging Semantic Kernel**: Integrate the Agentic framework component using the Semantic Kernel as the core for context-aware and intelligent agent orchestration.
 - [ ] **API Management (APIM) Integration**: Introduce APIM for secure, scalable, and controlled access to the service’s endpoints.
@@ -128,33 +128,34 @@ With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Aut
 
 ## 🤝 Contributors & License
 
-### Contributors
+Please read through our [contributing guidelines](./CONTRIBUTING.md). Directions are included for opening issues, coding standards, and notes on development.
 
-<table>
-<tr>
-    <td align="center" style="word-wrap: break-word; width: 150px; height: 150px">
-        <a href=https://github.com/pablosalvador10>
-            <img src=https://avatars.githubusercontent.com/u/31255154?v=4 width="100" style="border-radius:50%;padding-top:10px" alt="Pablo Salvador Lopez"/>
-            <br />
-            <sub style="font-size:14px"><b>Pablo Salvador Lopez</b></sub>
-        </a>
-    </td>
-    <td align="center" style="word-wrap: break-word; width: 150px; height: 150px">
-        <a href=https://github.com/marcjimz>
-            <img src=https://avatars.githubusercontent.com/u/94473824?v=4 width="100" style="border-radius:50%;padding-top:10px" alt="Jin Lee"/>
-            <br />
-            <sub style="font-size:14px"><b>Jin Lee</b></sub>
-        </a>
-    </td>
-    <td align="center" style="word-wrap: break-word; width: 150px; height: 150px">
-        <a href=https://github.com/marcjimz>
-            <img src=https://avatars.githubusercontent.com/u/4607826?v=4 width="100" style="border-radius:50%;padding-top:10px" alt="Marcin Jimenez"/>
-            <br />
-            <sub style="font-size:14px"><b>Marcin Jimenez</b></sub>
-        </a>
-    </td>
-</tr>
-</table>
+### 💻 Core Team
+
+|                                                                                                                                                                                                                                                                        |                                                                                                                                                                                                                                         |                                                                                                                                                                                                                                            |
+|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| <a href="https://github.com/pablosalvador10"><img src="https://avatars.githubusercontent.com/u/31255154?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Pablo Salvador Lopez](https://github.com/pablosalvador10)** <br> *App Development WG* | <a href="https://github.com/marcjimz"><img src="https://avatars.githubusercontent.com/u/4607826?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Marcin Jimenez](https://github.com/marcjimz)** <br> *AIOps WG* | <a href="https://github.com/marcjimz"><img src="https://avatars.githubusercontent.com/u/94473824?v=4" width="100" style="border-radius:50%;padding-top:10px"></a> <br> **[Jin Lee](https://github.com/marcjimz)** <br> *App Deployment WG* |
+
+### ✨ Contributors
+
+Thanks goes to these wonderful people:
+
+- Repository: ['pablosalvador10/gbb-ai-hls-factory-prior-auth']
+
+| Total Contributors | Total Contributions | % New Contributors |
+| --- | --- | --- |
+| 4 | 132 | 100.0% |
+
+| Username | All Time Contribution Count | New Contributor | Commits between 2023-01-01 and 2025-02-10 |
+| --- | --- | --- | --- |
+| @pablosalvador10 | 70 | True | https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/commits?author=pablosalvador10&since=2023-01-01&until=2025-02-10 |
+| @marcjimz | 45 | True | https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/commits?author=marcjimz&since=2023-01-01&until=2025-02-10 |
+| @JinLee794 | 14 | True | https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/commits?author=JinLee794&since=2023-01-01&until=2025-02-10 |
+| @jkarasha | 3 | True | https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/commits?author=jkarasha&since=2023-01-01&until=2025-02-10 |
+
+ _this file was generated by the [Contributors GitHub Action](https://github.com/github/contributors)_
+
+💙 *We appreciate all contributors for their internal and external efforts in making this project better!*
 
 **License:** [MIT License](./LICENSE)
 
