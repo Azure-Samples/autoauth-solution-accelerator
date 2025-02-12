@@ -53,22 +53,3 @@ class FuzzyEvaluator(CustomEvaluator):
             self.logger.error(f"Error computing similarity: {e}")
             similarity_score = 0
         return IndelSimilarity(indel_similarity=similarity_score)
-
-    # def __getstate__(self):
-    #     """
-    #     Exclude unpickleable objects (such as logger and data_extractor) from the state.
-    #     """
-    #     state = self.__dict__.copy()
-    #     state.pop("logger", None)
-    #     state.pop("data_extractor", None)
-    #     return state
-    #
-    # def __setstate__(self, state):
-    #     """
-    #     Reinitialize unpickleable objects after unpickling.
-    #     """
-    #     self.__dict__.update(state)
-    #     from src.utils.ml_logging import get_logger
-    #     self.logger = get_logger()
-    #     from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
-    #     self.data_extractor = ClinicalDataExtractor()
