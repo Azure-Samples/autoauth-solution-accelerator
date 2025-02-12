@@ -1,4 +1,4 @@
-agentic-rag:
+agentic-rag-policies-001:
   description: >
     Evaluation for agentic RAG scenarios using added context. This evaluation considers the end-to-end flow with specific positive
     and negative scenarios.
@@ -7,17 +7,18 @@ agentic-rag:
   pipeline:
     class: src.pipeline.clinicalExtractor.evaluator.AgenticRagEvaluator
     case_id: "TEST-001"
+    scenario: "policy"
   evaluators:
     - name: "FuzzyEvaluator"
       class: src.evals.custom.fuzzy_evaluator:FuzzyEvaluator
   cases:
-    - agentic-rag-positive.v0
-    - agentic-rag-negative.v0
+    - agentic-rag-policies-001-positive.v0
+    - agentic-rag-policies-001-negative.v0
 
-agentic-rag-positive.v0:
+agentic-rag-policies-001-positive.v0:
   metrics: [FuzzyEvaluator]
   evaluations:
-    - query: "Associated Policies"
+    - query: "Associated Policies for Positive Scenario"
       ground_truth: "policies_ocr/001.pdf"
       context:
         src.pipeline.promptEngineering.models:ClinicalInformation:
@@ -45,10 +46,10 @@ agentic-rag-positive.v0:
               Patient will likely need to initiate biologic therapy given severity of symptoms
             presumed_eligibility: "Not provided"
 
-agentic-rag-negative.v0:
+agentic-rag-policies-001-negative.v0:
   metrics: [FuzzyEvaluator]
   evaluations:
-    - query: "Associated Policies"
+    - query: "Associated Policies for Negative Scenario"
       ground_truth: ""
       context:
         src.pipeline.promptEngineering.models:ClinicalInformation:

@@ -8,6 +8,9 @@ from typing import final
 
 import yaml
 
+from src.pipeline.utils import load_config
+from src.utils.ml_logging import get_logger
+
 
 class PipelineEvaluator(ABC):
     """
@@ -30,10 +33,15 @@ class PipelineEvaluator(ABC):
         Subclasses can extend this initializer to set up their own state.
         """
         self.EXPECTED_PIPELINE = None
-        if self.logger is None:
-            self.logger = logging.getLogger(__name__)
-            if not self.logger.handlers:
-                logging.basicConfig(level=logging.INFO)
+        self.config_file = os.path.join("agenticRag", "settings.yaml")
+        self.config = load_config(self.config_file)
+        self.run_config = self.config.get("run", {})
+
+        self.logger = get_logger(
+            name=self.run_config["logging"]["name"],
+            level=self.run_config["logging"]["level"],
+            tracing_enabled=self.run_config["logging"]["enable_tracing"],
+        )
 
     @abstractmethod
     async def preprocess(self):
@@ -63,7 +71,7 @@ class PipelineEvaluator(ABC):
         pass
 
     @abstractmethod
-    async def generate_responses(self) -> dict:
+    async def generate_responses(self, **kwargs) -> dict:
         """
         Generate response step.
 
