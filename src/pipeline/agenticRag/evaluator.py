@@ -29,7 +29,6 @@ class AgenticRagEvaluator(PipelineEvaluator):
         self.scenario = None     # Set from the pipeline YAML.
         self.cases = {}          # Mapping from case identifiers to Case instances.
         self.results = []        # Stores evaluation results.
-        self.global_evaluators = {}  # Pipeline-level evaluators.
         self.agentic_rag = None  # Will hold the AgenticRAG runner instance.
         self.ai_foundry_manager = AIFoundryManager()
         self.config_file = os.path.join("agenticRag", "settings.yaml")
@@ -42,17 +41,36 @@ class AgenticRagEvaluator(PipelineEvaluator):
             tracing_enabled=self.run_config["logging"]["enable_tracing"],
         )
 
+
+    def _instantiate_context(self, context_mapping: dict):
+        """
+        Instantiates a context object from a mapping.
+        Expects a mapping of the form:
+          { "src.pipeline.promptEngineering.models:ClinicalInformation": { ... } }
+        Returns the instantiated object or None if instantiation fails.
+        """
+        for key, config in context_mapping.items():
+            try:
+                module_path, class_name = key.split(":", 1)
+                mod = importlib.import_module(module_path)
+                context_class = getattr(mod, class_name)
+                return context_class(**config)
+            except Exception as e:
+                self.logger.error(f"Error instantiating context for key '{key}': {e}")
+                return None
+        return None
+
     async def preprocess(self):
         """
         Preprocessing step:
           - Loads YAML test case definitions.
           - Validates the pipeline configuration and sets parameters (case_id, scenario).
-          - Instantiates pipeline-level evaluators.
+          - Instantiates evaluators for each test case individually.
           - For each test case:
               * Creates a Case instance.
               * Instantiates a ClinicalInformation object from the provided clinical info or context.
               * Generates a response via AgenticRAG.
-              * Flattens the generated output and creates Evaluation records.
+              * Processes the generated output and creates Evaluation records.
         """
         case_files = glob.glob(os.path.join(self.cases_dir, "*.yaml"))
         for file_path in case_files:
@@ -73,7 +91,7 @@ class AgenticRagEvaluator(PipelineEvaluator):
             # Set pipeline parameters.
             self.case_id = pipeline_config.get("case_id")
             self.scenario = pipeline_config.get("scenario")
-            self.global_evaluators = self._instantiate_evaluators(root_obj)
+            # Instantiate the runner for this pipeline.
             self.agentic_rag = AgenticRAG(caseId=self.case_id)
 
             cases_list = root_obj.get("cases", [])
@@ -89,19 +107,27 @@ class AgenticRagEvaluator(PipelineEvaluator):
                 test_case_obj = config[case_id]
                 self.cases[case_id] = Case(case_name=case_id)
 
+                # Instantiate evaluators for this case.
+                # If the test case defines its own evaluators, use them;
+                # otherwise, fall back to those defined in the pipeline config.
+                if "evaluators" in test_case_obj:
+                    case_evaluators = self._instantiate_evaluators(test_case_obj)
+                else:
+                    case_evaluators = self._instantiate_evaluators(root_obj)
+                # Store the evaluators on the case so they can be used later.
+                self.cases[case_id].evaluators = case_evaluators
+
+                # Process clinical information.
                 clinical_info_obj = None
                 clinical_info_data = test_case_obj.get("clinical_info")
                 if clinical_info_data:
-                    # If provided, use the clinical_info mapping.
                     if isinstance(clinical_info_data, dict):
                         clinical_info_obj = ClinicalInformation(**clinical_info_data)
                     else:
                         clinical_info_obj = clinical_info_data
                 elif "context" in test_case_obj:
-                    # Fall back to a test–case level context.
                     clinical_info_obj = self._instantiate_context(test_case_obj["context"])
                 else:
-                    # Check the evaluations – use the first evaluation that provides a context.
                     for eval_item in test_case_obj.get("evaluations", []):
                         if "context" in eval_item:
                             clinical_info_obj = self._instantiate_context(eval_item["context"])
@@ -115,13 +141,11 @@ class AgenticRagEvaluator(PipelineEvaluator):
                 response = await self.generate_responses(clinical_info_obj)
                 processed_output = self.process_generated_output(response.get("generated_output", {}))
 
-                # If a test–case level context was provided (separately from evaluations),
-                # save it for use as a default in the Evaluation record.
+                # Determine default context for evaluations.
                 context_obj = None
                 if "context" in test_case_obj:
                     context_obj = self._instantiate_context(test_case_obj["context"])
                 else:
-                    # Otherwise, try to get it from the first evaluation.
                     for eval_item in test_case_obj.get("evaluations", []):
                         if "context" in eval_item:
                             context_obj = self._instantiate_context(eval_item["context"])
@@ -130,12 +154,11 @@ class AgenticRagEvaluator(PipelineEvaluator):
                 for eval_item in test_case_obj.get("evaluations", []):
                     query = eval_item.get("query")
                     expected_val = eval_item.get("ground_truth")
-                    # If the evaluation provides its own context, override the default.
                     evaluation_record = Evaluation(
                         query=query,
                         response=processed_output,
                         ground_truth=expected_val,
-                        context=json.dumps(context_obj.model_dump()),
+                        context=json.dumps(context_obj.model_dump()) if context_obj else None,
                         conversation=None,
                         scores=None
                     )
@@ -149,34 +172,15 @@ class AgenticRagEvaluator(PipelineEvaluator):
                     })
         self.logger.info(f"AgenticRagEvaluator initialized with case_id: {self.case_id}, scenario: {self.scenario}")
 
-    def _instantiate_context(self, context_mapping: dict):
-        """
-        Instantiates a context object from a mapping.
-        Expects a mapping of the form:
-          { "src.pipeline.promptEngineering.models:ClinicalInformation": { ... } }
-        Returns the instantiated object or None if instantiation fails.
-        """
-        for key, config in context_mapping.items():
-            try:
-                module_path, class_name = key.split(":", 1)
-                mod = importlib.import_module(module_path)
-                context_class = getattr(mod, class_name)
-                return context_class(**config)
-            except Exception as e:
-                self.logger.error(f"Error instantiating context for key '{key}': {e}")
-                return None
-        return None
-
     async def generate_responses(self, clinical_info: object) -> dict:
         """
         Uses the AgenticRAG runner to generate a response.
-        Passes the instantiated ClinicalInformation object to the runner exactly as:
-            result = await agenticrag.run(clinical_info=my_clinical_info, max_retries=3)
+        Passes the instantiated ClinicalInformation object to the runner.
         Returns a dict with generated output and timing information.
         """
         dt_started = datetime.now().isoformat()
         try:
-            result = await self.agentic_rag.run(clinical_info=clinical_info, max_retries=5)
+            result = await self.agentic_rag.run(clinical_info=clinical_info, max_retries=3)
             dt_completed = datetime.now().isoformat()
             return {"generated_output": result, "dt_started": dt_started, "dt_completed": dt_completed}
         except Exception as e:
@@ -187,23 +191,17 @@ class AgenticRagEvaluator(PipelineEvaluator):
     def process_generated_output(self, generated_output: dict) -> str:
         """
         Processes the generated output before evaluation.
-        Can be extended to perform transformations or filtering.
-        Currently, returns the generated_output unchanged.
+        Currently, processes output based on the scenario.
         """
-        print("generated_output: %s" % json.dumps(generated_output, indent=3))
+        self.logger.info("Processing generated output.")
+        # Example for "policy" scenario.
         if self.scenario == "policy":
-            policies = ['/'.join(x.split('/')[-2:]) for x in generated_output['policies']]
-            policy_string = ""
-            for policy in policies:
-                if len(policy_string) > 0:
-                    policy_string+="\n"
-                policy_string += policy
-            return policy_string
+            policies = ['/'.join(x.split('/')[-2:]) for x in generated_output.get('policies', [])]
+            return "\n".join(policies)
+        # Example for "reasoning" scenario.
         elif self.scenario == "reasoning":
-            reasoning = ""
-            for reason in generated_output['evaluation']['reasoning']:
-                reasoning += reason + "\n"
-            return reasoning
+            reasoning = generated_output.get('evaluation', {}).get('reasoning', [])
+            return "\n".join(reasoning)
         else:
             msg = f"Scenario not implemented: {self.scenario}"
             self.logger.error(msg)
@@ -213,25 +211,26 @@ class AgenticRagEvaluator(PipelineEvaluator):
         """
         Evaluation step:
           - For each test case, creates an evaluation dataset and triggers the Azure AI evaluation.
-          - Uses the evaluators dictionary built by _instantiate_evaluators().
+          - Uses the evaluators stored on each Case object.
           - Stores the Azure evaluation results in each Case object.
         """
         git_hash = self._get_git_hash()
-        evaluators = self.global_evaluators.copy()
-
-        # Build a simple evaluator configuration for each evaluator.
-        evaluator_config = {}
-        for evaluator_name in evaluators.keys():
-            evaluator_config[evaluator_name] = {
-                "column_mapping": {
-                    "query": "${data.query}",
-                    "ground_truth": "${data.ground_truth}",
-                    "response": "${data.response}",
-                    "context": "${data.context}"
-                }
-            }
-
         for case_id, case_obj in self.cases.items():
+            evaluators = getattr(case_obj, "evaluators", None)
+            if evaluators is None:
+                self.logger.warning(f"No evaluators set for case '{case_id}', skipping evaluation.")
+                continue
+
+            evaluator_config = {}
+            for evaluator_name in evaluators.keys():
+                evaluator_config[evaluator_name] = {
+                    "column_mapping": {
+                        "query": "${data.query}",
+                        "ground_truth": "${data.ground_truth}",
+                        "response": "${data.response}",
+                        "context": "${data.context}"
+                    }
+                }
             with case_obj.create_evaluation_dataset() as dataset_path:
                 azure_result = evaluate(
                     evaluation_name=f"{case_id}#{git_hash}",
@@ -258,20 +257,6 @@ class AgenticRagEvaluator(PipelineEvaluator):
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
             self.logger.info(f"Cleaned up temporary directory: {self.temp_dir}")
-
-    def _flatten_dict(self, d: dict, parent_key: str = "", sep: str = ".") -> dict:
-        """
-        Recursively flattens a nested dictionary.
-        """
-        items = {}
-        for k, v in d.items():
-            new_key = f"{parent_key}{sep}{k}" if parent_key else k
-            if isinstance(v, dict):
-                items.update(self._flatten_dict(v, new_key, sep=sep))
-            else:
-                items[new_key] = str(v)
-        return items
-
 
 if __name__ == "__main__":
     evaluator = AgenticRagEvaluator(cases_dir="./src/evals/cases")

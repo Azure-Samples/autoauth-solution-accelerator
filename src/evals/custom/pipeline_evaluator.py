@@ -43,105 +43,6 @@ class PipelineEvaluator(ABC):
             tracing_enabled=self.run_config["logging"]["enable_tracing"],
         )
 
-    @abstractmethod
-    async def preprocess(self):
-        """
-        Preprocess step.
-
-        This method should be implemented by subclasses.
-        """
-        pass
-
-    @abstractmethod
-    async def run_evaluations(self):
-        """
-        Run evaluations step.
-
-        This method should be implemented by subclasses.
-        """
-        pass
-
-    @abstractmethod
-    def post_processing(self) -> dict:
-        """
-        Post-processing step.
-
-        This method should be implemented by subclasses to summarize and process evaluation results.
-        """
-        pass
-
-    @abstractmethod
-    async def generate_responses(self, **kwargs) -> dict:
-        """
-        Generate response step.
-
-        This method should be implemented by subclasses to generate a response
-        based on the provided inputs (e.g. processing uploaded files and extracting data).
-        """
-        pass
-
-    @final
-    async def run_pipeline(self) -> dict:
-        """
-        Executes the pipeline steps in order:
-          1. preprocess
-          2. run_evaluations
-          3. post_processing
-
-        Returns:
-            dict: The result from the post_processing step.
-        """
-        await self.preprocess()
-        await self.run_evaluations()
-        return self.post_processing()
-
-    def sanitize_args(self, args: dict, sensitive_keys: set = None) -> dict:
-        """
-        Recursively masks values for sensitive keys in a dictionary.
-
-        Parameters:
-            args (dict): The dictionary of arguments.
-            sensitive_keys (set): A set of keys whose values should be masked.
-                Defaults to {"api_key", "password", "secret", "token"}.
-
-        Returns:
-            dict: A new dictionary with sensitive values masked.
-        """
-        if sensitive_keys is None:
-            sensitive_keys = {"api_key", "password", "secret", "token"}
-
-        sanitized = {}
-        for key, value in args.items():
-            if key in sensitive_keys:
-                sanitized[key] = "****"  # Mask the sensitive value
-            elif isinstance(value, dict):
-                sanitized[key] = self.sanitize_args(value, sensitive_keys)
-            else:
-                sanitized[key] = value
-        return sanitized
-
-    def cleanup_temp_dir(self) -> None:
-        """
-        Cleans up the temporary directory if it exists.
-        Expects the instance to have an attribute 'temp_dir'.
-        """
-        temp_dir = getattr(self, "temp_dir", None)
-        if not temp_dir:
-            # No temporary directory defined; nothing to clean.
-            return
-        try:
-            if os.path.exists(temp_dir):
-                shutil.rmtree(temp_dir)
-                if hasattr(self, "logger"):
-                    self.logger.info(f"Cleaned up temporary directory: {temp_dir}")
-                else:
-                    logging.getLogger(__name__).info(f"Cleaned up temporary directory: {temp_dir}")
-        except Exception as e:
-            if hasattr(self, "logger"):
-                self.logger.error(f"Failed to clean up temporary directory '{temp_dir}': {e}")
-            else:
-                logging.getLogger(__name__).error(f"Failed to clean up temporary directory '{temp_dir}': {e}")
-
 
     def _resolve_object(self, value: str):
         """
@@ -279,3 +180,102 @@ class PipelineEvaluator(ABC):
             else:
                 items[new_key] = str(v)
         return items
+
+    @abstractmethod
+    async def preprocess(self):
+        """
+        Preprocess step.
+
+        This method should be implemented by subclasses.
+        """
+        pass
+
+    @abstractmethod
+    async def run_evaluations(self):
+        """
+        Run evaluations step.
+
+        This method should be implemented by subclasses.
+        """
+        pass
+
+    @abstractmethod
+    def post_processing(self) -> dict:
+        """
+        Post-processing step.
+
+        This method should be implemented by subclasses to summarize and process evaluation results.
+        """
+        pass
+
+    @abstractmethod
+    async def generate_responses(self, **kwargs) -> dict:
+        """
+        Generate response step.
+
+        This method should be implemented by subclasses to generate a response
+        based on the provided inputs (e.g. processing uploaded files and extracting data).
+        """
+        pass
+
+    @final
+    async def run_pipeline(self) -> dict:
+        """
+        Executes the pipeline steps in order:
+          1. preprocess
+          2. run_evaluations
+          3. post_processing
+
+        Returns:
+            dict: The result from the post_processing step.
+        """
+        await self.preprocess()
+        await self.run_evaluations()
+        return self.post_processing()
+
+    def sanitize_args(self, args: dict, sensitive_keys: set = None) -> dict:
+        """
+        Recursively masks values for sensitive keys in a dictionary.
+
+        Parameters:
+            args (dict): The dictionary of arguments.
+            sensitive_keys (set): A set of keys whose values should be masked.
+                Defaults to {"api_key", "password", "secret", "token"}.
+
+        Returns:
+            dict: A new dictionary with sensitive values masked.
+        """
+        if sensitive_keys is None:
+            sensitive_keys = {"api_key", "password", "secret", "token"}
+
+        sanitized = {}
+        for key, value in args.items():
+            if key in sensitive_keys:
+                sanitized[key] = "****"  # Mask the sensitive value
+            elif isinstance(value, dict):
+                sanitized[key] = self.sanitize_args(value, sensitive_keys)
+            else:
+                sanitized[key] = value
+        return sanitized
+
+    def cleanup_temp_dir(self) -> None:
+        """
+        Cleans up the temporary directory if it exists.
+        Expects the instance to have an attribute 'temp_dir'.
+        """
+        temp_dir = getattr(self, "temp_dir", None)
+        if not temp_dir:
+            # No temporary directory defined; nothing to clean.
+            return
+        try:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+                if hasattr(self, "logger"):
+                    self.logger.info(f"Cleaned up temporary directory: {temp_dir}")
+                else:
+                    logging.getLogger(__name__).info(f"Cleaned up temporary directory: {temp_dir}")
+        except Exception as e:
+            if hasattr(self, "logger"):
+                self.logger.error(f"Failed to clean up temporary directory '{temp_dir}': {e}")
+            else:
+                logging.getLogger(__name__).error(f"Failed to clean up temporary directory '{temp_dir}': {e}")

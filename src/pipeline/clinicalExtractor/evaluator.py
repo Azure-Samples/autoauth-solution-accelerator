@@ -1,38 +1,26 @@
 import asyncio
 import glob
 import json
+import logging
 import os
 from datetime import datetime
 from typing import Union, List
 
-# Example import for a custom evaluator.
-
-# Import the base pipeline evaluator.
-from src.evals.custom.pipeline_evaluator import PipelineEvaluator
-from src.extractors.pdfhandler import OCRHelper
-
-# Import additional modules from your codebase.
-from src.aifoundry.aifoundry_helper import AIFoundryManager
-from src.evals.case import Case, Evaluation
 from azure.ai.evaluation import evaluate
 
+from src.aifoundry.aifoundry_helper import AIFoundryManager
+from src.evals.case import Case, Evaluation
+from src.evals.custom.pipeline_evaluator import PipelineEvaluator
+from src.extractors.pdfhandler import OCRHelper
 from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
-# Import your models used in response generation.
 from src.pipeline.promptEngineering.models import PatientInformation, PhysicianInformation, ClinicalInformation
-
-import logging
 
 
 class ClinicalExtractorEvaluator(PipelineEvaluator):
     # The expected evaluator class name in the pipeline configuration.
     EXPECTED_PIPELINE = "src.pipeline.clinicalExtractor.evaluator.ClinicalExtractorEvaluator"
 
-    def __init__(
-            self,
-            cases_dir: str,
-            temp_dir: str = "./temp",
-            logger=None
-    ):
+    def __init__(self, cases_dir: str, temp_dir: str = "./temp", logger=None):
         """
         Initialize the evaluator with:
           - cases_dir: Directory containing YAML test case definitions.
@@ -42,10 +30,9 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
         The 'uploaded_files' value will be determined from the YAML pipeline configuration.
         """
         self.cases_dir = cases_dir
-        self.case_configs = []  # List of tuples: (file_path, case_id, evaluator_config, evaluator_args)
-        self.cases = {}  # Mapping from case_id to Case instance
-        self.results = []  # For logging raw responses or evaluator outputs
-        self.global_evaluators = {}  # For shared evaluator instances (populated from the pipeline YAML)
+        self.cases = {}  # Mapping from case_id to Case instance.
+        self.results = []  # For logging raw responses or evaluator outputs.
+        self.global_evaluators = {}  # Evaluators from the pipeline-level configuration.
         self.ai_foundry_manager = AIFoundryManager()
         self.temp_dir = temp_dir
         self.data_extractor = ClinicalDataExtractor()
@@ -124,10 +111,10 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
           - For each YAML file:
               * Loads and validates the pipeline configuration.
               * Sets the 'uploaded_files' value.
-              * Instantiates pipeline-level evaluators via _instantiate_evaluators().
+              * Instantiates evaluators on a per-case basis.
               * Processes each test case:
                   - Creates a Case instance.
-                  - If OCR evaluation is required, runs generate_responses() and creates Evaluation records.
+                  - Runs OCR evaluation (via generate_responses) and creates Evaluation records.
         """
         case_files = glob.glob(os.path.join(self.cases_dir, "*.yaml"))
         for file_path in case_files:
@@ -150,7 +137,7 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
                 self.logger.warning(f"No 'uploaded_files' specified in pipeline config in {file_path}. Skipping.")
                 continue
 
-            # Dynamically instantiate evaluators from the pipeline configuration.
+            # Instantiate global evaluators from the pipeline config.
             self.global_evaluators = self._instantiate_evaluators(root_obj)
 
             cases_list = root_obj.get("cases", [])
@@ -166,10 +153,20 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
                 test_case_obj = config[case_id]
                 self.cases[case_id] = Case(case_name=case_id)
 
+                # Instantiate evaluators for this test case.
+                # Use test-case specific evaluators if defined; otherwise, fall back to global evaluators.
+                if "evaluators" in test_case_obj:
+                    case_evaluators = self._instantiate_evaluators(test_case_obj)
+                else:
+                    case_evaluators = self._instantiate_evaluators(root_obj)
+                self.cases[case_id].evaluators = case_evaluators
+
                 await self._process_ocr_evaluation(case_id, test_case_obj)
 
     async def _process_ocr_evaluation(self, case_id: str, test_case_obj: dict):
-        """For a test case that requires OCR evaluation, run generate_responses() and create Evaluation records."""
+        """
+        For a test case that requires OCR evaluation, run generate_responses() and create Evaluation records.
+        """
         response = await self.generate_responses()
         generated_output = response.get("generated_output", {})
         flat_generated = self._flatten_dict(generated_output)
@@ -197,24 +194,25 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
         """
         Evaluation step:
           - For each test case, creates an evaluation dataset and triggers the Azure AI evaluation.
-          - Uses the evaluators dictionary built by _instantiate_evaluators().
+          - Uses the evaluators stored on each Case object.
           - Stores the Azure evaluation results in each Case object.
         """
         git_hash = self._get_git_hash()
-        evaluators = self.global_evaluators.copy()
-
-        # Build a simple evaluator configuration for each evaluator.
-        evaluator_config = {}
-        for evaluator_name in evaluators.keys():
-            evaluator_config[evaluator_name] = {
-                "column_mapping": {
-                    "query": "${data.query}",
-                    "ground_truth": "${data.ground_truth}",
-                    "response": "${data.response}"
-                }
-            }
-
         for case_id, case_obj in self.cases.items():
+            evaluators = getattr(case_obj, "evaluators", None)
+            if evaluators is None:
+                self.logger.warning(f"No evaluators set for case '{case_id}', skipping evaluation.")
+                continue
+
+            evaluator_config = {}
+            for evaluator_name in evaluators.keys():
+                evaluator_config[evaluator_name] = {
+                    "column_mapping": {
+                        "query": "${data.query}",
+                        "ground_truth": "${data.ground_truth}",
+                        "response": "${data.response}"
+                    }
+                }
             with case_obj.create_evaluation_dataset() as dataset_path:
                 azure_result = evaluate(
                     evaluation_name=f"{case_id}#{git_hash}",
@@ -240,12 +238,8 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
         return json.dumps(summary, indent=3)
 
 
-# ------------------------------------------------------------------------------
-# Example usage when running this module directly.
 if __name__ == "__main__":
-    pipeline = ClinicalExtractorEvaluator(
-        cases_dir="./src/evals/cases"
-    )
+    pipeline = ClinicalExtractorEvaluator(cases_dir="./src/evals/cases")
     try:
         summary = asyncio.run(pipeline.run_pipeline())
         print(summary)
