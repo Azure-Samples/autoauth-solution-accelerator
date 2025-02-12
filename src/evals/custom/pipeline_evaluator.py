@@ -4,13 +4,13 @@ import os
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import final
-
+import inspect
 import yaml
 
 from src.pipeline.utils import load_config
 from src.utils.ml_logging import get_logger
-
 
 class PipelineEvaluator(ABC):
     """
@@ -95,6 +95,31 @@ class PipelineEvaluator(ABC):
         await self.run_evaluations()
         return self.post_processing()
 
+    def sanitize_args(self, args: dict, sensitive_keys: set = None) -> dict:
+        """
+        Recursively masks values for sensitive keys in a dictionary.
+
+        Parameters:
+            args (dict): The dictionary of arguments.
+            sensitive_keys (set): A set of keys whose values should be masked.
+                Defaults to {"api_key", "password", "secret", "token"}.
+
+        Returns:
+            dict: A new dictionary with sensitive values masked.
+        """
+        if sensitive_keys is None:
+            sensitive_keys = {"api_key", "password", "secret", "token"}
+
+        sanitized = {}
+        for key, value in args.items():
+            if key in sensitive_keys:
+                sanitized[key] = "****"  # Mask the sensitive value
+            elif isinstance(value, dict):
+                sanitized[key] = self.sanitize_args(value, sensitive_keys)
+            else:
+                sanitized[key] = value
+        return sanitized
+
     def cleanup_temp_dir(self) -> None:
         """
         Cleans up the temporary directory if it exists.
@@ -144,17 +169,20 @@ class PipelineEvaluator(ABC):
         """
         Dynamically builds and returns a dictionary of evaluator instances.
 
-        Reads evaluator definitions from root_obj["evaluators"]. For each evaluator definition:
+        For each evaluator definition in root_obj["evaluators"]:
           - Splits the provided "class" string (format: "module_path:ClassName").
           - Imports the module and retrieves the class.
-          - Processes the "args" dictionary. For any argument value that is a string and contains a colon,
+          - Processes the "args" dictionary. If an argument value is a string and contains a colon,
             attempts to resolve it into an object using _resolve_object().
+          - Checks if the evaluator's __init__ has a 'model_config' parameter. If so, and if it is
+            not already provided in the args, creates and passes in a model_config dictionary.
           - Instantiates the evaluator with the resolved arguments.
 
-        If any evaluator cannot be instantiated, a RuntimeError is raised.
+        Raises RuntimeError if any evaluator cannot be instantiated.
         """
         evaluators = {}
         evaluator_list = root_obj.get("evaluators", [])
+
         for evaluator_def in evaluator_list:
             evaluator_name = evaluator_def.get("name")
             evaluator_class_path = evaluator_def.get("class")
@@ -162,27 +190,48 @@ class PipelineEvaluator(ABC):
                 msg = f"Evaluator definition for '{evaluator_name}' is missing a 'class' field."
                 self.logger.error(msg)
                 raise ValueError(msg)
+
+            # Get evaluator arguments from the config.
+            args = evaluator_def.get("args", {})
+
             try:
+                # Split the evaluator class path: "module_path:ClassName"
                 module_path, class_name = evaluator_class_path.split(":", 1)
                 module = importlib.import_module(module_path)
                 evaluator_class = getattr(module, class_name)
-                # Process the evaluator arguments.
-                args = evaluator_def.get("args", {})
+
+                # Use inspect to check if __init__ has a "model_config" parameter.
+                sig = inspect.signature(evaluator_class.__init__)
+                if "model_config" in sig.parameters:
+                    # If the caller didn't provide a model_config, then add it.
+                    if "model_config" not in args or args["model_config"] is None:
+                        model_config = {
+                            "azure_endpoint": os.environ.get("AZURE_OPENAI_ENDPOINT"),
+                            "api_key": os.environ.get("AZURE_OPENAI_KEY"),
+                            "azure_deployment": os.environ.get("AZURE_OPENAI_DEPLOYMENT"),
+                        }
+                        if any(value is None for value in model_config.values()):
+                            raise ValueError("model_config has null values, please check your environment variables.")
+                        args["model_config"] = model_config
+
+                # Resolve each argument: if it's a string containing ":", attempt to resolve it.
                 resolved_args = {}
                 for key, value in args.items():
                     if isinstance(value, str) and ":" in value:
                         resolved_args[key] = self._resolve_object(value)
                     else:
                         resolved_args[key] = value
+
                 evaluator_instance = evaluator_class(**resolved_args)
                 evaluators[evaluator_name] = evaluator_instance
                 self.logger.info(
-                    f"Instantiated evaluator '{evaluator_name}' from '{evaluator_class_path}' with args: {resolved_args}"
+                    f"Instantiated evaluator '{evaluator_name}' from '{evaluator_class_path}' with args: {self.sanitize_args(resolved_args)}"
                 )
             except Exception as e:
                 msg = f"Error instantiating evaluator '{evaluator_name}' from '{evaluator_class_path}': {e}"
                 self.logger.error(msg)
                 raise RuntimeError(msg)
+
         return evaluators
 
     def _get_git_hash(self) -> str:

@@ -176,7 +176,7 @@ class AgenticRagEvaluator(PipelineEvaluator):
         """
         dt_started = datetime.now().isoformat()
         try:
-            result = await self.agentic_rag.run(clinical_info=clinical_info, max_retries=3)
+            result = await self.agentic_rag.run(clinical_info=clinical_info, max_retries=5)
             dt_completed = datetime.now().isoformat()
             return {"generated_output": result, "dt_started": dt_started, "dt_completed": dt_completed}
         except Exception as e:
@@ -190,6 +190,7 @@ class AgenticRagEvaluator(PipelineEvaluator):
         Can be extended to perform transformations or filtering.
         Currently, returns the generated_output unchanged.
         """
+        print("generated_output: %s" % json.dumps(generated_output, indent=3))
         if self.scenario == "policy":
             policies = ['/'.join(x.split('/')[-2:]) for x in generated_output['policies']]
             policy_string = ""
@@ -200,7 +201,7 @@ class AgenticRagEvaluator(PipelineEvaluator):
             return policy_string
         elif self.scenario == "reasoning":
             reasoning = ""
-            for reason in generated_output['reasoning']:
+            for reason in generated_output['evaluation']['reasoning']:
                 reasoning += reason + "\n"
             return reasoning
         else:

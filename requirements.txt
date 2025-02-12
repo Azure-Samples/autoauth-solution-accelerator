@@ -16,12 +16,13 @@ tiktoken==0.8.0
 langchain==0.1.0
 langchain-community==0.0.10
 langchain-core==0.1.8
+transformers[torch]==4.40.2
 
 # Azure SDKs
 azure-identity==1.19.0
 azure-mgmt-resource==23.1.1
-# azure-ai-documentintelligence==1.0.0b3
 azure-ai-documentintelligence==1.0.0b4
+azure-ai-evaluation==1.2.0
 
 azure-cosmos==4.7.0
 azure-search-documents==11.6.0b5
