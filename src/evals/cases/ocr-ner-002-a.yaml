@@ -5,7 +5,7 @@ ocr-ner-002-a:
   disclaimer: >
     Evaluations are performed zero-shot without additional fine-tuning.
   pipeline:
-    class: src.evals.custom.ocr_ner_evaluator:OCRNEREvaluator
+    class: src.pipeline.clinicalExtractor.evaluator.ClinicalExtractorEvaluator
     uploaded_files: "utils/data/cases/002/a"
   evaluators:
     - name: "RougeScoreEvaluator"
