@@ -51,14 +51,21 @@ class Case:
 
     Attributes:
       - case_name: The case identifier.
-      - case_class: A string reference to the evaluator class.
+      - metrics: A list of evaluator/metric names.
+      - config: A dictionary containing additional test case configuration (e.g., OCRNEREvaluator settings).
       - evaluations: A list of Evaluation objects.
-      - azure_eval_result: (Optional) The result returned from the Azure evaluation API.
     """
 
-    def __init__(self, case_name: str, case_class: str, evaluations: Optional[List[Evaluation]] = None):
+    def __init__(
+        self,
+        case_name: str,
+        metrics: Optional[List[str]] = None,
+        config: Optional[dict] = None,
+        evaluations: Optional[List] = None
+    ):
         self.case_name = case_name
-        self.case_class = case_class
+        self.metrics = metrics if metrics is not None else []
+        self.config = config if config is not None else {}
         self.evaluations = evaluations if evaluations is not None else []
         self.azure_eval_result = None
 
@@ -68,10 +75,14 @@ class Case:
         Creates a temporary JSON Lines (jsonl) file that contains all evaluations.
         This file is later passed to the Azure AI evaluation API.
         """
-        temp_file = tempfile.NamedTemporaryFile(mode='w+', delete=False, suffix='.jsonl', prefix='evaluation_dataset_')
+        temp_file = tempfile.NamedTemporaryFile(
+            mode='w+',
+            delete=False,
+            suffix='.jsonl',
+            prefix='evaluation_dataset_'
+        )
         try:
             for eval_obj in self.evaluations:
-                # Use to_dict() which now only returns attributes that were set.
                 temp_file.write(json.dumps(eval_obj.to_dict()) + "\n")
             temp_file.flush()
             temp_file.close()

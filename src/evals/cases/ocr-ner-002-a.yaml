@@ -1,62 +1,92 @@
 ocr-ner-002-a:
-  cases:
-    - ocr-ner-002-a.v0
   description: >
     Evaluation for OCR/NER extraction on Case ocr-ner-002-a.
     This case involves neurology details and verifies the extraction of patient, physician, and clinical information.
   disclaimer: >
     Evaluations are performed zero-shot without additional fine-tuning.
+  pipeline:
+    class: src.evals.custom.ocr_ner_evaluator:OCRNEREvaluator
+    uploaded_files: "utils/data/cases/002/a"
+  evaluators:
+    - name: "RougeScoreEvaluator"
+      class: azure.ai.evaluation:RougeScoreEvaluator
+      args:
+        rouge_type: azure.ai.evaluation:RougeType.ROUGE_4
+    - name: "MeteorScoreEvaluator"
+      class: azure.ai.evaluation:MeteorScoreEvaluator
+    - name: "BleuScoreEvaluator"
+      class: azure.ai.evaluation:BleuScoreEvaluator
+    - name: "FuzzyEvaluator"
+      class: src.evals.custom.fuzzy_evaluator:FuzzyEvaluator
+  cases:
+    - ocr-ner-002-a.v0
 
 ocr-ner-002-a.v0:
-  class: src.evals.custom.ocr_ner_evaluator:OCRNEREvaluator
-  args:
-    similarity_threshold: 95.0
-    uploaded_files: "utils/data/cases/002/a"
-    expected_output:
-      ocr_ner_results:
-        patient_info:
-          patient_name: "Maxie Millionaire"
-          patient_date_of_birth: "06/15/2022"
-          patient_id: "7656432"
-          patient_address: "14126 Garnett St, Boston, MA, 02108"
-          patient_phone_number: "555-987-2254"
-        physician_info:
-          physician_name: "Dr. Lennox"
-          specialty: "Pediatrics"
-          physician_contact:
-            office_phone: "(555) 345-7865"
-            fax: "(555) 345-7866"
-            office_address: "84 North Avenue, Boston, MA 02108"
-        clinical_info:
-          diagnosis: "Lennox-Gastaut Syndrome; Infantile Spasms"
-          icd_10_code: "G40.811; G40.821"
-          prior_treatments_and_results: >
-            Valproic Acid: 4 weeks, failed; Lamotrigine: current therapy, failed;
-            Rufinamide: 8 weeks, failed; Topiramate: current therapy, failed
-          specific_drugs_taken_and_failures: >
-            Valproic Acid: 4 weeks, failed; Lamotrigine: current therapy, failed;
-            Rufinamide: 8 weeks, failed; Topiramate: current therapy, failed
-          alternative_drugs_required: "Not provided"
-          relevant_lab_results_or_imaging: >
-            EEG: Slow spike-and-wave discharges, generalized background slowing, infantile spasms, potential atonic seizures;
-            MRI Brain: Mild cortical atrophy, otherwise unremarkable;
-            CBC: WBC 6.5 x 10^9/L, Hemoglobin 11.5 g/dL, Hematocrit 34%, MCV 72 fL, MCH 23 pg, MCHC 32 g/dL, Platelet Count 250 x 10^9/L;
-            CMP: Glucose 90 mg/dL, BUN 10 mg/dL, Creatinine 0.5 mg/dL, Sodium 140 mEq/L, Potassium 4.1 mEq/L,
-            Chloride 104 mEq/L, Bicarbonate 24 mEq/L, Calcium 9.0 mg/dL, Total Protein 6.5 g/dL, Albumin 4.0 g/dL,
-            Alkaline Phosphatase 150 U/L, AST 20 U/L, ALT 18 U/L, Bilirubin 0.5 mg/dL
-          symptom_severity_and_impact: >
-            Increased seizure frequency, new atonic seizure activity, appears more sleepy,
-            mild hypotonia in upper body, hyperreflexia in upper and lower extremities
-          prognosis_and_risk_if_not_approved: >
-            Increased seizure frequency and severity, potential for worsening condition
-          clinical_rationale_for_urgency: >
-            Patient's seizures are worse in frequency and more varied in semiology despite trial of several AEDs
-          treatment_request:
-            name_of_medication_or_procedure: "Epidiolex"
-            code_of_medication_or_procedure: "Not provided"
-            dosage: >
-              100 mg/mL, take 2.5mg/kg/day divided in two doses for one week, then increase to 5mg/kg/day divided in two doses
-            duration: "Ongoing"
-            rationale: >
-              Patient's seizures are worse in frequency and more varied in semiology despite trial of several AEDs
-            presumed_eligibility: "Yes, patient has tried and failed multiple AEDs"
+  metrics: [RougeScoreEvaluator, MeteorScoreEvaluator, BleuScoreEvaluator, FuzzyEvaluator]
+  evaluations:
+    - query: "patient_information.patient_name"
+      ground_truth: "Maxie Millionaire"
+    - query: "patient_information.patient_date_of_birth"
+      ground_truth: "06/15/2022"
+    - query: "patient_information.patient_id"
+      ground_truth: "7656432"
+    - query: "patient_information.patient_address"
+      ground_truth: "14126 Garnett St, Boston, MA, 02108"
+    - query: "patient_information.patient_phone_number"
+      ground_truth: "555-987-2254"
+    - query: "physician_information.physician_name"
+      ground_truth: "Dr. Lennox"
+    - query: "physician_information.specialty"
+      ground_truth: "Pediatrics"
+    - query: "physician_information.physician_contact.office_phone"
+      ground_truth: "(555) 345-7865"
+    - query: "physician_information.physician_contact.fax"
+      ground_truth: "(555) 345-7866"
+    - query: "physician_information.physician_contact.office_address"
+      ground_truth: "84 North Avenue, Boston, MA 02108"
+    - query: "clinical_information.diagnosis"
+      ground_truth: "Lennox-Gastaut Syndrome; Infantile Spasms"
+    - query: "clinical_information.icd_10_code"
+      ground_truth: "G40.811; G40.821"
+    - query: "clinical_information.prior_treatments_and_results"
+      ground_truth: >
+        Valproic Acid: 4 weeks, failed; Lamotrigine: current therapy, failed;
+        Rufinamide: 8 weeks, failed; Topiramate: current therapy, failed
+    - query: "clinical_information.specific_drugs_taken_and_failures"
+      ground_truth: >
+        Valproic Acid: 4 weeks, failed; Lamotrigine: current therapy, failed;
+        Rufinamide: 8 weeks, failed; Topiramate: current therapy, failed
+    - query: "clinical_information.alternative_drugs_required"
+      ground_truth: "Not provided"
+    - query: "clinical_information.relevant_lab_results_or_imaging"
+      ground_truth: >-
+        EEG: Slow spike-and-wave discharges, generalized background slowing, infantile spasms, potential atonic seizures;
+        MRI Brain: Mild cortical atrophy, otherwise unremarkable;
+        CBC: WBC 6.5 x 10^9/L, Hemoglobin 11.5 g/dL, Hematocrit 34%, MCV 72 fL, MCH 23 pg, MCHC 32 g/dL, Platelet Count 250 x 10^9/L;
+        CMP: Glucose 90 mg/dL, BUN 10 mg/dL, Creatinine 0.5 mg/dL, Sodium 140 mEq/L, Potassium 4.1 mEq/L,
+        Chloride 104 mEq/L, Bicarbonate 24 mEq/L, Calcium 9.0 mg/dL, Total Protein 6.5 g/dL, Albumin 4.0 g/dL,
+        Alkaline Phosphatase 150 U/L, AST 20 U/L, ALT 18 U/L, Bilirubin 0.5 mg/dL
+    - query: "clinical_information.symptom_severity_and_impact"
+      ground_truth: >-
+        Increased seizure frequency, new atonic seizure activity, appears more sleepy,
+        mild hypotonia in upper body, hyperreflexia in upper and lower extremities
+    - query: "clinical_information.prognosis_and_risk_if_not_approved"
+      ground_truth: >-
+        Increased seizure frequency and severity, potential for worsening condition
+    - query: "clinical_information.clinical_rationale_for_urgency"
+      ground_truth: >-
+        Patient's seizures are worse in frequency and more varied in semiology despite trial of several AEDs
+    - query: "clinical_information.treatment_request.name_of_medication_or_procedure"
+      ground_truth: "Epidiolex"
+    - query: "clinical_information.treatment_request.code_of_medication_or_procedure"
+      ground_truth: "Not provided"
+    - query: "clinical_information.treatment_request.dosage"
+      ground_truth: >-
+        100 mg/mL, take 2.5mg/kg/day divided in two doses for one week, then increase to 5mg/kg/day divided in two doses
+    - query: "clinical_information.treatment_request.duration"
+      ground_truth: "Ongoing"
+    - query: "clinical_information.treatment_request.rationale"
+      ground_truth: >-
+        Patient's seizures are worse in frequency and more varied in semiology despite trial of several AEDs
+    - query: "clinical_information.treatment_request.presumed_eligibility"
+      ground_truth: "Yes, patient has tried and failed multiple AEDs"
