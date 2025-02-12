@@ -389,4 +389,6 @@ class AgenticRAG:
         self.logger.error(
             f"{self.prefix}Max retries reached. Returning empty list of policies."
         )
-        return {"query": None, "policies": [], "evaluation": None}
+
+        # this was updated to return information about the evaluation, even in failure we need to have the reasoning.
+        return {"query": expanded_query, "policies": evaluation.get("policies", []), "evaluation": evaluation}
