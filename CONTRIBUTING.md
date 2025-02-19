@@ -1,6 +1,17 @@
-# 📖 Contribution Guide
+# Contributing
 
-Welcome to the project! This guide outlines how to contribute, from setting up your development environment to creating high-quality pull requests. We value your contributions and collaboration in making this project successful.
+This project welcomes contributions and suggestions. Most contributions require you to
+agree to a Contributor License Agreement (CLA) declaring that you have the right to,
+and actually do, grant us the rights to use your contribution. For details, visit
+https://cla.microsoft.com.
+
+When you submit a pull request, a CLA-bot will automatically determine whether you need
+to provide a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the
+instructions provided by the bot. You will only need to do this once across all repositories using our CLA.
+
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
+For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/)
+or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ---
 
@@ -56,9 +67,9 @@ conda activate pa-ai-env
 git checkout -b feature/YourFeatureName_or_bugfix/YourBugFixName
 ```
 📌 **Branching Strategy**
-- `feature/new_feature` → Development  
-- `staging` → Testing & validation  
-- `main` → Production  
+- `feature/new_feature` → Development
+- `staging` → Testing & validation
+- `main` → Production
 
 ![Branching Strategy Diagram](utils/images/flow.png)
 
@@ -81,9 +92,9 @@ make run_tests
 
 ### 7. Update Requirements & Document Changes
 **Versioning:**
-- **Major (5.0.0)** → Breaking changes  
-- **Minor (5.1.0)** → New features  
-- **Patch (5.1.4)** → Fixes  
+- **Major (5.0.0)** → Breaking changes
+- **Minor (5.1.0)** → New features
+- **Patch (5.1.4)** → Fixes
 
 ---
 
@@ -120,9 +131,9 @@ make set_up_precommit_and_prepush
 
 ## 💡 Development Tips
 ### 🧪 Commit to Testing Early
-- Quick identification of bugs  
-- Improves maintainability  
-- Understands performance  
+- Quick identification of bugs
+- Improves maintainability
+- Understands performance
 
 ### 📓 Using `%%ipytest` for Interactive Testing
 ```python
@@ -149,21 +160,21 @@ Each Working Group (WG) oversees a key area of the project.
 
 ## 🚀 Release Strategy
 ### 📋 Release Planning
-- The **Steering Committee** defines release scope  
-- **WG leads commit features & fixes**  
-- Progress tracked in **GitHub Projects**  
+- The **Steering Committee** defines release scope
+- **WG leads commit features & fixes**
+- Progress tracked in **GitHub Projects**
 
 ### 🔀 Branching Strategy
-- `main` → Stable  
-- `release/x.y` → In-progress releases  
-- `hotfix/x.y.z` → Critical patches  
+- `main` → Stable
+- `release/x.y` → In-progress releases
+- `hotfix/x.y.z` → Critical patches
 
 ### 📊 Managing Releases in GitHub Projects
 1. Create **Release Project**
-2. Add issues & PRs  
-3. Track progress (`To Do` → `In Progress` → `Done`)  
-4. Final validation  
-5. **Cut release branch & publish notes**  
+2. Add issues & PRs
+3. Track progress (`To Do` → `In Progress` → `Done`)
+4. Final validation
+5. **Cut release branch & publish notes**
 
 ---
 
@@ -171,10 +182,10 @@ Each Working Group (WG) oversees a key area of the project.
 A **three-person Steering Committee** oversees governance, release planning, and issue resolution.
 
 **Responsibilities:**
-- Approving new Working Groups  
-- Resolving PR disputes  
-- Roadmap alignment  
-- Managing cloud resources  
+- Approving new Working Groups
+- Resolving PR disputes
+- Roadmap alignment
+- Managing cloud resources
 
 📌 **Steering Committee Members:**
 | Member | Working Group |
@@ -198,9 +209,9 @@ A **three-person Steering Committee** oversees governance, release planning, and
 ---
 
 ### 🌟 Summary
-✅ **Follow the structured workflow**  
-✅ **Test early & update documentation**  
-✅ **Engage in PR reviews & WG discussions**  
+✅ **Follow the structured workflow**
+✅ **Test early & update documentation**
+✅ **Engage in PR reviews & WG discussions**
 ✅ **Stay connected via Teams & GitHub**
 
 💙 *We appreciate all contributions! Your efforts make this project stronger!* 🚀
