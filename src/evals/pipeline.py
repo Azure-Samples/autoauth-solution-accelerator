@@ -112,7 +112,7 @@ class PipelineEvaluator(ABC):
                             "azure_deployment": os.environ.get("AZURE_OPENAI_DEPLOYMENT"),
                         }
                         if any(value is None for value in model_config.values()):
-                            raise ValueError("model_config has null values, please check your environment variables.")
+                            raise ValueError("model_config has null values, please check your environment variables: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_OPENAI_DEPLOYMENT.")
                         args["model_config"] = model_config
 
                 # Resolve each argument: if it's a string containing ":", attempt to resolve it.

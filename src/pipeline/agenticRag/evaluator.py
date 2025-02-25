@@ -3,15 +3,13 @@ import glob
 import json
 import os
 import shutil
-import logging
-import yaml
 import importlib
 from datetime import datetime
 
 from azure.ai.evaluation import evaluate
 
 from src.aifoundry.aifoundry_helper import AIFoundryManager
-from src.evals.custom.pipeline_evaluator import PipelineEvaluator
+from src.evals.pipeline import PipelineEvaluator
 from src.pipeline.agenticRag.run import AgenticRAG
 from src.evals.case import Case, Evaluation
 from src.pipeline.utils import load_config
@@ -259,7 +257,7 @@ class AgenticRagEvaluator(PipelineEvaluator):
             self.logger.info(f"Cleaned up temporary directory: {self.temp_dir}")
 
 if __name__ == "__main__":
-    evaluator = AgenticRagEvaluator(cases_dir="./src/evals/cases")
+    evaluator = AgenticRagEvaluator(cases_dir="./evals/cases")
     try:
         summary = asyncio.run(evaluator.run_pipeline())
         print(summary)

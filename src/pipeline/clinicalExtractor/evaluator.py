@@ -10,7 +10,7 @@ from azure.ai.evaluation import evaluate
 
 from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.evals.case import Case, Evaluation
-from src.evals.custom.pipeline_evaluator import PipelineEvaluator
+from src.evals.pipeline import PipelineEvaluator
 from src.extractors.pdfhandler import OCRHelper
 from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
 from src.pipeline.promptEngineering.models import PatientInformation, PhysicianInformation, ClinicalInformation
@@ -239,7 +239,7 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
 
 
 if __name__ == "__main__":
-    pipeline = ClinicalExtractorEvaluator(cases_dir="./src/evals/cases")
+    pipeline = ClinicalExtractorEvaluator(cases_dir="./evals/cases")
     try:
         summary = asyncio.run(pipeline.run_pipeline())
         print(summary)
