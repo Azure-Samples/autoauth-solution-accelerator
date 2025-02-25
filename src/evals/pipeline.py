@@ -8,7 +8,9 @@ from enum import Enum
 from typing import final
 import inspect
 import yaml
+from azure.ai.evaluation import evaluate
 
+from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.pipeline.utils import load_config
 from src.utils.ml_logging import get_logger
 
@@ -36,6 +38,8 @@ class PipelineEvaluator(ABC):
         self.config_file = os.path.join("agenticRag", "settings.yaml")
         self.config = load_config(self.config_file)
         self.run_config = self.config.get("run", {})
+        self.cases = {}
+        self.ai_foundry_manager = AIFoundryManager()
 
         self.logger = get_logger(
             name=self.run_config["logging"]["name"],
@@ -190,14 +194,14 @@ class PipelineEvaluator(ABC):
         """
         pass
 
-    @abstractmethod
-    async def run_evaluations(self):
-        """
-        Run evaluations step.
-
-        This method should be implemented by subclasses.
-        """
-        pass
+    # @abstractmethod
+    # async def run_evaluations(self):
+    #     """
+    #     Run evaluations step.
+    #
+    #     This method should be implemented by subclasses.
+    #     """
+    #     pass
 
     @abstractmethod
     def post_processing(self) -> dict:
@@ -232,6 +236,46 @@ class PipelineEvaluator(ABC):
         await self.preprocess()
         await self.run_evaluations()
         return self.post_processing()
+
+    @final
+    async def run_evaluations(self):
+        """
+        Evaluation step:
+          - For each test case, creates an evaluation dataset and triggers the Azure AI evaluation.
+          - Uses the evaluators stored on each Case object.
+          - Stores the Azure evaluation results in each Case object.
+        """
+        git_hash = self._get_git_hash()
+        for case_id, case_obj in self.cases.items():
+            evaluators = getattr(case_obj, "evaluators", None)
+            if evaluators is None:
+                self.logger.warning(f"No evaluators set for case '{case_id}', skipping evaluation.")
+                continue
+
+            evaluator_config = {}
+            # Build the column mapping for each evaluator.
+            # "response" is always included, while "query", "ground_truth", and "context" are added
+            # only if at least one evaluation in the case contains that attribute.
+            for evaluator_name in evaluators.keys():
+                column_mapping = {"response": "${data.response}"}
+                optional_keys = ["query", "ground_truth", "context"]
+                for key in optional_keys:
+                    # Check if any evaluation object has the attribute and a non-None value.
+                    if any(hasattr(eval_item, key) and getattr(eval_item, key) is not None for eval_item in case_obj.evaluations):
+                        column_mapping[key] = "${data." + key + "}"
+                evaluator_config[evaluator_name] = {
+                    "column_mapping": column_mapping
+                }
+
+            with case_obj.create_evaluation_dataset() as dataset_path:
+                azure_result = evaluate(
+                    evaluation_name=f"{case_id}#{git_hash}",
+                    data=dataset_path,
+                    evaluators=evaluators,
+                    evaluator_config=evaluator_config,
+                    azure_ai_project=self.ai_foundry_manager.project_config,
+                )
+                case_obj.azure_eval_result = azure_result
 
     def sanitize_args(self, args: dict, sensitive_keys: set = None) -> dict:
         """

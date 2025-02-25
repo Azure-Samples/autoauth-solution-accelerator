@@ -21,6 +21,7 @@ class AgenticRagEvaluator(PipelineEvaluator):
     EXPECTED_PIPELINE = "src.pipeline.clinicalExtractor.evaluator.AgenticRagEvaluator"
 
     def __init__(self, cases_dir: str, temp_dir: str = "./temp", logger=None):
+
         self.cases_dir = cases_dir
         self.temp_dir = temp_dir
         self.case_id = None      # Set from the pipeline YAML.
@@ -220,15 +221,20 @@ class AgenticRagEvaluator(PipelineEvaluator):
                 continue
 
             evaluator_config = {}
+            # Build the column mapping for each evaluator.
+            # "response" is always included, while "query", "ground_truth", and "context" are added
+            # only if at least one evaluation in the case contains that attribute.
             for evaluator_name in evaluators.keys():
+                column_mapping = {"response": "${data.response}"}
+                optional_keys = ["query", "ground_truth", "context"]
+                for key in optional_keys:
+                    # Check if any evaluation object has the attribute and a non-None value.
+                    if any(hasattr(eval_item, key) and getattr(eval_item, key) is not None for eval_item in case_obj.evaluations):
+                        column_mapping[key] = "${data." + key + "}"
                 evaluator_config[evaluator_name] = {
-                    "column_mapping": {
-                        "query": "${data.query}",
-                        "ground_truth": "${data.ground_truth}",
-                        "response": "${data.response}",
-                        "context": "${data.context}"
-                    }
+                    "column_mapping": column_mapping
                 }
+
             with case_obj.create_evaluation_dataset() as dataset_path:
                 azure_result = evaluate(
                     evaluation_name=f"{case_id}#{git_hash}",
