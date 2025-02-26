@@ -37,7 +37,7 @@ class AutoPADeterminator:
         self.config = load_config(config_file)
         self.run_config = self.config.get("run", {})
         self.four0_auto_determination_config = self.run_config.get(
-            "4o_auto_determination", {}
+            "4o_autoDetermination", {}
         )
         self.o1_auto_determination_config = self.run_config.get(
             "o1_autoDetermination", {}
@@ -208,7 +208,8 @@ class AutoPADeterminator:
                     break
                 except Exception as e:
                     self.logger.warning(
-                        f"4o model generation failed on attempt {attempt}: {str(e)}"
+                        f"4o model generation failed on attempt {attempt}: {str(e)}",
+                        exc_info=True
                     )
                     if attempt < max_retries:
                         self.logger.info(
