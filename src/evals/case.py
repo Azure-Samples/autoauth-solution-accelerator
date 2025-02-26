@@ -16,6 +16,7 @@ class Evaluation:
       - context: A description of the evaluation context.
       - conversation: A list of messages.
       - scores: A dictionary of score(s) (e.g. {"semantic_similarity": <score>}).
+      - tags: A dictionary of additional tags.
     """
 
     def __init__(
@@ -25,11 +26,13 @@ class Evaluation:
             ground_truth: str,
             context: Optional[Any] = None,
             conversation: Optional[Any] = None,
-            scores: Optional[Dict[str, Any]] = None
+            scores: Optional[Dict[str, Any]] = None,
+            tags: Optional[List[tuple[str,str]]] = None
     ):
         self.query = query
         self.response = response
         self.ground_truth = ground_truth
+        self.tags = tags
 
         # Only set attributes if they are not None or not an empty dict.
         if context is not None and context != {}:

@@ -5,7 +5,7 @@ import shutil
 import subprocess
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import final
+from typing import final, List, Tuple
 import inspect
 import yaml
 from azure.ai.evaluation import evaluate
@@ -13,6 +13,12 @@ from azure.ai.evaluation import evaluate
 from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.pipeline.utils import load_config
 from src.utils.ml_logging import get_logger
+
+# @TODO: Remove this import when the package fix is available.
+from azure.ai.evaluation._evaluate._eval_run import EvalRun
+from src.evals.sdk.custom_azure_ai_evaluations import custom_start_run, CUSTOM_TAGS
+import src.evals.sdk.custom_azure_ai_evaluations as custom_eval
+EvalRun._start_run = custom_start_run
 
 class PipelineEvaluator(ABC):
     """
@@ -35,7 +41,7 @@ class PipelineEvaluator(ABC):
         Subclasses can extend this initializer to set up their own state.
         """
         self.EXPECTED_PIPELINE = None
-        self.config_file = os.path.join("agenticRag", "settings.yaml")
+        self.config_file = os.path.join("", "settings.yaml")
         self.config = load_config(self.config_file)
         self.run_config = self.config.get("run", {})
         self.cases = {}
@@ -47,6 +53,14 @@ class PipelineEvaluator(ABC):
             tracing_enabled=self.run_config["logging"]["enable_tracing"],
         )
 
+    def _generate_custom_tags(self, case_id: str, git_commit: str, class_name: str) ->  List[Tuple[str,str]]:
+        computed_tags = [
+            ("case",case_id),
+            ("commit", git_commit),
+            ("class", class_name)
+        ]
+        custom_eval.CUSTOM_TAGS = computed_tags
+        return computed_tags
 
     def _resolve_object(self, value: str):
         """
@@ -268,8 +282,9 @@ class PipelineEvaluator(ABC):
                 }
 
             with case_obj.create_evaluation_dataset() as dataset_path:
+                custom_eval.CUSTOM_TAGS = self._generate_custom_tags(case_id, git_hash, self.__class__.__name__)
                 azure_result = evaluate(
-                    evaluation_name=f"{case_id}#{git_hash}",
+                    evaluation_name=f"{case_id}",
                     data=dataset_path,
                     evaluators=evaluators,
                     evaluator_config=evaluator_config,
