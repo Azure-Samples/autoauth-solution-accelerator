@@ -199,6 +199,34 @@ class PipelineEvaluator(ABC):
                 items[new_key] = str(v)
         return items
 
+    def _instantiate_context(self, context_mapping: dict, key: str):
+        """
+        Instantiates a context object from a mapping.
+        Expects a mapping of the form:
+          { "src.pipeline.promptEngineering.models:ClinicalInformation": { ... } }
+        Returns the instantiated object or None if instantiation fails.
+        """
+        if key not in context_mapping:
+            self.logger.error(f"Key '{key}' not found in the provided context mapping.")
+            return None
+
+        value = context_mapping[key]
+
+        if ":" in key:
+            # Key is in the format "module_path:ClassName"
+            try:
+                module_path, class_name = key.split(":", 1)
+                mod = importlib.import_module(module_path)
+                context_class = getattr(mod, class_name)
+                # We expect the value to be a dictionary of parameters for the class
+                return context_class(**value)
+            except Exception as e:
+                self.logger.error(f"Error instantiating context for key '{key}': {e}")
+                return None
+        else:
+            # Key does not contain ':', treat value as a direct string (or raw data)
+            return value
+
     @abstractmethod
     async def preprocess(self):
         """

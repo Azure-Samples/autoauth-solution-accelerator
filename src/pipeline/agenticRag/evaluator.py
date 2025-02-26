@@ -40,37 +40,7 @@ class AgenticRagEvaluator(PipelineEvaluator):
             tracing_enabled=self.run_config["logging"]["enable_tracing"],
         )
 
-
-    def _instantiate_context(self, context_mapping: dict):
-        """
-        Instantiates a context object from a mapping.
-        Expects a mapping of the form:
-          { "src.pipeline.promptEngineering.models:ClinicalInformation": { ... } }
-        Returns the instantiated object or None if instantiation fails.
-        """
-        for key, config in context_mapping.items():
-            try:
-                module_path, class_name = key.split(":", 1)
-                mod = importlib.import_module(module_path)
-                context_class = getattr(mod, class_name)
-                return context_class(**config)
-            except Exception as e:
-                self.logger.error(f"Error instantiating context for key '{key}': {e}")
-                return None
-        return None
-
     async def preprocess(self):
-        """
-        Preprocessing step:
-          - Loads YAML test case definitions.
-          - Validates the pipeline configuration and sets parameters (case_id, scenario).
-          - Instantiates evaluators for each test case individually.
-          - For each test case:
-              * Creates a Case instance.
-              * Instantiates a ClinicalInformation object from the provided clinical info or context.
-              * Generates a response via AgenticRAG.
-              * Processes the generated output and creates Evaluation records.
-        """
         case_files = glob.glob(os.path.join(self.cases_dir, "*.yaml"))
         for file_path in case_files:
             config = self._load_yaml(file_path)
@@ -87,10 +57,8 @@ class AgenticRagEvaluator(PipelineEvaluator):
             if not pipeline_config:
                 continue
 
-            # Set pipeline parameters.
             self.case_id = pipeline_config.get("case_id")
             self.scenario = pipeline_config.get("scenario")
-            # Instantiate the runner for this pipeline.
             self.agentic_rag = AgenticRAG(caseId=self.case_id)
 
             cases_list = root_obj.get("cases", [])
@@ -106,61 +74,49 @@ class AgenticRagEvaluator(PipelineEvaluator):
                 test_case_obj = config[case_id]
                 self.cases[case_id] = Case(case_name=case_id)
 
-                # Instantiate evaluators for this case.
-                # If the test case defines its own evaluators, use them;
-                # otherwise, fall back to those defined in the pipeline config.
+                # Instantiate evaluators
                 if "evaluators" in test_case_obj:
                     case_evaluators = self._instantiate_evaluators(test_case_obj)
                 else:
                     case_evaluators = self._instantiate_evaluators(root_obj)
-                # Store the evaluators on the case so they can be used later.
                 self.cases[case_id].evaluators = case_evaluators
 
-                # Process clinical information.
-                clinical_info_obj = None
-                clinical_info_data = test_case_obj.get("clinical_info")
-                if clinical_info_data:
-                    if isinstance(clinical_info_data, dict):
-                        clinical_info_obj = ClinicalInformation(**clinical_info_data)
-                    else:
-                        clinical_info_obj = clinical_info_data
-                elif "context" in test_case_obj:
-                    clinical_info_obj = self._instantiate_context(test_case_obj["context"])
-                else:
-                    for eval_item in test_case_obj.get("evaluations", []):
-                        if "context" in eval_item:
-                            clinical_info_obj = self._instantiate_context(eval_item["context"])
-                            break
-
-                if not clinical_info_obj:
-                    self.logger.error(f"No clinical information provided for test case '{case_id}'. Skipping this case.")
-                    continue
-
-                # Generate response using the instantiated clinical_info_obj.
-                response = await self.generate_responses(clinical_info_obj)
-                processed_output = self.process_generated_output(response.get("generated_output", {}))
-
-                # Determine default context for evaluations.
-                context_obj = None
-                if "context" in test_case_obj:
-                    context_obj = self._instantiate_context(test_case_obj["context"])
-                else:
-                    for eval_item in test_case_obj.get("evaluations", []):
-                        if "context" in eval_item:
-                            context_obj = self._instantiate_context(eval_item["context"])
-                            break
-
                 for eval_item in test_case_obj.get("evaluations", []):
+                    # 1) Try to find a test-case-level ClinicalInformation
+                    clinical_info_obj = None
+                    if "context" in eval_item:
+                        clinical_info_obj = self._instantiate_context(
+                            eval_item["context"],
+                            "src.pipeline.promptEngineering.models:ClinicalInformation",
+                        )
+
+                    # 2) Generate the RAG response with whatever context is available
+                    #    (or no context at all, if you allow that)
+                    processed_output = ""
+                    try:
+                        response = await self.generate_responses(clinical_info_obj)
+                        processed_output = self.process_generated_output(
+                            response.get("generated_output", {})
+                        )
+                    except Exception as e:
+                        self.logger.error(
+                            f"Error generating RAG response for case {case_id}: {e}"
+                        )
+
+                    eval_context = {'clinical_info': clinical_info_obj.model_dump() if clinical_info_obj else None}
+
                     query = eval_item.get("query")
                     expected_val = eval_item.get("ground_truth")
+
                     evaluation_record = Evaluation(
                         query=query,
                         response=processed_output,
                         ground_truth=expected_val,
-                        context=json.dumps(context_obj.model_dump()) if context_obj else None,
+                        context=json.dumps(eval_context) if eval_context else None,
                         conversation=None,
-                        scores=None
+                        scores=None,
                     )
+
                     self.cases[case_id].evaluations.append(evaluation_record)
                     self.results.append({
                         "case": case_id,
@@ -169,7 +125,10 @@ class AgenticRagEvaluator(PipelineEvaluator):
                         "ground_truth": expected_val,
                         "context": evaluation_record.context,
                     })
-        self.logger.info(f"AgenticRagEvaluator initialized with case_id: {self.case_id}, scenario: {self.scenario}")
+
+        self.logger.info(
+            f"AgenticRagEvaluator initialized with case_id={self.case_id}, scenario={self.scenario}"
+        )
 
     async def generate_responses(self, clinical_info: object) -> dict:
         """
