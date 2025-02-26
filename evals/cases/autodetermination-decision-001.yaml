@@ -9,8 +9,8 @@ autodetermination-decision-001:
     uploaded_files: "utils/data/cases/001/a"
     case_id: "TEST-001"
   evaluators:
-#    - name: "FactualCorrectnessEvaluator"
-#      class: src.evals.custom.factual_correctness_evaluator:FactualCorrectnessEvaluator
+    - name: "FactualCorrectnessEvaluator"
+      class: src.evals.custom.factual_correctness_evaluator:FactualCorrectnessEvaluator
     - name: "MeteorScoreEvaluator"
       class: azure.ai.evaluation:MeteorScoreEvaluator
     - name: "CoherenceEvaluator"
@@ -23,7 +23,7 @@ autodetermination-decision-001:
     - autodetermination-decision-001-positive.v0
 
 autodetermination-decision-001-positive.v0:
-  metrics: [MeteorScoreEvaluator, CoherenceEvaluator, SemanticSimilarityEvaluator]
+  metrics: [FactualCorrectnessEvaluator, MeteorScoreEvaluator, CoherenceEvaluator, SemanticSimilarityEvaluator]
   evaluations:
     - query: "Provide a clear final decision and a detailed rationale based solely on the facts and policy provided."
       ground_truth: >-

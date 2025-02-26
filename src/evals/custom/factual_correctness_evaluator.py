@@ -1,11 +1,11 @@
-import asyncio
-from typing import TypedDict, Dict, Any
 import os
+from typing import TypedDict, Dict, Any
+
+import asyncio
 from ragas.dataset_schema import SingleTurnSample
 from ragas.metrics._factual_correctness import FactualCorrectness
 from langchain_community.chat_models import AzureChatOpenAI
 from ragas.llms import LangchainLLMWrapper
-
 
 class FactualCorrectnessScore(TypedDict):
     """
@@ -16,62 +16,49 @@ class FactualCorrectnessScore(TypedDict):
 
 class FactualCorrectnessEvaluator:
     """
-    Evaluator class that uses RAGAS's FactualCorrectness metric with an Azure OpenAI LLM.
+    Evaluator that lazily initializes the Azure LLM and RAGAS scorer
+    only when needed, preventing pickling issues.
     """
 
-    def __init__(
-        self,
-        model_config: Dict[str, Any],
-    ):
+    def __init__(self, model_config: dict):
         """
-        Initialize the evaluator with the Azure LLM and the RAGAS metric.
-
-        :param model_config: Dictionary containing Azure configuration values. For example:
-            {
-                "azure_endpoint": "https://YOUR_AZURE_RESOURCE_NAME.openai.azure.com/",
-                "api_key": "YOUR_AZURE_API_KEY",
+        :param model_config: Dictionary containing Azure configuration, e.g.:
+             {
+                "azure_endpoint": "https://YOUR_RESOURCE_NAME.openai.azure.com/",
+                "api_key": "YOUR_API_KEY",
                 "azure_deployment": "YOUR_DEPLOYMENT_NAME"
-            }
+             }
         """
-        azure_endpoint = model_config["azure_endpoint"]
-        azure_api_key = model_config["api_key"]
-        azure_deployment = model_config["azure_deployment"]
+        # Store config but do not create any unpicklable objects yet
+        self.model_config = model_config
 
-        azure_llm = AzureChatOpenAI(
-            azure_endpoint=azure_endpoint,
-            api_key=azure_api_key,
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15"),
-            azure_deployment=azure_deployment,
-        )
-        self.llm = LangchainLLMWrapper(azure_llm)
-        self.scorer = FactualCorrectness(llm=self.llm)
-
-    def __call__(self, *, response: str, ground_truth: str, **kwargs) -> FactualCorrectnessScore:
+    def __call__(self, *, response: str, ground_truth: str) -> FactualCorrectnessScore:
         """
-        Evaluate the factual correctness of the given response against the reference.
-
-        :param response: The model's answer to evaluate.
-        :param reference: The ground truth / context for factual comparison.
-        :return: A dictionary with the factual correctness score (0.0 to 1.0).
+        Synchronously evaluate factual correctness.
         """
-        loop = asyncio.get_event_loop()
         try:
-            score = loop.run_until_complete(self._async_score(response, ground_truth))
+            score = self._sync_score(response, ground_truth)
             return {"factual_correctness": score}
         except Exception as e:
             print(f"Error during factual correctness evaluation: {e}")
             return {"factual_correctness": 0.0}
 
-    async def _async_score(self, response: str, reference: str) -> float:
+    def _sync_score(self, response: str, reference: str) -> float:
         """
-        The asynchronous method that interacts with RAGAS to compute the factual correctness score.
-
-        :param response: The model's answer.
-        :param reference: The ground truth / reference.
-        :return: Numeric score indicating factual correctness.
+        Helper function that builds the LLM and RAGAS scorer *on demand*.
         """
-        sample = SingleTurnSample(
-            response=response,
-            reference=reference
+        # 1) Create the Azure LLM with config
+        azure_llm = AzureChatOpenAI(
+            azure_endpoint=self.model_config["azure_endpoint"],
+            api_key=self.model_config["api_key"],
+            api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15"),
+            azure_deployment=self.model_config["azure_deployment"]
         )
-        return await self.scorer.single_turn_ascore(sample)
+        wrapped_llm = LangchainLLMWrapper(azure_llm)
+
+        # 2) Create a new scorer each time. It has no memory; it just runs the prompt
+        scorer = FactualCorrectness(llm=wrapped_llm)
+
+        # 3) Evaluate
+        sample = SingleTurnSample(response=response, reference=reference)
+        return scorer.single_turn_score(sample)
