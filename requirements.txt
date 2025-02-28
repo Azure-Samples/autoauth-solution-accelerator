@@ -10,7 +10,7 @@ fastapi-users[beanie]
 uvicorn
 pydantic-settings
 
-# AI and OpenAI integration
+# AI and OpenAI e2e
 openai==1.52.0
 tiktoken==0.8.0
 langchain==0.3.1
@@ -46,6 +46,7 @@ pymongo==4.10.1
 colorama
 PyMuPDF
 rapidfuzz
+pytest==8.3.4
 
 # HTTPX fix for OpenAI
 httpx==0.27.2
