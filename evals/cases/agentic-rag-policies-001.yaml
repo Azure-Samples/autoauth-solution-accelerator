@@ -16,6 +16,7 @@ agentic-rag-policies-001:
     - agentic-rag-policies-001-negative.v0
 
 agentic-rag-policies-001-positive.v0:
+  # @TODO: need to support the metrics to filter only on those metrics required, from the evaluators
   metrics: [FuzzyEvaluator]
   evaluations:
     - query: "Associated Policies for Positive Scenario"
