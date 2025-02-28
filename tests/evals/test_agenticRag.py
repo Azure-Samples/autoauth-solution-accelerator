@@ -1,8 +1,11 @@
-import operator
-import pytest
 import asyncio
 import json
+import operator
+
+import pytest
+
 from src.pipeline.agenticRag.evaluator import AgenticRagEvaluator
+
 
 def check_case_metric(summary, test_case: str, metric_key: str, expected_value, comparator=operator.eq):
     """
