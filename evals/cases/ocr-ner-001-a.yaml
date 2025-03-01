@@ -21,6 +21,7 @@ ocr-ner-001-a:
   cases:
     - ocr-ner-001-a.v0
 
+# @TODO: need to change all the queries to support jquery expansion
 ocr-ner-001-a.v0:
   metrics: [RougeScoreEvaluator, MeteorScoreEvaluator, BleuScoreEvaluator, FuzzyEvaluator]
   evaluations:

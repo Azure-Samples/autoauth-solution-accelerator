@@ -4,9 +4,12 @@ import json
 import os
 import shutil
 import importlib
+import sys
 from datetime import datetime
+import jq
 
 from colorama import Fore
+from numpy.f2py.auxfuncs import throw_error
 
 from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.aoai.aoai_helper import AzureOpenAIManager
@@ -194,7 +197,7 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
                             clinical_info=clinical_info_obj,
                             policy_text=policy_text,
                         )
-                        processed_output = response.get("generated_output", {})
+                        processed_output = await self.process_generated_output(response.get("generated_output", {}), query)
                     except Exception as e:
                         self.logger.error(
                             f"Error generating auto determination for case {case_id}: {e}"
@@ -297,6 +300,52 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)
             self.logger.info(f"Cleaned up temporary directory: {self.temp_dir}")
+
+    async def process_generated_output(self, generated_output: str, query: str):
+        """
+        Processes the generated output using a jq-compatible query.
+
+        :param generated_output: The JSON object (dict) to process.
+        :param query: The jq-compatible query string.
+        :return: The extracted value(s) based on the query.
+        """
+        try:
+            autodetermination = await self._summarize_autodetermination(generated_output)
+            subset = jq.compile(query).input(json.loads(autodetermination)).all()
+            result = str(subset[0]) if subset else ""
+            return result
+        except Exception as e:
+            raise RuntimeError(f"Error processing generated output: {e}") from e
+
+    async def _summarize_autodetermination(self, text: str) -> str:
+        """
+        Summarize a given autodetermination text using the LLM.
+
+        Args:
+            text: The full text of the policy document.
+
+        Returns:
+            A summarized version of the policy text.
+        """
+        self.logger.info(Fore.CYAN + "Summarizing AutoDetermination...")
+        system_message_content = self.prompt_manager.get_prompt(
+            "summarize_autodetermination_system.jinja"
+        )
+        prompt_user_query_summary = self.prompt_manager.create_prompt_summary_autodetermination(
+            text
+        )
+        api_response_query = await self.azure_openai_client.generate_chat_response(
+            query=prompt_user_query_summary,
+            system_message_content=system_message_content,
+            conversation_history=[],
+            response_format="text",
+            max_tokens=4096,
+            top_p=self.top_p,
+            temperature=self.temperature,
+            frequency_penalty=self.frequency_penalty,
+            presence_penalty=self.presence_penalty,
+        )
+        return api_response_query["response"]
 
     async def _summarize_policy(self, policy_text: str) -> str:
         """
