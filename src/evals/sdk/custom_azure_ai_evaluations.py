@@ -1,7 +1,6 @@
 import logging
-import os
 import time
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 from urllib.parse import urlparse
 
 # @TODO: Remove this import when the package fix is available.

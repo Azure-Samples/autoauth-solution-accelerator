@@ -6,8 +6,6 @@ import os
 from datetime import datetime
 from typing import List, Union
 
-from azure.ai.evaluation import evaluate
-
 from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.evals.case import Case, Evaluation
 from src.evals.pipeline import PipelineEvaluator

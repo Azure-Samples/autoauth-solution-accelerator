@@ -4,7 +4,6 @@ import operator
 
 import pytest
 
-from src.pipeline.agenticRag.evaluator import AgenticRagEvaluator
 from src.pipeline.autoDetermination.evaluator import AutoDeterminationEvaluator
 
 
