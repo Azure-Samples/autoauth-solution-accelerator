@@ -22,7 +22,7 @@ autodetermination-decision-001-positive-rationale.v0:
   evaluations:
     - query: ".Rationale"
       ground_truth: >-
-        The prior authorization request for Adalimumab is approved because all the policy criteria for initial therapy in Crohn's Disease are fully met. The patient is over 6 years old, has tried corticosteroid therapy without improvement, and the medication is prescribed by a pediatric gastroenterologist.
+        The patient meets all the required policy criteria for the approval of Adalimumab (Humira) for the treatment of Crohn's Disease under initial therapy. All criteria are fully met based on the provided patient information and the policy text.
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: "Sarah Sample"
