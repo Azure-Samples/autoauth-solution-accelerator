@@ -1,0 +1,449 @@
+autodetermination-reasoning-002:
+  description: >
+    Evaluation for auto-determination, given the additional extracted or not-extracted information for
+    clinical information, physician information, and patient information.
+  disclaimer: >
+    Evaluations are performed zero-shot without additional fine-tuning.
+  pipeline:
+    class: src.pipeline.autoDetermination.evaluator.AutoDeterminationEvaluator
+    case_id: "TEST-001"
+  evaluators:
+    - name: "FactualCorrectnessEvaluator"
+      class: src.evals.custom.factual_correctness_evaluator:FactualCorrectnessEvaluator
+    - name: "CoherenceEvaluator"
+      class: azure.ai.evaluation:CoherenceEvaluator
+  cases:
+    - autodetermination-decision-002-negative-rationale.v0
+
+autodetermination-decision-002-negative-rationale.v0:
+  metrics: [FactualCorrectnessEvaluator, CoherenceEvaluator]
+  evaluations:
+    - query: ".Rationale"
+      ground_truth: >-
+        The prior authorization request for Epidiolex is denied because the patient does not meet all the required policy criteria for approval. Specifically, the patient has only tried one antiseizure medication instead of the required two, and the medication is prescribed by a pediatrician without documented consultation with a neurologist.
+      context:
+        src.pipeline.promptEngineering.models:PatientInformation:
+          patient_name: "Maxie Millionaire"
+          patient_date_of_birth: "06/15/2022"
+          patient_id: "7656432"
+          patient_address: "14126 Garnett St, Boston, MA, 02108"
+          patient_phone_number: "555-987-2254"
+        src.pipeline.promptEngineering.models:PhysicianInformation:
+          physician_name: "Dr. Lennox"
+          specialty: "Pediatrics"
+          physician_contact:
+            office_phone: "(555) 345-7865"
+            fax: "(555) 345-7866"
+            office_address: "84 North Avenue, Boston, MA 02108"
+        src.pipeline.promptEngineering.models:ClinicalInformation:
+          diagnosis: "Lennox-Gastaut Syndrome; Infantile Spasms"
+          icd_10_code: "G40.811; G40.821"
+          prior_treatments_and_results: >-
+            Vigabatrin: insufficient; Ketogenic diet: insufficient
+          specific_drugs_taken_and_failures: >-
+            Vigabatrin: insufficient; Ketogenic diet: insufficient
+          alternative_drugs_required: "Not provided"
+          relevant_lab_results_or_imaging: >-
+            EEG: Slow spike-and-wave discharges at 1.5 to 2.5 Hz, generalized background slowing, occasional bursts of rhythmic delta activity, brief generalized seizures with multifocal spikes and slow waves, atonic seizures with generalized slow wave discharges; CBC: WBC Count 6.5 x 10^9/L, Hemoglobin 11.5 g/dL, Hematocrit 34%, MCV 72 fL, MCH 23 pg, MCHC 32 g/dL, Platelet Count 250 x 10^9/L; CMP: Glucose 90 mg/dL, BUN 10 mg/dL; Basic Metabolic Panel: Creatinine 0.5 mg/dL, Sodium 140 mEq/L, Potassium 4.1 mEq/L, Chloride 104 mEq/L, Bicarbonate 24 mEq/L, Calcium 9.0 mg/dL, Total Protein 6.5 g/dL, Albumin 4.0 g/dL, Alkaline Phosphatase 150 U/L, AST (SGOT) 20 U/L, ALT (SGPT) 18 U/L, Bilirubin (Total) 0.5 mg/dL
+          symptom_severity_and_impact: >-
+            Increased spasm frequency, new atonic seizure activity, seizures worse in frequency and more varied in semiology, mild hypotonia in the upper body, hyperreflexia in upper and lower extremities, appears fatigued
+          prognosis_and_risk_if_not_approved: >-
+            Potential for increased seizure frequency and severity, risk of further developmental delays and complications associated with Lennox-Gastaut Syndrome
+          clinical_rationale_for_urgency: >-
+            Patient's seizures are worsening in frequency and variety, requiring immediate intervention to prevent further complications
+          treatment_request:
+            name_of_medication_or_procedure: "Epidiolex"
+            code_of_medication_or_procedure: "Not provided"
+            dosage: >-
+              100 mg/mL, take 2.5mg/kg/day divided in two doses for one week, then increase to 5mg/kg/day divided in two doses
+            duration: "Ongoing"
+            rationale: >-
+              Patient's seizures are worse in frequency and more varied in semiology despite current therapy of Vigabatrin and ketogenic diet
+            presumed_eligibility: "Not provided"
+        policy_text: >-
+          <figure>
+
+          cigna
+          healthcare
+
+          </figure>
+
+
+          # PRIOR AUTHORIZATION POLICY
+
+          POLICY:
+
+          Antiseizure Medications - Epidiolex Prior Authorization Policy
+
+          · Epidiolex® (cannabidiol oral solution - Greenwich Biosciences)
+
+          REVIEW DATE: 02/07/2024
+
+
+          ## INSTRUCTIONS FOR USE
+
+          THE FOLLOWING COVERAGE POLICY APPLIES TO HEALTH BENEFIT PLANS ADMINISTERED BY CIGNA COMPANIES. CERTAIN CIGNA
+          COMPANIES AND/OR LINES OF BUSINESS ONLY PROVIDE UTILIZATION REVIEW SERVICES TO CLIENTS AND DO NOT MAKE COVERAGE
+          DETERMINATIONS. REFERENCES TO STANDARD BENEFIT PLAN LANGUAGE AND COVERAGE DETERMINATIONS DO NOT APPLY TO THOSE
+          CLIENTS. COVERAGE POLICIES ARE INTENDED TO PROVIDE GUIDANCE IN INTERPRETING CERTAIN STANDARD BENEFIT PLANS
+          ADMINISTERED BY CIGNA COMPANIES. PLEASE NOTE, THE TERMS OF A CUSTOMER'S PARTICULAR BENEFIT PLAN DOCUMENT [GROUP
+          SERVICE AGREEMENT, EVIDENCE OF COVERAGE, CERTIFICATE OF COVERAGE, SUMMARY PLAN DESCRIPTION (SPD) OR SIMILAR PLAN
+          DOCUMENT] MAY DIFFER SIGNIFICANTLY FROM THE STANDARD BENEFIT PLANS UPON WHICH THESE COVERAGE POLICIES ARE BASED. FOR
+          EXAMPLE, A CUSTOMER'S BENEFIT PLAN DOCUMENT MAY CONTAIN A SPECIFIC EXCLUSION RELATED TO A TOPIC ADDRESSED IN A COVERAGE
+          POLICY. IN THE EVENT OF A CONFLICT, A CUSTOMER'S BENEFIT PLAN DOCUMENT ALWAYS SUPERSEDES THE INFORMATION IN THE
+          COVERAGE POLICIES. IN THE ABSENCE OF A CONTROLLING FEDERAL OR STATE COVERAGE MANDATE, BENEFITS ARE ULTIMATELY
+          DETERMINED BY THE TERMS OF THE APPLICABLE BENEFIT PLAN DOCUMENT. COVERAGE DETERMINATIONS IN EACH SPECIFIC INSTANCE
+          REQUIRE CONSIDERATION OF 1) THE TERMS OF THE APPLICABLE BENEFIT PLAN DOCUMENT IN EFFECT ON THE DATE OF SERVICE; 2) ANY
+          APPLICABLE LAWS/REGULATIONS; 3) ANY RELEVANT COLLATERAL SOURCE MATERIALS INCLUDING COVERAGE POLICIES AND; 4) THE
+          SPECIFIC FACTS OF THE PARTICULAR SITUATION. EACH COVERAGE REQUEST SHOULD BE REVIEWED ON ITS OWN MERITS. MEDICAL
+          DIRECTORS ARE EXPECTED TO EXERCISE CLINICAL JUDGMENT AND HAVE DISCRETION IN MAKING INDIVIDUAL COVERAGE
+          DETERMINATIONS. COVERAGE POLICIES RELATE EXCLUSIVELY TO THE ADMINISTRATION OF HEALTH BENEFIT PLANS. COVERAGE POLICIES
+          ARE NOT RECOMMENDATIONS FOR TREATMENT AND SHOULD NEVER BE USED AS TREATMENT GUIDELINES. IN CERTAIN MARKETS,
+          DELEGATED VENDOR GUIDELINES MAY BE USED TO SUPPORT MEDICAL NECESSITY AND OTHER COVERAGE DETERMINATIONS.
+
+
+          # CIGNA NATIONAL FORMULARY COVERAGE:
+
+
+          ## OVERVIEW
+
+          Epidiolex, a cannabinoid, is indicated in patients ≥ 1 year of age for the treatment
+          of seizures associated with:1
+
+          · Dravet syndrome.
+
+          . Lennox-Gastaut syndrome.
+
+          · Tuberous sclerosis complex.
+
+
+          ## Disease Overview
+
+          Dravet syndrome is a rare genetic epileptic encephalopathy marked with frequent
+          and/or prolonged seizures.2,3 The seizures generally begin in the first year of life in
+          an otherwise healthy infant. Affected individuals can develop many seizure types:
+          myoclonic, tonic-clonic, absence, atypical absence, atonic, focal aware or impaired
+          awareness (previously called partial seizures), and status epilepticus.3 Two or more
+          antiseizure medications (ASMs) are often needed to control the seizures; most of the
+          seizures are refractory to medications. The goals of treatment are cessation of
+          prolonged convulsions, reduction in overall seizure frequency, and minimization of
+          treatment side effects. 4,5
+
+          Lennox-Gastaut syndrome, a severe epileptic and developmental encephalopathy, is
+          associated with a high rate of morbidity and mortality.6,7 Lennox-Gastaut syndrome
+          Page 1 of 6 - Cigna National Formulary Coverage - Policy:Antiseizure Medications - Epidiolex Prior Authorization
+          Policy
+
+          <!-- PageBreak -->
+
+          most often begins between 3 and 5 years of age.6-9 Affected children experience
+          several different types of seizures, most commonly atonic seizures (sudden loss of
+          muscle tone and limpness) and tonic seizures.6,9 The three main forms of treatment
+          of Lennox-Gastaut syndrome are ASMs, dietary therapy (typically the ketogenic diet),
+          and device/surgery (e.g., vagus nerve stimulation, corpus callostomy).9 None of the
+          therapies are effective in all cases of Lennox-Gastaut syndrome and the disorder has
+          proven particularly resistant to most therapeutic options.
+
+          Tuberous sclerosis complex is a rare, genetic disease that causes non-cancerous
+          (benign) tumors to grow in the brain and on other vital organs such as the kidneys,
+          heart, eyes, lungs, and skin.1º It can result in a combination of symptoms including
+          seizures, impaired intellectual development, autism, behavioral problems, skin
+          abnormalities, and kidney disease. Seizures affect most individuals with tuberous
+          sclerosis complex at some point during their life and can be difficult to control.
+
+
+          ## Clinical Efficacy in Other Refractory Seizures
+
+          In 2014, an expanded access program was initiated to provide Epidiolex to patients
+          with treatment-resistant epilepsy.14 Of the 840 patients included in a published
+          review, 192 patients were diagnosed with Dravet syndrome or Lennox-Gastaut
+          syndrome, and 648 patients were diagnosed with other conditions, including CDKL5
+          deficiency disorder, Dup15q, Aicardi, and Doose syndromes; febrile infection-related
+          epilepsy syndromes; tuberous sclerosis complex; Sturge-Weber syndrome;
+          lissencephaly; cortical malformation/dysplasia; and myoclonic absence. The patients
+          enrolled in the study had severe, intractable, childhood-onset treatment-resistant
+          epilepsy and were on stable doses of ASMs for 4 weeks before starting Epidiolex as
+          add-on therapy. The initial dose of Epidiolex was 2 to 10 mg/kg/day (taken as two
+          divided doses) and gradually titrated until intolerance or to a maximum dose of 25
+          mg/kg/day or 50 mg/kg/day, depending upon treatment site. Of those enrolled in
+          the expanded access program, 892 patients were evaluated and included in the safety
+          analysis set and 840 patients were included in the efficacy analysis set. Through 192
+          weeks, the median percentage reduction in seizure frequency across visit windows
+          ranged from 50% to 67% for convulsive seizures and 46% to 66% for total seizures.
+          In a cohort of 132 patients (72 children, 60 adults) with treatment-resistant epilepsy,
+          bi-weekly seizure frequency decreased from a mean of 144.4 at entry to 52.2 at 12
+          weeks (P = 0.01) and remained stable thereafter.15 Of note, patients with a diagnosis
+          of Lennox-Gastaut syndrome or Dravet syndrome were initially excluded because of
+          preferential enrollment into the randomized clinical trials; once these trials were
+          closed for enrollment, patients with these syndromes were also enrolled. In a
+          separate cohort of patients with CDKL5 deficiency disorder and Aicardi, Doose, and
+          Dup15q syndromes (n = 46), the percent change in median convulsive seizure
+          frequency decreased from baseline to Week 12 by 51.4% and by 59.1% at Week
+          48.16 There was a significant difference between the percent changes in monthly
+          convulsive seizure frequency during baseline and Week 12 (P = 0.00001), with no
+          difference in seizure percent change between Weeks 12 and 48. Of the 55 patients
+          in the safety group, 27% of patients withdrew by Week 144 due to adverse effects
+          (n = 4), lack of efficacy (n = 9), withdrawn consent (n = 1), and lost to follow-up (n
+          = 1).
+
+          <!-- PageFooter="6 Pages - Cigna National Formulary Coverage - Policy: Antiseizure Medications - Epidiolex Prior Authorization Policy" -->
+          <!-- PageBreak -->
+
+
+          ## Guidelines/Recommendations
+
+
+          ### Dravet Syndrome
+
+          At this time, there are three drugs approved for the treatment of seizures associated
+          with Dravet syndrome: Epidiolex, Diacomit® (stiripentol capsules, powder for oral
+          suspension), and Fintepla® (fenfluramine oral solution).1,11,17 An expert panel
+          considers valproic acid and clobazam to be the first-line treatment for Dravet
+          syndrome.4 If seizure control is suboptimal, Diacomit and topiramate are second-
+          line treatment. Ketogenic diet is moderately effective and can also be considered
+          second-line. The Dravet Foundation states that Diacomit, Epidiolex, and Fintepla are
+          considered first-line agents for the treatment of Dravet syndrome.2 If control is still
+          inadequate, other therapies to consider are clonazepam, levetiracetam, and
+          zonisamide.2,4 Sodium channel blockers (e.g., carbamazepine, oxcarbazepine,
+          lamotrigine, and phenytoin) can worsen seizures in Dravet syndrome. Additionally,
+          vigabatrin and tiagabine may increase the frequency of myoclonic seizures and should
+          be avoided.
+
+
+          ### Lennox-Gastaut Syndrome
+
+          Currently, the FDA-approved drugs for this condition are Epidiolex, Fintepla,
+          felbamate, Banzel® (rufinamide tablet, oral suspension), lamotrigine, topiramate, and
+          clobazam.12 Despite the lack of level I or level II evidence, valproic acid remains a
+          mainstay in treatment.8,9,13 If valproic acid does not provide adequate seizure
+          control, which is almost always the case, lamotrigine should be added as the first
+          adjunctive therapy.7 If the combination regimen of valproic acid and lamotrigine does
+          not provide adequate control, then Banzel should be initiated and either valproic acid
+          or lamotrigine should be discontinued. If seizure control is still not achieved, the
+          next adjunctive therapies to consider are topiramate, clobazam, and felbamate.
+          There is limited evidence for the use of levetiracetam, zonisamide, and Fycompa®
+          (perampanel tablet, oral suspension). Where possible, no more than two ASMs should
+          be used concomitantly; use of multiple ASMs raise the risk of side effects and/or
+          drug-drug interactions.
+
+
+          ### POLICY STATEMENT
+
+          Prior Authorization is recommended for prescription benefit coverage of Epidiolex. All
+          approvals are provided for the duration noted below. Because of the specialized skills
+          required for evaluation and diagnosis of patients treated with Epidiolex as well as the
+          monitoring required for adverse events and long-term efficacy, initial approval
+          requires Epidiolex to be prescribed by or in consultation with a physician who
+          specializes in the condition being treated.
+
+          · Epidiolex® (cannabidiol oral solution - Greenwich Biosciences)
+          is(are) covered as medically necessary when the following criteria is(are)
+          met for FDA-approved indication(s) or other uses with supportive evidence
+          (if applicable):
+
+
+          ## FDA-Approved Indications
+
+          6 Pages - Cigna National Formulary Coverage - Policy:Antiseizure Medications - Epidiolex Prior Authorization
+          Policy
+
+          <!-- PageBreak -->
+
+          1\. Dravet Syndrome. Approve if the patient meets ONE of the following (A or B):
+
+          A) Initial Therapy. Approve for 1 year if the patient meets the following (i, ii, and
+          iii):
+
+          i. Patient is ≥ 1 year of age; AND
+
+          ii. Patient meets ONE of the following (a or b):
+
+          a) Patient has tried or is concomitantly receiving at least two other
+          antiseizure medications; OR
+          Note: Examples of other antiseizure medications include valproic acid,
+          topiramate, clonazepam, levetiracetam, zonisamide.
+
+          b) Patient has tried or is concomitantly receiving one of Fintepla, Diacomit
+          or clobazam; AND
+
+          iii. The medication is prescribed by or in consultation with a neurologist.
+
+          B) Patient is Currently Receiving Epidiolex. Approve for 1 year if the patient is
+          responding to therapy (e.g., reduced seizure severity, frequency, and/or
+          duration) as determined by the prescriber.
+
+          2\. Lennox-Gastaut Syndrome. Approve if the patient meets ONE of the following
+          (A or B):
+
+          A) Initial Therapy. Approve for 1 year if the patient meets the following (i, ii, and
+          iii):
+
+          i. Patient is ≥ 1 year of age; AND
+
+          ii. Patient has tried or is concomitantly receiving at least two other antiseizure
+          medications; AND
+
+          Note: Examples of other antiseizure medications include lamotrigine,
+          topiramate, Banzel, felbamate, clobazam, valproic acid, levetiracetam,
+          zonisamide, Fycompa, vigabatrin.
+
+          iii. The medication is prescribed by or in consultation with a neurologist.
+
+          B) Patient is Currently Receiving Epidiolex. Approve for 1 year if the patient is
+          responding to therapy (e.g., reduced seizure severity, frequency, and/or
+          duration) as determined by the prescriber.
+
+          3\. Tuberous Sclerosis Complex. Approve if the patient meets ONE of the following
+          (A or B):
+
+          A) Initial Therapy. Approve for 1 year if the patient meets the following (i, ii, and
+          iii):
+
+          i. Patient is ≥ 1 year of age; AND
+
+          ii. Patient has tried or is concomitantly receiving at least two other antiseizure
+          medications; AND
+
+          Note: Examples of other antiseizure medications include valproic acid,
+          lamotrigine, topiramate, clonazepam, levetiracetam, zonisamide, Banzel,
+          felbamate, clobazam, Fycompa, vigabatrin, everolimus.
+
+          iii. The medication is prescribed by or in consultation with a neurologist.
+
+          B) Patient is Currently Receiving Epidiolex. Approve for 1 year if the patient is
+          responding to therapy (e.g., reduced seizure severity, frequency, and/or
+          duration) as determined by the prescriber.
+
+
+          ## Other Uses with Supportive Evidence
+
+          <!-- PageFooter="6 Pages - Cigna National Formulary Coverage - Policy:Antiseizure Medications - Epidiolex Prior Authorization Policy" -->
+          <!-- PageBreak -->
+
+          4\. Treatment-Refractory Seizures/Epilepsy [specific rare conditions] (i.e.,
+          CDKL5 deficiency disorder; Dup15q, Aicardi, or Doose syndromes; febrile
+          infection-related epilepsy syndromes; Sturge-Weber syndrome; lissencephaly;
+          cortical malformation/dysplasia; and epilepsy with myoclonic absences). Approve
+          if the patient meets ONE of the following (A or B):
+
+          A) Initial Therapy. Approve for 1 year if the patient meets the following (i, ii, and
+          iii):
+
+          i. Patient is ≥ 1 year of age; AND
+
+          ii. Patient has tried or is concomitantly receiving at least two other antiseizure
+          medications; AND
+
+          Note: Examples of other antiseizure medications include valproic acid,
+          lamotrigine, topiramate, clonazepam, levetiracetam, zonisamide, Banzel,
+          felbamate, clobazam, Fycompa, vigabatrin.
+
+          iii. The medication is prescribed by or in consultation with a neurologist.
+
+          B) Patient is Currently Receiving Epidiolex. Approve for 1 year if the patient is
+          responding to therapy (e.g., reduced seizure severity, frequency, and/or
+          duration) as determined by the prescriber.
+
+
+          ## CONDITIONS NOT COVERED
+
+          · Epidiolex® (cannabidiol oral solution - Greenwich Biosciences)
+          is(are) considered experimental, investigational or unproven for ANY other
+          use(s); criteria will be updated as new published data are available.
+
+
+          ## REFERENCES
+
+          1\. Epidiolex® oral solution [prescribing information]. Palo Alto, CA: Jazz; October 2023.
+
+          2\. Dravet Foundation - Dravet Syndrome. Available at: https://www.dravetfoundation.org/what-is-
+          dravet-syndrome/. Accessed on February 5, 2024.
+
+          3\. Shafer PO. Epilepsy Foundation - Dravet Syndrome. Updated August 2020. Available at:
+          https://www.epilepsy.com/learn/types-epilepsy-syndromes/dravet-syndrome. Accessed on
+          February 5, 2024.
+
+          4\. Wirrell EC, Laux L, Donner, et al. Optimizing the diagnosis and management of Dravet syndrome:
+          recommendations from a North American Consensus Panel. Pediatr Neurol. 2017;68:18-34.
+
+          5\. Knupp KG1, Wirrell EC. Treatment Strategies for Dravet Syndrome. CNS Drugs. 2018;32(4):335-
+          350\.
+
+          6\. Sirven JI, Shafer PO. Epilepsy Foundation - Lennox-Gastaut Syndrome. Updated February 2020.
+          Available at: https://www.epilepsy.com/learn/types-epilepsy-syndromes/lennox-gastaut-
+          syndrome-lgs. Accessed on February 5, 2024.
+
+          7\. Cross JH, Auvin S, Falip M, et al. Expert opinion on the management of Lennox-Gastaut syndrome:
+          treatment algorithms and practical considerations. Front Neurol. 2017;8:505.
+
+          8\. Ostendorf AP, Ng YT. Treatment-resistant Lennox-Gastaut syndrome: therapeutic trends,
+          challenges, and future directions. Neuropsych Dis Treatment. 2017;13:1131-1140.
+
+          9\. Wheless JW. National Organization for Rare Diseases (NORD) - Lennox-Gastaut syndrome. Available
+          at:
+          https://rarediseases.org/rare-diseases/lennox-gastaut-syndrome/#standard-therapies.
+          Accessed on February 5, 2024.
+
+          10\. National Institutes of Neurological Disorders and Stroke. Tuberous Sclerosis Fact Sheet. Last
+          updated: November 28, 2023. Available at: https://www.ninds.nih.gov/health-
+          information/disorders/tuberous-sclerosis-complex. Accessed on February 5, 2024.
+
+          11\. Diacomit® capsules, powder for oral suspension [prescribing information]. Redwood City, CA:
+          Bicodex; July 2022.
+
+          6 Pages - Cigna National Formulary Coverage - Policy: Antiseizure Medications - Epidiolex Prior Authorization
+          Policy
+
+          <!-- PageBreak -->
+
+          12\. Lennox-Gastaut Syndrome Foundation - Lennox-Gastaut Syndrome. Last updated: January 31,
+          2024\. Available at: https://www.lgsfoundation.org/about-lgs-2/what-is-lennox-gastaut-
+          syndrome/. Accessed on February 5, 2024.
+
+          13\. Cherian KA. Lennox-Gastaut syndrome treatment & management. Updated August 2020. Available
+          at: https://emedicine.medscape.com/article/1176735-treatment. Accessed on February 5, 2024.
+
+          14\. Szaflarski JP, Devinsky O, Lopez M, et al. Long-term efficacy and safety of cannabidiol in patients
+          with treatment-resistant epilepsies: Four-year results from the expanded access program. Epilepsia.
+          2023;64(3):619-629.
+
+          15\. Szaflarski JP, Bebin EM, Cutter G, et al. Cannabidiol improves frequency and severity of seizures
+          and reduces adverse events in an open-label add-on prospective study. Epilepsy Behav.
+          2018;87:131-136.
+
+          16\. Devinsky O, Verducci C, Thiele EA, et al. Open-label use of highly purified CBD (Epidiolex®) in
+          patients with CDKL5 deficiency disorder and Aicardi, Dup15q, and Doose syndromes. Epilepsy
+          Behav. 2018;86:131-137.
+
+          17\. Fintepla® oral solution [prescribing information]. Smyrna, GA: UCB; December 2023.
+
+
+          ## HISTORY
+
+
+          <table>
+          <tr>
+          <th>Type of Revision</th>
+          <th>Summary of Changes</th>
+          <th>Review Date</th>
+          </tr>
+          <tr>
+          <td>Annual Revision</td>
+          <td>The policy name was changed from Antiepileptics - Epidiolex Prior Authorization Policy to Antiseizure Medications - Epidiolex Prior Authorization Policy. Throughout the criteria, reference to antiepileptic medications was changed to antiseizure medications.</td>
+          <td>02/15/2023</td>
+          </tr>
+          <tr>
+          <td>Annual Revision</td>
+          <td>No criteria changes.</td>
+          <td>02/07/2024</td>
+          </tr>
+          </table>
+
+
+          "Cigna Companies" refers to operating subsidiaries of The Cigna Group. All products and services are
+          provided exclusively by or through such operating subsidiaries, including Cigna Health and Life Insurance
+          Company, Connecticut General Life Insurance Company, Evernorth Behavioral Health, Inc., Cigna Health
+          Management, Inc., and HMO or service company subsidiaries of The Cigna Group. @ 2024 The Cigna
+          Group.
+
+          <!-- PageFooter="6 Pages - Cigna National Formulary Coverage - Policy:Antiseizure Medications - Epidiolex Prior Authorization Policy" -->
