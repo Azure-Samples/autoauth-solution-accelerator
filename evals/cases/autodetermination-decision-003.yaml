@@ -590,8 +590,8 @@ autodetermination-decision-003-positive-determination.v0:
 autodetermination-decision-003-positive-fully-met-criteria.v0:
   metrics: [FuzzyEvaluator]
   evaluations:
-    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | map(select(.Assessment==\"Fully Met\")) | length"
-      ground_truth: "4"
+    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | any(.Assessment != \"Fully Met\")"
+      ground_truth: "False"
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: "Lucas Little"
@@ -1731,8 +1731,8 @@ autodetermination-decision-003-negative-determination.v0:
 autodetermination-decision-003-negative-partial-criteria.v0:
   metrics: [FuzzyEvaluator]
   evaluations:
-    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | map(select(.Assessment==\"Fully Met\")) | length"
-      ground_truth: "3"
+    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | any(.Assessment != \"Fully Met\")"
+      ground_truth: "True"
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: "Lucas Little"

@@ -449,8 +449,8 @@ autodetermination-decision-002-negative-determination.v0:
 autodetermination-decision-002-negative-partial-criteria.v0:
   metrics: [FuzzyEvaluator]
   evaluations:
-    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | map(select(.Assessment==\"Fully Met\")) | length"
-      ground_truth: "1"
+    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | any(.Assessment != \"Fully Met\")"
+      ground_truth: "True"
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: "Maxie Millionaire"

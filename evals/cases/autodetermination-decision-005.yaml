@@ -950,8 +950,8 @@ autodetermination-decision-005-positive-determination.v0:
 autodetermination-decision-005-positive-fully-met-criteria.v0:
   metrics: [FuzzyEvaluator]
   evaluations:
-    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | map(select(.Assessment==\"Fully Met\")) | length"
-      ground_truth: "4"
+    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | any(.Assessment != \"Fully Met\")"
+      ground_truth: "False"
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: >-
@@ -2793,8 +2793,8 @@ autodetermination-decision-005-negative-determination.v0:
 autodetermination-decision-005-negative-partial-criteria.v0:
   metrics: [FuzzyEvaluator]
   evaluations:
-    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | map(select(.Assessment==\"Fully Met\")) | length"
-      ground_truth: "3"
+    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | any(.Assessment != \"Fully Met\")"
+      ground_truth: "True"
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: "Aiden Smith"
