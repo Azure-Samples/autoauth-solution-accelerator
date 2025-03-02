@@ -2,11 +2,12 @@ autodetermination-reasoning-002:
   description: >
     Evaluation for auto-determination, given the additional extracted or not-extracted information for
     clinical information, physician information, and patient information.
+    Lennox-Gastaut Syndrome	Epidiolex
   disclaimer: >
     Evaluations are performed zero-shot without additional fine-tuning.
   pipeline:
     class: src.pipeline.autoDetermination.evaluator.AutoDeterminationEvaluator
-    case_id: "TEST-001"
+    case_id: "TEST-002"
   evaluators:
     - name: "FactualCorrectnessEvaluator"
       class: src.evals.custom.factual_correctness_evaluator:FactualCorrectnessEvaluator

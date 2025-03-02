@@ -2,6 +2,7 @@ autodetermination-reasoning-001:
   description: >
     Evaluation for auto-determination, given the additional extracted or not-extracted information for
     clinical information, physician information, and patient information.
+    Inflammatory Bowel Disease (Crohn’s)	Adalimumab
   disclaimer: >
     Evaluations are performed zero-shot without additional fine-tuning.
   pipeline:
