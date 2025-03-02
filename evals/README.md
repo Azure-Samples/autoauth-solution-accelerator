@@ -185,14 +185,13 @@ python src/pipeline/clinicalExtractor/evaluator.py
 **For the `autoDetermination` evaluation pipeline:**
 
 ```bash
-export AZURE_OPENAI_ENDPOINT="https://aoai-ai-factory-eus-dev.openai.azure.com/" && \
-export AZURE_OPENAI_KEY="<scrubbed>" && \
-export AZURE_OPENAI_DEPLOYMENT="gpt-4o-standard" && \
-export AZURE_AI_FOUNDRY_CONNECTION_STRING="eastus2.api.azureml.ms;28d2df62-e322-4b25-b581-c43b94bd2607;rg-priorauth-eastus2-hls-autoauth;evaluations" && \
-export PYTHONPATH="/Users/marcjimz/Documents/Development/gbb-ai-hls-factory-prior-auth:$PYTHONPATH" && \
-export AZURE_OPENAI_CHAT_DEPLOYMENT_01="o1-preview" && \
-export AZURE_OPENAI_API_VERSION_01="2024-09-01-preview" && \
+export AZURE_OPENAI_ENDPOINT="https://aoai-ai-factory-eus-dev.openai.azure.com" && \
+export AZURE_OPENAI_API_VERSION="2023-05-15" && \
 export AZURE_OPENAI_CHAT_DEPLOYMENT_ID="gpt-4o-standard" && \
+export AZURE_OPENAI_CHAT_DEPLOYMENT_01="o1-preview" && \
+export AZURE_OPENAI_KEY="" && \
+export AZURE_OPENAI_API_VERSION_01="2024-09-01-preview" && \
+export export AZURE_AI_FOUNDRY_CONNECTION_STRING="eastus2.api.azureml.ms;28d2df62-e322-4b25-b581-c43b94bd2607;rg-priorauth-eastus2-hls-autoauth;evaluations" && \
 python src/pipeline/autoDetermination/evaluator.py
 ```
 
