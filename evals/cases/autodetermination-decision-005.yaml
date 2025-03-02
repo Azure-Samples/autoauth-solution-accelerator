@@ -1,0 +1,3705 @@
+autodetermination-decision-005:
+  description: >
+    Evaluation for auto-determination, given the additional extracted or not-extracted information for
+    clinical information, physician information, and patient information.
+    High-grade Osteosarcoma	Everolimus
+  disclaimer: >
+    Evaluations are performed zero-shot without additional fine-tuning.
+  pipeline:
+    class: src.pipeline.autoDetermination.evaluator.AutoDeterminationEvaluator
+    case_id: "TEST-005"
+  evaluators:
+    - name: "FuzzyEvaluator"
+      class: src.evals.custom.fuzzy_evaluator:FuzzyEvaluator
+  cases:
+    - autodetermination-decision-005-positive-determination.v0
+    - autodetermination-decision-005-positive-fully-met-criteria.v0
+    - autodetermination-decision-005-negative-determination.v0
+    - autodetermination-decision-005-negative-partial-criteria.v0
+
+autodetermination-decision-005-positive-determination.v0:
+  metrics: [FuzzyEvaluator]
+  evaluations:
+    - query: ".Determination"
+      ground_truth: Approved
+      context:
+        src.pipeline.promptEngineering.models:PatientInformation:
+          patient_name: >-
+            Aiden Smith
+          patient_date_of_birth: >-
+            08/10/2004
+          patient_id: >-
+            7891023
+          patient_address: >-
+            18 N Ontario St, New York, NY, 21022
+          patient_phone_number: >-
+            555-876-3416
+        src.pipeline.promptEngineering.models:PhysicianInformation:
+          physician_name: >-
+            Dr. Lisa Lauren
+          specialty: >-
+            Pediatric Oncology
+          physician_contact:
+            office_phone: >-
+              555-426-7898
+            fax: >-
+              555-426-7899
+            office_address: >-
+              1423 Miracle Drive, New York, NY 21023
+        src.pipeline.promptEngineering.models:ClinicalInformation:
+          diagnosis: >-
+            Metastatic Osteosarcoma; High-grade Osteosarcoma
+          icd_10_code: >-
+            C40.0
+          prior_treatments_and_results: >-
+            Neoadjuvant Therapy: March 10, 2024 – April 21, 2024 - Doxorubicin, Cisplatin, Methotrexate (3 cycles); Surgery: May 1, 2024 - Limb-sparing surgery; Adjuvant Therapy: May 22, 2024 – September 4, 2024 - Doxorubicin, Cisplatin, Methotrexate, Ifosfamide (6 cycles)
+          specific_drugs_taken_and_failures: >-
+            Doxorubicin: 75 mg/m² IV every 21 days; Cisplatin: 120 mg/m² IV every 21 days; Methotrexate: 12 g/m² IV once every 14 days (high-dose); Ifosfamide: 9 g/m² IV every 21 days, with Mesna for bladder protection
+          alternative_drugs_required: >-
+            Not provided
+          relevant_lab_results_or_imaging: >-
+            MRI left femur and CT chest that indicate recurrence of tumor in distal left femur and new mets to lung; LDH: 450 U/L; Serum Ferritin: 800 ng/mL; X-ray Findings 3/1/24: aggressive-appearing, lytic bone lesion in the distal femur, approximately 5 cm in greatest dimension; MRI Findings 3/2/24: significant nuclear atypia and a high mitotic index, with numerous atypical mitotic figures present; CT Scan of the Chest 09/4/24: 1.5 cm rounded lesion in the left lower lobe, several small nodules (up to 5 mm) in both lung fields
+          symptom_severity_and_impact: >-
+            Positive for fatigue; Positive for left thigh/knee pain; Positive for cough
+          prognosis_and_risk_if_not_approved: >-
+            The findings are concerning for metastatic pulmonary lesions consistent with recurrent osteosarcoma. Further evaluation and correlation with clinical findings are recommended.
+          clinical_rationale_for_urgency: >-
+            Given Aiden’s severity of illness and lack of response to all past therapies, he will require initiation of a new adaptive treatment strategy.
+          treatment_request:
+            name_of_medication_or_procedure: >-
+              Everolimus (Afinitor)
+            code_of_medication_or_procedure: >-
+              Not provided
+            dosage: >-
+              5 mg/m² once daily in conjunction with 200 mg/m² of Nexavar twice daily
+            duration: >-
+              Not provided
+            rationale: >-
+              Recommend the initiation of mTOR inhibitor therapy, specifically everolimus (Afinitor), in conjunction with an MKI (sorafenib) as part of a clinical trial for recurrent osteosarcoma.
+            presumed_eligibility: >-
+              Not provided
+        policy_text: >-
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          # UnitedHealthcare Pharmacy Clinical Pharmacy Programs
+
+
+          <table>
+          <tr>
+          <td>Program Number</td>
+          <td>2024 P 1003-13</td>
+          </tr>
+          <tr>
+          <td>Program</td>
+          <td>Prior Authorization/Notification</td>
+          </tr>
+          <tr>
+          <td>Medication</td>
+          <td>Afinitor® (everolimus)</td>
+          </tr>
+          <tr>
+          <td>P&amp;T Approval Date</td>
+          <td>12/8/2009, 6/2010, 9/2010, 12/2010, 7/2011, 9/2011, 5/2012, 8/2012, 7/2013, 8/2014, 8/2015, 7/2016, 7/2017, 5/2018, 5/2019, 5/2020, 5/2021, 5/2022, 5/2023, 5/2024</td>
+          </tr>
+          <tr>
+          <td>Effective Date</td>
+          <td>8/1/2024</td>
+          </tr>
+          </table>
+
+
+          ## 1. Background:
+
+          Afinitor (everolimus) is a kinase inhibitor indicated for the treatment of postmenopausal women
+          with advanced hormone receptor-positive, HER2-negative breast cancer in combination with
+          Aromasin® (exemestane) after failure of treatment with Femara® (letrozole) or Arimidex®
+          (anastrozole); in adults with progressive neuroendocrine tumors of pancreatic origin (PNET) and
+          adults with progressive, well-differentiated, non-functional neuroendocrine tumors (NET) of
+          gastrointestinal (GI) or lung origin that are unresectable, locally advanced or metastatic; adults
+          with advanced renal cell carcinoma (RCC) after failure of treatment with Sutent® (sunitinib) or
+          Nexavar® (sorafenib); adults with renal angiomyolipoma and tuberous sclerosis complex (TSC),
+          not requiring immediate surgery; treatment of adult and pediatric patients aged 1 year and older
+          with TSC who have subependymal giant cell astrocytoma (SEGA) that requires therapeutic
+          intervention but cannot be curatively resected; and for the adjunctive treatment of adult and
+          pediatric patients aged 2 years and older with TSC-associated partial-onset seizures.1
+
+          Afinitor is not indicated for the treatment of patients with functional carcinoid tumors.
+
+          The National Cancer Comprehensive Network (NCCN) also recommends use of Afinitor in
+          invasive and inflammatory breast cancer, Waldenström's macroglobulinemia /
+          lymphoplasmacytic lymphoma, neuroendocrine tumors, kidney cancer, soft tissue sarcomas,
+          osteosarcomas, gastrointestinal stromal tumors, thymomas and thymic carcinomas, Hodgkin
+          lymphoma, follicular, oncocytic, and papillary thyroid carcinomas, subependymal giant cell
+          astrocytoma (SEGA), meningioma, histiocytic neoplasms, and endometrial carcinoma.2
+
+
+          ## Coverage Information:
+
+          Members will be required to meet the criteria below for coverage. For members under the age of
+          19 years, the prescription will automatically process without a coverage review.
+
+          Some states mandate benefit coverage for off-label use of medications for some diagnoses or
+          under some circumstances. Some states also mandate usage of other Compendium references.
+          Where such mandates apply, they supersede language in the benefit document or in the
+          notification criteria.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="1" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Coverage Criteriaª:
+
+          A. Patients less than 19 years of age
+
+          1\. Afinitor will be approved based on the following criterion:
+
+          a. Patient is less than 19 years of age
+
+          Authorization will be issued for 12 months.
+
+          B. Neuroendocrine Tumors
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on One of the following criteria:
+
+          (1) All of the following:
+
+          (a) Diagnosis of one of the following:
+
+          (i) Neuroendocrine tumors of gastrointestinal origin
+
+          (ii) Neuroendocrine tumors of lung origin
+
+          (iii) Neuroendocrine tumors of thymic origin
+
+          -AND-
+
+          (b) Disease is progressive
+
+          -AND-
+
+          (c) One of the following:
+
+          (i) Disease is unresectable
+
+          (ii) Disease is locally advanced
+
+          (iii) Disease is metastatic
+
+          -OR-
+
+          (2) Both of the following:
+
+          (a) Diagnosis of neuroendocrine tumors of pancreatic origin
+          -AND-
+
+          (b) One of the following:
+
+          (i) Used for the management of recurrent, locoregional advanced disease
+          and/or metastatic disease
+
+          (ii) Used as preoperative therapy of locoregional insulinoma with or without
+          diazoxide
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="2" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          C. Advanced Renal Cell Carcinoma/Kidney Cancer
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of advanced renal cell cancer/kidney cancer
+
+          -AND-
+
+          (2) Disease is one of the following:
+
+          (a) Relapsed
+
+          (b) Stage IV disease
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          D. Tuberous Sclerosis Complex-Associated Renal Cell Carcinoma
+
+          1\.
+          . Initial Authorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Diagnosis of tuberous sclerosis complex (TSC)-associated renal cell carcinoma
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="3" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          E. Subependymal Giant Cell Astrocytoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of subependymal giant cell astrocytoma (SEGA)
+
+          -AND-
+
+          (2) Used as adjuvant treatment
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          F. Waldenströms Macroglobulinemia or Lymphoplasmacytic Lymphoma
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Waldenströms macroglobulinemia
+
+          (b) Lymphoplasmacytic lymphoma
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) Disease is non-responsive to primary treatment
+
+          (b) Disease is progressive
+
+          (c) Disease has relapsed
+
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="4" -->
+          <!-- PageBreak -->
+
+          UnitedHealthcare®
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+
+          ## G. Breast Cancer
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of breast cancer
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) Disease is recurrent
+
+          (b) Disease is metastatic
+
+          -AND-
+
+          (3) Disease is hormone receptor (HR)-positive [i.e., estrogen-receptor-positive (ER+)
+          or progesterone-receptor-positive (PR+)]
+
+          -AND-
+
+          (4) Disease is human epidermal growth factor receptor 2 (HER2)-negative
+          -AND-
+
+          (5) One of the following:
+
+          (a) Patient is a postmenopausal woman
+
+          -OR-
+
+          (b) Both of the following:
+
+          i. Patient is a premenopausal woman
+
+          ii. Patient is being treated with ovarian ablation/suppression
+          -OR-
+
+          (c) Patient is male
+
+          -AND-
+
+          (6) Used in combination with one of the following:
+          <!-- PageFooter="C 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="5" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (a) Exemestane if progressed within 12 months or on a non-steroidal aromatase
+          inhibitor [e.g., Arimidex (anastrozole), Femara (letrozole)]
+
+          (b) Fulvestrant
+
+          (c) Tamoxifen
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          H. Hodgkin Lymphoma
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of classic Hodgkin lymphoma
+
+          -AND-
+
+          (2) Disease is refractory to at least 3 prior lines of therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          I. Soft Tissue Sarcoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on one of the following soft tissue sarcoma subtypes:
+
+          (1) Locally advanced unresectable or metastatic malignant perivascular epithelioid
+          cell tumor (PEComa)
+
+          (2) Recurrent angiomyolipoma
+
+          (3) Lymphangioleiomyomatosis
+
+          Authorization will be issued for 12 months.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="6" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## J. Thymomas and Thymic Carcinomas
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) One of the following:
+
+          (a) Diagnosis of thymic carcinoma
+
+          (b) Diagnosis of thymoma
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) First-line therapy as a single agent for those who cannot tolerate first-line
+          combination regimens
+
+          (b) Second-line therapy as a single agent
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## K. Thyroid Carcinoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Follicular carcinoma
+
+          (b) Oncocytic carcinoma
+
+          (c) Papillary carcinoma
+
+          -AND-
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="7" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (2) One of the following:
+
+          (a) Unresectable locoreginal recurrent disease
+
+          (b) Persistent disease
+
+          (c) Metastatic disease
+
+          -AND-
+
+          (3) One of the following:
+
+          (a) Patient has symptomatic disease
+
+          (b) Patient has progressive disease
+
+          -AND-
+
+          (4) Disease is refractory to radioactive iodine treatment
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## L. Meningioma
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of meningioma
+
+          -AND-
+
+          (2) Disease is recurrent or progressive
+
+          -AND-
+
+          (3) Surgery and/or radiation is not possible
+          -AND-
+
+          (4) One of the following:
+
+          (a) Used in combination with bevacizumab (Avastin, Mvasi, etc.)
+          (b) Used in combination with octreotide acetate LAR
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="8" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          # Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## M. Endometrial Carcinoma
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of endometrial carcinoma
+          -AND-
+
+          (2) Used in combination with letrozole
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+
+          ## N. Tuberous Sclerosis Complex associated Partial-onset Seizures
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of tuberous sclerosis complex associated partial-onset seizures
+          -AND-
+
+          (2) Used as adjunctive therapy
+
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="9" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          O. Bone Cancer - Osteosarcoma
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of osteosarcoma
+
+          -AND-
+          ☒
+
+          (2) Disease is one of the following:
+
+          (a) Relapsed/Refractory
+
+          (b) Metastatic
+
+          -AND-
+
+          (3) Used as second-line therapy
+
+          -AND-
+
+          (4) Used in combination with Nexavar (sorafenib)
+          ☒
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          P. Histiocytic Neoplasms
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Rosai-Dorfman Disease
+
+          (b) Langerhans Cell Histiocytosis
+
+          (c) Erdheim-Chester Disease
+
+          -AND-
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="10" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (2) Presence of phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha
+          (PIK3CA) mutation
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          Q. Gastrointestingal Stromal Tumor (GIST)
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of Gastrointestinal Stromal Tumor (GIST)
+
+          -AND-
+
+          (2) Disease is one of the following:
+
+          (a) Unresectable
+
+          (b) Progressive
+
+          (c) Metastatic
+
+          (d) Gross residual (R2 resection)
+
+          (e) Tumor rupture
+
+          -AND-
+
+          (3) Disease has progressed after single agent therapy with all of the following:
+
+          (a) Imatinib (Gleevec)
+
+          (b) Sutent (sunitinib)
+
+          (c) Stivarga (regorafenib)
+
+          (d) Qinlock (ripretinib)
+
+          -AND-
+
+          (4) Used in combination with one of the following:
+
+          (a) Imatinib (Gleevec)
+
+          (b) Sutent (sunitinib)
+
+          (c) Stivarga (regorafenib)
+
+          Authorization will be issued for 12 months.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="11" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## R. NCCN Recommended Regimens
+
+          The drug has been recognized for treatment of the cancer indication by The National
+          Comprehensive Cancer Network (NCCN) Drugs and Biologics Compendium with a Category
+          of Evidence and Consensus of 1, 2A, or 2B
+
+          Authorization will be issued for 12 months.
+
+          a State mandates may apply. Any federal regulatory requirements and the member specific benefit
+          plan coverage may also impact coverage criteria. Other policies and utilization management
+          programs may apply.
+
+
+          ## 3. Additional Clinical Rules:
+
+          · Notwithstanding Coverage Criteria, UnitedHealthcare may approve initial and re-authorization
+          based solely on previous claim/medication history, diagnosis codes (ICD-10) and/or claim logic.
+          Use of automated approval and re-approval processes varies by program and/or therapeutic class.
+
+          · Supply limits may be in place.
+
+
+          ## 4. References:
+
+          1\. Afinitor [package insert]. East Hanover, NJ: Novartis Pharmaceuticals Corporation; February
+          2022\.
+
+          2\. The NCCN Drugs and Biologics Compendium (NCCN Compendium™M). Available at
+          https://www.nccn.org/professionals/drug_compendium/content/. March 19, 2024.
+
+
+          <table>
+          <tr>
+          <th>Program</th>
+          <th>Prior Authorization/Notification - Afinitor (everolimus)</th>
+          </tr>
+          <tr>
+          <td></td>
+          <td>Change Control</td>
+          </tr>
+          <tr>
+          <td>8/2014</td>
+          <td>Annual review. Added coverage for soft tissue sarcomas, Hodgkin lymphoma, and non-clear cell kidney cancer. Updated breast cancer to include tamoxifen as part of trial/failure and 'advanced' to type of cancer. Updated formatting, Background and References.</td>
+          </tr>
+          <tr>
+          <td>9/2014</td>
+          <td>Administrative change - Tried/Failed exemption for State of New Jersey removed.</td>
+          </tr>
+          <tr>
+          <td>8/2015</td>
+          <td>Annual review. Updated criteria for breast cancer, Hodgkin lymphoma, lung neuroendocrine tumors and Waldenström's macroglobulinemia / lymphoplasmacytic lymphoma. Increased authorization and reauthorization from 5 months to 12 months for all indications. Updated background and references.</td>
+          </tr>
+          <tr>
+          <td>7/2016</td>
+          <td>Annual review. Consolidated neuroendocrine tumor criteria. Minor revision to Renal Cell Carcinoma. Added indications and criteria for</td>
+          </tr>
+          </table>
+
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="12" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          <table>
+          <tr>
+          <th></th>
+          <th>Osteosarcoma and Thymoma/thymic carcinoma per NCCN guidelines. Updated background and references.</th>
+          </tr>
+          <tr>
+          <td>7/2017</td>
+          <td>Annual review. Updated background and added criteria for thyroid carcinoma and the bone cancers, dedifferentiated chondrosarcoma, high-grade undifferentiated pleomorphic sarcoma (UPS) per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2018</td>
+          <td>Annual review. Updated background, added criteria for meningioma, gastrointestinal stromal tumors, endometrial carcinoma, thymic neuroendocrine tumors, and updated breast cancer criteria per NCCN guidelines. Added criteria for new indication of tuberous sclerosis complex associated partial-onset seizures. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2019</td>
+          <td>Annual review. Updated background. Removed criteria for bone cancer (no longer recommended per NCCN guidelines). Updated reference.</td>
+          </tr>
+          <tr>
+          <td>5/2020</td>
+          <td>Annual review. Updated background. Updated coverage criteria for soft tissue sarcoma, thymomas and thymic carcinomas, and meningiomas per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2021</td>
+          <td>Annual review. Addition of criteria for osteosarcoma and Histiocytic Neoplasms, and update to kidney cancer criteria according to NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2022</td>
+          <td>Annual review. Updated background. Updated osteosarcoma criteria per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2023</td>
+          <td>Annual review. Updated background. Updated Neuroendocrine tumor and Hodgkin lymphoma criteria per NCCN guidelines. Added state mandate and oncology medications footnote. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2024</td>
+          <td>Updated background to reflect current NCCN guidance. Updated criteria for neuroendocrine tumors, advanced renal cell carcinoma/kidney cancer. Renamed and updated criteria for tuberous sclerosis complex-associated renal cell carcinoma. Renamed and updated criteria for subependymal giant cell astrocytoma section. Updated criteria for breast cancer, soft tissue sarcomas, thymomas and thymic carcinomas, meningiomas, bone cancer - osteosarcoma, and histiocytic neoplasms. Separated and updated criteria for gastrointestingal stromal tumor (GIST) from soft tissue sarcoma. Removed oncology medications footnote.</td>
+          </tr>
+          </table>
+
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="13" -->
+autodetermination-decision-005-positive-fully-met-criteria.v0:
+  metrics: [FuzzyEvaluator]
+  evaluations:
+    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | map(select(.Assessment==\"Fully Met\")) | length"
+      ground_truth: "4"
+      context:
+        src.pipeline.promptEngineering.models:PatientInformation:
+          patient_name: >-
+            Aiden Smith
+          patient_date_of_birth: >-
+            08/10/2004
+          patient_id: >-
+            7891023
+          patient_address: >-
+            18 N Ontario St, New York, NY, 21022
+          patient_phone_number: >-
+            555-876-3416
+        src.pipeline.promptEngineering.models:PhysicianInformation:
+          physician_name: >-
+            Dr. Lisa Lauren
+          specialty: >-
+            Pediatric Oncology
+          physician_contact:
+            office_phone: >-
+              555-426-7898
+            fax: >-
+              555-426-7899
+            office_address: >-
+              1423 Miracle Drive, New York, NY 21023
+        src.pipeline.promptEngineering.models:ClinicalInformation:
+          diagnosis: >-
+            Metastatic Osteosarcoma; High-grade Osteosarcoma
+          icd_10_code: >-
+            C40.0
+          prior_treatments_and_results: >-
+            Neoadjuvant Therapy: March 10, 2024 – April 21, 2024 - Doxorubicin, Cisplatin, Methotrexate (3 cycles); Surgery: May 1, 2024 - Limb-sparing surgery; Adjuvant Therapy: May 22, 2024 – September 4, 2024 - Doxorubicin, Cisplatin, Methotrexate, Ifosfamide (6 cycles)
+          specific_drugs_taken_and_failures: >-
+            Doxorubicin: 75 mg/m² IV every 21 days; Cisplatin: 120 mg/m² IV every 21 days; Methotrexate: 12 g/m² IV once every 14 days (high-dose); Ifosfamide: 9 g/m² IV every 21 days, with Mesna for bladder protection
+          alternative_drugs_required: >-
+            Not provided
+          relevant_lab_results_or_imaging: >-
+            MRI left femur and CT chest that indicate recurrence of tumor in distal left femur and new mets to lung; LDH: 450 U/L; Serum Ferritin: 800 ng/mL; X-ray Findings 3/1/24: aggressive-appearing, lytic bone lesion in the distal femur, approximately 5 cm in greatest dimension; MRI Findings 3/2/24: significant nuclear atypia and a high mitotic index, with numerous atypical mitotic figures present; CT Scan of the Chest 09/4/24: 1.5 cm rounded lesion in the left lower lobe, several small nodules (up to 5 mm) in both lung fields
+          symptom_severity_and_impact: >-
+            Positive for fatigue; Positive for left thigh/knee pain; Positive for cough
+          prognosis_and_risk_if_not_approved: >-
+            The findings are concerning for metastatic pulmonary lesions consistent with recurrent osteosarcoma. Further evaluation and correlation with clinical findings are recommended.
+          clinical_rationale_for_urgency: >-
+            Given Aiden’s severity of illness and lack of response to all past therapies, he will require initiation of a new adaptive treatment strategy.
+          treatment_request:
+            name_of_medication_or_procedure: >-
+              Everolimus (Afinitor)
+            code_of_medication_or_procedure: >-
+              Not provided
+            dosage: >-
+              5 mg/m² once daily in conjunction with 200 mg/m² of Nexavar twice daily
+            duration: >-
+              Not provided
+            rationale: >-
+              Recommend the initiation of mTOR inhibitor therapy, specifically everolimus (Afinitor), in conjunction with an MKI (sorafenib) as part of a clinical trial for recurrent osteosarcoma.
+            presumed_eligibility: >-
+              Not provided
+        policy_text: >-
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          # UnitedHealthcare Pharmacy Clinical Pharmacy Programs
+
+
+          <table>
+          <tr>
+          <td>Program Number</td>
+          <td>2024 P 1003-13</td>
+          </tr>
+          <tr>
+          <td>Program</td>
+          <td>Prior Authorization/Notification</td>
+          </tr>
+          <tr>
+          <td>Medication</td>
+          <td>Afinitor® (everolimus)</td>
+          </tr>
+          <tr>
+          <td>P&amp;T Approval Date</td>
+          <td>12/8/2009, 6/2010, 9/2010, 12/2010, 7/2011, 9/2011, 5/2012, 8/2012, 7/2013, 8/2014, 8/2015, 7/2016, 7/2017, 5/2018, 5/2019, 5/2020, 5/2021, 5/2022, 5/2023, 5/2024</td>
+          </tr>
+          <tr>
+          <td>Effective Date</td>
+          <td>8/1/2024</td>
+          </tr>
+          </table>
+
+
+          ## 1. Background:
+
+          Afinitor (everolimus) is a kinase inhibitor indicated for the treatment of postmenopausal women
+          with advanced hormone receptor-positive, HER2-negative breast cancer in combination with
+          Aromasin® (exemestane) after failure of treatment with Femara® (letrozole) or Arimidex®
+          (anastrozole); in adults with progressive neuroendocrine tumors of pancreatic origin (PNET) and
+          adults with progressive, well-differentiated, non-functional neuroendocrine tumors (NET) of
+          gastrointestinal (GI) or lung origin that are unresectable, locally advanced or metastatic; adults
+          with advanced renal cell carcinoma (RCC) after failure of treatment with Sutent® (sunitinib) or
+          Nexavar® (sorafenib); adults with renal angiomyolipoma and tuberous sclerosis complex (TSC),
+          not requiring immediate surgery; treatment of adult and pediatric patients aged 1 year and older
+          with TSC who have subependymal giant cell astrocytoma (SEGA) that requires therapeutic
+          intervention but cannot be curatively resected; and for the adjunctive treatment of adult and
+          pediatric patients aged 2 years and older with TSC-associated partial-onset seizures.1
+
+          Afinitor is not indicated for the treatment of patients with functional carcinoid tumors.
+
+          The National Cancer Comprehensive Network (NCCN) also recommends use of Afinitor in
+          invasive and inflammatory breast cancer, Waldenström's macroglobulinemia /
+          lymphoplasmacytic lymphoma, neuroendocrine tumors, kidney cancer, soft tissue sarcomas,
+          osteosarcomas, gastrointestinal stromal tumors, thymomas and thymic carcinomas, Hodgkin
+          lymphoma, follicular, oncocytic, and papillary thyroid carcinomas, subependymal giant cell
+          astrocytoma (SEGA), meningioma, histiocytic neoplasms, and endometrial carcinoma.2
+
+
+          ## Coverage Information:
+
+          Members will be required to meet the criteria below for coverage. For members under the age of
+          19 years, the prescription will automatically process without a coverage review.
+
+          Some states mandate benefit coverage for off-label use of medications for some diagnoses or
+          under some circumstances. Some states also mandate usage of other Compendium references.
+          Where such mandates apply, they supersede language in the benefit document or in the
+          notification criteria.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="1" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Coverage Criteriaª:
+
+          A. Patients less than 19 years of age
+
+          1\. Afinitor will be approved based on the following criterion:
+
+          a. Patient is less than 19 years of age
+
+          Authorization will be issued for 12 months.
+
+          B. Neuroendocrine Tumors
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on One of the following criteria:
+
+          (1) All of the following:
+
+          (a) Diagnosis of one of the following:
+
+          (i) Neuroendocrine tumors of gastrointestinal origin
+
+          (ii) Neuroendocrine tumors of lung origin
+
+          (iii) Neuroendocrine tumors of thymic origin
+
+          -AND-
+
+          (b) Disease is progressive
+
+          -AND-
+
+          (c) One of the following:
+
+          (i) Disease is unresectable
+
+          (ii) Disease is locally advanced
+
+          (iii) Disease is metastatic
+
+          -OR-
+
+          (2) Both of the following:
+
+          (a) Diagnosis of neuroendocrine tumors of pancreatic origin
+          -AND-
+
+          (b) One of the following:
+
+          (i) Used for the management of recurrent, locoregional advanced disease
+          and/or metastatic disease
+
+          (ii) Used as preoperative therapy of locoregional insulinoma with or without
+          diazoxide
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="2" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          C. Advanced Renal Cell Carcinoma/Kidney Cancer
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of advanced renal cell cancer/kidney cancer
+
+          -AND-
+
+          (2) Disease is one of the following:
+
+          (a) Relapsed
+
+          (b) Stage IV disease
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          D. Tuberous Sclerosis Complex-Associated Renal Cell Carcinoma
+
+          1\.
+          . Initial Authorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Diagnosis of tuberous sclerosis complex (TSC)-associated renal cell carcinoma
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="3" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          E. Subependymal Giant Cell Astrocytoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of subependymal giant cell astrocytoma (SEGA)
+
+          -AND-
+
+          (2) Used as adjuvant treatment
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          F. Waldenströms Macroglobulinemia or Lymphoplasmacytic Lymphoma
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Waldenströms macroglobulinemia
+
+          (b) Lymphoplasmacytic lymphoma
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) Disease is non-responsive to primary treatment
+
+          (b) Disease is progressive
+
+          (c) Disease has relapsed
+
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="4" -->
+          <!-- PageBreak -->
+
+          UnitedHealthcare®
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+
+          ## G. Breast Cancer
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of breast cancer
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) Disease is recurrent
+
+          (b) Disease is metastatic
+
+          -AND-
+
+          (3) Disease is hormone receptor (HR)-positive [i.e., estrogen-receptor-positive (ER+)
+          or progesterone-receptor-positive (PR+)]
+
+          -AND-
+
+          (4) Disease is human epidermal growth factor receptor 2 (HER2)-negative
+          -AND-
+
+          (5) One of the following:
+
+          (a) Patient is a postmenopausal woman
+
+          -OR-
+
+          (b) Both of the following:
+
+          i. Patient is a premenopausal woman
+
+          ii. Patient is being treated with ovarian ablation/suppression
+          -OR-
+
+          (c) Patient is male
+
+          -AND-
+
+          (6) Used in combination with one of the following:
+          <!-- PageFooter="C 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="5" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (a) Exemestane if progressed within 12 months or on a non-steroidal aromatase
+          inhibitor [e.g., Arimidex (anastrozole), Femara (letrozole)]
+
+          (b) Fulvestrant
+
+          (c) Tamoxifen
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          H. Hodgkin Lymphoma
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of classic Hodgkin lymphoma
+
+          -AND-
+
+          (2) Disease is refractory to at least 3 prior lines of therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          I. Soft Tissue Sarcoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on one of the following soft tissue sarcoma subtypes:
+
+          (1) Locally advanced unresectable or metastatic malignant perivascular epithelioid
+          cell tumor (PEComa)
+
+          (2) Recurrent angiomyolipoma
+
+          (3) Lymphangioleiomyomatosis
+
+          Authorization will be issued for 12 months.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="6" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## J. Thymomas and Thymic Carcinomas
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) One of the following:
+
+          (a) Diagnosis of thymic carcinoma
+
+          (b) Diagnosis of thymoma
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) First-line therapy as a single agent for those who cannot tolerate first-line
+          combination regimens
+
+          (b) Second-line therapy as a single agent
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## K. Thyroid Carcinoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Follicular carcinoma
+
+          (b) Oncocytic carcinoma
+
+          (c) Papillary carcinoma
+
+          -AND-
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="7" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (2) One of the following:
+
+          (a) Unresectable locoreginal recurrent disease
+
+          (b) Persistent disease
+
+          (c) Metastatic disease
+
+          -AND-
+
+          (3) One of the following:
+
+          (a) Patient has symptomatic disease
+
+          (b) Patient has progressive disease
+
+          -AND-
+
+          (4) Disease is refractory to radioactive iodine treatment
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## L. Meningioma
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of meningioma
+
+          -AND-
+
+          (2) Disease is recurrent or progressive
+
+          -AND-
+
+          (3) Surgery and/or radiation is not possible
+          -AND-
+
+          (4) One of the following:
+
+          (a) Used in combination with bevacizumab (Avastin, Mvasi, etc.)
+          (b) Used in combination with octreotide acetate LAR
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="8" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          # Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## M. Endometrial Carcinoma
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of endometrial carcinoma
+          -AND-
+
+          (2) Used in combination with letrozole
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+
+          ## N. Tuberous Sclerosis Complex associated Partial-onset Seizures
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of tuberous sclerosis complex associated partial-onset seizures
+          -AND-
+
+          (2) Used as adjunctive therapy
+
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="9" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          O. Bone Cancer - Osteosarcoma
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of osteosarcoma
+
+          -AND-
+          ☒
+
+          (2) Disease is one of the following:
+
+          (a) Relapsed/Refractory
+
+          (b) Metastatic
+
+          -AND-
+
+          (3) Used as second-line therapy
+
+          -AND-
+
+          (4) Used in combination with Nexavar (sorafenib)
+          ☒
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          P. Histiocytic Neoplasms
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Rosai-Dorfman Disease
+
+          (b) Langerhans Cell Histiocytosis
+
+          (c) Erdheim-Chester Disease
+
+          -AND-
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="10" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (2) Presence of phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha
+          (PIK3CA) mutation
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          Q. Gastrointestingal Stromal Tumor (GIST)
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of Gastrointestinal Stromal Tumor (GIST)
+
+          -AND-
+
+          (2) Disease is one of the following:
+
+          (a) Unresectable
+
+          (b) Progressive
+
+          (c) Metastatic
+
+          (d) Gross residual (R2 resection)
+
+          (e) Tumor rupture
+
+          -AND-
+
+          (3) Disease has progressed after single agent therapy with all of the following:
+
+          (a) Imatinib (Gleevec)
+
+          (b) Sutent (sunitinib)
+
+          (c) Stivarga (regorafenib)
+
+          (d) Qinlock (ripretinib)
+
+          -AND-
+
+          (4) Used in combination with one of the following:
+
+          (a) Imatinib (Gleevec)
+
+          (b) Sutent (sunitinib)
+
+          (c) Stivarga (regorafenib)
+
+          Authorization will be issued for 12 months.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="11" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## R. NCCN Recommended Regimens
+
+          The drug has been recognized for treatment of the cancer indication by The National
+          Comprehensive Cancer Network (NCCN) Drugs and Biologics Compendium with a Category
+          of Evidence and Consensus of 1, 2A, or 2B
+
+          Authorization will be issued for 12 months.
+
+          a State mandates may apply. Any federal regulatory requirements and the member specific benefit
+          plan coverage may also impact coverage criteria. Other policies and utilization management
+          programs may apply.
+
+
+          ## 3. Additional Clinical Rules:
+
+          · Notwithstanding Coverage Criteria, UnitedHealthcare may approve initial and re-authorization
+          based solely on previous claim/medication history, diagnosis codes (ICD-10) and/or claim logic.
+          Use of automated approval and re-approval processes varies by program and/or therapeutic class.
+
+          · Supply limits may be in place.
+
+
+          ## 4. References:
+
+          1\. Afinitor [package insert]. East Hanover, NJ: Novartis Pharmaceuticals Corporation; February
+          2022\.
+
+          2\. The NCCN Drugs and Biologics Compendium (NCCN Compendium™M). Available at
+          https://www.nccn.org/professionals/drug_compendium/content/. March 19, 2024.
+
+
+          <table>
+          <tr>
+          <th>Program</th>
+          <th>Prior Authorization/Notification - Afinitor (everolimus)</th>
+          </tr>
+          <tr>
+          <td></td>
+          <td>Change Control</td>
+          </tr>
+          <tr>
+          <td>8/2014</td>
+          <td>Annual review. Added coverage for soft tissue sarcomas, Hodgkin lymphoma, and non-clear cell kidney cancer. Updated breast cancer to include tamoxifen as part of trial/failure and 'advanced' to type of cancer. Updated formatting, Background and References.</td>
+          </tr>
+          <tr>
+          <td>9/2014</td>
+          <td>Administrative change - Tried/Failed exemption for State of New Jersey removed.</td>
+          </tr>
+          <tr>
+          <td>8/2015</td>
+          <td>Annual review. Updated criteria for breast cancer, Hodgkin lymphoma, lung neuroendocrine tumors and Waldenström's macroglobulinemia / lymphoplasmacytic lymphoma. Increased authorization and reauthorization from 5 months to 12 months for all indications. Updated background and references.</td>
+          </tr>
+          <tr>
+          <td>7/2016</td>
+          <td>Annual review. Consolidated neuroendocrine tumor criteria. Minor revision to Renal Cell Carcinoma. Added indications and criteria for</td>
+          </tr>
+          </table>
+
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="12" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          <table>
+          <tr>
+          <th></th>
+          <th>Osteosarcoma and Thymoma/thymic carcinoma per NCCN guidelines. Updated background and references.</th>
+          </tr>
+          <tr>
+          <td>7/2017</td>
+          <td>Annual review. Updated background and added criteria for thyroid carcinoma and the bone cancers, dedifferentiated chondrosarcoma, high-grade undifferentiated pleomorphic sarcoma (UPS) per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2018</td>
+          <td>Annual review. Updated background, added criteria for meningioma, gastrointestinal stromal tumors, endometrial carcinoma, thymic neuroendocrine tumors, and updated breast cancer criteria per NCCN guidelines. Added criteria for new indication of tuberous sclerosis complex associated partial-onset seizures. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2019</td>
+          <td>Annual review. Updated background. Removed criteria for bone cancer (no longer recommended per NCCN guidelines). Updated reference.</td>
+          </tr>
+          <tr>
+          <td>5/2020</td>
+          <td>Annual review. Updated background. Updated coverage criteria for soft tissue sarcoma, thymomas and thymic carcinomas, and meningiomas per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2021</td>
+          <td>Annual review. Addition of criteria for osteosarcoma and Histiocytic Neoplasms, and update to kidney cancer criteria according to NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2022</td>
+          <td>Annual review. Updated background. Updated osteosarcoma criteria per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2023</td>
+          <td>Annual review. Updated background. Updated Neuroendocrine tumor and Hodgkin lymphoma criteria per NCCN guidelines. Added state mandate and oncology medications footnote. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2024</td>
+          <td>Updated background to reflect current NCCN guidance. Updated criteria for neuroendocrine tumors, advanced renal cell carcinoma/kidney cancer. Renamed and updated criteria for tuberous sclerosis complex-associated renal cell carcinoma. Renamed and updated criteria for subependymal giant cell astrocytoma section. Updated criteria for breast cancer, soft tissue sarcomas, thymomas and thymic carcinomas, meningiomas, bone cancer - osteosarcoma, and histiocytic neoplasms. Separated and updated criteria for gastrointestingal stromal tumor (GIST) from soft tissue sarcoma. Removed oncology medications footnote.</td>
+          </tr>
+          </table>
+
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="13" -->
+autodetermination-decision-005-negative-determination.v0:
+  metrics: [FuzzyEvaluator]
+  evaluations:
+    - query: ".Determination"
+      ground_truth: Rejected
+      context:
+        src.pipeline.promptEngineering.models:PatientInformation:
+          patient_name: "Aiden Smith"
+          patient_date_of_birth: "08/10/2004"
+          patient_id: "7891023"
+          patient_address: "18 N Ontario St, New York, NY 21022"
+          patient_phone_number: "555-876-3416"
+        src.pipeline.promptEngineering.models:PhysicianInformation:
+          physician_name: "Dr. Lisa Lauren"
+          specialty: "Oncology"
+          physician_contact:
+            office_phone: "555-426-7898"
+            fax: "555-426-7899"
+            office_address: "1423 Miracle Drive, New York, NY 21023"
+        src.pipeline.promptEngineering.models:ClinicalInformation:
+          diagnosis: >-
+            High-grade osteosarcoma; Metastatic osteosarcoma
+          icd_10_code: "C40.0"
+          prior_treatments_and_results: >-
+            Neoadjuvant Chemotherapy: Doxorubicin 75 mg/m2 IV every 21 days, Cisplatin 120 mg/m2 IV every 21 days, Methotrexate 12 g/m2 IV once every 14 days (high-dose); Surgical Resection: Limb-sparing surgery on May 1, 2024; Post-Surgery Chemotherapy: Doxorubicin 37.5 mg/m2 IV every 21 days (lower dose), Cisplatin 90 mg/m2 IV every 21 days, Methotrexate 12 g/m2 IV once every 14 days (high-dose), Ifosfamide 9 g/m2 IV every 21 days with Mesna for bladder protection
+          specific_drugs_taken_and_failures: >-
+            Doxorubicin: 75 mg/m2 IV every 21 days, Cisplatin: 120 mg/m2 IV every 21 days, Methotrexate: 12 g/m2 IV once every 14 days (high-dose); Post-Surgery Chemotherapy: Doxorubicin 37.5 mg/m2 IV every 21 days (lower dose), Cisplatin 90 mg/m2 IV every 21 days, Methotrexate 12 g/m2 IV once every 14 days (high-dose), Ifosfamide 9 g/m2 IV every 21 days with Mesna for bladder protection
+          alternative_drugs_required: "Not provided"
+          relevant_lab_results_or_imaging: >-
+            CT Scan of the Chest 09/4/24: 1.5 cm rounded lesion in the left lower lobe, several small nodules up to 5 mm in both lung fields; MRI of the Left Femur 9/4/24: large heterogeneous mass in the distal femur, 5.5 cm x 6.2 cm; Pathology Report 3/3/24: high-grade osteosarcoma; Laboratory Work Up 11/2/24: WBC 2.5 x 10^9/L, Hemoglobin 9.5 g/dL, Hematocrit 28%, Platelet Count 75 x 10^9/L, LDH 450 U/L, Serum Ferritin 800 ng/mL
+          symptom_severity_and_impact: >-
+            Fatigue, non-productive cough, left thigh pain, palpable mass just above knee joint, tenderness to palpation
+          prognosis_and_risk_if_not_approved: >-
+            High tumor burden, recurrence of disease in the left distal femur and lungs, potential for further disease progression
+          clinical_rationale_for_urgency: >-
+            Given Aiden's severity of illness and lack of response to all past therapies, he will require initiation of a new adaptive treatment strategy
+          treatment_request:
+            name_of_medication_or_procedure: "Everolimus (Afinitor)"
+            code_of_medication_or_procedure: "Not provided"
+            dosage: "5 mg/m2 once daily"
+            duration: "Ongoing"
+            rationale: >-
+              Initiation of mTOR inhibitor therapy as part of a clinical trial for recurrent osteosarcoma
+            presumed_eligibility: "Not provided"
+        policy_text: >-
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          # UnitedHealthcare Pharmacy Clinical Pharmacy Programs
+          
+          
+          <table>
+          <tr>
+          <td>Program Number</td>
+          <td>2024 P 1003-13</td>
+          </tr>
+          <tr>
+          <td>Program</td>
+          <td>Prior Authorization/Notification</td>
+          </tr>
+          <tr>
+          <td>Medication</td>
+          <td>Afinitor® (everolimus)</td>
+          </tr>
+          <tr>
+          <td>P&amp;T Approval Date</td>
+          <td>12/8/2009, 6/2010, 9/2010, 12/2010, 7/2011, 9/2011, 5/2012, 8/2012, 7/2013, 8/2014, 8/2015, 7/2016, 7/2017, 5/2018, 5/2019, 5/2020, 5/2021, 5/2022, 5/2023, 5/2024</td>
+          </tr>
+          <tr>
+          <td>Effective Date</td>
+          <td>8/1/2024</td>
+          </tr>
+          </table>
+          
+          
+          ## 1. Background:
+          
+          Afinitor (everolimus) is a kinase inhibitor indicated for the treatment of postmenopausal women
+          with advanced hormone receptor-positive, HER2-negative breast cancer in combination with
+          Aromasin® (exemestane) after failure of treatment with Femara® (letrozole) or Arimidex®
+          (anastrozole); in adults with progressive neuroendocrine tumors of pancreatic origin (PNET) and
+          adults with progressive, well-differentiated, non-functional neuroendocrine tumors (NET) of
+          gastrointestinal (GI) or lung origin that are unresectable, locally advanced or metastatic; adults
+          with advanced renal cell carcinoma (RCC) after failure of treatment with Sutent® (sunitinib) or
+          Nexavar® (sorafenib); adults with renal angiomyolipoma and tuberous sclerosis complex (TSC),
+          not requiring immediate surgery; treatment of adult and pediatric patients aged 1 year and older
+          with TSC who have subependymal giant cell astrocytoma (SEGA) that requires therapeutic
+          intervention but cannot be curatively resected; and for the adjunctive treatment of adult and
+          pediatric patients aged 2 years and older with TSC-associated partial-onset seizures.1
+          
+          Afinitor is not indicated for the treatment of patients with functional carcinoid tumors.
+          
+          The National Cancer Comprehensive Network (NCCN) also recommends use of Afinitor in
+          invasive and inflammatory breast cancer, Waldenström's macroglobulinemia /
+          lymphoplasmacytic lymphoma, neuroendocrine tumors, kidney cancer, soft tissue sarcomas,
+          osteosarcomas, gastrointestinal stromal tumors, thymomas and thymic carcinomas, Hodgkin
+          lymphoma, follicular, oncocytic, and papillary thyroid carcinomas, subependymal giant cell
+          astrocytoma (SEGA), meningioma, histiocytic neoplasms, and endometrial carcinoma.2
+          
+          
+          ## Coverage Information:
+          
+          Members will be required to meet the criteria below for coverage. For members under the age of
+          19 years, the prescription will automatically process without a coverage review.
+          
+          Some states mandate benefit coverage for off-label use of medications for some diagnoses or
+          under some circumstances. Some states also mandate usage of other Compendium references.
+          Where such mandates apply, they supersede language in the benefit document or in the
+          notification criteria.
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="1" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          ## 2. Coverage Criteriaª:
+          
+          A. Patients less than 19 years of age
+          
+          1\. Afinitor will be approved based on the following criterion:
+          
+          a. Patient is less than 19 years of age
+          
+          Authorization will be issued for 12 months.
+          
+          B. Neuroendocrine Tumors
+          
+          
+          ### 1. Initial Authorization
+          
+          a. Afinitor will be approved based on One of the following criteria:
+          
+          (1) All of the following:
+          
+          (a) Diagnosis of one of the following:
+          
+          (i) Neuroendocrine tumors of gastrointestinal origin
+          
+          (ii) Neuroendocrine tumors of lung origin
+          
+          (iii) Neuroendocrine tumors of thymic origin
+          
+          -AND-
+          
+          (b) Disease is progressive
+          
+          -AND-
+          
+          (c) One of the following:
+          
+          (i) Disease is unresectable
+          
+          (ii) Disease is locally advanced
+          
+          (iii) Disease is metastatic
+          
+          -OR-
+          
+          (2) Both of the following:
+          
+          (a) Diagnosis of neuroendocrine tumors of pancreatic origin
+          -AND-
+          
+          (b) One of the following:
+          
+          (i) Used for the management of recurrent, locoregional advanced disease
+          and/or metastatic disease
+          
+          (ii) Used as preoperative therapy of locoregional insulinoma with or without
+          diazoxide
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="2" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          C. Advanced Renal Cell Carcinoma/Kidney Cancer
+          
+          1\.
+          Initial Authorization
+          
+          a. Afinitor will be approved based on both of the following criteria:
+          
+          (1) Diagnosis of advanced renal cell cancer/kidney cancer
+          
+          -AND-
+          
+          (2) Disease is one of the following:
+          
+          (a) Relapsed
+          
+          (b) Stage IV disease
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+          
+          D. Tuberous Sclerosis Complex-Associated Renal Cell Carcinoma
+          
+          1\.
+          . Initial Authorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Diagnosis of tuberous sclerosis complex (TSC)-associated renal cell carcinoma
+          Authorization will be issued for 12 months.
+          
+          2\. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="3" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+          
+          E. Subependymal Giant Cell Astrocytoma
+          
+          
+          ### 1. Initial Authorization
+          
+          a. Afinitor will be approved based on both of the following criteria:
+          
+          (1) Diagnosis of subependymal giant cell astrocytoma (SEGA)
+          
+          -AND-
+          
+          (2) Used as adjuvant treatment
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+          
+          F. Waldenströms Macroglobulinemia or Lymphoplasmacytic Lymphoma
+          
+          
+          ## 1. Initial Authorization
+          
+          a. Afinitor will be approved based on both the following criteria:
+          
+          (1) Diagnosis of one of the following:
+          
+          (a) Waldenströms macroglobulinemia
+          
+          (b) Lymphoplasmacytic lymphoma
+          
+          -AND-
+          
+          (2) One of the following:
+          
+          (a) Disease is non-responsive to primary treatment
+          
+          (b) Disease is progressive
+          
+          (c) Disease has relapsed
+          
+          Authorization will be issued for 12 months.
+          
+          2\. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="4" -->
+          <!-- PageBreak -->
+          
+          UnitedHealthcare®
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+          
+          
+          ## G. Breast Cancer
+          
+          1\. Initial Authorization
+          
+          a. Afinitor will be approved based on all of the following criteria:
+          
+          (1) Diagnosis of breast cancer
+          
+          -AND-
+          
+          (2) One of the following:
+          
+          (a) Disease is recurrent
+          
+          (b) Disease is metastatic
+          
+          -AND-
+          
+          (3) Disease is hormone receptor (HR)-positive [i.e., estrogen-receptor-positive (ER+)
+          or progesterone-receptor-positive (PR+)]
+          
+          -AND-
+          
+          (4) Disease is human epidermal growth factor receptor 2 (HER2)-negative
+          -AND-
+          
+          (5) One of the following:
+          
+          (a) Patient is a postmenopausal woman
+          
+          -OR-
+          
+          (b) Both of the following:
+          
+          i. Patient is a premenopausal woman
+          
+          ii. Patient is being treated with ovarian ablation/suppression
+          -OR-
+          
+          (c) Patient is male
+          
+          -AND-
+          
+          (6) Used in combination with one of the following:
+          <!-- PageFooter="C 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="5" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          (a) Exemestane if progressed within 12 months or on a non-steroidal aromatase
+          inhibitor [e.g., Arimidex (anastrozole), Femara (letrozole)]
+          
+          (b) Fulvestrant
+          
+          (c) Tamoxifen
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          H. Hodgkin Lymphoma
+          
+          1\. Initial Authorization
+          
+          a. Afinitor will be approved based on both of the following criteria:
+          
+          (1) Diagnosis of classic Hodgkin lymphoma
+          
+          -AND-
+          
+          (2) Disease is refractory to at least 3 prior lines of therapy
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          I. Soft Tissue Sarcoma
+          
+          
+          ### 1. Initial Authorization
+          
+          a. Afinitor will be approved based on one of the following soft tissue sarcoma subtypes:
+          
+          (1) Locally advanced unresectable or metastatic malignant perivascular epithelioid
+          cell tumor (PEComa)
+          
+          (2) Recurrent angiomyolipoma
+          
+          (3) Lymphangioleiomyomatosis
+          
+          Authorization will be issued for 12 months.
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="6" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## J. Thymomas and Thymic Carcinomas
+          
+          
+          ## 1. Initial Authorization
+          
+          a. Afinitor will be approved based on both of the following criteria:
+          
+          (1) One of the following:
+          
+          (a) Diagnosis of thymic carcinoma
+          
+          (b) Diagnosis of thymoma
+          
+          -AND-
+          
+          (2) One of the following:
+          
+          (a) First-line therapy as a single agent for those who cannot tolerate first-line
+          combination regimens
+          
+          (b) Second-line therapy as a single agent
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## K. Thyroid Carcinoma
+          
+          
+          ### 1. Initial Authorization
+          
+          a. Afinitor will be approved based on all of the following criteria:
+          
+          (1) Diagnosis of one of the following:
+          
+          (a) Follicular carcinoma
+          
+          (b) Oncocytic carcinoma
+          
+          (c) Papillary carcinoma
+          
+          -AND-
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="7" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          (2) One of the following:
+          
+          (a) Unresectable locoreginal recurrent disease
+          
+          (b) Persistent disease
+          
+          (c) Metastatic disease
+          
+          -AND-
+          
+          (3) One of the following:
+          
+          (a) Patient has symptomatic disease
+          
+          (b) Patient has progressive disease
+          
+          -AND-
+          
+          (4) Disease is refractory to radioactive iodine treatment
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## L. Meningioma
+          
+          1\.
+          Initial Authorization
+          
+          a. Afinitor will be approved based on all of the following criteria:
+          
+          (1) Diagnosis of meningioma
+          
+          -AND-
+          
+          (2) Disease is recurrent or progressive
+          
+          -AND-
+          
+          (3) Surgery and/or radiation is not possible
+          -AND-
+          
+          (4) One of the following:
+          
+          (a) Used in combination with bevacizumab (Avastin, Mvasi, etc.)
+          (b) Used in combination with octreotide acetate LAR
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="8" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          # Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## M. Endometrial Carcinoma
+          
+          1\.
+          Initial Authorization
+          
+          a. Afinitor will be approved based on all of the following criteria:
+          
+          (1) Diagnosis of endometrial carcinoma
+          -AND-
+          
+          (2) Used in combination with letrozole
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+          
+          
+          ## N. Tuberous Sclerosis Complex associated Partial-onset Seizures
+          
+          
+          ## 1. Initial Authorization
+          
+          a. Afinitor will be approved based on both of the following criteria:
+          
+          (1) Diagnosis of tuberous sclerosis complex associated partial-onset seizures
+          -AND-
+          
+          (2) Used as adjunctive therapy
+          
+          Authorization will be issued for 12 months.
+          
+          2\. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="9" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+          
+          O. Bone Cancer - Osteosarcoma
+          
+          1\. Initial Authorization
+          
+          a. Afinitor will be approved based on all of the following criteria:
+          
+          (1) Diagnosis of osteosarcoma
+          
+          -AND-
+          ☒
+          
+          (2) Disease is one of the following:
+          
+          (a) Relapsed/Refractory
+          
+          (b) Metastatic
+          
+          -AND-
+          
+          (3) Used as second-line therapy
+          
+          -AND-
+          
+          (4) Used in combination with Nexavar (sorafenib)
+          ☒
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+          
+          P. Histiocytic Neoplasms
+          
+          1\. Initial Authorization
+          
+          a. Afinitor will be approved based on both of the following criteria:
+          
+          (1) Diagnosis of one of the following:
+          
+          (a) Rosai-Dorfman Disease
+          
+          (b) Langerhans Cell Histiocytosis
+          
+          (c) Erdheim-Chester Disease
+          
+          -AND-
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="10" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          (2) Presence of phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha
+          (PIK3CA) mutation
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          Q. Gastrointestingal Stromal Tumor (GIST)
+          
+          1\. Initial Authorization
+          
+          a. Afinitor will be approved based on all of the following criteria:
+          
+          (1) Diagnosis of Gastrointestinal Stromal Tumor (GIST)
+          
+          -AND-
+          
+          (2) Disease is one of the following:
+          
+          (a) Unresectable
+          
+          (b) Progressive
+          
+          (c) Metastatic
+          
+          (d) Gross residual (R2 resection)
+          
+          (e) Tumor rupture
+          
+          -AND-
+          
+          (3) Disease has progressed after single agent therapy with all of the following:
+          
+          (a) Imatinib (Gleevec)
+          
+          (b) Sutent (sunitinib)
+          
+          (c) Stivarga (regorafenib)
+          
+          (d) Qinlock (ripretinib)
+          
+          -AND-
+          
+          (4) Used in combination with one of the following:
+          
+          (a) Imatinib (Gleevec)
+          
+          (b) Sutent (sunitinib)
+          
+          (c) Stivarga (regorafenib)
+          
+          Authorization will be issued for 12 months.
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="11" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          ## 2. Reauthorization
+          
+          a. Afinitor will be approved based on the following criterion:
+          
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          
+          Authorization will be issued for 12 months.
+          
+          
+          ## R. NCCN Recommended Regimens
+          
+          The drug has been recognized for treatment of the cancer indication by The National
+          Comprehensive Cancer Network (NCCN) Drugs and Biologics Compendium with a Category
+          of Evidence and Consensus of 1, 2A, or 2B
+          
+          Authorization will be issued for 12 months.
+          
+          a State mandates may apply. Any federal regulatory requirements and the member specific benefit
+          plan coverage may also impact coverage criteria. Other policies and utilization management
+          programs may apply.
+          
+          
+          ## 3. Additional Clinical Rules:
+          
+          · Notwithstanding Coverage Criteria, UnitedHealthcare may approve initial and re-authorization
+          based solely on previous claim/medication history, diagnosis codes (ICD-10) and/or claim logic.
+          Use of automated approval and re-approval processes varies by program and/or therapeutic class.
+          
+          · Supply limits may be in place.
+          
+          
+          ## 4. References:
+          
+          1\. Afinitor [package insert]. East Hanover, NJ: Novartis Pharmaceuticals Corporation; February
+          2022\.
+          
+          2\. The NCCN Drugs and Biologics Compendium (NCCN Compendium™M). Available at
+          https://www.nccn.org/professionals/drug_compendium/content/. March 19, 2024.
+          
+          
+          <table>
+          <tr>
+          <th>Program</th>
+          <th>Prior Authorization/Notification - Afinitor (everolimus)</th>
+          </tr>
+          <tr>
+          <td></td>
+          <td>Change Control</td>
+          </tr>
+          <tr>
+          <td>8/2014</td>
+          <td>Annual review. Added coverage for soft tissue sarcomas, Hodgkin lymphoma, and non-clear cell kidney cancer. Updated breast cancer to include tamoxifen as part of trial/failure and 'advanced' to type of cancer. Updated formatting, Background and References.</td>
+          </tr>
+          <tr>
+          <td>9/2014</td>
+          <td>Administrative change - Tried/Failed exemption for State of New Jersey removed.</td>
+          </tr>
+          <tr>
+          <td>8/2015</td>
+          <td>Annual review. Updated criteria for breast cancer, Hodgkin lymphoma, lung neuroendocrine tumors and Waldenström's macroglobulinemia / lymphoplasmacytic lymphoma. Increased authorization and reauthorization from 5 months to 12 months for all indications. Updated background and references.</td>
+          </tr>
+          <tr>
+          <td>7/2016</td>
+          <td>Annual review. Consolidated neuroendocrine tumor criteria. Minor revision to Renal Cell Carcinoma. Added indications and criteria for</td>
+          </tr>
+          </table>
+          
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="12" -->
+          <!-- PageBreak -->
+          
+          
+          <figure>
+          
+          UnitedHealthcare®
+          
+          </figure>
+          
+          
+          <table>
+          <tr>
+          <th></th>
+          <th>Osteosarcoma and Thymoma/thymic carcinoma per NCCN guidelines. Updated background and references.</th>
+          </tr>
+          <tr>
+          <td>7/2017</td>
+          <td>Annual review. Updated background and added criteria for thyroid carcinoma and the bone cancers, dedifferentiated chondrosarcoma, high-grade undifferentiated pleomorphic sarcoma (UPS) per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2018</td>
+          <td>Annual review. Updated background, added criteria for meningioma, gastrointestinal stromal tumors, endometrial carcinoma, thymic neuroendocrine tumors, and updated breast cancer criteria per NCCN guidelines. Added criteria for new indication of tuberous sclerosis complex associated partial-onset seizures. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2019</td>
+          <td>Annual review. Updated background. Removed criteria for bone cancer (no longer recommended per NCCN guidelines). Updated reference.</td>
+          </tr>
+          <tr>
+          <td>5/2020</td>
+          <td>Annual review. Updated background. Updated coverage criteria for soft tissue sarcoma, thymomas and thymic carcinomas, and meningiomas per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2021</td>
+          <td>Annual review. Addition of criteria for osteosarcoma and Histiocytic Neoplasms, and update to kidney cancer criteria according to NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2022</td>
+          <td>Annual review. Updated background. Updated osteosarcoma criteria per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2023</td>
+          <td>Annual review. Updated background. Updated Neuroendocrine tumor and Hodgkin lymphoma criteria per NCCN guidelines. Added state mandate and oncology medications footnote. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2024</td>
+          <td>Updated background to reflect current NCCN guidance. Updated criteria for neuroendocrine tumors, advanced renal cell carcinoma/kidney cancer. Renamed and updated criteria for tuberous sclerosis complex-associated renal cell carcinoma. Renamed and updated criteria for subependymal giant cell astrocytoma section. Updated criteria for breast cancer, soft tissue sarcomas, thymomas and thymic carcinomas, meningiomas, bone cancer - osteosarcoma, and histiocytic neoplasms. Separated and updated criteria for gastrointestingal stromal tumor (GIST) from soft tissue sarcoma. Removed oncology medications footnote.</td>
+          </tr>
+          </table>
+          
+          
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="13" -->
+autodetermination-decision-005-negative-partial-criteria.v0:
+  metrics: [FuzzyEvaluator]
+  evaluations:
+    - query: ".DetailedAnalysis.PolicyCriteriaAssessment | map(select(.Assessment==\"Fully Met\")) | length"
+      ground_truth: "3"
+      context:
+        src.pipeline.promptEngineering.models:PatientInformation:
+          patient_name: "Aiden Smith"
+          patient_date_of_birth: "08/10/2004"
+          patient_id: "7891023"
+          patient_address: "18 N Ontario St, New York, NY 21022"
+          patient_phone_number: "555-876-3416"
+        src.pipeline.promptEngineering.models:PhysicianInformation:
+          physician_name: "Dr. Lisa Lauren"
+          specialty: "Oncology"
+          physician_contact:
+            office_phone: "555-426-7898"
+            fax: "555-426-7899"
+            office_address: "1423 Miracle Drive, New York, NY 21023"
+        src.pipeline.promptEngineering.models:ClinicalInformation:
+          diagnosis: >-
+            High-grade osteosarcoma; Metastatic osteosarcoma
+          icd_10_code: "C40.0"
+          prior_treatments_and_results: >-
+            Neoadjuvant Chemotherapy: Doxorubicin 75 mg/m2 IV every 21 days, Cisplatin 120 mg/m2 IV every 21 days, Methotrexate 12 g/m2 IV once every 14 days (high-dose); Surgical Resection: Limb-sparing surgery on May 1, 2024; Post-Surgery Chemotherapy: Doxorubicin 37.5 mg/m2 IV every 21 days (lower dose), Cisplatin 90 mg/m2 IV every 21 days, Methotrexate 12 g/m2 IV once every 14 days (high-dose), Ifosfamide 9 g/m2 IV every 21 days with Mesna for bladder protection
+          specific_drugs_taken_and_failures: >-
+            Doxorubicin: 75 mg/m2 IV every 21 days, Cisplatin: 120 mg/m2 IV every 21 days, Methotrexate: 12 g/m2 IV once every 14 days (high-dose); Post-Surgery Chemotherapy: Doxorubicin 37.5 mg/m2 IV every 21 days (lower dose), Cisplatin 90 mg/m2 IV every 21 days, Methotrexate 12 g/m2 IV once every 14 days (high-dose), Ifosfamide 9 g/m2 IV every 21 days with Mesna for bladder protection
+          alternative_drugs_required: "Not provided"
+          relevant_lab_results_or_imaging: >-
+            CT Scan of the Chest 09/4/24: 1.5 cm rounded lesion in the left lower lobe, several small nodules up to 5 mm in both lung fields; MRI of the Left Femur 9/4/24: large heterogeneous mass in the distal femur, 5.5 cm x 6.2 cm; Pathology Report 3/3/24: high-grade osteosarcoma; Laboratory Work Up 11/2/24: WBC 2.5 x 10^9/L, Hemoglobin 9.5 g/dL, Hematocrit 28%, Platelet Count 75 x 10^9/L, LDH 450 U/L, Serum Ferritin 800 ng/mL
+          symptom_severity_and_impact: >-
+            Fatigue, non-productive cough, left thigh pain, palpable mass just above knee joint, tenderness to palpation
+          prognosis_and_risk_if_not_approved: >-
+            High tumor burden, recurrence of disease in the left distal femur and lungs, potential for further disease progression
+          clinical_rationale_for_urgency: >-
+            Given Aiden's severity of illness and lack of response to all past therapies, he will require initiation of a new adaptive treatment strategy
+          treatment_request:
+            name_of_medication_or_procedure: "Everolimus (Afinitor)"
+            code_of_medication_or_procedure: "Not provided"
+            dosage: "5 mg/m2 once daily"
+            duration: "Ongoing"
+            rationale: >-
+              Initiation of mTOR inhibitor therapy as part of a clinical trial for recurrent osteosarcoma
+            presumed_eligibility: "Not provided"
+        policy_text: >-
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          # UnitedHealthcare Pharmacy Clinical Pharmacy Programs
+
+
+          <table>
+          <tr>
+          <td>Program Number</td>
+          <td>2024 P 1003-13</td>
+          </tr>
+          <tr>
+          <td>Program</td>
+          <td>Prior Authorization/Notification</td>
+          </tr>
+          <tr>
+          <td>Medication</td>
+          <td>Afinitor® (everolimus)</td>
+          </tr>
+          <tr>
+          <td>P&amp;T Approval Date</td>
+          <td>12/8/2009, 6/2010, 9/2010, 12/2010, 7/2011, 9/2011, 5/2012, 8/2012, 7/2013, 8/2014, 8/2015, 7/2016, 7/2017, 5/2018, 5/2019, 5/2020, 5/2021, 5/2022, 5/2023, 5/2024</td>
+          </tr>
+          <tr>
+          <td>Effective Date</td>
+          <td>8/1/2024</td>
+          </tr>
+          </table>
+
+
+          ## 1. Background:
+
+          Afinitor (everolimus) is a kinase inhibitor indicated for the treatment of postmenopausal women
+          with advanced hormone receptor-positive, HER2-negative breast cancer in combination with
+          Aromasin® (exemestane) after failure of treatment with Femara® (letrozole) or Arimidex®
+          (anastrozole); in adults with progressive neuroendocrine tumors of pancreatic origin (PNET) and
+          adults with progressive, well-differentiated, non-functional neuroendocrine tumors (NET) of
+          gastrointestinal (GI) or lung origin that are unresectable, locally advanced or metastatic; adults
+          with advanced renal cell carcinoma (RCC) after failure of treatment with Sutent® (sunitinib) or
+          Nexavar® (sorafenib); adults with renal angiomyolipoma and tuberous sclerosis complex (TSC),
+          not requiring immediate surgery; treatment of adult and pediatric patients aged 1 year and older
+          with TSC who have subependymal giant cell astrocytoma (SEGA) that requires therapeutic
+          intervention but cannot be curatively resected; and for the adjunctive treatment of adult and
+          pediatric patients aged 2 years and older with TSC-associated partial-onset seizures.1
+
+          Afinitor is not indicated for the treatment of patients with functional carcinoid tumors.
+
+          The National Cancer Comprehensive Network (NCCN) also recommends use of Afinitor in
+          invasive and inflammatory breast cancer, Waldenström's macroglobulinemia /
+          lymphoplasmacytic lymphoma, neuroendocrine tumors, kidney cancer, soft tissue sarcomas,
+          osteosarcomas, gastrointestinal stromal tumors, thymomas and thymic carcinomas, Hodgkin
+          lymphoma, follicular, oncocytic, and papillary thyroid carcinomas, subependymal giant cell
+          astrocytoma (SEGA), meningioma, histiocytic neoplasms, and endometrial carcinoma.2
+
+
+          ## Coverage Information:
+
+          Members will be required to meet the criteria below for coverage. For members under the age of
+          19 years, the prescription will automatically process without a coverage review.
+
+          Some states mandate benefit coverage for off-label use of medications for some diagnoses or
+          under some circumstances. Some states also mandate usage of other Compendium references.
+          Where such mandates apply, they supersede language in the benefit document or in the
+          notification criteria.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="1" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Coverage Criteriaª:
+
+          A. Patients less than 19 years of age
+
+          1\. Afinitor will be approved based on the following criterion:
+
+          a. Patient is less than 19 years of age
+
+          Authorization will be issued for 12 months.
+
+          B. Neuroendocrine Tumors
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on One of the following criteria:
+
+          (1) All of the following:
+
+          (a) Diagnosis of one of the following:
+
+          (i) Neuroendocrine tumors of gastrointestinal origin
+
+          (ii) Neuroendocrine tumors of lung origin
+
+          (iii) Neuroendocrine tumors of thymic origin
+
+          -AND-
+
+          (b) Disease is progressive
+
+          -AND-
+
+          (c) One of the following:
+
+          (i) Disease is unresectable
+
+          (ii) Disease is locally advanced
+
+          (iii) Disease is metastatic
+
+          -OR-
+
+          (2) Both of the following:
+
+          (a) Diagnosis of neuroendocrine tumors of pancreatic origin
+          -AND-
+
+          (b) One of the following:
+
+          (i) Used for the management of recurrent, locoregional advanced disease
+          and/or metastatic disease
+
+          (ii) Used as preoperative therapy of locoregional insulinoma with or without
+          diazoxide
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="2" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          C. Advanced Renal Cell Carcinoma/Kidney Cancer
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of advanced renal cell cancer/kidney cancer
+
+          -AND-
+
+          (2) Disease is one of the following:
+
+          (a) Relapsed
+
+          (b) Stage IV disease
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          D. Tuberous Sclerosis Complex-Associated Renal Cell Carcinoma
+
+          1\.
+          . Initial Authorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Diagnosis of tuberous sclerosis complex (TSC)-associated renal cell carcinoma
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="3" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          E. Subependymal Giant Cell Astrocytoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of subependymal giant cell astrocytoma (SEGA)
+
+          -AND-
+
+          (2) Used as adjuvant treatment
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          F. Waldenströms Macroglobulinemia or Lymphoplasmacytic Lymphoma
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Waldenströms macroglobulinemia
+
+          (b) Lymphoplasmacytic lymphoma
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) Disease is non-responsive to primary treatment
+
+          (b) Disease is progressive
+
+          (c) Disease has relapsed
+
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="4" -->
+          <!-- PageBreak -->
+
+          UnitedHealthcare®
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+
+          ## G. Breast Cancer
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of breast cancer
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) Disease is recurrent
+
+          (b) Disease is metastatic
+
+          -AND-
+
+          (3) Disease is hormone receptor (HR)-positive [i.e., estrogen-receptor-positive (ER+)
+          or progesterone-receptor-positive (PR+)]
+
+          -AND-
+
+          (4) Disease is human epidermal growth factor receptor 2 (HER2)-negative
+          -AND-
+
+          (5) One of the following:
+
+          (a) Patient is a postmenopausal woman
+
+          -OR-
+
+          (b) Both of the following:
+
+          i. Patient is a premenopausal woman
+
+          ii. Patient is being treated with ovarian ablation/suppression
+          -OR-
+
+          (c) Patient is male
+
+          -AND-
+
+          (6) Used in combination with one of the following:
+          <!-- PageFooter="C 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="5" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (a) Exemestane if progressed within 12 months or on a non-steroidal aromatase
+          inhibitor [e.g., Arimidex (anastrozole), Femara (letrozole)]
+
+          (b) Fulvestrant
+
+          (c) Tamoxifen
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          H. Hodgkin Lymphoma
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of classic Hodgkin lymphoma
+
+          -AND-
+
+          (2) Disease is refractory to at least 3 prior lines of therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          I. Soft Tissue Sarcoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on one of the following soft tissue sarcoma subtypes:
+
+          (1) Locally advanced unresectable or metastatic malignant perivascular epithelioid
+          cell tumor (PEComa)
+
+          (2) Recurrent angiomyolipoma
+
+          (3) Lymphangioleiomyomatosis
+
+          Authorization will be issued for 12 months.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="6" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## J. Thymomas and Thymic Carcinomas
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) One of the following:
+
+          (a) Diagnosis of thymic carcinoma
+
+          (b) Diagnosis of thymoma
+
+          -AND-
+
+          (2) One of the following:
+
+          (a) First-line therapy as a single agent for those who cannot tolerate first-line
+          combination regimens
+
+          (b) Second-line therapy as a single agent
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## K. Thyroid Carcinoma
+
+
+          ### 1. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Follicular carcinoma
+
+          (b) Oncocytic carcinoma
+
+          (c) Papillary carcinoma
+
+          -AND-
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="7" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (2) One of the following:
+
+          (a) Unresectable locoreginal recurrent disease
+
+          (b) Persistent disease
+
+          (c) Metastatic disease
+
+          -AND-
+
+          (3) One of the following:
+
+          (a) Patient has symptomatic disease
+
+          (b) Patient has progressive disease
+
+          -AND-
+
+          (4) Disease is refractory to radioactive iodine treatment
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## L. Meningioma
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of meningioma
+
+          -AND-
+
+          (2) Disease is recurrent or progressive
+
+          -AND-
+
+          (3) Surgery and/or radiation is not possible
+          -AND-
+
+          (4) One of the following:
+
+          (a) Used in combination with bevacizumab (Avastin, Mvasi, etc.)
+          (b) Used in combination with octreotide acetate LAR
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="8" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          # Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## M. Endometrial Carcinoma
+
+          1\.
+          Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of endometrial carcinoma
+          -AND-
+
+          (2) Used in combination with letrozole
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+
+          ## N. Tuberous Sclerosis Complex associated Partial-onset Seizures
+
+
+          ## 1. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of tuberous sclerosis complex associated partial-onset seizures
+          -AND-
+
+          (2) Used as adjunctive therapy
+
+          Authorization will be issued for 12 months.
+
+          2\. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="9" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          O. Bone Cancer - Osteosarcoma
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of osteosarcoma
+
+          -AND-
+          ☒
+
+          (2) Disease is one of the following:
+
+          (a) Relapsed/Refractory
+
+          (b) Metastatic
+
+          -AND-
+
+          (3) Used as second-line therapy
+
+          -AND-
+
+          (4) Used in combination with Nexavar (sorafenib)
+          ☒
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+          Authorization will be issued for 12 months.
+
+          P. Histiocytic Neoplasms
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on both of the following criteria:
+
+          (1) Diagnosis of one of the following:
+
+          (a) Rosai-Dorfman Disease
+
+          (b) Langerhans Cell Histiocytosis
+
+          (c) Erdheim-Chester Disease
+
+          -AND-
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="10" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          (2) Presence of phosphatidylinositol-4,5-bisphosphate 3-kinase catalytic subunit alpha
+          (PIK3CA) mutation
+
+          Authorization will be issued for 12 months.
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+          Q. Gastrointestingal Stromal Tumor (GIST)
+
+          1\. Initial Authorization
+
+          a. Afinitor will be approved based on all of the following criteria:
+
+          (1) Diagnosis of Gastrointestinal Stromal Tumor (GIST)
+
+          -AND-
+
+          (2) Disease is one of the following:
+
+          (a) Unresectable
+
+          (b) Progressive
+
+          (c) Metastatic
+
+          (d) Gross residual (R2 resection)
+
+          (e) Tumor rupture
+
+          -AND-
+
+          (3) Disease has progressed after single agent therapy with all of the following:
+
+          (a) Imatinib (Gleevec)
+
+          (b) Sutent (sunitinib)
+
+          (c) Stivarga (regorafenib)
+
+          (d) Qinlock (ripretinib)
+
+          -AND-
+
+          (4) Used in combination with one of the following:
+
+          (a) Imatinib (Gleevec)
+
+          (b) Sutent (sunitinib)
+
+          (c) Stivarga (regorafenib)
+
+          Authorization will be issued for 12 months.
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="11" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          ## 2. Reauthorization
+
+          a. Afinitor will be approved based on the following criterion:
+
+          (1) Patient does not show evidence of progressive disease while on Afinitor therapy
+
+          Authorization will be issued for 12 months.
+
+
+          ## R. NCCN Recommended Regimens
+
+          The drug has been recognized for treatment of the cancer indication by The National
+          Comprehensive Cancer Network (NCCN) Drugs and Biologics Compendium with a Category
+          of Evidence and Consensus of 1, 2A, or 2B
+
+          Authorization will be issued for 12 months.
+
+          a State mandates may apply. Any federal regulatory requirements and the member specific benefit
+          plan coverage may also impact coverage criteria. Other policies and utilization management
+          programs may apply.
+
+
+          ## 3. Additional Clinical Rules:
+
+          · Notwithstanding Coverage Criteria, UnitedHealthcare may approve initial and re-authorization
+          based solely on previous claim/medication history, diagnosis codes (ICD-10) and/or claim logic.
+          Use of automated approval and re-approval processes varies by program and/or therapeutic class.
+
+          · Supply limits may be in place.
+
+
+          ## 4. References:
+
+          1\. Afinitor [package insert]. East Hanover, NJ: Novartis Pharmaceuticals Corporation; February
+          2022\.
+
+          2\. The NCCN Drugs and Biologics Compendium (NCCN Compendium™M). Available at
+          https://www.nccn.org/professionals/drug_compendium/content/. March 19, 2024.
+
+
+          <table>
+          <tr>
+          <th>Program</th>
+          <th>Prior Authorization/Notification - Afinitor (everolimus)</th>
+          </tr>
+          <tr>
+          <td></td>
+          <td>Change Control</td>
+          </tr>
+          <tr>
+          <td>8/2014</td>
+          <td>Annual review. Added coverage for soft tissue sarcomas, Hodgkin lymphoma, and non-clear cell kidney cancer. Updated breast cancer to include tamoxifen as part of trial/failure and 'advanced' to type of cancer. Updated formatting, Background and References.</td>
+          </tr>
+          <tr>
+          <td>9/2014</td>
+          <td>Administrative change - Tried/Failed exemption for State of New Jersey removed.</td>
+          </tr>
+          <tr>
+          <td>8/2015</td>
+          <td>Annual review. Updated criteria for breast cancer, Hodgkin lymphoma, lung neuroendocrine tumors and Waldenström's macroglobulinemia / lymphoplasmacytic lymphoma. Increased authorization and reauthorization from 5 months to 12 months for all indications. Updated background and references.</td>
+          </tr>
+          <tr>
+          <td>7/2016</td>
+          <td>Annual review. Consolidated neuroendocrine tumor criteria. Minor revision to Renal Cell Carcinoma. Added indications and criteria for</td>
+          </tr>
+          </table>
+
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="12" -->
+          <!-- PageBreak -->
+
+
+          <figure>
+
+          UnitedHealthcare®
+
+          </figure>
+
+
+          <table>
+          <tr>
+          <th></th>
+          <th>Osteosarcoma and Thymoma/thymic carcinoma per NCCN guidelines. Updated background and references.</th>
+          </tr>
+          <tr>
+          <td>7/2017</td>
+          <td>Annual review. Updated background and added criteria for thyroid carcinoma and the bone cancers, dedifferentiated chondrosarcoma, high-grade undifferentiated pleomorphic sarcoma (UPS) per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2018</td>
+          <td>Annual review. Updated background, added criteria for meningioma, gastrointestinal stromal tumors, endometrial carcinoma, thymic neuroendocrine tumors, and updated breast cancer criteria per NCCN guidelines. Added criteria for new indication of tuberous sclerosis complex associated partial-onset seizures. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2019</td>
+          <td>Annual review. Updated background. Removed criteria for bone cancer (no longer recommended per NCCN guidelines). Updated reference.</td>
+          </tr>
+          <tr>
+          <td>5/2020</td>
+          <td>Annual review. Updated background. Updated coverage criteria for soft tissue sarcoma, thymomas and thymic carcinomas, and meningiomas per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2021</td>
+          <td>Annual review. Addition of criteria for osteosarcoma and Histiocytic Neoplasms, and update to kidney cancer criteria according to NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2022</td>
+          <td>Annual review. Updated background. Updated osteosarcoma criteria per NCCN guidelines. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2023</td>
+          <td>Annual review. Updated background. Updated Neuroendocrine tumor and Hodgkin lymphoma criteria per NCCN guidelines. Added state mandate and oncology medications footnote. Updated references.</td>
+          </tr>
+          <tr>
+          <td>5/2024</td>
+          <td>Updated background to reflect current NCCN guidance. Updated criteria for neuroendocrine tumors, advanced renal cell carcinoma/kidney cancer. Renamed and updated criteria for tuberous sclerosis complex-associated renal cell carcinoma. Renamed and updated criteria for subependymal giant cell astrocytoma section. Updated criteria for breast cancer, soft tissue sarcomas, thymomas and thymic carcinomas, meningiomas, bone cancer - osteosarcoma, and histiocytic neoplasms. Separated and updated criteria for gastrointestingal stromal tumor (GIST) from soft tissue sarcoma. Removed oncology medications footnote.</td>
+          </tr>
+          </table>
+
+
+          <!-- PageFooter="@ 2024 UnitedHealthcare Services, Inc." -->
+          <!-- PageNumber="13" -->
