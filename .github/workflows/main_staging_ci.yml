@@ -70,7 +70,7 @@ jobs:
 # @TODO: Need to add the necessary environment variables to run the pytest.
 #      - name: Run Pytest 🧪
 #        shell: bash -el {0}
-#        run: pytest tests/
+#        run: pytest tests/ --log-cli-level=DEBUG
 
   # deployment:
   #   name: deploy
