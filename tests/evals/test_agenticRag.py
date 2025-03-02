@@ -30,7 +30,7 @@
 #         f"Case '{test_case}': expected {metric_key} {comparator.__name__} {expected_value}, got {actual}."
 #     )
 #
-# @pytest.fixture(scope="function")
+# @pytest.fixture(scope="session")
 # def agentic_rag_summary():
 #     """
 #     Runs the AgenticRagEvaluator pipeline once and yields its parsed summary output.
