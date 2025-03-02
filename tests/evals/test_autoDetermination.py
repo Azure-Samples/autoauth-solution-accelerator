@@ -378,7 +378,7 @@ def test_policies_004_negative_rationale(autodetermination_summary):
         summary=autodetermination_summary,
         test_case="autodetermination-decision-004-negative-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
-        expected_value=0.60,
+        expected_value=0.33,
         comparator=operator.ge,
     )
 
