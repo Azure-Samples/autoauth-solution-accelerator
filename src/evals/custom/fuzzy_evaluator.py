@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 from rapidfuzz import fuzz
 
 from src.evals.custom.custom_evaluator import CustomEvaluator
