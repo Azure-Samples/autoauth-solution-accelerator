@@ -12,8 +12,8 @@ autodetermination-decision-005:
     - name: "FuzzyEvaluator"
       class: src.evals.custom.fuzzy_evaluator:FuzzyEvaluator
   cases:
-#    - autodetermination-decision-005-positive-determination.v0
-#    - autodetermination-decision-005-positive-fully-met-criteria.v0
+    - autodetermination-decision-005-positive-determination.v0
+    - autodetermination-decision-005-positive-fully-met-criteria.v0
     - autodetermination-decision-005-negative-determination.v0
     - autodetermination-decision-005-negative-partial-criteria.v0
 
