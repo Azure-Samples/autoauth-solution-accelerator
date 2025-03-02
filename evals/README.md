@@ -156,6 +156,42 @@ Contributions to the framework should adhere to these principles:
 
 ---
 
+## Test Cases Overview
+
+The test cases are structured as follows:
+- **Case ID:** Unique identifier (e.g., 001-a, 001-b, …, 005-b)
+- **Diagnosis:** The medical condition being tested
+- **Medication Request:** The prescribed medication
+- **Expected AutoAuth Decision:** The expected outcome (Approval or Denial)
+- **Actual AutoAuth Decision and Reasoning:** The system’s decision along with detailed reasoning
+- **Average Time to Decision:** The average processing time for the request
+
+### Test Coverage
+
+The following test cases are currently evaluating correctly and considered covered:
+
+| Case ID | Diagnosis | Medication Request | Expected AutoAuth Decision | Actual AutoAuth Decision and Reasoning | Average Time to Decision |
+|---------|-----------|--------------------|----------------------------|----------------------------------------|--------------------------|
+| 001-a   | Inflammatory Bowel Disease (Crohn’s) | Adalimumab | Approval | “The patient meets all necessary requirements. She is over 6 years old, has tried corticosteroid therapy without improvement, and the medication is prescribed by a pediatric gastroenterologist. Therefore, the prior authorization request should be approved.” | 78 seconds |
+| 001-b   | Inflammatory Bowel Disease (Crohn’s) | Adalimumab | Denial   | “The PA request is denied. The patient does not meet all the criteria outlined in the policy for initial therapy in Crohn's disease. Specifically, there is no evidence that the patient has tried or is currently taking corticosteroids or another conventional systemic therapy, nor does she meet any alternative criteria under criterion ii. Additionally, the prescribing physician is a pediatrician, not specified as a gastroenterologist, which does not meet criterion iii.” | 84 seconds |
+| 002-b   | Lennox-Gastaut Syndrome  | Epidiolex   | Denial    | “The patient has not demonstrated trial or concomitant use of at least two other anti-seizure medications, and the medication is not prescribed by or in consultation with a neurologist. The PA request is denied.” | 81 seconds |
+| 003-a   | Lymphoblastic Leukemia (B-ALL), Philadelphia chromosome-negative | Blinatumomab | Approval  | “The PA request is approved. The patient meets all the necessary criteria outlined in the policy for Blincyto use in B-cell precursor acute lymphoblastic leukemia (B-ALL) in remission but positive for minimal residual disease (MRD+).” | 80 seconds |
+| 003-b   | Lymphoblastic Leukemia (B-ALL), Philadelphia chromosome-positive | Blinatumomab | Denial  | “The patient does not meet all the criteria outlined in the policy. Specifically, for Philadelphia chromosome-positive (Ph+) relapsed or refractory B-cell precursor acute lymphoblastic leukemia (B-ALL), the policy requires that the patient is intolerant or refractory to at least one second-generation or later tyrosine kinase inhibitor (TKI). There is no documentation that the patient has tried a second-generation or later TKI; the patient has only been treated with imatinib, a first-generation TKI. Therefore, the PA request does not meet the necessary criteria for approval.” | 98 seconds |
+| 004-a   | Severe Atopic Dermatitis | Dupilumab   | Approval  | “The PA request meets all the necessary requirements and is approved. The patient has a documented diagnosis of severe atopic dermatitis, has failed to achieve adequate control with two specified classes of topical therapies, is not receiving prohibited concurrent medications, and the prescribing physician is appropriately specialized.” | 77 seconds |
+| 004-b   | Severe Atopic Dermatitis | Dupilumab   | Denial    | “The PA request does not meet all the necessary criteria outlined in the policy for atopic dermatitis. Specifically, the patient has a history of failure with only one class of topical therapy, whereas the policy requires a history of failure, contraindication, or intolerance to two specified classes of topical therapies.” | 76 seconds |
+| 005-a   | High-grade Osteosarcoma   | Everolimus  | Approval  | “The PA request for Afinitor (everolimus) is approved. The patient meets all the necessary criteria outlined in the policy for the use of Afinitor in combination with Nexavar (sorafenib) for metastatic osteosarcoma as second-line therapy.” | 71 seconds |
+
+## Work in Progress
+
+The following test cases are currently under evaluation due to discrepancies and are planned on resolving in future release:
+
+| Case ID | Diagnosis | Medication Request | Expected AutoAuth Decision | Actual AutoAuth Decision and Reasoning | Average Time to Decision |
+|---------|-----------|--------------------|----------------------------|----------------------------------------|--------------------------|
+| 002-a   | Lennox-Gastaut Syndrome  | Epidiolex   | Approval  | “The PA request is approved. The patient meets all the necessary criteria outlined in the policy for Lennox-Gastaut Syndrome. The patient is a 2-year-old diagnosed with Lennox-Gastaut Syndrome. The patient has tried or is currently receiving at least two other antiseizure medications (valproic acid, lamotrigine, rufinamide, topiramate). The prescribing physician is a pediatric neurologist.” | 62 seconds |
+| 005-b   | High-grade Osteosarcoma   | Everolimus  | Denial    | “The PA request for Afinitor (everolimus) is denied because it does not meet all the necessary criteria outlined in the policy for the treatment of osteosarcoma. Specifically, the policy requires that Afinitor be used in combination with Nexavar (sorafenib) for this indication, and there is no evidence provided that Nexavar is part of the treatment pla…” | (Incomplete) |
+
+---
+
 ## Usage
 
 To run the evaluations for specific pipelines, set the necessary environment variables and execute the corresponding evaluator script.
