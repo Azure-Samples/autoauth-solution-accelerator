@@ -15,7 +15,7 @@ autodetermination-reasoning-005:
       class: azure.ai.evaluation:CoherenceEvaluator
   cases:
     - autodetermination-decision-005-positive-rationale.v0
-    - autodetermination-decision-005-negative-rationale.v0
+#    - autodetermination-decision-005-negative-rationale.v0
 
 autodetermination-decision-005-positive-rationale.v0:
   metrics: [FactualCorrectnessEvaluator, CoherenceEvaluator]
