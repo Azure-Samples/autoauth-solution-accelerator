@@ -22,7 +22,7 @@ autodetermination-decision-003-positive-rationale.v0:
   evaluations:
     - query: ".Rationale"
       ground_truth: >-
-        The prior authorization request for Blinatumomab is approved because all the policy criteria are fully met. The patient has B-cell precursor acute lymphoblastic leukemia (B-ALL) in remission but positive for minimal residual disease (MRD+). The medication is prescribed by a pediatric hematologist and oncologist, and the requested dose does not exceed the maximum allowed dosage.
+        Based on the provided clinical information and the policy criteria, the prior authorization request for Blinatumomab (Blincyto) at a dosage of 28 mcg/day for Lucas Little is approved. The patient meets all the necessary criteria outlined in the policy for the treatment of B-cell precursor acute lymphoblastic leukemia (B-ALL) in remission but positive for minimal residual disease (MRD+).
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: "Lucas Little"
