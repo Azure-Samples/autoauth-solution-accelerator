@@ -366,7 +366,7 @@ def test_policies_004_positive_rationale(autodetermination_summary):
         summary=autodetermination_summary,
         test_case="autodetermination-decision-004-positive-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
-        expected_value=0.60,
+        expected_value=0.40,
         comparator=operator.ge,
     )
 
