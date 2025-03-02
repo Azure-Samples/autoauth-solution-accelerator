@@ -22,7 +22,7 @@ autodetermination-decision-001-positive-rationale.v0:
   evaluations:
     - query: ".Rationale"
       ground_truth: >-
-        The patient meets all the required policy criteria for the approval of Adalimumab (Humira) for the treatment of Crohn's Disease under initial therapy. All criteria are fully met based on the provided patient information and the policy text.
+        Based on the provided information, Sarah Sample meets all the policy criteria for initial therapy approval of adalimumab for Crohn’s Disease. She is over 6 years old, has tried corticosteroid therapy without improvement, and the medication is prescribed by a pediatric gastroenterologist.
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: "Sarah Sample"

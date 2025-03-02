@@ -953,7 +953,7 @@ autodetermination-decision-005-negative-rationale.v0:
   evaluations:
     - query: ".Rationale"
       ground_truth: >-
-        The prior authorization request for Everolimus (Afinitor) for the treatment of metastatic osteosarcoma is denied because it does not meet all the criteria outlined in the policy. Specifically, the requested use of Everolimus is not in combination with Nexavar (sorafenib) as required by the policy for osteosarcoma. All policy criteria must be fully met for approval, and Criterion 4 is not met in this case.
+        The prior authorization request for Everolimus (Afinitor) for Aiden Smith is denied because it does not meet all the criteria outlined in the policy. While the patient meets the diagnosis and disease status requirements for osteosarcoma, the policy specifies that Everolimus must be used in combination with Nexavar (sorafenib) for approval. The treatment plan does not indicate the use of Nexavar alongside Everolimus.
       context:
         src.pipeline.promptEngineering.models:PatientInformation:
           patient_name: "Aiden Smith"
