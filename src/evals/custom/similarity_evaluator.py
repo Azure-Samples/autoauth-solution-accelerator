@@ -10,7 +10,7 @@ class SimilarityScore(TypedDict):
 
 
 class SemanticSimilarityEvaluator:
-    def __init__(self, model_name: str = 'bert-base-uncased'):
+    def __init__(self, model_name: str = "bert-base-uncased"):
         """
         Initialize the evaluator with a pre-trained model for embeddings.
 
@@ -19,7 +19,9 @@ class SemanticSimilarityEvaluator:
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModel.from_pretrained(model_name)
 
-    def __call__(self, *, response: str, ground_truth: str, **kwargs) -> SimilarityScore:
+    def __call__(
+        self, *, response: str, ground_truth: str, **kwargs
+    ) -> SimilarityScore:
         """
         Calculate the semantic similarity between the response and ground truth.
 
@@ -30,7 +32,9 @@ class SemanticSimilarityEvaluator:
         try:
             response_embedding = self._get_embedding(response)
             ground_truth_embedding = self._get_embedding(ground_truth)
-            similarity = self._calculate_cosine_similarity(response_embedding, ground_truth_embedding)
+            similarity = self._calculate_cosine_similarity(
+                response_embedding, ground_truth_embedding
+            )
             return {"semantic_similarity": similarity}
         except Exception as e:
             print(f"Error during evaluation: {e}")
@@ -43,11 +47,15 @@ class SemanticSimilarityEvaluator:
         :param text: The input text.
         :return: The embedding as a torch tensor.
         """
-        inputs = self.tokenizer(text, return_tensors='pt', truncation=True, padding=True)
+        inputs = self.tokenizer(
+            text, return_tensors="pt", truncation=True, padding=True
+        )
         outputs = self.model(**inputs)
         return outputs.last_hidden_state.mean(dim=1)
 
-    def _calculate_cosine_similarity(self, tensor1: torch.Tensor, tensor2: torch.Tensor) -> float:
+    def _calculate_cosine_similarity(
+        self, tensor1: torch.Tensor, tensor2: torch.Tensor
+    ) -> float:
         """
         Calculate the cosine similarity between two tensors.
 

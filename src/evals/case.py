@@ -19,13 +19,13 @@ class Evaluation:
     """
 
     def __init__(
-            self,
-            query: str,
-            response: str,
-            ground_truth: str,
-            context: Optional[Any] = None,
-            conversation: Optional[Any] = None,
-            scores: Optional[Dict[str, Any]] = None
+        self,
+        query: str,
+        response: str,
+        ground_truth: str,
+        context: Optional[Any] = None,
+        conversation: Optional[Any] = None,
+        scores: Optional[Dict[str, Any]] = None,
     ):
         self.query = query
         self.response = response
@@ -61,7 +61,7 @@ class Case:
         case_name: str,
         metrics: Optional[List[str]] = None,
         config: Optional[dict] = None,
-        evaluations: Optional[List] = None
+        evaluations: Optional[List] = None,
     ):
         self.case_name = case_name
         self.metrics = metrics if metrics is not None else []
@@ -76,10 +76,7 @@ class Case:
         This file is later passed to the Azure AI evaluation API.
         """
         temp_file = tempfile.NamedTemporaryFile(
-            mode='w+',
-            delete=False,
-            suffix='.jsonl',
-            prefix='evaluation_dataset_'
+            mode="w+", delete=False, suffix=".jsonl", prefix="evaluation_dataset_"
         )
         try:
             for eval_obj in self.evaluations:

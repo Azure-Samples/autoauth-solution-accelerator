@@ -8,7 +8,9 @@ from src.pipeline.agenticRag.evaluator import AgenticRagEvaluator
 from src.pipeline.autoDetermination.evaluator import AutoDeterminationEvaluator
 
 
-def check_case_metric(summary, test_case: str, metric_key: str, expected_value, comparator=operator.eq):
+def check_case_metric(
+    summary, test_case: str, metric_key: str, expected_value, comparator=operator.eq
+):
     """
     Helper function to verify that a given test case in the summary satisfies a metric condition.
 
@@ -26,10 +28,13 @@ def check_case_metric(summary, test_case: str, metric_key: str, expected_value, 
     metrics = case.get("results", {}).get("metrics")
     assert metrics is not None, f"Metrics not found for case '{test_case}'."
     actual = metrics.get(metric_key)
-    assert actual is not None, f"Metric '{metric_key}' not found for case '{test_case}'."
-    assert comparator(actual, expected_value), (
-        f"Case '{test_case}': expected {metric_key} {comparator.__name__} {expected_value}, got {actual}."
-    )
+    assert (
+        actual is not None
+    ), f"Metric '{metric_key}' not found for case '{test_case}'."
+    assert comparator(
+        actual, expected_value
+    ), f"Case '{test_case}': expected {metric_key} {comparator.__name__} {expected_value}, got {actual}."
+
 
 @pytest.fixture(scope="function")
 def autodetermination_summary():
@@ -37,12 +42,17 @@ def autodetermination_summary():
     Runs the AgenticRagEvaluator pipeline once and yields its parsed summary output.
     After tests complete, cleans up the temporary directory.
     """
-    evaluator = AutoDeterminationEvaluator(cases_dir="./evals/cases", temp_dir="./temp_evaluation_rag")
+    evaluator = AutoDeterminationEvaluator(
+        cases_dir="./evals/cases", temp_dir="./temp_evaluation_rag"
+    )
     loop = asyncio.get_event_loop()
     summary_json = loop.run_until_complete(evaluator.run_pipeline())
-    summary = json.loads(summary_json) if isinstance(summary_json, str) else summary_json
+    summary = (
+        json.loads(summary_json) if isinstance(summary_json, str) else summary_json
+    )
     yield summary
     evaluator.cleanup_temp_dir()
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -53,9 +63,16 @@ def test_summary_structure(autodetermination_summary):
       - Must contain a "cases" key.
       - "cases" must be a list.
     """
-    assert isinstance(autodetermination_summary, dict), "Summary output should be a dictionary."
-    assert "cases" in autodetermination_summary, "Summary output must have a 'cases' key."
-    assert isinstance(autodetermination_summary["cases"], list), "'cases' must be a list."
+    assert isinstance(
+        autodetermination_summary, dict
+    ), "Summary output should be a dictionary."
+    assert (
+        "cases" in autodetermination_summary
+    ), "Summary output must have a 'cases' key."
+    assert isinstance(
+        autodetermination_summary["cases"], list
+    ), "'cases' must be a list."
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -68,7 +85,10 @@ def test_metrics_present_for_all_cases(autodetermination_summary):
         results = case.get("results")
         assert results is not None, f"Case {case['case']} must include 'results'."
         metrics = results.get("metrics")
-        assert metrics is not None, f"Case {case['case']} must include 'metrics' in its results."
+        assert (
+            metrics is not None
+        ), f"Case {case['case']} must include 'metrics' in its results."
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -78,8 +98,9 @@ def test_policies_001_positive_determination(autodetermination_summary):
         test_case="autodetermination-decision-001-positive-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -89,8 +110,9 @@ def test_policies_001_positive_fully_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-001-positive-fully-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -100,8 +122,9 @@ def test_policies_001_negative_determination(autodetermination_summary):
         test_case="autodetermination-decision-001-negative-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -111,8 +134,9 @@ def test_policies_001_negative_partial_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-001-negative-partial-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -122,8 +146,9 @@ def test_policies_001_positive_rationale(autodetermination_summary):
         test_case="autodetermination-decision-001-positive-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
         expected_value=0.60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -133,8 +158,10 @@ def test_policies_001_negative_rationale(autodetermination_summary):
         test_case="autodetermination-decision-001-negative-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
         expected_value=0.60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
+
+
 #
 # @pytest.mark.evaluation
 # @pytest.mark.usefixtures("evaluation_setup")
@@ -158,6 +185,7 @@ def test_policies_001_negative_rationale(autodetermination_summary):
 #         comparator=operator.eq
 #     )
 
+
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
 def test_policies_002_negative_determination(autodetermination_summary):
@@ -166,8 +194,9 @@ def test_policies_002_negative_determination(autodetermination_summary):
         test_case="autodetermination-decision-002-negative-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -177,8 +206,9 @@ def test_policies_002_negative_partial_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-002-negative-partial-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 # @pytest.mark.evaluation
 # @pytest.mark.usefixtures("evaluation_setup")
@@ -191,6 +221,7 @@ def test_policies_002_negative_partial_met_criteria(autodetermination_summary):
 #         comparator=operator.ge
 #     )
 
+
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
 def test_policies_002_negative_rationale(autodetermination_summary):
@@ -199,10 +230,12 @@ def test_policies_002_negative_rationale(autodetermination_summary):
         test_case="autodetermination-decision-002-negative-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
         expected_value=0.60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
 
+
 # --- Test cases for 003 ---
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -212,8 +245,9 @@ def test_policies_003_positive_determination(autodetermination_summary):
         test_case="autodetermination-decision-003-positive-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -223,8 +257,9 @@ def test_policies_003_positive_fully_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-003-positive-fully-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -234,8 +269,9 @@ def test_policies_003_negative_determination(autodetermination_summary):
         test_case="autodetermination-decision-003-negative-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -245,8 +281,9 @@ def test_policies_003_negative_partial_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-003-negative-partial-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -256,8 +293,9 @@ def test_policies_003_positive_rationale(autodetermination_summary):
         test_case="autodetermination-decision-003-positive-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
         expected_value=0.60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -267,10 +305,12 @@ def test_policies_003_negative_rationale(autodetermination_summary):
         test_case="autodetermination-decision-003-negative-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
         expected_value=0.60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
 
+
 # --- Test cases for 004 ---
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -280,8 +320,9 @@ def test_policies_004_positive_determination(autodetermination_summary):
         test_case="autodetermination-decision-004-positive-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -291,8 +332,9 @@ def test_policies_004_positive_fully_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-004-positive-fully-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -302,8 +344,9 @@ def test_policies_004_negative_determination(autodetermination_summary):
         test_case="autodetermination-decision-004-negative-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -313,8 +356,9 @@ def test_policies_004_negative_partial_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-004-negative-partial-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -324,8 +368,9 @@ def test_policies_004_positive_rationale(autodetermination_summary):
         test_case="autodetermination-decision-004-positive-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
         expected_value=0.60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -335,10 +380,12 @@ def test_policies_004_negative_rationale(autodetermination_summary):
         test_case="autodetermination-decision-004-negative-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
         expected_value=0.60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
 
+
 # --- Test cases for 005 ---
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -348,8 +395,9 @@ def test_policies_005_positive_determination(autodetermination_summary):
         test_case="autodetermination-decision-005-positive-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -359,8 +407,9 @@ def test_policies_005_positive_fully_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-005-positive-fully-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -370,8 +419,9 @@ def test_policies_005_negative_determination(autodetermination_summary):
         test_case="autodetermination-decision-005-negative-determination.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -381,8 +431,9 @@ def test_policies_005_negative_partial_met_criteria(autodetermination_summary):
         test_case="autodetermination-decision-005-negative-partial-met-criteria.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -392,10 +443,11 @@ def test_policies_005_positive_rationale(autodetermination_summary):
         test_case="autodetermination-decision-005-positive-rationale.v0",
         metric_key="FactualCorrectnessEvaluator.factual_correctness",
         expected_value=0.60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
 
-#@ TODO: This test case is commented out for performance.
+
+# @ TODO: This test case is commented out for performance.
 # @pytest.mark.evaluation
 # @pytest.mark.usefixtures("evaluation_setup")
 # def test_policies_005_negative_rationale(autodetermination_summary):

@@ -39,7 +39,9 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
     """
 
     # Must match the 'pipeline.class' field from your YAML so that we pick up the correct test cases.
-    EXPECTED_PIPELINE = "src.pipeline.autoDetermination.evaluator.AutoDeterminationEvaluator"
+    EXPECTED_PIPELINE = (
+        "src.pipeline.autoDetermination.evaluator.AutoDeterminationEvaluator"
+    )
 
     def __init__(self, cases_dir: str, temp_dir: str = "./temp", logger=None):
         """
@@ -74,14 +76,12 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
 
         # Azure OpenAI client
         azure_openai_key = os.getenv("AZURE_OPENAI_KEY")
-        azure_openai_chat_deployment_id = os.getenv(
-            "AZURE_OPENAI_CHAT_DEPLOYMENT_ID"
-        )
+        azure_openai_chat_deployment_id = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
         azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
         self.azure_openai_client = AzureOpenAIManager(
             completion_model_name=azure_openai_chat_deployment_id,
             api_key=azure_openai_key,
-            azure_endpoint=azure_openai_endpoint
+            azure_endpoint=azure_openai_endpoint,
         )
         self.prompt_manager = PromptManager()
         self.temperature = self.config["azure_openai"]["temperature"]
@@ -202,7 +202,9 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
                             clinical_info=clinical_info_obj,
                             policy_text=policy_text,
                         )
-                        processed_output = await self.process_generated_output(response.get("generated_output", {}), query)
+                        processed_output = await self.process_generated_output(
+                            response.get("generated_output", {}), query
+                        )
                     except Exception as e:
                         self.logger.error(
                             f"Error generating auto determination for case {case_id}: {e}"
@@ -214,14 +216,16 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
                             patient_info_obj.model_dump() if patient_info_obj else None
                         ),
                         "physician_info": (
-                            physician_info_obj.model_dump() if physician_info_obj else None
+                            physician_info_obj.model_dump()
+                            if physician_info_obj
+                            else None
                         ),
                         "clinical_info": (
-                            clinical_info_obj.model_dump() if clinical_info_obj else None
+                            clinical_info_obj.model_dump()
+                            if clinical_info_obj
+                            else None
                         ),
-                        "policy_text": (
-                            policy_text if policy_text else None
-                        ),
+                        "policy_text": (policy_text if policy_text else None),
                     }
 
                     # 3) Create an Evaluation record
@@ -236,25 +240,30 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
                     self.cases[case_id].evaluations.append(evaluation_record)
 
                     # Also add to self.results for higher-level reporting
-                    self.results.append({
-                        "case": case_id,
-                        "query": query,
-                        "auto_determination_response": processed_output,
-                        "ground_truth": ground_truth,
-                        "context": evaluation_record.context,
-                    })
+                    self.results.append(
+                        {
+                            "case": case_id,
+                            "query": query,
+                            "auto_determination_response": processed_output,
+                            "ground_truth": ground_truth,
+                            "context": evaluation_record.context,
+                        }
+                    )
 
         self.logger.info(
             f"AutoDeterminationEvaluator initialized with case_id={self.case_id}, scenario={self.scenario}"
         )
 
-    async def generate_responses(self, patient_info, physician_info, clinical_info, policy_text):
+    async def generate_responses(
+        self, patient_info, physician_info, clinical_info, policy_text
+    ):
         """
         Calls AutoPADeterminator to produce a final determination text from the provided
         context fields. Returns a dict with timestamps and any errors.
         """
         dt_started = datetime.now().isoformat()
         try:
+
             async def summarize_policy_callback(text: str) -> str:
                 summary = await self._summarize_policy(text)
                 return summary
@@ -268,13 +277,13 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
                 policy_text=policy_text,
                 summarize_policy_callback=summarize_policy_callback,
                 use_o1=use_o1,  # or True if you want to try your O1 path first
-                caseId=self.case_id
+                caseId=self.case_id,
             )
             dt_completed = datetime.now().isoformat()
             return {
                 "generated_output": final_text,
                 "dt_started": dt_started,
-                "dt_completed": dt_completed
+                "dt_completed": dt_completed,
             }
         except Exception as e:
             self.logger.error(f"Error generating response for autoDetermination: {e}")
@@ -292,10 +301,9 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
         """
         summary = {"cases": []}
         for case_id, case_obj in self.cases.items():
-            summary["cases"].append({
-                "case": case_obj.case_name,
-                "results": case_obj.azure_eval_result
-            })
+            summary["cases"].append(
+                {"case": case_obj.case_name, "results": case_obj.azure_eval_result}
+            )
         return json.dumps(summary, indent=2)
 
     def cleanup_temp_dir(self) -> None:
@@ -315,7 +323,9 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
         :return: The extracted value(s) based on the query.
         """
         try:
-            autodetermination = await self._summarize_autodetermination(generated_output)
+            autodetermination = await self._summarize_autodetermination(
+                generated_output
+            )
             subset = jq.compile(query).input(json.loads(autodetermination)).all()
             result = str(subset[0]) if subset else ""
             return result
@@ -336,8 +346,8 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
         system_message_content = self.prompt_manager.get_prompt(
             "summarize_autodetermination_system.jinja"
         )
-        prompt_user_query_summary = self.prompt_manager.create_prompt_summary_autodetermination(
-            text
+        prompt_user_query_summary = (
+            self.prompt_manager.create_prompt_summary_autodetermination(text)
         )
         api_response_query = await self.azure_openai_client.generate_chat_response(
             query=prompt_user_query_summary,
@@ -382,6 +392,7 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
         )
         return api_response_query["response"]
 
+
 if __name__ == "__main__":
     evaluator = AutoDeterminationEvaluator(cases_dir="./evals/cases")
     try:
@@ -390,5 +401,6 @@ if __name__ == "__main__":
         print(summary_result)
     except Exception as exc:
         import traceback
+
         print(f"Pipeline failed: {exc}\n{traceback.format_exc()}")
         exit(1)

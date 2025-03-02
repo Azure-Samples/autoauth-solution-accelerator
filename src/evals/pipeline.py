@@ -22,6 +22,7 @@ from src.utils.ml_logging import get_logger
 
 EvalRun._start_run = custom_start_run
 
+
 class PipelineEvaluator(ABC):
     """
     Base class for pipeline evaluators.
@@ -55,11 +56,13 @@ class PipelineEvaluator(ABC):
             tracing_enabled=self.run_config["logging"]["enable_tracing"],
         )
 
-    def _generate_custom_tags(self, case_id: str, git_commit: str, class_name: str) ->  List[Tuple[str,str]]:
+    def _generate_custom_tags(
+        self, case_id: str, git_commit: str, class_name: str
+    ) -> List[Tuple[str, str]]:
         computed_tags = [
-            ("case",case_id),
+            ("case", case_id),
             ("commit", git_commit),
-            ("class", class_name)
+            ("class", class_name),
         ]
         custom_eval.CUSTOM_TAGS = computed_tags
         return computed_tags
@@ -84,7 +87,9 @@ class PipelineEvaluator(ABC):
             return obj
         except Exception as e:
             self.logger.error(f"Error resolving object from '{value}': {e}")
-            return value  # Fall back to returning the original value if resolution fails
+            return (
+                value  # Fall back to returning the original value if resolution fails
+            )
 
     def _instantiate_evaluators(self, root_obj: dict) -> dict:
         """
@@ -129,10 +134,14 @@ class PipelineEvaluator(ABC):
                         model_config = {
                             "azure_endpoint": os.environ.get("AZURE_OPENAI_ENDPOINT"),
                             "api_key": os.environ.get("AZURE_OPENAI_KEY"),
-                            "azure_deployment": os.environ.get("AZURE_OPENAI_DEPLOYMENT"),
+                            "azure_deployment": os.environ.get(
+                                "AZURE_OPENAI_DEPLOYMENT"
+                            ),
                         }
                         if any(value is None for value in model_config.values()):
-                            raise ValueError("model_config has null values, please check your environment variables: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_OPENAI_DEPLOYMENT.")
+                            raise ValueError(
+                                "model_config has null values, please check your environment variables: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_OPENAI_DEPLOYMENT."
+                            )
                         args["model_config"] = model_config
 
                 # Resolve each argument: if it's a string containing ":", attempt to resolve it.
@@ -158,10 +167,13 @@ class PipelineEvaluator(ABC):
     def _get_git_hash(self) -> str:
         """Retrieve the current Git commit hash (short version)."""
         try:
-            git_hash = subprocess.check_output(
-                ["git", "rev-parse", "--short", "HEAD"],
-                stderr=subprocess.STDOUT
-            ).decode().strip()
+            git_hash = (
+                subprocess.check_output(
+                    ["git", "rev-parse", "--short", "HEAD"], stderr=subprocess.STDOUT
+                )
+                .decode()
+                .strip()
+            )
             return git_hash
         except Exception as e:
             self.logger.error(f"Error retrieving Git hash: {e}")
@@ -180,7 +192,9 @@ class PipelineEvaluator(ABC):
         """Extract and validate the pipeline configuration from the root object."""
         pipeline_config = root_obj.get("pipeline")
         if not pipeline_config:
-            self.logger.info(f"Skipping file {file_path} because no pipeline configuration found.")
+            self.logger.info(
+                f"Skipping file {file_path} because no pipeline configuration found."
+            )
             return None
         if pipeline_config.get("class") != self.EXPECTED_PIPELINE:
             self.logger.info(
@@ -293,7 +307,9 @@ class PipelineEvaluator(ABC):
         for case_id, case_obj in self.cases.items():
             evaluators = getattr(case_obj, "evaluators", None)
             if evaluators is None:
-                self.logger.warning(f"No evaluators set for case '{case_id}', skipping evaluation.")
+                self.logger.warning(
+                    f"No evaluators set for case '{case_id}', skipping evaluation."
+                )
                 continue
 
             evaluator_config = {}
@@ -305,14 +321,17 @@ class PipelineEvaluator(ABC):
                 optional_keys = ["query", "ground_truth", "context"]
                 for key in optional_keys:
                     # Check if any evaluation object has the attribute and a non-None value.
-                    if any(hasattr(eval_item, key) and getattr(eval_item, key) is not None for eval_item in case_obj.evaluations):
+                    if any(
+                        hasattr(eval_item, key) and getattr(eval_item, key) is not None
+                        for eval_item in case_obj.evaluations
+                    ):
                         column_mapping[key] = "${data." + key + "}"
-                evaluator_config[evaluator_name] = {
-                    "column_mapping": column_mapping
-                }
+                evaluator_config[evaluator_name] = {"column_mapping": column_mapping}
 
             with case_obj.create_evaluation_dataset() as dataset_path:
-                custom_eval.CUSTOM_TAGS = self._generate_custom_tags(case_id, git_hash, self.__class__.__name__)
+                custom_eval.CUSTOM_TAGS = self._generate_custom_tags(
+                    case_id, git_hash, self.__class__.__name__
+                )
                 azure_result = evaluate(
                     evaluation_name=f"{case_id}",
                     data=dataset_path,
@@ -362,9 +381,15 @@ class PipelineEvaluator(ABC):
                 if hasattr(self, "logger"):
                     self.logger.info(f"Cleaned up temporary directory: {temp_dir}")
                 else:
-                    logging.getLogger(__name__).info(f"Cleaned up temporary directory: {temp_dir}")
+                    logging.getLogger(__name__).info(
+                        f"Cleaned up temporary directory: {temp_dir}"
+                    )
         except Exception as e:
             if hasattr(self, "logger"):
-                self.logger.error(f"Failed to clean up temporary directory '{temp_dir}': {e}")
+                self.logger.error(
+                    f"Failed to clean up temporary directory '{temp_dir}': {e}"
+                )
             else:
-                logging.getLogger(__name__).error(f"Failed to clean up temporary directory '{temp_dir}': {e}")
+                logging.getLogger(__name__).error(
+                    f"Failed to clean up temporary directory '{temp_dir}': {e}"
+                )

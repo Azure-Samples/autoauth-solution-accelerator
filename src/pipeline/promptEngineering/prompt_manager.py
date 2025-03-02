@@ -146,7 +146,6 @@ class PromptManager:
             autodetermination=autodetermination_text,
         )
 
-
     def create_prompt_query_classifier_user(self, query: str) -> str:
         """
         Create a user prompt for query classification.

@@ -209,7 +209,7 @@ class AutoPADeterminator:
                 except Exception as e:
                     self.logger.warning(
                         f"4o model generation failed on attempt {attempt}: {str(e)}",
-                        exc_info=True
+                        exc_info=True,
                     )
                     if attempt < max_retries:
                         self.logger.info(

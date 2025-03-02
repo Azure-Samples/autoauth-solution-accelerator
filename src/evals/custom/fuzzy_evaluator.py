@@ -23,6 +23,7 @@ from src.utils.ml_logging import get_logger
 class IndelSimilarity:
     indel_similarity: float
 
+
 class FuzzyEvaluator(CustomEvaluator):
     def __init__(self, **kwargs):
         """
@@ -43,7 +44,9 @@ class FuzzyEvaluator(CustomEvaluator):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __call__(self, *, response: str, ground_truth: str, **kwargs) -> IndelSimilarity:
+    def __call__(
+        self, *, response: str, ground_truth: str, **kwargs
+    ) -> IndelSimilarity:
         """
         Computes semantic similarity between response and ground_truth.
 

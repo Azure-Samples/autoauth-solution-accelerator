@@ -22,7 +22,9 @@ from src.pipeline.promptEngineering.models import (
 
 class ClinicalExtractorEvaluator(PipelineEvaluator):
     # The expected evaluator class name in the pipeline configuration.
-    EXPECTED_PIPELINE = "src.pipeline.clinicalExtractor.evaluator.ClinicalExtractorEvaluator"
+    EXPECTED_PIPELINE = (
+        "src.pipeline.clinicalExtractor.evaluator.ClinicalExtractorEvaluator"
+    )
 
     def __init__(self, cases_dir: str, temp_dir: str = "./temp", logger=None):
         """
@@ -65,15 +67,21 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
             )
             extracted_results = {
                 "ocr_results": {
-                    "patient_information": result["patient_data"].model_dump(mode="json"),
-                    "physician_information": result["physician_data"].model_dump(mode="json"),
-                    "clinical_information": result["clinician_data"].model_dump(mode="json"),
+                    "patient_information": result["patient_data"].model_dump(
+                        mode="json"
+                    ),
+                    "physician_information": result["physician_data"].model_dump(
+                        mode="json"
+                    ),
+                    "clinical_information": result["clinician_data"].model_dump(
+                        mode="json"
+                    ),
                 }
             }
             final_result = {
                 "generated_output": extracted_results["ocr_results"],
                 "dt_started": dt_started,
-                "dt_completed": datetime.now().isoformat()
+                "dt_completed": datetime.now().isoformat(),
             }
             self.logger.info(f"Response generation completed: {final_result}")
             return final_result
@@ -83,12 +91,14 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
                 "generated_output": {},
                 "dt_started": dt_started,
                 "dt_completed": datetime.now().isoformat(),
-                "error": str(e)
+                "error": str(e),
             }
         finally:
             self.cleanup_temp_dir()
 
-    def process_uploaded_files(self, uploaded_files: Union[str, List[str]]) -> List[str]:
+    def process_uploaded_files(
+        self, uploaded_files: Union[str, List[str]]
+    ) -> List[str]:
         """
         Processes the uploaded file(s) by extracting images from PDFs.
         """
@@ -99,8 +109,7 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
         for file_path in uploaded_files:
             try:
                 output_paths = ocr_helper.extract_images_from_pdf(
-                    input_path=file_path,
-                    output_path=self.temp_dir
+                    input_path=file_path, output_path=self.temp_dir
                 )
                 self.logger.info(f"Extracted images from {file_path}: {output_paths}")
                 image_files.extend(output_paths)
@@ -128,7 +137,9 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
 
             file_id = os.path.splitext(os.path.basename(file_path))[0]
             if file_id not in config:
-                self.logger.warning(f"Expected root key '{file_id}' not found in {file_path}. Skipping.")
+                self.logger.warning(
+                    f"Expected root key '{file_id}' not found in {file_path}. Skipping."
+                )
                 continue
 
             root_obj = config[file_id]
@@ -138,7 +149,9 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
 
             self.uploaded_files = pipeline_config.get("uploaded_files")
             if not self.uploaded_files:
-                self.logger.warning(f"No 'uploaded_files' specified in pipeline config in {file_path}. Skipping.")
+                self.logger.warning(
+                    f"No 'uploaded_files' specified in pipeline config in {file_path}. Skipping."
+                )
                 continue
 
             # Instantiate global evaluators from the pipeline config.
@@ -146,12 +159,16 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
 
             cases_list = root_obj.get("cases", [])
             if not cases_list:
-                self.logger.warning(f"No cases found under root key '{file_id}' in {file_path}. Skipping.")
+                self.logger.warning(
+                    f"No cases found under root key '{file_id}' in {file_path}. Skipping."
+                )
                 continue
 
             for case_id in cases_list:
                 if case_id not in config:
-                    self.logger.warning(f"Test case '{case_id}' not found in file {file_path}. Skipping.")
+                    self.logger.warning(
+                        f"Test case '{case_id}' not found in file {file_path}. Skipping."
+                    )
                     continue
 
                 test_case_obj = config[case_id]
@@ -185,14 +202,12 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
                 ground_truth=expected_val,
                 context=None,
                 conversation=None,
-                scores=None
+                scores=None,
             )
             self.cases[case_id].evaluations.append(evaluation_record)
-            self.results.append({
-                "case": case_id,
-                "query": query,
-                "ocr_response": actual_val
-            })
+            self.results.append(
+                {"case": case_id, "query": query, "ocr_response": actual_val}
+            )
 
     def post_processing(self) -> str:
         """
@@ -202,10 +217,9 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
         """
         summary = {"cases": []}
         for case_id, case_obj in self.cases.items():
-            summary["cases"].append({
-                "case": case_obj.case_name,
-                "results": case_obj.azure_eval_result
-            })
+            summary["cases"].append(
+                {"case": case_obj.case_name, "results": case_obj.azure_eval_result}
+            )
         return json.dumps(summary, indent=3)
 
 
@@ -217,6 +231,6 @@ if __name__ == "__main__":
     except Exception as e:
         import traceback
 
-        formatted_tb = ''.join(traceback.format_tb(e.__traceback__))
+        formatted_tb = "".join(traceback.format_tb(e.__traceback__))
         print(f"Pipeline failed: {e}, stack trace: {formatted_tb}")
         exit(1)

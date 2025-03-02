@@ -10,6 +10,7 @@ from azure.ai.evaluation._evaluate._eval_run import RunInfo, RunStatus
 LOGGER = logging.getLogger(__name__)
 CUSTOM_TAGS: List[Tuple[str, str]] = []
 
+
 def custom_start_run(self):
     """
     Custom _start_run implementation that updates the 'tags' field.
@@ -20,11 +21,15 @@ def custom_start_run(self):
     These additional tags are appended to the default tag.
     """
     # Check state and log before starting the run.
-    self._check_state_and_log("start run", {v for v in RunStatus if v != RunStatus.NOT_STARTED}, True)
+    self._check_state_and_log(
+        "start run", {v for v in RunStatus if v != RunStatus.NOT_STARTED}, True
+    )
     self._status = RunStatus.STARTED
 
     if self._tracking_uri is None:
-        LOGGER.warning("A tracking_uri was not provided. Results will be saved locally but not logged to Azure.")
+        LOGGER.warning(
+            "A tracking_uri was not provided. Results will be saved locally but not logged to Azure."
+        )
         self._url_base = None
         self._status = RunStatus.BROKEN
         self._info = RunInfo.generate(self._run_name)

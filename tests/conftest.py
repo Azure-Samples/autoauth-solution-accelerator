@@ -29,8 +29,9 @@ def pytest_collection_modifyitems(items: list[Item]):
 def set_o1_env_vars(monkeypatch):
     monkeypatch.setenv(
         "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
-        os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_01", "o1-preview")
+        os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_01", "o1-preview"),
     )
+
 
 @pytest.fixture(scope="function")
 def evaluation_setup(monkeypatch):
@@ -39,7 +40,7 @@ def evaluation_setup(monkeypatch):
         "AZURE_OPENAI_KEY",
         "AZURE_OPENAI_DEPLOYMENT",
         "AZURE_AI_FOUNDRY_CONNECTION_STRING",
-        "AZURE_OPENAI_CHAT_DEPLOYMENT_ID"
+        "AZURE_OPENAI_CHAT_DEPLOYMENT_ID",
     ]
 
     missing_envs = []

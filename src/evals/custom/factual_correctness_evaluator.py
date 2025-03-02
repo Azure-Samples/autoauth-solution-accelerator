@@ -12,6 +12,7 @@ class FactualCorrectnessScore(TypedDict):
     """
     TypedDict for the factual correctness score.
     """
+
     factual_correctness: float
 
 
@@ -53,7 +54,7 @@ class FactualCorrectnessEvaluator:
             azure_endpoint=self.model_config["azure_endpoint"],
             api_key=self.model_config["api_key"],
             api_version=os.getenv("AZURE_OPENAI_API_VERSION", "2023-05-15"),
-            azure_deployment=self.model_config["azure_deployment"]
+            azure_deployment=self.model_config["azure_deployment"],
         )
         wrapped_llm = LangchainLLMWrapper(azure_llm)
 

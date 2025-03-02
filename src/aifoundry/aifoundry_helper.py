@@ -82,7 +82,9 @@ class AIFoundryManager:
             # Parse the connection string.
             tokens = self.project_connection_string.split(";")
             if len(tokens) < 4:
-                raise Exception("Invalid connection string format: expected at least 4 semicolon-separated tokens.")
+                raise Exception(
+                    "Invalid connection string format: expected at least 4 semicolon-separated tokens."
+                )
 
             # tokens[0] is the endpoint (unused here),
             # tokens[1] is the subscription_id,
@@ -91,7 +93,7 @@ class AIFoundryManager:
             self.project_config = {
                 "subscription_id": tokens[1],
                 "resource_group_name": tokens[2],
-                "project_name": tokens[3]
+                "project_name": tokens[3],
             }
 
             self.project_client = AIProjectClient.from_connection_string(
