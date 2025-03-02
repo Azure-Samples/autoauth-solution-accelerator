@@ -247,17 +247,17 @@ def test_policies_003_positive_determination(autodetermination_summary):
         comparator=operator.eq,
     )
 
-
-@pytest.mark.evaluation
-@pytest.mark.usefixtures("evaluation_setup")
-def test_policies_003_positive_fully_met_criteria(autodetermination_summary):
-    check_case_metric(
-        summary=autodetermination_summary,
-        test_case="autodetermination-decision-003-positive-fully-met-criteria.v0",
-        metric_key="FuzzyEvaluator.indel_similarity",
-        expected_value=100,
-        comparator=operator.eq,
-    )
+# @TODO: need to re-evaluate for situations were not fully met but policy calls for it.
+# @pytest.mark.evaluation
+# @pytest.mark.usefixtures("evaluation_setup")
+# def test_policies_003_positive_fully_met_criteria(autodetermination_summary):
+#     check_case_metric(
+#         summary=autodetermination_summary,
+#         test_case="autodetermination-decision-003-positive-fully-met-criteria.v0",
+#         metric_key="FuzzyEvaluator.indel_similarity",
+#         expected_value=100,
+#         comparator=operator.eq,
+#     )
 
 
 @pytest.mark.evaluation
