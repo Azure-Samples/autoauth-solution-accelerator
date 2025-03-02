@@ -4,7 +4,7 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Union, List
+from typing import List, Union
 
 from azure.ai.evaluation import evaluate
 
@@ -13,7 +13,11 @@ from src.evals.case import Case, Evaluation
 from src.evals.pipeline import PipelineEvaluator
 from src.extractors.pdfhandler import OCRHelper
 from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
-from src.pipeline.promptEngineering.models import PatientInformation, PhysicianInformation, ClinicalInformation
+from src.pipeline.promptEngineering.models import (
+    ClinicalInformation,
+    PatientInformation,
+    PhysicianInformation,
+)
 
 
 class ClinicalExtractorEvaluator(PipelineEvaluator):

@@ -1,16 +1,22 @@
+import asyncio
 import os
 import shutil
+from dataclasses import dataclass
 from datetime import datetime
 from typing import Any, List, Union
-import asyncio
-from rapidfuzz import fuzz
-from dataclasses import dataclass
 
+from rapidfuzz import fuzz
+
+from src.evals.custom.custom_evaluator import CustomEvaluator
 from src.extractors.pdfhandler import OCRHelper
 from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
-from src.pipeline.promptEngineering.models import ClinicalInformation, PatientInformation, PhysicianInformation
+from src.pipeline.promptEngineering.models import (
+    ClinicalInformation,
+    PatientInformation,
+    PhysicianInformation,
+)
 from src.utils.ml_logging import get_logger
-from src.evals.custom.custom_evaluator import CustomEvaluator
+
 
 # Define a dataclass for returning semantic similarity
 @dataclass

@@ -1,23 +1,25 @@
 import importlib
+import inspect
 import logging
 import os
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import final, List, Tuple
-import inspect
+from typing import List, Tuple, final
+
 import yaml
 from azure.ai.evaluation import evaluate
 
+# @TODO: Remove this import when the package fix is available.
+from azure.ai.evaluation._evaluate._eval_run import EvalRun
+
+import src.evals.sdk.custom_azure_ai_evaluations as custom_eval
 from src.aifoundry.aifoundry_helper import AIFoundryManager
+from src.evals.sdk.custom_azure_ai_evaluations import CUSTOM_TAGS, custom_start_run
 from src.pipeline.utils import load_config
 from src.utils.ml_logging import get_logger
 
-# @TODO: Remove this import when the package fix is available.
-from azure.ai.evaluation._evaluate._eval_run import EvalRun
-from src.evals.sdk.custom_azure_ai_evaluations import custom_start_run, CUSTOM_TAGS
-import src.evals.sdk.custom_azure_ai_evaluations as custom_eval
 EvalRun._start_run = custom_start_run
 
 class PipelineEvaluator(ABC):

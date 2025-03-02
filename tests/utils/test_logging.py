@@ -1,6 +1,9 @@
 import logging
+
 import pytest
+
 from src.utils.ml_logging import KEYINFO_LEVEL_NUM, get_logger
+
 
 # Patch the logging module during the tests to capture log records
 @pytest.fixture

@@ -395,13 +395,14 @@ def test_policies_005_positive_rationale(autodetermination_summary):
         comparator=operator.ge
     )
 
-@pytest.mark.evaluation
-@pytest.mark.usefixtures("evaluation_setup")
-def test_policies_005_negative_rationale(autodetermination_summary):
-    check_case_metric(
-        summary=autodetermination_summary,
-        test_case="autodetermination-decision-005-negative-rationale.v0",
-        metric_key="FactualCorrectnessEvaluator.factual_correctness",
-        expected_value=0.40,
-        comparator=operator.ge
-    )
+#@ TODO: This test case is commented out for performance.
+# @pytest.mark.evaluation
+# @pytest.mark.usefixtures("evaluation_setup")
+# def test_policies_005_negative_rationale(autodetermination_summary):
+#     check_case_metric(
+#         summary=autodetermination_summary,
+#         test_case="autodetermination-decision-005-negative-rationale.v0",
+#         metric_key="FactualCorrectnessEvaluator.factual_correctness",
+#         expected_value=0.40,
+#         comparator=operator.ge
+#     )

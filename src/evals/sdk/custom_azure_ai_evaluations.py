@@ -1,11 +1,12 @@
+import logging
 import os
 import time
+from typing import List, Optional, Tuple
 from urllib.parse import urlparse
-import logging
-from typing import Optional, List, Tuple
 
 # @TODO: Remove this import when the package fix is available.
 from azure.ai.evaluation._evaluate._eval_run import RunInfo, RunStatus
+
 LOGGER = logging.getLogger(__name__)
 CUSTOM_TAGS: List[Tuple[str, str]] = []
 

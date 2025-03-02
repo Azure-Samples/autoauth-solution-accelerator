@@ -1,7 +1,8 @@
-from typing import Dict, Any, TypedDict
-from transformers import AutoTokenizer, AutoModel
+from typing import Any, Dict, TypedDict
+
 import torch
 import torch.nn.functional as F
+from transformers import AutoModel, AutoTokenizer
 
 
 class SimilarityScore(TypedDict):

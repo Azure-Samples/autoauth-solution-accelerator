@@ -2,7 +2,7 @@ import json
 import os
 import tempfile
 from contextlib import contextmanager
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List, Optional
 
 
 class Evaluation:
