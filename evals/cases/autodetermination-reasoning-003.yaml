@@ -588,7 +588,7 @@ autodetermination-decision-003-positive-rationale.v0:
           other notice contained herein.
 
           <!-- PageNumber="Page 4 of 4" -->
-autodetermination-decision-001-negative-rationale.v0:
+autodetermination-decision-003-negative-rationale.v0:
   metrics: [FactualCorrectnessEvaluator, CoherenceEvaluator]
   evaluations:
     - query: ".Rationale"
