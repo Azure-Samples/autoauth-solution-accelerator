@@ -156,6 +156,33 @@ module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
   }
 }
 
+module vault 'br/public:avm/res/key-vault/vault:0.12.1' = {
+  name: 'vaultDeployment'
+  params: {
+    // Required parameter: name for the vault
+    name: 'kv-${name}-${uniqueSuffix}'
+    // Non-required parameter
+    enablePurgeProtection: false
+  }
+}
+
+module aiFoundry 'modules/ai/aiFoundry.bicep' = {
+  name: 'aiFoundry-${name}-${uniqueSuffix}-deployment'
+  params: {
+    aiFoundryName: 'aiFoundry-${name}-${uniqueSuffix}'
+    aiFoundryFriendlyName: 'AI Foundry - ${name}'
+    aiFoundryDescription: 'AI Foundry instance for the Prior Authorization scenario'
+    applicationInsightsId: monitoring.outputs.applicationInsightsResourceId
+    containerRegistryId: registry.outputs.resourceId
+    keyVaultId: vault.outputs.resourceId
+    storageAccountId: storageAccount.outputs.storageAccountId
+    aiServicesId: openAiService.outputs.aiServicesId
+    aiServicesTarget: openAiService.outputs.aiServicesEndpoint
+    tags: tags
+    location: location
+  }
+}
+
 module appIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
   name: 'uai-app-${name}-${uniqueSuffix}-deployment'
   params: {
@@ -522,5 +549,6 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_CONTAINER_ENVIRONMENT_ID string = containerAppsEnvironment.outputs.resourceId
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerAppsEnvironment.outputs.name
 output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
+output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryConnectionString
 
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name

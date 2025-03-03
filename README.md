@@ -94,7 +94,7 @@ pa_pipeline = PAProcessingPipeline(send_cloud_logs=True)
 await pa_pipeline.run(uploaded_files=files, use_o1=True)
 ```
 > [!TIP]
-> To test the PA processing pipeline and get started, please refer to the notebook [`02-test-pa-workflow.ipynb`](./02-test-pa-workflow.ipynb).
+> To test the PA processing pipeline and get started, please refer to the notebook [`notebooks/02-test-pa-workflow.ipynb`](./notebooks/02-test-pa-workflow.ipynb).
 
 #### ⚙️ Build and Expand the SDK
 

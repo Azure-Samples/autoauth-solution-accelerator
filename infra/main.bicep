@@ -186,3 +186,6 @@ output AZURE_OPENAI_KEY string = resources.outputs.AZURE_OPENAI_KEY
 
 @description('Service endpoint for Azure AI Search')
 output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = resources.outputs.AZURE_AI_SEARCH_SERVICE_ENDPOINT
+
+@description('AI Foundry connection string to connect to AI Foundry')
+output AZURE_AI_FOUNDRY_CONNECTION_STRING string = resources.outputs.AZURE_AI_FOUNDRY_CONNECTION_STRING

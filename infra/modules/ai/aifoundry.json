@@ -1,0 +1,174 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.30.23.60470",
+      "templateHash": "10748319536187389554"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiFoundryName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the AI Foundry instance"
+      }
+    },
+    "aiFoundryFriendlyName": {
+      "type": "string",
+      "defaultValue": "[parameters('aiFoundryName')]",
+      "metadata": {
+        "description": "Display name for the AI Foundry instance"
+      }
+    },
+    "aiFoundryDescription": {
+      "type": "string",
+      "metadata": {
+        "description": "Description for the AI Foundry instance"
+      }
+    },
+    "applicationInsightsId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the Application Insights resource for diagnostics logs"
+      }
+    },
+    "containerRegistryId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the Container Registry for storing docker images"
+      }
+    },
+    "keyVaultId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the Key Vault for storing connection strings"
+      }
+    },
+    "storageAccountId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the Storage Account for experimentation outputs"
+      }
+    },
+    "aiServicesId": {
+      "type": "string",
+      "metadata": {
+        "description": "Resource ID of the AI Services resource"
+      }
+    },
+    "aiServicesTarget": {
+      "type": "string",
+      "metadata": {
+        "description": "Target endpoint of the AI Services"
+      }
+    },
+    "aiFoundryProjectName": {
+      "type": "string",
+      "defaultValue": "evaluations",
+      "metadata": {
+        "description": "Name of the AI Foundry project"
+      }
+    }
+  },
+  "variables": {
+    "storageAccountName": "[last(split(parameters('storageAccountId'), '/'))]",
+    "subscriptionId": "[subscription().subscriptionId]",
+    "resourceGroupName": "[toLower(resourceGroup().name)]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.MachineLearningServices/workspaces",
+      "apiVersion": "2023-08-01-preview",
+      "name": "[parameters('aiFoundryName')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "kind": "foundry",
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "friendlyName": "[parameters('aiFoundryFriendlyName')]",
+        "description": "[parameters('aiFoundryDescription')]",
+        "keyVault": "[parameters('keyVaultId')]",
+        "storageAccount": "[parameters('storageAccountId')]",
+        "applicationInsights": "[parameters('applicationInsightsId')]",
+        "containerRegistry": "[parameters('containerRegistryId')]"
+      }
+    },
+    {
+      "type": "Microsoft.MachineLearningServices/workspaces/projects",
+      "apiVersion": "2023-08-01-preview",
+      "name": "[format('{0}/{1}', parameters('aiFoundryName'), parameters('aiFoundryProjectName'))]",
+      "properties": {
+        "displayName": "[parameters('aiFoundryProjectName')]",
+        "description": "AI Foundry project for evaluations"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.MachineLearningServices/workspaces/connections",
+      "apiVersion": "2024-01-01-preview",
+      "name": "[format('{0}/{1}', parameters('aiFoundryName'), format('{0}-connection-AzureOpenAI', parameters('aiFoundryName')))]",
+      "properties": {
+        "category": "AzureOpenAI",
+        "target": "[parameters('aiServicesTarget')]",
+        "authType": "ApiKey",
+        "isSharedToAll": true,
+        "credentials": {
+          "key": "[format('{0}', listKeys(parameters('aiServicesId'), '2021-10-01').key1)]"
+        },
+        "metadata": {
+          "ApiType": "Azure",
+          "ResourceId": "[parameters('aiServicesId')]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName'))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.Storage/storageAccounts/{0}', variables('storageAccountName'))]",
+      "name": "[guid(variables('storageAccountName'), parameters('aiFoundryName'), 'Storage Blob Data Contributor')]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+        "principalId": "[reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName')), '2023-08-01-preview', 'full').identity.principalId]",
+        "principalType": "ServicePrincipal"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "aiFoundryId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName'))]"
+    },
+    "aiFoundryPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName')), '2023-08-01-preview', 'full').identity.principalId]"
+    },
+    "aiFoundryConnectionString": {
+      "type": "string",
+      "value": "[format('{0};{1};{2};{3}', replace(replace(reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName')), '2023-08-01-preview').discoveryUrl, 'https://', ''), '/discovery', ''), variables('subscriptionId'), variables('resourceGroupName'), parameters('aiFoundryProjectName'))]"
+    }
+  }
+}
