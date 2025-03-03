@@ -29,7 +29,7 @@
         {
           "name": "o1",
           "version": "2024-12-17",
-          "skuName": "Standard",
+          "skuName": "GlobalStandard",
           "capacity": 100
         }
       ]
