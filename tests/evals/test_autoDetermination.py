@@ -247,6 +247,7 @@ def test_policies_003_positive_determination(autodetermination_summary):
         comparator=operator.eq,
     )
 
+
 # @TODO: need to re-evaluate for situations were not fully met but policy calls for it.
 # @pytest.mark.evaluation
 # @pytest.mark.usefixtures("evaluation_setup")
@@ -408,6 +409,7 @@ def test_policies_005_positive_fully_met_criteria(autodetermination_summary):
         expected_value=100,
         comparator=operator.eq,
     )
+
 
 # @pytest.mark.evaluation
 # @pytest.mark.usefixtures("evaluation_setup")
