@@ -41,13 +41,6 @@ env:
 jobs:
   provision:
     runs-on: ubuntu-latest
-    outputs:
-      provisioned: ${{ steps.provision.outputs.provisioned }}
-    if: >
-      ${{ contains(github.event.head_commit.message, '/infra/') ||
-          contains(github.event.head_commit.message, '/utils/azd/hooks/') ||
-          github.event.inputs.action == 'provision' ||
-          github.event.inputs.action == 'all' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -68,10 +61,5 @@ jobs:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
 
       - name: Deploy Application
-        if: >
-          ${{ steps.provision.outputs.provisioned == 'true' ||
-              contains(github.event.head_commit.message, '/src/') || 
-              contains(github.event.head_commit.message, '/app/') || 
-              github.event.inputs.action == 'all' || 
-              github.event.inputs.action == 'deploy' }}
+        if: ${{ github.event.inputs.action == 'all' || github.event.inputs.action == 'deploy' }}
         run: azd deploy --no-prompt
