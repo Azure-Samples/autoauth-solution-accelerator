@@ -64,7 +64,7 @@ This repository aims to **streamline and automate** the PA process using Azure A
     <img src="utils/images/vimeo_video.png" alt="Demo Video - AutoAuth in Action" style="max-width:80%; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
   </a>
   <p style="font-size: smaller; font-family: cursive; font-style: italic; margin-top: 8px;">
-    Click the image to watch the AutoAuth demo.
+    Click the image to watch the AutoAuth App demo.
   </p>
 </div>
 
