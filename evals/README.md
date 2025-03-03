@@ -109,6 +109,15 @@ For an example YAML configuration, please refer to the file located at `evals/ca
 
 ---
 
+## AI Foundry Integration
+
+Each and every test case is integrated with the appropriate evaluator metric and made available in AI Foundry, to be used to catalog and evaluate the performance of the generative AI models on a change-by-change basis. We use the tags feature to group the test cases by their respective pipeline, and the evaluation_id to identify the test case.
+
+<img src="../docs/images/ai_foundry_evaluations.png" alt="AI Foundry Evaluation"/>
+
+
+---
+
 ## Pipeline Evaluator Implementation
 
 At the core of the evaluation process is the abstract class `PipelineEvaluator` (located in `src/evals/pipeline.py`). This base class enforces a standard workflow that includes:
