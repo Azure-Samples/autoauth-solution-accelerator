@@ -60,33 +60,18 @@ jobs:
             --federated-credential-provider "github" `
             --tenant-id "$Env:AZURE_TENANT_ID"
         shell: pwsh
+
       - name: Provision Infrastructure
         id: provision
         run: azd provision --no-prompt
         env:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
 
-  deploy:
-    needs: provision
-    runs-on: ubuntu-latest
-    # Global environment variables have been defined at the root level, so no local env is needed here.
-    if: >
-      ${{ needs.provision.outputs.provisioned == 'true' ||
-          contains(github.event.head_commit.message, '/src/') || 
-          contains(github.event.head_commit.message, '/app/') || 
-          github.event.inputs.action == 'all' || 
-          github.event.inputs.action == 'deploy' }}
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install azd
-        uses: Azure/setup-azd@ae0f8b5482eeac61e940f447327d84c73beb8b1e
-      - name: Log in with Azure (Federated Credentials)
-        run: |
-          azd auth login `
-            --client-id "$Env:AZURE_CLIENT_ID" `
-            --federated-credential-provider "github" `
-            --tenant-id "$Env:AZURE_TENANT_ID"
-        shell: pwsh
       - name: Deploy Application
+        if: >
+          ${{ steps.provision.outputs.provisioned == 'true' ||
+              contains(github.event.head_commit.message, '/src/') || 
+              contains(github.event.head_commit.message, '/app/') || 
+              github.event.inputs.action == 'all' || 
+              github.event.inputs.action == 'deploy' }}
         run: azd deploy --no-prompt
