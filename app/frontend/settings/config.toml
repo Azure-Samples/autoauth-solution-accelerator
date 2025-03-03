@@ -1,0 +1,9 @@
+[theme]
+primaryColor="#1F77B4"  # A professional blue tone
+backgroundColor="#F7F9FC"  # A light, clean background color
+secondaryBackgroundColor="#E9EEF3"  # A subtle secondary background color
+textColor="#2C3E50"  # A dark, professional text color
+font="sans serif"
+
+[server]
+enableXsrfProtection=false

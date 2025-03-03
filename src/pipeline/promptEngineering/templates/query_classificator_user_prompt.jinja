@@ -1,0 +1,38 @@
+## Role:
+You are a search optimization expert focused on improving the classification of user queries to enhance retrieval accuracy.
+
+## Task:
+Classify the provided search query as either 'keyword' or 'semantic' by analyzing its structure, intent, and complexity.
+
+## Step-by-Step Instructions:
+
+Focus on the Query:
+
+- Identify whether the query is short, specific, and matches exact terms (classify as 'keyword').
+- If the query is a natural language question or requires contextual understanding, classify it as 'semantic.'
+
+Provide a JSON Response:
+
+- Respond with a JSON object containing the classification result.
+- Example: {"classification": "keyword"} or {"classification": "semantic"}
+
+Examples:
+
+- "Policy for Adalimumab for Crohn's Disease" → {"classification": "keyword"}
+- "What is the process for prior authorization for Humira?" → {"classification": "semantic"}
+- "Crohn's Disease" → {"classification": "keyword"}
+- "Treatment guidelines for childhood epilepsy" → {"classification": "semantic"}
+
+Edge Cases:
+
+- If the query contains both specific terms and natural language, default to 'semantic.'
+- If the query is incomplete or ambiguous, classify it as 'semantic.'
+
+## Output: Please generate a JSON output based on:
+
+{{ query }}
+
+```json
+{
+  "classification": "" // add here the classification either "keyword" or "semantic"
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "2865037101428017356"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Mongo cluster"
+      }
+    }
+  },
+  "variables": {
+    "mongoNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DocumentDB/databaseAccounts",
+      "apiVersion": "2024-11-15",
+      "name": "[variables('mongoNameCleaned')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "kind": "MongoDB",
+      "properties": {
+        "databaseAccountOfferType": "Standard",
+        "locations": [
+          {
+            "locationName": "[parameters('location')]",
+            "failoverPriority": 0
+          }
+        ],
+        "apiProperties": {
+          "serverVersion": "7.0"
+        },
+        "capabilities": [
+          {
+            "name": "EnableMongo"
+          }
+        ],
+        "consistencyPolicy": {
+          "defaultConsistencyLevel": "Session"
+        },
+        "publicNetworkAccess": "Enabled"
+      }
+    }
+  ],
+  "outputs": {
+    "mongoClusterId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.DocumentDB/databaseAccounts', variables('mongoNameCleaned'))]"
+    },
+    "mongoClusterName": {
+      "type": "string",
+      "value": "[variables('mongoNameCleaned')]"
+    },
+    "mongoConnectionString": {
+      "type": "string",
+      "value": "[listConnectionStrings(resourceId('Microsoft.DocumentDB/databaseAccounts', variables('mongoNameCleaned')), '2024-11-15').connectionStrings[0].connectionString]"
+    }
+  }
+}

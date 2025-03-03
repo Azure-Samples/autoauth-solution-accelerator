@@ -1,0 +1,85 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "9778162961165438260"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Search service"
+      }
+    },
+    "aiServiceSkuName": {
+      "type": "string",
+      "defaultValue": "basic",
+      "allowedValues": [
+        "basic"
+      ],
+      "metadata": {
+        "description": "Search service SKU"
+      }
+    }
+  },
+  "variables": {
+    "searchNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Search/searchServices",
+      "apiVersion": "2024-06-01-preview",
+      "name": "[variables('searchNameCleaned')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('aiServiceSkuName')]"
+      },
+      "identity": {
+        "type": "SystemAssigned"
+      },
+      "properties": {
+        "publicNetworkAccess": "Enabled",
+        "hostingMode": "default"
+      },
+      "tags": "[parameters('tags')]"
+    }
+  ],
+  "outputs": {
+    "searchServiceIdentityPrincipalId": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.Search/searchServices', variables('searchNameCleaned')), '2024-06-01-preview', 'full').identity.principalId]"
+    },
+    "searchServiceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Search/searchServices', variables('searchNameCleaned'))]"
+    },
+    "searchServiceName": {
+      "type": "string",
+      "value": "[variables('searchNameCleaned')]"
+    },
+    "searchServicePrimaryKey": {
+      "type": "string",
+      "value": "[listAdminKeys(resourceId('Microsoft.Search/searchServices', variables('searchNameCleaned')), '2024-06-01-preview').primaryKey]"
+    },
+    "searchServiceEndpoint": {
+      "type": "string",
+      "value": "[format('https://{0}.search.windows.net', variables('searchNameCleaned'))]"
+    }
+  }
+}

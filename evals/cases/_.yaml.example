@@ -1,0 +1,149 @@
+# ==============================================================================
+# Test Evaluation Configuration
+# ==============================================================================
+# This configuration defines an OCR/NER evaluation test.
+# It specifies:
+#   - A descriptive overview of the evaluation.
+#   - A disclaimer regarding limitations or conditions.
+#   - The extraction pipeline to use (with the class to execute and the file location).
+#   - A list of evaluator definitions (each with type, name, class, and optional arguments).
+#   - The case(s) to run, which reference case-specific configurations.
+# ==============================================================================
+
+ocr-ner-001-a:
+  # Description: A human-readable explanation of the evaluation purpose.
+  description: >
+    Evaluation for OCR/NER extraction on case "ocr-ner-001-a".
+    This evaluation verifies that clinical details (patient, physician, and other clinical information)
+    are correctly extracted from medical documents.
+
+  # Disclaimer: Notes any limitations or special conditions.
+  disclaimer: >
+    Evaluations are performed zero-shot without additional fine-tuning; results may vary based on document quality.
+
+  # Pipeline: Defines the extraction pipeline details.
+  pipeline:
+    # class: The fully qualified class name of the extraction pipeline implementation.
+    #         Format: module_path:ClassName
+    class: src.pipeline.clinicalExtractor.evaluator.ClinicalExtractorEvaluator
+    # uploaded_files: The path (or glob pattern) pointing to the documents that will be processed.
+    uploaded_files: "utils/data/cases/001/a"
+
+  # Evaluators: A list of evaluators (metrics) to be applied to the pipeline output.
+  evaluators:
+    - type: azure          # Type: "azure" for built-in Azure evaluators; "custom" for user-defined evaluators.
+      name: "RougeScoreEvaluator"    # Unique name/identifier for this evaluator.
+      # class: Fully qualified class path for the evaluator.
+      #        Format: module_path:ClassName
+      class: azure.ai.evaluation:RougeScoreEvaluator
+      args:
+        # Arguments to pass to the evaluator's constructor.
+        # For object references, use the format "module_path:object_path".
+        rouge_type: azure.ai.evaluation:RougeType.ROUGE_4
+    - type: azure
+      name: "MeteorScoreEvaluator"
+      class: azure.ai.evaluation:MeteorScoreEvaluator
+      # No additional args provided; use defaults.
+    - type: azure
+      name: "BleuScoreEvaluator"
+      class: azure.ai.evaluation:BleuScoreEvaluator
+    - type: custom
+      name: "FuzzyEvaluator"
+      class: src.evals.custom.fuzzy_evaluator:FuzzyEvaluator
+      args:
+        similarity_threshold: 95.0   # Numeric threshold value for fuzzy matching.
+
+  # Cases: A list of case identifiers that reference detailed case configurations below.
+  cases:
+    - ocr-ner-001-a.v0
+
+
+# ==============================================================================
+# Case-Specific Configuration (Example: ocr-ner-001-a.v0)
+# ==============================================================================
+# This section provides details for a specific test case.
+# It includes:
+#   - metrics: The list of evaluator names (from the above "evaluators" section) that should generate metrics.
+#   - Custom evaluator settings: (Optional) A mapping of parameters for any evaluator that needs case-specific configuration.
+#   - evaluations: An array of evaluation items. Each item maps a query (the output field key) to its expected ground truth value.
+# ==============================================================================
+
+ocr-ner-001-a.v0:
+  # Metrics: List of evaluator names (must match those defined in the evaluators section).
+  metrics: [RougeScoreEvaluator, MeteorScoreEvaluator, BleuScoreEvaluator, FuzzyEvaluator]
+
+  # Custom evaluator settings for a specific evaluator (if needed).
+  # In this example, parameters for the custom "FuzzyEvaluator" are provided.
+  FuzzyEvaluator:
+    similarity_threshold: 95.0
+
+  # Evaluations: A list of individual field evaluations.
+  # Each item should have:
+  #   - query: A dot-notated key identifying the specific output field.
+  #   - ground_truth: The expected (desensitized) value for that field.
+  evaluations:
+    # --- Patient Information ---
+    - query: "patient_information.patient_name"
+      ground_truth: "Alice Johnson"
+    - query: "patient_information.patient_date_of_birth"
+      ground_truth: "07/22/1985"
+    - query: "patient_information.patient_id"
+      ground_truth: "A123456789"
+    - query: "patient_information.patient_address"
+      ground_truth: "1234 Elm Street, Springfield, IL, 62704"
+    - query: "patient_information.patient_phone_number"
+      ground_truth: "555-234-5678"
+
+    # --- Physician Information ---
+    - query: "physician_information.physician_name"
+      ground_truth: "Dr. Robert Smith"
+    - query: "physician_information.specialty"
+      ground_truth: "Internal Medicine"
+    - query: "physician_information.physician_contact.office_phone"
+      ground_truth: "555-345-6789"
+    - query: "physician_information.physician_contact.fax"
+      ground_truth: "555-456-7890"
+    - query: "physician_information.physician_contact.office_address"
+      ground_truth: "789 Oak Avenue, Springfield, IL, 62704"
+
+    # --- Clinical Information ---
+    - query: "clinical_information.diagnosis"
+      ground_truth: "Hypertension; Type II Diabetes"
+    - query: "clinical_information.icd_10_code"
+      ground_truth: "I10; E11.9"
+    - query: "clinical_information.prior_treatments_and_results"
+      ground_truth: "Lisinopril 10mg daily; Metformin 500mg twice daily; minimal improvement observed"
+    - query: "clinical_information.specific_drugs_taken_and_failures"
+      ground_truth: "Lisinopril 10mg daily; Metformin 500mg twice daily; inadequate glycemic control"
+    - query: "clinical_information.alternative_drugs_required"
+      ground_truth: "Not provided"
+    - query: "clinical_information.relevant_lab_results_or_imaging"
+      ground_truth: >
+        Hemoglobin: 12.5 g/dL (12-16 g/dL); Hematocrit: 37% (36-46%);
+        RBC: 4.5 million/µL (4.2-5.9 million/µL); MCV: 90 fL (80-100 fL);
+        MCH: 30 pg (27-33 pg); MCHC: 33 g/dL (32-36 g/dL);
+        Platelets: 250,000 cells/µL (150,000-400,000 cells/µL); WBC: 7,000 cells/µL (4,500-11,000 cells/µL);
+        Glucose: 98 mg/dL (70-100 mg/dL); BUN: 14 mg/dL (7-20 mg/dL); Creatinine: 0.9 mg/dL (0.6-1.2 mg/dL);
+        Sodium: 140 mEq/L (135-145 mEq/L); Potassium: 4.2 mEq/L (3.5-5.0 mEq/L)
+    - query: "clinical_information.symptom_severity_and_impact"
+      ground_truth: >
+        Patient reports occasional dizziness and fatigue; no acute distress observed.
+    - query: "clinical_information.prognosis_and_risk_if_not_approved"
+      ground_truth: >
+        Risk of complications increases if treatment is delayed.
+    - query: "clinical_information.clinical_rationale_for_urgency"
+      ground_truth: >
+        Prompt treatment is recommended to prevent potential organ damage.
+    - query: "clinical_information.treatment_request.name_of_medication_or_procedure"
+      ground_truth: "Atorvastatin"
+    - query: "clinical_information.treatment_request.code_of_medication_or_procedure"
+      ground_truth: "Not provided"
+    - query: "clinical_information.treatment_request.dosage"
+      ground_truth: "20 mg once daily"
+    - query: "clinical_information.treatment_request.duration"
+      ground_truth: "3 months"
+    - query: "clinical_information.treatment_request.rationale"
+      ground_truth: >
+        To manage cholesterol levels and reduce cardiovascular risk.
+    - query: "clinical_information.treatment_request.presumed_eligibility"
+      ground_truth: "Not provided"
