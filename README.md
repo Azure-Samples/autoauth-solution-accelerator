@@ -34,15 +34,10 @@ Prior Authorization (PA) is a critical step in healthcare delivery, requiring pr
 This repository aims to **streamline and automate** the PA process using Azure AI, Agentic workflows, and advanced reasoning models. By leveraging machine learning, OCR, and agentic retrieval-augmented generation (RAG), we can reduce human labor, cut costs, and ultimately improve patient care.
 
 <div align="center">
-  <figure>
-    <img 
-      src="utils/images/diagram_latest.png" 
-      alt="Solution Diagram" 
-      style="width:80%; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.2);" />
-    <figcaption style="margin-top:8px; font-size:smaller; font-family:cursive; font-style:italic;">
-      We are focusing on tackling time-heavy tasks within the Prior Authorization workflow and extending it to providers and payers.
-    </figcaption>
-  </figure>
+  <img src="utils/images/diagram_latest.png" alt="Solution Diagram" style="max-width:80%; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+  <p style="font-size: smaller; font-family: cursive; font-style: italic; margin-top: 8px;">
+    Tackling time-heavy tasks within the Prior Authorization workflow.
+  </p>
 </div>
 
 **Note:** Our methodology, developed in collaboration with clinicals experts (MD and PharmD), is research-based and includes comprehensive case studies. For an in-depth understanding, please refer to our [article on Hashnode.](https://pabloaicorner.hashnode.dev/streamlining-prior-authorization-with-generative-ai).
@@ -56,27 +51,21 @@ This repository aims to **streamline and automate** the PA process using Azure A
 - **Advanced Reasoning Models**: Assess compliance against policies, recommend Approve/Deny decisions, or request additional info with full traceability.
 
 <div align="center">
-  <figure>
-    <img 
-      src="utils/images/diagram_latest.png" 
-      alt="Solution Diagram" 
-      style="width:80%; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.2);" />
-    <figcaption style="margin-top:8px; font-size:smaller; font-family:cursive; font-style:italic;">Solution Architecture</figcaption>
-  </figure>
+  <img src="utils/images/diagram_latest.png" alt="Solution Diagram" style="max-width:80%; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+  <p style="font-size: smaller; font-family: cursive; font-style: italic; margin-top: 8px;">
+    Solution Architecture
+  </p>
 </div>
 
 **Note:** For comprehensive details, including technical architecture, customization steps, references, and additional documentation, please visit our **[GitHub Pages](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**.
 
 <div align="center">
-  <iframe 
-    title="Demo Video - AutoAuth in Action" 
-    src="https://player.vimeo.com/video/1040993686?h=f9c8e5ffba" 
-    style="width:80%; height:360px; border:0; border-radius:8px; box-shadow:0 4px 8px rgba(0,0,0,0.2);" 
-    allowfullscreen>
-  </iframe>
-  <figcaption style="margin-top:8px; font-size:smaller; font-family:cursive; font-style:italic;">
-    Click to see AutoAuth demo app in action
-  </figcaption>
+  <a href="https://player.vimeo.com/video/1040993686?h=f9c8e5ffba">
+    <img src="utils/images/vimeo_video.png" alt="Demo Video - AutoAuth in Action" style="max-width:80%; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2);">
+  </a>
+  <p style="font-size: smaller; font-family: cursive; font-style: italic; margin-top: 8px;">
+    Click the image to watch the AutoAuth demo.
+  </p>
 </div>
 
 ## 🚀 Quick Start
