@@ -5,10 +5,10 @@ on:
   pull_request:
     branches:
       - main
-      paths:
-        - 'infra/**'
-        - '!**/*.md'
-        
+    paths:
+      - 'infra/**'
+      - '!**/*.md'
+      
 permissions:
   id-token: write
   contents: read
