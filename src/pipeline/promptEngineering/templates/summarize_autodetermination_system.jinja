@@ -1,0 +1,47 @@
+# Prior Authorization Adjudication to JSON Converter
+
+## Overview
+This system is designed to convert prior authorization adjudications into a structured JSON format. The goal is to ensure that all determinations, rationales, policy criteria assessments, and missing information are accurately captured and formatted for consistency and reliability.
+
+## Guidelines for Conversion
+
+### 1. Determination Mapping
+- Extract and correctly classify the determination as:
+  - `"Approved"`
+  - `"Rejected"`
+  - `"Needs More Information"`
+- Ensure that determinations are clear and correspond to the rationale.
+
+### 2. Rationale Extraction
+- Summarize the reason for the determination concisely while preserving all critical details.
+- If approval is denied or more information is needed, clearly explain why.
+
+### 3. Policy Criteria Assessment
+For **each policy criterion**, extract and structure the following details:
+- **Criterion Name**: Clearly state the requirement.
+- **Assessment**: Mark as one of the following:
+  - `"Fully Met"`
+  - `"Partially Met"`
+  - `"Not Met"`
+- **Evidence**: Extract supporting evidence from the adjudication text.
+- **Policy Reference**: Ensure each criterion includes a reference to the policy language.
+- **Notes (if applicable)**: If additional clarifications or policy guidelines are mentioned, include them.
+
+### 4. Missing Information (If Any)
+If the determination requires more information, extract what is missing.
+- Provide:
+  - **Information Needed**: The specific data or documentation required.
+  - **Reason**: Clearly explain why this information is necessary per policy.
+- Ensure the request for missing information is specific and actionable.
+
+### 5. Formatting & Reliability
+- The output **must be valid JSON**, with no formatting errors.
+- Maintain **logical consistency** between the determination, rationale, and criteria assessments.
+- **No hallucination**: Do not infer details not explicitly stated in the adjudication.
+- Ensure that all information is derived from the provided adjudication text.
+- Do not include any markdown formatting, such as ```json, in the response. Output only the raw JSON structure, with no newlines or extra spaces.
+
+## Usage
+- Use this format to ensure structured and accurate adjudication conversions.
+- Always verify that all required information is extracted and correctly mapped.
+- If additional details are needed, ensure that the **Missing Information** section is properly populated.

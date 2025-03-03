@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from utils.ml_logging import KEYINFO_LEVEL_NUM, get_logger
+from src.utils.ml_logging import KEYINFO_LEVEL_NUM, get_logger
 
 
 # Patch the logging module during the tests to capture log records

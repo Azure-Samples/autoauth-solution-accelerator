@@ -4,7 +4,7 @@ from typing import Any, Dict, List
 from jinja2 import Environment, FileSystemLoader
 from pydantic import BaseModel
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 logger = get_logger()
 
@@ -124,6 +124,26 @@ class PromptManager:
         return self.get_prompt(
             template_name,
             policy_text=policy_text,
+        )
+
+    def create_prompt_summary_autodetermination(
+        self,
+        autodetermination_text: str,
+    ) -> str:
+        """
+        Create a prompt to summarize the autodetermination text for prior authorization.
+
+        Args:
+            autodetermination_text (str): The policy text to be summarized.
+
+        Returns:
+            str: The rendered prompt for summarizing the policy.
+        """
+        template_name = "summarize_autodetermination_user.jinja"
+
+        return self.get_prompt(
+            template_name,
+            autodetermination=autodetermination_text,
         )
 
     def create_prompt_query_classifier_user(self, query: str) -> str:

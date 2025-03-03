@@ -8,7 +8,7 @@ from azure.storage.blob import BlobClient, BlobServiceClient
 from dotenv import load_dotenv
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 # Initialize logger
 logger = get_logger()

@@ -21,7 +21,7 @@ from dotenv import load_dotenv
 from openai import AzureOpenAI
 
 from src.aoai.tokenizer import AzureOpenAITokenizer
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 # Load environment variables from .env file
 load_dotenv()

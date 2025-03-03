@@ -46,7 +46,7 @@ from azure.search.documents.indexes.models import (
 from azure.storage.blob import BlobServiceClient
 from dotenv import load_dotenv
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 logger = get_logger()
 

@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from langchain_core.documents import Document as LangchainDocument
 
 from src.storage.blob_helper import AzureBlobManager
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 # Initialize logging
 logger = get_logger()

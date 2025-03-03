@@ -12,7 +12,7 @@ from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry import configure_azure_monitor
 from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
 
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 
 class AIFoundryManager:
@@ -40,7 +40,8 @@ class AIFoundryManager:
         self.project_connection_string: str = project_connection_string or os.getenv(
             "AZURE_AI_FOUNDRY_CONNECTION_STRING"
         )
-        self.project: Optional[AIProjectClient] = None
+        self.project_client: Optional[AIProjectClient] = None
+        self.project_config: Optional[dict] = None
         self._validate_configurations()
         self._initialize_project()
 
@@ -58,13 +59,44 @@ class AIFoundryManager:
 
     def _initialize_project(self) -> None:
         """
-        Initializes the AI Foundry project client.
+        Initializes the AI Foundry project client and sets the project configuration.
+
+        The connection string is expected to have the format:
+            <endpoint>;<subscription_id>;<resource_group_name>;<project_name>
+        For example:
+            "eastus2.api.azureml.ms;28d2df62-e322-4b25-b581-c43b94bd2607;rg-priorauth-eastus2-hls-autoauth;evaluations"
+
+        This method sets:
+            self.project_config = {
+                "subscription_id": <subscription_id>,
+                "resource_group_name": <resource_group_name>,
+                "project_name": <project_name>
+            }
+
+        Then, it initializes the AIProjectClient using the connection string and DefaultAzureCredential.
 
         Raises:
-            Exception: If initialization fails.
+            Exception: If initialization fails or the connection string format is invalid.
         """
         try:
-            self.project = AIProjectClient.from_connection_string(
+            # Parse the connection string.
+            tokens = self.project_connection_string.split(";")
+            if len(tokens) < 4:
+                raise Exception(
+                    "Invalid connection string format: expected at least 4 semicolon-separated tokens."
+                )
+
+            # tokens[0] is the endpoint (unused here),
+            # tokens[1] is the subscription_id,
+            # tokens[2] is the resource_group_name,
+            # tokens[3] is the project_name.
+            self.project_config = {
+                "subscription_id": tokens[1],
+                "resource_group_name": tokens[2],
+                "project_name": tokens[3],
+            }
+
+            self.project_client = AIProjectClient.from_connection_string(
                 conn_str=self.project_connection_string,
                 credential=DefaultAzureCredential(),
             )
@@ -80,7 +112,7 @@ class AIFoundryManager:
         Raises:
             Exception: If telemetry initialization fails.
         """
-        if not self.project:
+        if not self.project_client:
             self.logger.error(
                 "AIProjectClient is not initialized. Call initialize_project() first."
             )
@@ -98,7 +130,7 @@ class AIFoundryManager:
 
             # Retrieve the Application Insights connection string from your AI project
             application_insights_connection_string = (
-                self.project.telemetry.get_connection_string()
+                self.project_client.telemetry.get_connection_string()
             )
 
             if application_insights_connection_string:

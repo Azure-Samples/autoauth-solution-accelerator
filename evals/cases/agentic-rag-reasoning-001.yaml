@@ -1,0 +1,81 @@
+agentic-rag-reasoning-001:
+  description: >
+    Evaluation for agentic RAG scenarios using added context. This evaluation considers the end-to-end flow with specific positive
+    and negative scenarios. This example specifically evaluates the reasoning behind the decision to approve or reject a prior authorization request.
+  disclaimer: >
+    Evaluations are performed zero-shot without additional fine-tuning.
+  pipeline:
+    class: src.pipeline.clinicalExtractor.evaluator.AgenticRagEvaluator
+    case_id: "TEST-001"
+    scenario: "reasoning"
+  evaluators:
+    - name: "QAEvaluator"
+      class: azure.ai.evaluation:QAEvaluator
+    - name: "RetrievalEvaluator"
+      class: azure.ai.evaluation:RetrievalEvaluator
+    - name: "SemanticSimilarityEvaluator"
+      class: src.evals.custom.similarity_evaluator:SemanticSimilarityEvaluator
+      args:
+        model_name: "bert-base-uncased"
+    - name: "FuzzyEvaluator"
+      class: src.evals.custom.fuzzy_evaluator:FuzzyEvaluator
+  cases:
+    - agentic-rag-reasoning-001-positive.v0
+    - agentic-rag-reasoning-001-negative.v0
+
+agentic-rag-reasoning-001-positive.v0:
+  metrics: [QAEvaluator, RetrievalEvaluator, SemanticSimilarityEvaluator, FuzzyEvaluator]
+  evaluations:
+    - query: >-
+        Prior authorization policy for Adalimumab (Humira) for Crohn's Disease and associated anemia due to blood loss. Related terms: inflammatory bowel disease (IBD), chronic intestinal inflammation, biologic therapy, TNF inhibitor, anemia management. Dosage regimen: initial loading dose of 160 mg (four 40 mg injections on day 1), followed by 80 mg (two 40 mg injections after two weeks, then 40 mg every other week. Treatment duration of 6 months with a total of 16 injections. Rationale includes initiation of biologic therapy due to severe symptoms and anemia related to blood loss. Alternative terms: ulcerative colitis, autoimmune disease, anti-TNF monoclonal antibody, and biologic DMARDs (Disease-Modifying Anti-Rheumatic Drugs)."
+      ground_truth: "Content from pre-auth-policies/policies_ocr/001.pdf was approved because it explicitly mentioned the use of TNF inhibitors (including Adalimumab) for Crohn's Disease, including guidelines for moderate to severe disease and maintenance of remission. This aligns with the query for Adalimumab (Humira) use in Crohn's Disease.\nContent from pre-auth-policies/policies_ocr/001.pdf was approved because it outlined prior authorization criteria for Adalimumab and its biosimilars, including considerations for other biologics and systemic agents for Crohn's Disease, which matches the requested therapy and condition.\nContent from pre-auth-policies/policies_ocr/001.pdf was approved because it referenced ACG Clinical Guidelines and specific recommendations for the treatment of Crohn's Disease using biologic agents, including Adalimumab. This directly supports the user's query for prior authorization."
+      context:
+        src.pipeline.promptEngineering.models:ClinicalInformation:
+          diagnosis: "Crohn's Disease; Anemia 2/2 blood loss"
+          icd_10_code: "K50.90; D50.9"
+          prior_treatments_and_results: "Not provided"
+          specific_drugs_taken_and_failures: "Not provided"
+          alternative_drugs_required: "Not provided"
+          relevant_lab_results_or_imaging: >-
+            EGD Findings: Biopsies obtained and pending, Esophagus: Normal appearance, Stomach: Gastritis, erythema present, Duodenum: Mild to moderate duodenitis with edema; Colonoscopy Findings: Biopsies obtained and pending, Ileum: Patchy inflammation with areas of erythema and ulceration, Colon: Diffuse inflammation, Granularity and friability present, Rectum: Mild inflammation, no significant ulceration; MRI enterography: pending; CBC with Differential: Hemoglobin 9.0 g/dL, Hematocrit 32%, Red Blood Cells (RBC) 3.5 million/μL, Mean Corpuscular Volume (MCV) 78 fL, Mean Corpuscular Hemoglobin (MCH) 28 pg, Mean Corpuscular Hemoglobin Concentration (MCHC) 34 g/dL, Platelets 450,000 cells/μL, White Blood Cells (WBC) 12,000 cells/μL, Bands (Immature Neutrophils) 5%, Neutrophils 75%, Lymphocytes 18%, Monocytes 4%, Eosinophils 1%, Basophils 0%; CMP: Glucose 90 mg/dL, BUN 15 mg/dL, Creatinine 0.5 mg/dL, Sodium 138 mEq/L, Potassium 4.0 mEq/L, Chloride 102 mEq/L, Bicarbonate 24 mEq/L, Calcium 9.2 mg/dL; ESR 15 mm/h; CRP 12 mg/L; Fecal Calprotectin 100 μg/g; Fecal Occult Blood Positive; Liver Function Test: AST 25 U/L, ALT 22 U/L, ALP 120 U/L, Bilirubin (Total) 0.6 mg/dL; Iron Panel: Ferritin 15 ng/mL, Iron 40 μg/dL, Total Iron Binding Capacity (TIBC) 450 μg/dL; Folate Level 5 ng/mL; Vitamin B12 Level 300 pg/mL
+          symptom_severity_and_impact: >-
+            Patient has multiple episodes of abdominal cramping and bowel movements with visible hematochezia, did not sleep well, appears pale, tired but interactive; Positive for fatigue, pallor, abdominal pain, hematochezia, dizziness, blood loss (by rectum); HR 110 bpm, BP 110/70 mmHg, RR 20 bpm, Temp 98.6°F (37°C); Pallor present, mild tachycardia present
+          prognosis_and_risk_if_not_approved: >-
+            Patient continues to have frequent blood in stools and anemia as well as abdominal discomfort
+          clinical_rationale_for_urgency: >-
+            Urgent (In checking this box, I attest to the fact that applying the standard review time frame may seriously jeopardize the customer's life, health, or ability to regain maximum function)
+          treatment_request:
+            name_of_medication_or_procedure: "Adalimumab"
+            code_of_medication_or_procedure: "Not provided"
+            dosage: >-
+              160 mg (given as four 40 mg injections on day 1) followed by 80 mg (given as two 40 mg injections) two weeks later.
+              40 mg every other week starting 2 weeks from end dose
+            duration: "6 months; 16 injections"
+            rationale: >-
+              Patient will likely need to initiate biologic therapy given severity of symptoms
+            presumed_eligibility: "Not provided"
+
+agentic-rag-reasoning-001-negative.v0:
+  metrics: [QAEvaluator, RetrievalEvaluator, SemanticSimilarityEvaluator, FuzzyEvaluator]
+  evaluations:
+    - query: >-
+        Prior authorization policy for Vitamin C (ascorbic acid) supplementation for the common cold. Related terms: upper respiratory tract infection (URTI), viral rhinitis, immune support, dietary supplement, antioxidant therapy. Dosage details: 500 mg daily for 1 week. Rationale includes supporting immune system function to potentially reduce cold symptoms and duration.
+      ground_truth: ""
+      context:
+        src.pipeline.promptEngineering.models:ClinicalInformation:
+          diagnosis: "Common Cold"
+          icd_10_code: "J00"
+          prior_treatments_and_results: "Rest and hydration"
+          specific_drugs_taken_and_failures: "None"
+          alternative_drugs_required: "None"
+          relevant_lab_results_or_imaging: "None"
+          symptom_severity_and_impact: "Mild symptoms, no significant impact"
+          prognosis_and_risk_if_not_approved: "Symptoms will resolve on their own"
+          clinical_rationale_for_urgency: "None"
+          treatment_request:
+            name_of_medication_or_procedure: "Vitamin C"
+            code_of_medication_or_procedure: "Not provided"
+            dosage: "500 mg daily"
+            duration: "1 week"
+            rationale: "Support immune system"
+            presumed_eligibility: "Not provided"

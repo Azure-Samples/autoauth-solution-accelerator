@@ -17,7 +17,7 @@ from semantic_kernel.connectors.ai.prompt_execution_settings import (
 )
 
 from src.agenticai.skills import Skills
-from utils.ml_logging import get_logger
+from src.utils.ml_logging import get_logger
 
 
 class Agent(ChatCompletionAgent):
