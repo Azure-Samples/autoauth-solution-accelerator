@@ -10,11 +10,11 @@ The YAML schema is designed to decouple test configurations from the codebase. T
 
 ### Key Advantages
 
-- **Separation of Concerns:**  
+- **Separation of Concerns:**
   Code handles execution while YAML files drive test definitions.
-- **Flexibility:**  
+- **Flexibility:**
   Each evaluation case can define its own evaluators, arguments, and context to accommodate diverse AI evaluation scenarios.
-- **Scalability:**  
+- **Scalability:**
   New evaluation cases or modules can be integrated without altering core pipeline code.
 
 ---
@@ -49,21 +49,21 @@ Each case identifier from the Test Evaluation Configuration must have a correspo
 
 **Mandatory Fields:**
 
-- **metrics** (list):  
+- **metrics** (list):
   - A list of evaluator names to be applied to the test case (must match those defined above).
 
-- **evaluations** (list):  
+- **evaluations** (list):
   - Each evaluation item must include:
     - **query** (string, mandatory): The output field key for evaluation (e.g., "patient_information.patient_name").
     - **ground_truth** (string, mandatory): The expected value for the query.
 
 **Optional Fields:**
 
-- **Custom evaluator settings:**  
+- **Custom evaluator settings:**
   - Additional configuration for specific evaluators can be provided using the evaluator's unique name as a key.
-- **context** (object):  
+- **context** (object):
   - A mapping used for creating context objects. The key should follow the format "module_path:ClassName" and the value an object with initialization parameters.
-- **conversation, scores** (object):  
+- **conversation, scores** (object):
   - Additional optional details to capture the evaluation process.
 
 ### Example Definitive YAML Schema
@@ -122,21 +122,21 @@ Each and every test case is integrated with the appropriate evaluator metric and
 
 At the core of the evaluation process is the abstract class `PipelineEvaluator` (located in `src/evals/pipeline.py`). This base class enforces a standard workflow that includes:
 
-1. **Preprocessing:**  
-   Loads YAML configurations, instantiates evaluators, and prepares data.  
+1. **Preprocessing:**
+   Loads YAML configurations, instantiates evaluators, and prepares data.
    _Method to implement: `async def preprocess(self)`_
 
-2. **Run Evaluations:**  
-   Processes test cases and triggers the evaluation logic (e.g., via the Azure AI evaluation API).  
+2. **Run Evaluations:**
+   Processes test cases and triggers the evaluation logic (e.g., via the Azure AI evaluation API).
    _Method to implement: `async def run_evaluations(self)`_
 
-3. **Post Processing:**  
-   Aggregates, processes, and summarizes evaluation results.  
+3. **Post Processing:**
+   Aggregates, processes, and summarizes evaluation results.
    _Method to implement: `def post_processing(self) -> dict`_
 
 These steps are orchestrated by the **final** method `run_pipeline()`, which must not be overridden. This design guarantees a consistent execution order across all evaluator implementations.
 
-**Model Configuration Handling:**  
+**Model Configuration Handling:**
 The `PipelineEvaluator` class supports clean handling of the `model_config` parameter for evaluators. Within the `_instantiate_evaluators()` method, if an evaluator's constructor expects a `model_config` parameter and it is not provided in the YAML configuration (under `args`), the framework automatically populates `model_config` using environment variables (e.g., `AZURE_OPENAI_ENDPOINT`, `AZURE_OPENAI_KEY`, and `AZURE_OPENAI_DEPLOYMENT`). This approach allows model-specific configurations to be either explicitly defined in the YAML configuration or seamlessly injected during the preprocessing steps.
 
 ---
@@ -145,19 +145,19 @@ The `PipelineEvaluator` class supports clean handling of the `model_config` para
 
 Contributions to the framework should adhere to these principles:
 
-- **Configuration vs. Code:**  
+- **Configuration vs. Code:**
   Test cases and evaluation parameters belong in YAML files. Evaluator classes should interpret these configurations and apply corresponding logic, ensuring that changes in testing scenarios do not require code modifications.
 
-- **Implementing Custom Evaluators:**  
+- **Implementing Custom Evaluators:**
   When adding a new custom evaluator, create an evaluator class (typically in your module’s `evaluator.py`) that inherits from `PipelineEvaluator`. Your class must implement:
   - `async def preprocess(self)`
   - `async def run_evaluations(self)`
   - `def post_processing(self) -> dict`
   - Optionally, implement `async def generate_responses(self, **kwargs) -> dict` for dynamic response generation.
-  
+
   **Note:** Do not override the `run_pipeline()` method. It is defined as `final` to enforce the standard three-step process.
 
-- **Best Practices:**  
+- **Best Practices:**
   Externalizing test cases in YAML follows industry standards (e.g., the Twelve-Factor App methodology) and results in:
   - Improved maintainability.
   - Easier updates and debugging.
