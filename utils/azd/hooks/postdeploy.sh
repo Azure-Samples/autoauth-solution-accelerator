@@ -13,7 +13,7 @@ else
     echo "Logging into Azure Container Registry..."
     az acr login --name $(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)
     job_name=$(azd env get-value CONTAINER_JOB_NAME)
-    rg_name=$(azd env get-value RESOURCE_GROUP_NAME)
+    rg_name=$(azd env get-value AZURE_RESOURCE_GROUP)
 
     echo "Updating container app job image..."
     az containerapp job update \
