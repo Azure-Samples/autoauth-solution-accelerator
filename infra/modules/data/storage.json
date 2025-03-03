@@ -1,0 +1,116 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "8681779852569619356"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Storage account"
+      }
+    },
+    "aiServiceSkuName": {
+      "type": "string",
+      "defaultValue": "Standard_LRS",
+      "allowedValues": [
+        "Standard_LRS",
+        "Standard_GRS",
+        "Standard_RAGRS",
+        "Standard_ZRS"
+      ],
+      "metadata": {
+        "description": "Storage SKU"
+      }
+    }
+  },
+  "variables": {
+    "storageNameCleaned": "[toLower(replace(parameters('aiServiceName'), '-', ''))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-05-01",
+      "name": "[take(variables('storageNameCleaned'), 24)]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "[parameters('aiServiceSkuName')]"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "minimumTlsVersion": "TLS1_2",
+        "publicNetworkAccess": "Enabled",
+        "supportsHttpsTrafficOnly": true,
+        "defaultToOAuthAuthentication": true
+      },
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices",
+      "apiVersion": "2023-01-01",
+      "name": "[format('{0}/{1}', take(variables('storageNameCleaned'), 24), 'default')]",
+      "properties": {
+        "deleteRetentionPolicy": {
+          "enabled": true,
+          "days": 7
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', take(variables('storageNameCleaned'), 24))]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-01-01",
+      "name": "[format('{0}/{1}/{2}', take(variables('storageNameCleaned'), 24), 'default', 'default')]",
+      "properties": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', take(variables('storageNameCleaned'), 24), 'default')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+      "apiVersion": "2023-01-01",
+      "name": "[format('{0}/{1}/{2}', take(variables('storageNameCleaned'), 24), 'default', 'pre-auth-policies')]",
+      "properties": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/blobServices', take(variables('storageNameCleaned'), 24), 'default')]"
+      ]
+    }
+  ],
+  "outputs": {
+    "storageAccountId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.Storage/storageAccounts', take(variables('storageNameCleaned'), 24))]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[take(variables('storageNameCleaned'), 24)]"
+    },
+    "storageAccountPrimaryKey": {
+      "type": "string",
+      "value": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', take(variables('storageNameCleaned'), 24)), '2023-05-01').keys[0].value]"
+    },
+    "storageAccountPrimaryConnectionString": {
+      "type": "string",
+      "value": "[format('DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1};EndpointSuffix=core.windows.net', take(variables('storageNameCleaned'), 24), listKeys(resourceId('Microsoft.Storage/storageAccounts', take(variables('storageNameCleaned'), 24)), '2023-05-01').keys[0].value)]"
+    }
+  }
+}

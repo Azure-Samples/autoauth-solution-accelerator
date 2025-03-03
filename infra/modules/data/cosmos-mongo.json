@@ -1,0 +1,94 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "12353008776147836803"
+    }
+  },
+  "parameters": {
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "Azure region of the deployment"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "metadata": {
+        "description": "Tags to add to the resources"
+      }
+    },
+    "aiServiceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of the Mongo cluster"
+      }
+    },
+    "cosmosAdministratorUsername": {
+      "type": "string",
+      "defaultValue": "adminuser",
+      "metadata": {
+        "description": "Administrator username for the Mongo cluster"
+      }
+    },
+    "cosmosAdministratorPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Admin password for the cluster"
+      }
+    }
+  },
+  "variables": {
+    "mongoNameCleaned": "[replace(parameters('aiServiceName'), '-', '')]",
+    "encodedPassword": "[uriComponent(parameters('cosmosAdministratorPassword'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DocumentDB/mongoClusters",
+      "apiVersion": "2024-07-01",
+      "name": "[variables('mongoNameCleaned')]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "administrator": {
+          "userName": "[parameters('cosmosAdministratorUsername')]",
+          "password": "[parameters('cosmosAdministratorPassword')]"
+        },
+        "serverVersion": "7.0",
+        "compute": {
+          "tier": "M30"
+        },
+        "storage": {
+          "sizeGb": 32
+        },
+        "sharding": {
+          "shardCount": 1
+        },
+        "highAvailability": {
+          "targetMode": "Disabled"
+        },
+        "publicNetworkAccess": "Enabled",
+        "previewFeatures": [
+          "GeoReplicas"
+        ]
+      }
+    }
+  ],
+  "outputs": {
+    "mongoClusterId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.DocumentDB/mongoClusters', variables('mongoNameCleaned'))]"
+    },
+    "mongoClusterName": {
+      "type": "string",
+      "value": "[variables('mongoNameCleaned')]"
+    },
+    "mongoConnectionString": {
+      "type": "string",
+      "value": "[format('mongodb+srv://{0}:{1}@{2}.mongocluster.cosmos.azure.com/?tls=true&authMechanism=SCRAM-SHA-256&retrywrites=false&maxIdleTimeMS=120000', parameters('cosmosAdministratorUsername'), variables('encodedPassword'), variables('mongoNameCleaned'))]"
+    }
+  }
+}

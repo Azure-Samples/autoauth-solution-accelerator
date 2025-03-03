@@ -1,0 +1,21 @@
+# Ensure shell scripts use LF line endings
+*.sh text eol=lf
+
+# Ensure Python files use LF line endings
+*.py text eol=lf
+
+# Ensure YAML files use LF line endings
+*.yaml text eol=lf
+*.yml text eol=lf
+
+# Ensure Dockerfiles use LF line endings
+Dockerfile text eol=lf
+
+# Ensure JSON files use LF line endings
+*.json text eol=lf
+
+# Ensure Markdown files use LF line endings
+*.md text eol=lf
+
+# Ensure PowerShell scripts use CRLF line endings
+*.ps1 text eol=crlf

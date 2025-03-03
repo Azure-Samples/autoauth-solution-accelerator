@@ -1,0 +1,232 @@
+{
+    "extracted_output": {
+        "ocr_ner_results": {
+            "patient_info": {
+                "patient_name": "John Doe",
+                "patient_date_of_birth": "01/15/1980",
+                "patient_id": "Cigna123456789",
+                "patient_address": "123 Main St, Springfield, IL 62704",
+                "patient_phone_number": "(217) 555-1234"
+            },
+            "physician_info": {
+                "physician_name": "Dr. John A. Smith, MD",
+                "specialty": "Cardiology",
+                "physician_contact": {
+                    "office_phone": "(123) 456-7890",
+                    "fax": "(123) 456-7891",
+                    "office_address": "123 Medical Plaza, Suite 456, Springfield, IL 62704"
+                }
+            },
+            "clinical_info": {
+                "diagnosis": "Chronic Obstructive Pulmonary Disease (COPD); Hypertension",
+                "icd_10_code": "J44.9; I10",
+                "prior_treatments_and_results": "Albuterol inhaler - used for 6 months, provided temporary relief; Lisinopril - used for 1 year, controlled blood pressure; Fluticasone/Salmeterol (Advair) - used for 3 months, partial improvement in symptoms; Tiotropium (Spiriva) - used for 2 months, no significant improvement",
+                "specific_drugs_taken_and_failures": "Albuterol inhaler - temporary relief; Fluticasone/Salmeterol (Advair) - partial improvement; Tiotropium (Spiriva) - no significant improvement",
+                "alternative_drugs_required": "Patient must have tried at least two second-generation medications",
+                "relevant_lab_results_or_imaging": "Pulmonary function test (PFT) on 01/15/2023 - FEV1/FVC ratio: 0.65, indicating moderate obstruction; Chest X-ray on 12/20/2022 - hyperinflation of lungs, no acute infiltrates",
+                "symptom_severity_and_impact": "Patient experiences shortness of breath with minimal exertion, limiting daily activities such as walking and climbing stairs; frequent exacerbations requiring oral steroids",
+                "prognosis_and_risk_if_not_approved": "Without the requested treatment, the patient's COPD is likely to progress, leading to increased hospitalizations and further decline in lung function",
+                "clinical_rationale_for_urgency": "Immediate need to prevent further exacerbations and hospitalizations due to worsening COPD symptoms",
+                "treatment_request": {
+                    "name_of_medication_or_procedure": "Roflumilast (Daliresp)",
+                    "code_of_medication_or_procedure": "NDC 50458-0600-60",
+                    "dosage": "500 mcg once daily",
+                    "duration": "Ongoing treatment",
+                    "rationale": "Roflumilast is indicated for the reduction of COPD exacerbations in patients with severe COPD associated with chronic bronchitis and a history of exacerbations. The patient has not responded adequately to other treatments.",
+                    "presumed_eligibility": "Patient has tried and failed at least two second-generation medications, meeting the criteria for Roflumilast"
+                }
+            }
+        }
+    },
+    "similarity_scores": {
+        "patient_info": {
+            "patient_name": 30.000000000000004,
+            "patient_date_of_birth": 50.0,
+            "patient_id": 57.14285714285714,
+            "patient_address": 44.776119402985074,
+            "patient_phone_number": 61.53846153846154
+        },
+        "physician_info": {
+            "physician_name": 37.83783783783784,
+            "specialty": 30.000000000000004,
+            "physician_contact": {
+                "office_phone": 30.76923076923077,
+                "fax": 30.76923076923077,
+                "office_address": 42.69662921348315
+            }
+        },
+        "clinical_info": {
+            "diagnosis": 37.5,
+            "icd_10_code": 43.47826086956522,
+            "prior_treatments_and_results": 7.612456747404838,
+            "specific_drugs_taken_and_failures": 11.688311688311693,
+            "alternative_drugs_required": 17.948717948717952,
+            "relevant_lab_results_or_imaging": 13.600000000000001,
+            "symptom_severity_and_impact": 35.9375,
+            "prognosis_and_risk_if_not_approved": 38.46153846153846,
+            "clinical_rationale_for_urgency": 36.93379790940766,
+            "treatment_request": {
+                "name_of_medication_or_procedure": 25.0,
+                "code_of_medication_or_procedure": 13.793103448275868,
+                "dosage": 14.893617021276595,
+                "duration": 30.000000000000004,
+                "rationale": 33.11258278145696,
+                "presumed_eligibility": 11.570247933884293
+            }
+        }
+    },
+    "detailed_comparison": [
+        {
+            "key": "patient_name",
+            "extracted_value": "John Doe",
+            "expected_value": "Sarah Sample",
+            "similarity_score": 30.000000000000004
+        },
+        {
+            "key": "patient_date_of_birth",
+            "extracted_value": "01/15/1980",
+            "expected_value": "10/19/2014",
+            "similarity_score": 50.0
+        },
+        {
+            "key": "patient_id",
+            "extracted_value": "Cigna123456789",
+            "expected_value": "4567890",
+            "similarity_score": 57.14285714285714
+        },
+        {
+            "key": "patient_address",
+            "extracted_value": "123 Main St, Springfield, IL 62704",
+            "expected_value": "28 W Comet Ave, Chicago, IL 60607",
+            "similarity_score": 44.776119402985074
+        },
+        {
+            "key": "patient_phone_number",
+            "extracted_value": "(217) 555-1234",
+            "expected_value": "555-123-4567",
+            "similarity_score": 61.53846153846154
+        },
+        {
+            "key": "physician_name",
+            "extracted_value": "Dr. John A. Smith, MD",
+            "expected_value": "Shiva Pedram, MD",
+            "similarity_score": 37.83783783783784
+        },
+        {
+            "key": "specialty",
+            "extracted_value": "Cardiology",
+            "expected_value": "Pediatrics",
+            "similarity_score": 30.000000000000004
+        },
+        {
+            "key": "office_phone",
+            "extracted_value": "(123) 456-7890",
+            "expected_value": "555-991-2750",
+            "similarity_score": 30.76923076923077
+        },
+        {
+            "key": "fax",
+            "extracted_value": "(123) 456-7891",
+            "expected_value": "555-786-5643",
+            "similarity_score": 30.76923076923077
+        },
+        {
+            "key": "office_address",
+            "extracted_value": "123 Medical Plaza, Suite 456, Springfield, IL 62704",
+            "expected_value": "5721 S Maryland Ave, Chicago, IL 60637",
+            "similarity_score": 42.69662921348315
+        },
+        {
+            "key": "diagnosis",
+            "extracted_value": "Chronic Obstructive Pulmonary Disease (COPD); Hypertension",
+            "expected_value": "Crohn's Disease; Anemia 2/2 blood loss",
+            "similarity_score": 37.5
+        },
+        {
+            "key": "icd_10_code",
+            "extracted_value": "J44.9; I10",
+            "expected_value": "K50.90; D50.9",
+            "similarity_score": 43.47826086956522
+        },
+        {
+            "key": "prior_treatments_and_results",
+            "extracted_value": "Albuterol inhaler - used for 6 months, provided temporary relief; Lisinopril - used for 1 year, controlled blood pressure; Fluticasone/Salmeterol (Advair) - used for 3 months, partial improvement in symptoms; Tiotropium (Spiriva) - used for 2 months, no significant improvement",
+            "expected_value": "Not provided",
+            "similarity_score": 7.612456747404838
+        },
+        {
+            "key": "specific_drugs_taken_and_failures",
+            "extracted_value": "Albuterol inhaler - temporary relief; Fluticasone/Salmeterol (Advair) - partial improvement; Tiotropium (Spiriva) - no significant improvement",
+            "expected_value": "Not provided",
+            "similarity_score": 11.688311688311693
+        },
+        {
+            "key": "alternative_drugs_required",
+            "extracted_value": "Patient must have tried at least two second-generation medications",
+            "expected_value": "Not provided",
+            "similarity_score": 17.948717948717952
+        },
+        {
+            "key": "relevant_lab_results_or_imaging",
+            "extracted_value": "Pulmonary function test (PFT) on 01/15/2023 - FEV1/FVC ratio: 0.65, indicating moderate obstruction; Chest X-ray on 12/20/2022 - hyperinflation of lungs, no acute infiltrates",
+            "expected_value": "Hemoglobin: 9.0 g/dL (11.5 - 15.5 g/dL); Hematocrit: 32% (34.5% - 44.5%); Red Blood Cells (RBC): 3.5 million/\u00b5L (4.0 - 5.5 million/\u00b5L); Mean Corpuscular Volume (MCV): 78 fL (80 - 100 fL); Mean Corpuscular Hemoglobin (MCH): 28 pg (27 - 31 pg); Mean Corpuscular Hemoglobin Concentration (MCHC): 34 g/dL (32 - 36 g/dL); Platelets: 450,000 cells/\u00b5L (150,000 - 400,000 cells/\u00b5L); White Blood Cells (WBC): 12,000 cells/\u00b5L (4,500 - 13,500 cells/\u00b5L); Bands (Immature Neutrophils): 5% (0 - 5%); Neutrophils: 75% (40 - 70%); Lymphocytes: 18% (20 - 50%); Monocytes: 4% (2 - 8%); Eosinophils: 1% (0 - 5%); Basophils: 0% (0 - 1%); Glucose: 90 mg/dL (70 - 100 mg/dL); BUN: 15 mg/dL (7 - 20 mg/dL); Creatinine: 0.5 mg/dL (0.3 - 0.7 mg/dL); Sodium: 138 mEq/L (135 - 145 mEq/L); Potassium: 4.0 mEq/L (3.5 - 5.0 mEq/L); Chloride: 102 mEq/L (98 - 107 mEq/L); Bicarbonate: 24 mEq/L (22 - 30 mEq/L); Calcium: 9.2 mg/dL (8.5 - 10.5 mg/dL); ESR: 15 mm/h (<20 mm/h); CRP: 12 mg/L (<5 mg/L); Fecal Calprotectin: 100 \u00b5g/g (<50 \u00b5g/g); Fecal Occult Blood: Positive (Negative); AST: 25 U/L (10 - 40 U/L); ALT: 22 U/L (7 - 56 U/L); ALP: 120 U/L (40 - 150 U/L); Bilirubin (Total): 0.6 mg/dL (0.1 - 1.2 mg/dL); Ferritin: 15 ng/mL (12 - 150 ng/mL); Iron: 40 \u00b5g/dL (50 - 150 \u00b5g/dL); Total Iron Binding Capacity (TIBC): 450 \u00b5g/dL (250 - 450 \u00b5g/dL); Folate Level: 5 ng/mL (4 - 20 ng/mL); Vitamin B12 Level: 300 pg/mL (200 - 900 pg/mL); EGD Findings: Biopsies obtained and pending; Esophagus: Normal appearance; Stomach: Gastritis, erythema present; Duodenum: Mild to moderate duodenitis with edema; Colonoscopy Findings: Biopsies obtained and pending; Ileum: Patchy inflammation with areas of erythema and ulceration; Colon: Diffuse inflammation. Granularity and friability present; Rectum: Mild inflammation; no significant ulceration; MRI enterography: pending",
+            "similarity_score": 13.600000000000001
+        },
+        {
+            "key": "symptom_severity_and_impact",
+            "extracted_value": "Patient experiences shortness of breath with minimal exertion, limiting daily activities such as walking and climbing stairs; frequent exacerbations requiring oral steroids",
+            "expected_value": "Patient has multiple episodes of abdominal cramping and bowel movements with visible hematochezia; Patient appears pale, tired but interactive; Positive for fatigue, pallor, abdominal pain, hematochezia, dizziness, blood loss (by rectum); HR 110 bpm; BP 110/70 mmHg; RR: 20 bpm; Temp: 98.6\u00b0F (37\u00b0C); Mild tachycardia present; Pallor present",
+            "similarity_score": 35.9375
+        },
+        {
+            "key": "prognosis_and_risk_if_not_approved",
+            "extracted_value": "Without the requested treatment, the patient's COPD is likely to progress, leading to increased hospitalizations and further decline in lung function",
+            "expected_value": "Continues to have frequent blood in stools and anemia as well as abdominal discomfort",
+            "similarity_score": 38.46153846153846
+        },
+        {
+            "key": "clinical_rationale_for_urgency",
+            "extracted_value": "Immediate need to prevent further exacerbations and hospitalizations due to worsening COPD symptoms",
+            "expected_value": "Urgent (In checking this box, I attest to the fact that applying the standard review time frame may seriously jeopardize the customer's life, health, or ability to regain maximum function)",
+            "similarity_score": 36.93379790940766
+        },
+        {
+            "key": "name_of_medication_or_procedure",
+            "extracted_value": "Roflumilast (Daliresp)",
+            "expected_value": "Adalimumab",
+            "similarity_score": 25.0
+        },
+        {
+            "key": "code_of_medication_or_procedure",
+            "extracted_value": "NDC 50458-0600-60",
+            "expected_value": "Not provided",
+            "similarity_score": 13.793103448275868
+        },
+        {
+            "key": "dosage",
+            "extracted_value": "500 mcg once daily",
+            "expected_value": "160 mg (given as four 40 mg injections on day 1) followed by 80 mg (given as two 40 mg injections) two weeks later. 40 mg every other week starting 2 weeks from 2nd dose.",
+            "similarity_score": 14.893617021276595
+        },
+        {
+            "key": "duration",
+            "extracted_value": "Ongoing treatment",
+            "expected_value": "6 months; 16 injections",
+            "similarity_score": 30.000000000000004
+        },
+        {
+            "key": "rationale",
+            "extracted_value": "Roflumilast is indicated for the reduction of COPD exacerbations in patients with severe COPD associated with chronic bronchitis and a history of exacerbations. The patient has not responded adequately to other treatments.",
+            "expected_value": "Patient will likely need to initiate biologic therapy given severity of symptoms",
+            "similarity_score": 33.11258278145696
+        },
+        {
+            "key": "presumed_eligibility",
+            "extracted_value": "Patient has tried and failed at least two second-generation medications, meeting the criteria for Roflumilast",
+            "expected_value": "Not provided",
+            "similarity_score": 11.570247933884293
+        }
+    ],
+    "pass": true,
+    "timestamp": "2024-12-28T13:09:35.704484"
+}
