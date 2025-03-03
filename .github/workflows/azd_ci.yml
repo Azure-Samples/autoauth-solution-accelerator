@@ -1,19 +1,21 @@
 name: AZD Infra Preview Test
 
-permissions:
-    contents: read
-    pull-requests: write
 
 on:
-    pull_request:
-      branches:
-        - main
+  pull_request:
+    branches:
+      - main
       paths:
         - 'infra/**'
         - '!**/*.md'
+        
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
 
 jobs:
-  build:
+  preview-provision:
     runs-on: ubuntu-latest
     env:
       AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
