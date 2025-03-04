@@ -330,6 +330,10 @@ var containerEnvArray = [
     name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
     value: monitoring.outputs.applicationInsightsConnectionString
   }
+  {
+    name: 'AZURE_AI_FOUNDRY_CONNECTION_STRING'
+    value: aiFoundry.outputs.aiFoundryConnectionString
+  }
 ]
 
 module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.8.1' = {
@@ -433,6 +437,22 @@ var jobAppContainers = {
   env: containerEnvArray
 }
 
+var agenticRagEvaluatorJob = {
+  name: 'evaluation-rag-${uniqueSuffix}'
+  image: backendImage
+  command: ['/bin/bash']
+  args: ['-c', 'python src/pipeline/agenticRag/evaluator.py']
+  env: containerEnvArray
+}
+
+// var autoDeterminationEvaluatorJob = {
+//   name: '${backendContainerName}-evaluations'
+//   image: backendImage
+//   command: ['/bin/bash']
+//   args: ['-c', 'python src/pipeline/agenticRag/evaluator.py']
+//   env: containerEnvArray
+// }
+
 module frontendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
   name: frontendContainerName
   params: {
@@ -523,6 +543,42 @@ module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
   }
 }
 
+module agenticRagEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
+  name: 'evaluation-rag-${uniqueSuffix}'
+  params: {
+    // Required parameters
+    containers: [
+      agenticRagEvaluatorJob
+    ]
+    environmentResourceId: containerAppsEnvironment.outputs.resourceId
+    name: 'evaluation-rag-${uniqueSuffix}'
+    triggerType: 'Manual'
+
+    // Non-required parameters
+    registries: registries
+    manualTriggerConfig: {
+      parallelism: 1
+      replicaCompletionCount: 1
+    }
+    replicaTimeout: 1000
+    replicaRetryLimit: 3
+    managedIdentities: {
+      userAssignedResourceIds:[
+        appIdentity.outputs.resourceId
+      ]
+    }
+    roleAssignments: [
+      {
+        name: guid('evaluation-rag-${uniqueSuffix}', 'Container App Jobs Operator')
+        principalId: appIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b') // Container App Job Contributor
+      }
+    ]
+    location: location
+  }
+}
+
 
 output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
 output AZURE_OPENAI_API_VERSION string = openAiApiVersion
@@ -553,3 +609,4 @@ output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryConnectionString
 
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
+output CONTAINER_EVALUATION_NAME string = agenticRagEvaluationsJob.outputs.name
