@@ -144,6 +144,7 @@ AZURE_CONTAINER_REGISTRY_ENDPOINT | string | Endpoint for Azure Container Regist
 AZURE_CONTAINER_ENVIRONMENT_ID | string | ID for Azure Container Environment
 AZURE_OPENAI_KEY | string | Key for Azure OpenAI
 AZURE_AI_SEARCH_SERVICE_ENDPOINT | string | Service endpoint for Azure AI Search
+AZURE_AI_FOUNDRY_CONNECTION_STRING | string | Connection string for AI Foundry
 
 ## Snippets
 

@@ -177,6 +177,7 @@ module aiFoundry 'modules/ai/aiFoundry.bicep' = {
     keyVaultId: vault.outputs.resourceId
     storageAccountId: storageAccount.outputs.storageAccountId
     aiServicesId: openAiService.outputs.aiServicesId
+    aiServicesKey: openAiService.outputs.aiServicesKey
     aiServicesTarget: openAiService.outputs.aiServicesEndpoint
     tags: tags
     location: location

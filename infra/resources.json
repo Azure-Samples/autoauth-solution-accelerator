@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.30.23.60470",
-      "templateHash": "17774227225110567393"
+      "templateHash": "5970470379826171038"
     }
   },
   "parameters": {
@@ -8701,6 +8701,9 @@
           "aiServicesId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesId.value]"
           },
+          "aiServicesKey": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesKey.value]"
+          },
           "aiServicesTarget": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
           },
@@ -8718,7 +8721,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.30.23.60470",
-              "templateHash": "10748319536187389554"
+              "templateHash": "8867416061721081712"
             }
           },
           "parameters": {
@@ -8783,6 +8786,12 @@
                 "description": "Resource ID of the AI Services resource"
               }
             },
+            "aiServicesKey": {
+              "type": "string",
+              "metadata": {
+                "description": "API key for the AI Services resource"
+              }
+            },
             "aiServicesTarget": {
               "type": "string",
               "metadata": {
@@ -8793,7 +8802,7 @@
               "type": "string",
               "defaultValue": "evaluations",
               "metadata": {
-                "description": "Name of the AI Foundry project"
+                "description": "Name of the AI Foundry project (evaluations)"
               }
             }
           },
@@ -8804,12 +8813,38 @@
           },
           "resources": [
             {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2021-02-01",
+              "name": "[format('{0}/{1}/{2}', variables('storageAccountName'), 'default', format('{0}-artifactstore', parameters('aiFoundryProjectName')))]",
+              "properties": {
+                "publicAccess": "None"
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/blobServices/containers",
+              "apiVersion": "2021-02-01",
+              "name": "[format('{0}/{1}/{2}', variables('storageAccountName'), 'default', format('{0}-blobstore', parameters('aiFoundryProjectName')))]",
+              "properties": {
+                "publicAccess": "None"
+              }
+            },
+            {
+              "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+              "apiVersion": "2023-05-01",
+              "name": "[format('{0}/{1}/{2}', variables('storageAccountName'), 'default', format('{0}-workingdirectory', parameters('aiFoundryProjectName')))]",
+              "properties": {
+                "accessTier": "TransactionOptimized",
+                "shareQuota": 102400,
+                "enabledProtocols": "SMB"
+              }
+            },
+            {
               "type": "Microsoft.MachineLearningServices/workspaces",
               "apiVersion": "2023-08-01-preview",
               "name": "[parameters('aiFoundryName')]",
               "location": "[parameters('location')]",
               "tags": "[parameters('tags')]",
-              "kind": "foundry",
+              "kind": "hub",
               "identity": {
                 "type": "SystemAssigned"
               },
@@ -8823,12 +8858,24 @@
               }
             },
             {
-              "type": "Microsoft.MachineLearningServices/workspaces/projects",
-              "apiVersion": "2023-08-01-preview",
-              "name": "[format('{0}/{1}', parameters('aiFoundryName'), parameters('aiFoundryProjectName'))]",
+              "type": "Microsoft.MachineLearningServices/workspaces",
+              "apiVersion": "2024-04-01-preview",
+              "name": "[parameters('aiFoundryProjectName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "kind": "Project",
+              "sku": {
+                "name": "Basic",
+                "tier": "Basic"
+              },
+              "identity": {
+                "type": "SystemAssigned"
+              },
               "properties": {
-                "displayName": "[parameters('aiFoundryProjectName')]",
-                "description": "AI Foundry project for evaluations"
+                "hubResourceId": "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName'))]",
+                "description": "AI Foundry project for evaluations",
+                "systemDatastoresAuthMode": "identity",
+                "discoveryUrl": "[format('https://{0}.api.azureml.ms/discovery', parameters('location'))]"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName'))]"
@@ -8836,19 +8883,25 @@
             },
             {
               "type": "Microsoft.MachineLearningServices/workspaces/connections",
-              "apiVersion": "2024-01-01-preview",
+              "apiVersion": "2024-07-01-preview",
               "name": "[format('{0}/{1}', parameters('aiFoundryName'), format('{0}-connection-AzureOpenAI', parameters('aiFoundryName')))]",
               "properties": {
                 "category": "AzureOpenAI",
                 "target": "[parameters('aiServicesTarget')]",
                 "authType": "ApiKey",
+                "useWorkspaceManagedIdentity": true,
                 "isSharedToAll": true,
+                "sharedUserList": [],
+                "peRequirement": "NotRequired",
+                "peStatus": "NotApplicable",
                 "credentials": {
-                  "key": "[format('{0}', listKeys(parameters('aiServicesId'), '2021-10-01').key1)]"
+                  "key": "[parameters('aiServicesKey')]"
                 },
                 "metadata": {
                   "ApiType": "Azure",
-                  "ResourceId": "[parameters('aiServicesId')]"
+                  "ResourceId": "[parameters('aiServicesId')]",
+                  "ApiVersion": "2023-07-01-preview",
+                  "DeploymentApiVersion": "2023-10-01-preview"
                 }
               },
               "dependsOn": [
@@ -8859,14 +8912,93 @@
               "type": "Microsoft.Authorization/roleAssignments",
               "apiVersion": "2022-04-01",
               "scope": "[format('Microsoft.Storage/storageAccounts/{0}', variables('storageAccountName'))]",
-              "name": "[guid(variables('storageAccountName'), parameters('aiFoundryName'), 'Storage Blob Data Contributor')]",
+              "name": "[guid(variables('storageAccountName'), parameters('aiFoundryName'), 'Storage File Data SMB Share Contributor')]",
               "properties": {
-                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')]",
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb')]",
                 "principalId": "[reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName')), '2023-08-01-preview', 'full').identity.principalId]",
                 "principalType": "ServicePrincipal"
               },
               "dependsOn": [
                 "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Authorization/roleAssignments",
+              "apiVersion": "2022-04-01",
+              "scope": "[format('Microsoft.Storage/storageAccounts/{0}', variables('storageAccountName'))]",
+              "name": "[guid(variables('storageAccountName'), parameters('aiFoundryProjectName'), 'Storage File Data SMB Share Contributor')]",
+              "properties": {
+                "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb')]",
+                "principalId": "[reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryProjectName')), '2024-04-01-preview', 'full').identity.principalId]",
+                "principalType": "ServicePrincipal"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryProjectName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.MachineLearningServices/workspaces/datastores",
+              "apiVersion": "2024-07-01-preview",
+              "name": "[format('{0}/{1}', parameters('aiFoundryProjectName'), format('{0}_workspaceartifactstore', parameters('aiFoundryProjectName')))]",
+              "properties": {
+                "credentials": {
+                  "credentialsType": "None"
+                },
+                "datastoreType": "AzureBlob",
+                "accountName": "[variables('storageAccountName')]",
+                "containerName": "[format('{0}-artifactstore', parameters('aiFoundryProjectName'))]",
+                "endpoint": "[environment().suffixes.storage]",
+                "protocol": "https",
+                "serviceDataAccessAuthIdentity": "WorkspaceSystemAssignedIdentity"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryProjectName'))]",
+                "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), 'Microsoft.Authorization/roleAssignments', guid(variables('storageAccountName'), parameters('aiFoundryProjectName'), 'Storage File Data SMB Share Contributor'))]",
+                "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), 'Microsoft.Authorization/roleAssignments', guid(variables('storageAccountName'), parameters('aiFoundryName'), 'Storage File Data SMB Share Contributor'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.MachineLearningServices/workspaces/datastores",
+              "apiVersion": "2024-07-01-preview",
+              "name": "[format('{0}/{1}', parameters('aiFoundryProjectName'), format('{0}_workspaceblobstore', parameters('aiFoundryProjectName')))]",
+              "properties": {
+                "credentials": {
+                  "credentialsType": "None"
+                },
+                "datastoreType": "AzureBlob",
+                "subscriptionId": "[subscription().subscriptionId]",
+                "resourceGroup": "[resourceGroup().name]",
+                "accountName": "[variables('storageAccountName')]",
+                "containerName": "[format('{0}-blobstore', parameters('aiFoundryProjectName'))]",
+                "endpoint": "[environment().suffixes.storage]",
+                "protocol": "https",
+                "serviceDataAccessAuthIdentity": "WorkspaceSystemAssignedIdentity"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryProjectName'))]",
+                "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), 'Microsoft.Authorization/roleAssignments', guid(variables('storageAccountName'), parameters('aiFoundryProjectName'), 'Storage File Data SMB Share Contributor'))]",
+                "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), 'Microsoft.Authorization/roleAssignments', guid(variables('storageAccountName'), parameters('aiFoundryName'), 'Storage File Data SMB Share Contributor'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.MachineLearningServices/workspaces/datastores",
+              "apiVersion": "2024-07-01-preview",
+              "name": "[format('{0}/{1}', parameters('aiFoundryProjectName'), format('{0}_workspaceworkingdirectory', parameters('aiFoundryProjectName')))]",
+              "properties": {
+                "credentials": {
+                  "credentialsType": "None"
+                },
+                "datastoreType": "AzureFile",
+                "accountName": "[variables('storageAccountName')]",
+                "fileShareName": "[format('{0}-workingdirectory', parameters('aiFoundryProjectName'))]",
+                "endpoint": "[environment().suffixes.storage]",
+                "protocol": "https",
+                "serviceDataAccessAuthIdentity": "None"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryProjectName'))]",
+                "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), 'Microsoft.Authorization/roleAssignments', guid(variables('storageAccountName'), parameters('aiFoundryProjectName'), 'Storage File Data SMB Share Contributor'))]",
+                "[extensionResourceId(resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName')), 'Microsoft.Authorization/roleAssignments', guid(variables('storageAccountName'), parameters('aiFoundryName'), 'Storage File Data SMB Share Contributor'))]"
               ]
             }
           ],
@@ -8881,7 +9013,7 @@
             },
             "aiFoundryConnectionString": {
               "type": "string",
-              "value": "[format('{0};{1};{2};{3}', replace(replace(reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryName')), '2023-08-01-preview').discoveryUrl, 'https://', ''), '/discovery', ''), variables('subscriptionId'), variables('resourceGroupName'), parameters('aiFoundryProjectName'))]"
+              "value": "[format('{0};{1};{2};{3}', replace(replace(reference(resourceId('Microsoft.MachineLearningServices/workspaces', parameters('aiFoundryProjectName')), '2024-04-01-preview').discoveryUrl, 'https://', ''), '/discovery', ''), variables('subscriptionId'), variables('resourceGroupName'), parameters('aiFoundryProjectName'))]"
             }
           }
         }

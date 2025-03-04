@@ -28,13 +28,16 @@ param storageAccountId string
 @description('Resource ID of the AI Services resource')
 param aiServicesId string
 
+@description('API key for the AI Services resource')
+param aiServicesKey string
+
 @description('Target endpoint of the AI Services')
 param aiServicesTarget string
 
-@description('Name of the AI Foundry project')
+@description('Name of the AI Foundry project (evaluations)')
 param aiFoundryProjectName string = 'evaluations'
 
-// Get the storage account name from its resource ID
+// Extract the storage account name from its resource ID
 var storageAccountName = last(split(storageAccountId, '/'))
 
 // Reference the existing storage account
@@ -42,12 +45,53 @@ resource existingStorageAccount 'Microsoft.Storage/storageAccounts@2021-04-01' e
   name: storageAccountName
 }
 
-// Create the AI Foundry instance (ML workspace with kind "foundry")
+// // Reference the existing blob service (always named 'default')
+// resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2021-02-01' existing = {
+//   parent: existingStorageAccount
+//   name: 'default'
+// }
+
+// // Create the artifact container in the existing storage account
+// resource artifactContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-02-01' = {
+//   parent: blobService
+//   name: '${aiFoundryProjectName}-artifactstore'
+//   properties: {
+//     publicAccess: 'None'
+//   }
+// }
+
+// // Create the blob container in the existing storage account
+// resource blobContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2021-02-01' = {
+//   parent: blobService
+//   name: '${aiFoundryProjectName}-blobstore'
+//   properties: {
+//     publicAccess: 'None'
+//   }
+// }
+
+// // Reference the existing file service (always named 'default')
+// resource fileService 'Microsoft.Storage/storageAccounts/fileServices@2023-05-01' existing = {
+//   parent: existingStorageAccount
+//   name: 'default'
+// }
+
+// // Create the file share for the working directory in the existing storage account
+// resource workingFileShare 'Microsoft.Storage/storageAccounts/fileServices/shares@2023-05-01' = {
+//   parent: fileService
+//   name: '${aiFoundryProjectName}-workingdirectory'
+//   properties: {
+//     accessTier: 'TransactionOptimized'
+//     shareQuota: 102400
+//     enabledProtocols: 'SMB'
+//   }
+// }
+
+// Create the AI Foundry instance (ML workspace with kind "hub")
 resource aiFoundry 'Microsoft.MachineLearningServices/workspaces@2023-08-01-preview' = {
   name: aiFoundryName
   location: location
   tags: tags
-  kind: 'foundry'
+  kind: 'hub'
   identity: {
     type: 'SystemAssigned'
   }
@@ -61,47 +105,150 @@ resource aiFoundry 'Microsoft.MachineLearningServices/workspaces@2023-08-01-prev
   }
 }
 
-// Create the AI Foundry project as a child resource of the AI Foundry instance
-resource aiFoundryProject 'Microsoft.MachineLearningServices/workspaces/projects@2023-08-01-preview' = {
+// Create the AI Foundry project (ML workspace with kind "Project")
+resource aiFoundryProject 'Microsoft.MachineLearningServices/workspaces@2024-04-01-preview' = {
   name: aiFoundryProjectName
-  parent: aiFoundry
+  location: location
+  tags: tags
+  kind: 'Project'
+  sku: {
+    name: 'Basic'
+    tier: 'Basic'
+  }
+  identity: {
+    type: 'SystemAssigned'
+  }
   properties: {
-    displayName: aiFoundryProjectName
+    hubResourceId: aiFoundry.id
     description: 'AI Foundry project for evaluations'
+    systemDatastoresAuthMode: 'identity'
+    discoveryUrl: 'https://${location}.api.azureml.ms/discovery'
   }
 }
 
-// Create a nested connection to the AI Services resource
-resource aiServicesConnection 'Microsoft.MachineLearningServices/workspaces/connections@2024-01-01-preview' = {
+// Create a nested connection to the AI Services resource under the hub using managed identity
+resource aiServicesConnection 'Microsoft.MachineLearningServices/workspaces/connections@2024-07-01-preview' = {
   name: '${aiFoundryName}-connection-AzureOpenAI'
   parent: aiFoundry
   properties: {
     category: 'AzureOpenAI'
     target: aiServicesTarget
     authType: 'ApiKey'
+    useWorkspaceManagedIdentity: true
     isSharedToAll: true
+    sharedUserList: []
+    peRequirement: 'NotRequired'
+    peStatus: 'NotApplicable'
     credentials: {
-      key: '${listKeys(aiServicesId, '2021-10-01').key1}'
+      key: aiServicesKey
     }
     metadata: {
       ApiType: 'Azure'
       ResourceId: aiServicesId
+      ApiVersion: '2023-07-01-preview'
+      DeploymentApiVersion: '2023-10-01-preview'
     }
   }
 }
 
-// Grant the Storage Blob Data Contributor role to the AI Foundry managed identity on the storage account
-resource uaiStorageBlobContrib 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+// // Grant the Storage Blob Data Contributor role on the storage account to the AI Foundry managed identity
+// resource uaiStorageBlobContrib 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+//   scope: existingStorageAccount
+//   name: guid(existingStorageAccount.name, aiFoundryName, 'Storage Blob Data Contributor')
+//   properties: {
+//     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
+//     principalId: aiFoundry.identity.principalId
+//     principalType: 'ServicePrincipal'
+//   }
+// }
+
+resource uaiStorageFileContrib 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: existingStorageAccount
-  name: guid(existingStorageAccount.name, aiFoundryName, 'Storage Blob Data Contributor')
+  name: guid(existingStorageAccount.name, aiFoundryName, 'Storage File Data SMB Share Contributor')
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb')
     principalId: aiFoundry.identity.principalId
     principalType: 'ServicePrincipal'
   }
 }
 
-var discoveryHost = replace(replace(aiFoundry.properties.discoveryUrl, 'https://', ''), '/discovery', '')
+resource uaiProjectStorageFileContrib 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: existingStorageAccount
+  name: guid(existingStorageAccount.name, aiFoundryProjectName, 'Storage File Data SMB Share Contributor')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0c867c2a-1d8c-454a-a3db-ab2ea1bdc8bb')
+    principalId: aiFoundryProject.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// // Datastore for workspace artifact store – using no service identity for data access
+// resource workspaceArtifactStore 'Microsoft.MachineLearningServices/workspaces/datastores@2024-07-01-preview' = {
+//   name: '${aiFoundryProjectName}_workspaceartifactstore'
+//   parent: aiFoundryProject
+//   dependsOn: [
+//     uaiProjectStorageFileContrib
+//     uaiStorageFileContrib
+//   ]
+//   properties: {
+//     credentials: {
+//       credentialsType: 'None'
+//     }
+//     datastoreType: 'AzureBlob'
+//     accountName: storageAccountName
+//     containerName: '${aiFoundryProjectName}-artifactstore'
+//     endpoint: environment().suffixes.storage
+//     protocol: 'https'
+//     serviceDataAccessAuthIdentity: 'WorkspaceSystemAssignedIdentity'
+//   }
+// }
+
+// // Datastore for workspace blob store – using the workspace system-assigned identity
+// resource workspaceBlobStore 'Microsoft.MachineLearningServices/workspaces/datastores@2024-07-01-preview' = {
+//   name: '${aiFoundryProjectName}_workspaceblobstore'
+//   parent: aiFoundryProject
+//   dependsOn: [
+//     uaiProjectStorageFileContrib
+//     uaiStorageFileContrib
+//   ]
+//   properties: {
+//     credentials: {
+//       credentialsType: 'None'
+//     }
+//     datastoreType: 'AzureBlob'
+//     subscriptionId: subscription().subscriptionId
+//     resourceGroup: resourceGroup().name
+//     accountName: storageAccountName
+//     containerName: '${aiFoundryProjectName}-blobstore'
+//     endpoint: environment().suffixes.storage
+//     protocol: 'https'
+//     serviceDataAccessAuthIdentity: 'WorkspaceSystemAssignedIdentity'
+//   }
+// }
+
+// resource workspaceWorkingDirectory 'Microsoft.MachineLearningServices/workspaces/datastores@2024-07-01-preview' = {
+//   name: '${aiFoundryProjectName}_workspaceworkingdirectory'
+//   parent: aiFoundryProject
+//   dependsOn: [
+//     uaiProjectStorageFileContrib
+//     uaiStorageFileContrib
+//     workingFileShare
+//   ]
+//   properties: {
+//     credentials: {
+//       credentialsType: 'None'
+//     }
+//     datastoreType: 'AzureFile'
+//     accountName: storageAccountName
+//     fileShareName: '${aiFoundryProjectName}-workingdirectory'
+//     endpoint: environment().suffixes.storage
+//     protocol: 'https'
+//     serviceDataAccessAuthIdentity: 'None'
+//   }
+// }
+
+// Build a connection string using the project discovery URL
+var discoveryHost = replace(replace(aiFoundryProject.properties.discoveryUrl, 'https://', ''), '/discovery', '')
 var subscriptionId = subscription().subscriptionId
 var resourceGroupName = toLower(resourceGroup().name)
 var connectionString = '${discoveryHost};${subscriptionId};${resourceGroupName};${aiFoundryProjectName}'
