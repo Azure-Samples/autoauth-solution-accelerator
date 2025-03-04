@@ -5,6 +5,9 @@ targetScope = 'subscription'
 @description('Name of the environment that can be used as part of naming resource convention')
 param environmentName string
 
+@description('API Version of the Azure OpenAI Service. This is not the same as the model version.')
+param openaiApiVersion string = '2025-01-01-preview'
+
 @minLength(1)
 @description('Primary location for all resources. Not all regions are supported due to OpenAI limitations')
 @allowed([
@@ -41,20 +44,23 @@ param tags object = {
   location: location
 }
 
-@description('API Version of the OpenAI API')
-param openAiApiVersion string = '2024-08-01-preview'
+@description('Reasoning model object to be deployed to the OpenAI account. (i.e o1, o1-preview, o3-mini)')
+param reasoningModel object = {
+  name: 'o1'
+  version: '2025-01-01-preview'
+  skuName: 'GlobalStandard'
+  capacity: 100
+}
 
-@description('List of completion models to be deployed to the OpenAI account.')
-param chatCompletionModels array = [
-  {
-    name: 'o1'
-    version: '2024-12-17'
-    skuName: 'Standard'
-    capacity: 100
-  }
-]
+@description('Chat model object to be deployed to the OpenAI account. (i.e gpt-4o, gpt-4o-turbo, gpt-4o-turbo-16k, gpt-4o-turbo-32k)')
+param chatModel object = {
+  name: 'gpt-4o'
+  version: '2024-08-06'
+  skuName: 'Standard'
+  capacity: 100
+}
 
-@description('List of embedding models to be deployed to the OpenAI account.')
+@description('Embedding model to be deployed to the OpenAI account.')
 param embeddingModel object = {
     name: 'text-embedding-3-large'
     version: '1'
@@ -67,17 +73,16 @@ param embeddingModelDimension string = '3072' // for embeddings-3-large, 3072 is
 
 @description('Storage Blob Container name to land the files for Prior Auth')
 param storageBlobContainerName string = 'default'
+
 // Tags that should be applied to all resources.
 //
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
 // Example usage:
 //   tags: union(tags, { 'azd-service-name': <service name in azure.yaml> })
 var azd_tags = union(tags,{
-  'hidden-title': 'Prior Auth ${environmentName}'
+  'hidden-title': 'Auto Auth ${environmentName}'
   'azd-env-name': environmentName
 })
-
-
 
 // Organize resources in a resource group
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
@@ -93,8 +98,9 @@ module resources 'resources.bicep' = {
   params: {
     // Required Parameters
     priorAuthName: priorAuthName
-    openAiApiVersion: openAiApiVersion
-    chatCompletionModels: chatCompletionModels
+    openaiApiVersion: openaiApiVersion
+    chatModel: chatModel
+    reasoningModel: reasoningModel
     embeddingModel: embeddingModel
     embeddingModelDimension: embeddingModelDimension
     storageBlobContainerName: storageBlobContainerName
@@ -129,6 +135,8 @@ output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = resources.outputs.AZURE_OPENAI_C
 
 @description('Deployment name for Azure OpenAI chat model 01')
 output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01
+
+output AZURE_OPENAI_API_VERSION_O1 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
 
 @description('Embedding dimensions for Azure OpenAI')
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = resources.outputs.AZURE_OPENAI_EMBEDDING_DIMENSIONS
