@@ -13,6 +13,7 @@ on:
                 - all
                 - provision
                 - deploy
+                - destroy
   push:
     # Run when commits are pushed to mainline branch (main or master)
     # Set this to the mainline branch you are using
@@ -55,18 +56,47 @@ jobs:
         shell: pwsh
 
       - name: Azure CLI Login
-        uses: azure/login@v2
+        # Uses azure/login@v2.2
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          
-      - name: Provision Infrastructure
-        id: provision
-        run: azd provision --no-prompt
+          enable-AzPSSession: true
+
+      - name: Destroy Azure resources
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        id: destroy
+        uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
+        with:
+          azcliversion: latest
+          inlineScript: |
+            azd down --force --no-prompt --purge
         env:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
 
-      - name: Deploy Application
-        if: ${{ github.event.inputs.action == 'all' || github.event.inputs.action == 'deploy' }}
-        run: azd deploy --no-prompt
+      - name: Azure CLI script
+        if: ${{ github.event.inputs.action == 'provision' || github.event.inputs.action == 'all' }}
+        id: provision
+        # Uses azure/cli v2.1.0
+        uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
+        with:
+          azcliversion: latest
+          inlineScript: |
+            azd provision --no-prompt
+        env:
+          AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+    
+      - name: Azure CLI script
+        if: ${{ github.event.inputs.action == 'deploy' || (github.event.inputs.action == 'all' && steps.provision.outcome == 'success' ) }}
+        id: deploy
+        # Uses azure/cli v2.1.0
+        uses: azure/cli@089eac9d8cc39f5d003e94f8b65efc51076c9cbd
+        with:
+          azcliversion: latest
+          inlineScript: |
+            azd deploy --no-prompt
+        env:
+          AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+    
+
