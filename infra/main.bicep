@@ -136,7 +136,8 @@ output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = resources.outputs.AZURE_OPENAI_C
 @description('Deployment name for Azure OpenAI chat model 01')
 output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01
 
-output AZURE_OPENAI_API_VERSION_O1 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
+@description('Deployment openai version for chat model 01')
+output AZURE_OPENAI_API_VERSION_01 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
 
 @description('Embedding dimensions for Azure OpenAI')
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = resources.outputs.AZURE_OPENAI_EMBEDDING_DIMENSIONS
