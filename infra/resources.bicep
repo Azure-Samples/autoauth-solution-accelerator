@@ -50,7 +50,7 @@ var chatCompletionModels = [
 ]
 
 @description('Embedding model size for the OpenAI Embedding deployment')
-param embeddingModelDimension string = '1536'
+param embeddingModelDimension string
 
 @description('Storage Blob Container name to land the files for Prior Auth')
 param storageBlobContainerName string = 'default'
@@ -215,6 +215,10 @@ var containerEnvArray = [
     value: openaiApiVersion
   }
   {
+    name: 'AZURE_OPENAI_API_VERSION_01'
+    value: contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? openaiApiVersion : ''
+  }
+  {
     name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
     value: embeddingModel.name
   }
@@ -224,11 +228,7 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_01'
-    value: contains(reasoningModel.name, 'o1') ? reasoningModel.name : ''
-  }
-  {
-    name: 'AZURE_OPENAI_API_VERSION_O1'
-    value: contains(reasoningModel.name, 'o1') ? openaiApiVersion: ''
+    value: contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? reasoningModel.name : ''
   }
   {
     name: 'AZURE_OPENAI_EMBEDDING_DIMENSIONS'

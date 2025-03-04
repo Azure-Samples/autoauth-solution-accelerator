@@ -22,7 +22,7 @@
       "value": "${ACR_CONTAINER_IMAGE:-}"
     },
     "openAiApiVersion": {
-      "value": "${OPENAI_API_VERSION:-2025-01-01-preview}"
+      "value": "2025-01-01-preview"
     },
     "chatModel": {
       "value": {
