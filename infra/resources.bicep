@@ -609,4 +609,4 @@ output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryConnectionString
 
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
-output CONTAINER_EVALUATION_NAME string = agenticRagEvaluationsJob.outputs.name
+output CONTAINER_EVALUATION_AGENTIC string = agenticRagEvaluationsJob.outputs.name

@@ -3,7 +3,7 @@ if ((azd env get-value CONTAINER_JOB_RUN) -eq "true") {
     exit 0
 } else {
     # Define an array with the environment variable names that hold the job names.
-    $jobs = @("CONTAINER_JOB_NAME", "CONTAINER_EVALUATION_NAME")
+    $jobs = @("CONTAINER_JOB_NAME", "CONTAINER_EVALUATION_AGENTIC")
 
     $rg_name = azd env get-value RESOURCE_GROUP_NAME
     $acr_endpoint = azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT
