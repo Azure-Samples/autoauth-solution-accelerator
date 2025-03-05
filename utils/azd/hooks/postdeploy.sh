@@ -13,7 +13,7 @@ else
     echo "Logging into Azure Container Registry..."
     az acr login --name $(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)
     job_name=$(azd env get-value CONTAINER_JOB_NAME)
-    rg_name=$(azd env get-value RESOURCE_GROUP_NAME)
+    rg_name=$(azd env get-value AZURE_RESOURCE_GROUP)
 
     # This is a workaround to the AZD limitation of updating the Container App Job
     # image after deployment of the services.

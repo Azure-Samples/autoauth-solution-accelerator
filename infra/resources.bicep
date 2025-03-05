@@ -30,6 +30,8 @@ param priorAuthName string = 'priorAuth'
 @description('Set of tags to apply to all resources.')
 param tags object = {}
 
+param openaiApiVersion string
+
 // @description('Admin password for the cluster')
 // @secure()
 // param cosmosAdministratorPassword string
@@ -37,29 +39,20 @@ param tags object = {}
 param cosmosDbCollectionName string = 'temp'
 param cosmosDbDatabaseName string = 'priorauthsessions'
 
-@description('API Version of the OpenAI API')
-param openAiApiVersion string = '2024-08-01-preview'
+param reasoningModel object
 
-@description('List of completion models to be deployed to the OpenAI account.')
-param chatCompletionModels array = [
-  {
-    name: 'gpt-4o'
-    version: '2024-08-06'
-    skuName: 'GlobalStandard'
-    capacity: 25
-  }
+param chatModel object
+
+param embeddingModel object
+
+// Create an array of models for the OpenAI service deployment
+var chatCompletionModels = [
+  chatModel
+  reasoningModel
 ]
 
-@description('List of embedding models to be deployed to the OpenAI account.')
-param embeddingModel object = {
-    name: 'text-embedding-ada-002'
-    version: '2'
-    skuName: 'Standard'
-    capacity: 16
-}
-
 @description('Embedding model size for the OpenAI Embedding deployment')
-param embeddingModelDimension string = '1536'
+param embeddingModelDimension string
 
 @description('Storage Blob Container name to land the files for Prior Auth')
 param storageBlobContainerName string = 'default'
@@ -222,7 +215,11 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_OPENAI_API_VERSION'
-    value: openAiApiVersion
+    value: openaiApiVersion
+  }
+  {
+    name: 'AZURE_OPENAI_API_VERSION_01'
+    value: contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? openaiApiVersion : ''
   }
   {
     name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
@@ -230,11 +227,11 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_ID'
-    value: chatCompletionModels[0].name
+    value: chatModel.name
   }
   {
     name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_01'
-    value:chatCompletionModels[0].name
+    value: contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? reasoningModel.name : ''
   }
   {
     name: 'AZURE_OPENAI_EMBEDDING_DIMENSIONS'
@@ -546,10 +543,11 @@ module beAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
 }
 
 output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
-output AZURE_OPENAI_API_VERSION string = openAiApiVersion
+output AZURE_OPENAI_API_VERSION string = chatModel.version
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingModel.name
 output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = chatCompletionModels[0].name
-output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = chatCompletionModels[0].name
+output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = contains(reasoningModel.name, 'o1') ? reasoningModel.name : ''
+output AZURE_OPENAI_API_VERSION_O1 string = contains(reasoningModel.name, 'o1') ? reasoningModel.version : ''
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = embeddingModelDimension
 output AZURE_SEARCH_SERVICE_NAME string = searchService.outputs.searchServiceName
 output AZURE_SEARCH_INDEX_NAME string = 'ai-policies-index'
