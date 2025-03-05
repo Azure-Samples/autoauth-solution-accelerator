@@ -165,9 +165,9 @@ class PipelineEvaluator(ABC):
 
     def _get_git_hash(self) -> str:
         """Retrieve the current Git commit hash (short version)."""
-        github_commit = os.environ.get("GITHUB_HASH")
-        if github_commit:
-            return github_commit
+        git_hash = os.environ.get("GIT_HASH")
+        if git_hash:
+            return git_hash
 
         try:
             git_hash = (
