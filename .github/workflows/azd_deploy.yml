@@ -13,6 +13,7 @@ on:
                 - all
                 - provision
                 - deploy
+                - destroy
   push:
     # Run when commits are pushed to mainline branch (main or master)
     # Set this to the mainline branch you are using
@@ -31,23 +32,31 @@ permissions:
   id-token: write
   contents: read
 
+env:
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
+  AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
 
 jobs:
-  build:
+  provision:
     runs-on: ubuntu-latest
-    env:
-      AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
-      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-      AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
-      AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Install azd
         uses: Azure/setup-azd@ae0f8b5482eeac61e940f447327d84c73beb8b1e
+      - name: Azure CLI Login
+        # Uses azure/login@v2.2
+        uses: azure/login@a65d910e8af852a8061c627c456678983e180302
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          enable-AzPSSession: true
 
-      - name: Log in with Azure (Federated Credentials)
+      - name: Log in with Azure Developer CLI (Federated Credentials)
         run: |
           azd auth login `
             --client-id "$Env:AZURE_CLIENT_ID" `
@@ -55,18 +64,28 @@ jobs:
             --tenant-id "$Env:AZURE_TENANT_ID"
         shell: pwsh
 
-        # This step provisions the infrastructure only if there are changes in the 'infra' directory,
-        # or if the action input is set to 'all' or 'provision'.
-        # It runs the 'azd provision' command with no prompts.
-      - name: Provision Infrastructure
-        id: provision
-        run: azd provision --no-prompt
+      - name: Destroy Azure resources
+        if: ${{ github.event.inputs.action == 'destroy' }}
+        run: |
+          azd down --force --no-prompt --purge
+        shell: pwsh
         env:
-          # azd uses a pipeline secret called AZD_INITIAL_ENVIRONMENT_CONFIG to automatically save
-          # and set the value of all the required parameters in the pipeline.
-          # You only need to reference this secret in your pipeline:
+          AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+
+      - name: Provision Infrastructure
+        if: ${{ github.event.inputs.action == 'provision' || github.event.inputs.action == 'all' }}
+        id: provision
+        run: |
+          azd provision --no-prompt
+        shell: pwsh
+        env:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
 
       - name: Deploy Application
-        if: ${{ steps.provision.outputs.provisioned == 'true' || contains(github.event.head_commit.message, '/src/') || contains(github.event.head_commit.message, '/app/') || github.event.inputs.action == 'all' || github.event.inputs.action == 'provision' }}
-        run: azd deploy --no-prompt
+        if: ${{ github.event.inputs.action == 'deploy' || (github.event.inputs.action == 'all' && steps.provision.outcome == 'success' ) }}
+        run: |
+          azd deploy --no-prompt
+        shell: pwsh
+        env:
+          AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+      
