@@ -1,5 +1,8 @@
 targetScope = 'subscription'
 
+@description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
+param enableEasyAuth bool = true
+
 @minLength(1)
 @maxLength(64)
 @description('Name of the environment that can be used as part of naming resource convention')
@@ -78,18 +81,21 @@ var azd_tags = union(tags,{
 })
 
 
-
-// Organize resources in a resource group
+// ----------------------------------------------------------------------------------------
+// Creating the resource group for the PriorAuth solution
+// ----------------------------------------------------------------------------------------
 resource rg 'Microsoft.Resources/resourceGroups@2021-04-01' = {
   name: 'rg-${priorAuthName}-${location}-${environmentName}'
   location: location
   tags: azd_tags
 }
 
-
+// ----------------------------------------------------------------------------------------
+// Deploying the main components of the PriorAuth solution
+// ----------------------------------------------------------------------------------------
 module resources 'resources.bicep' = {
   scope: rg
-  name: 'resources'
+  name: 'autoauth-resources'
   params: {
     // Required Parameters
     priorAuthName: priorAuthName
@@ -99,11 +105,14 @@ module resources 'resources.bicep' = {
     embeddingModelDimension: embeddingModelDimension
     storageBlobContainerName: storageBlobContainerName
     // Optional Parameters
+    enableEasyAuth: enableEasyAuth
     tags: azd_tags
     frontendExists: frontendExists
     backendExists: backendExists
   }
 }
+
+
 
 // ----------------------------------------------------------------------------------------
 // Setting the outputs at main.bicep (or whatever is defined in your azure.yaml's infra block) sets

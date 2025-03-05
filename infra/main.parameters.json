@@ -10,7 +10,7 @@
       "value": "${AZURE_LOCATION:-eastus2}"
     },
     "priorAuthName": {
-      "value": "${PRIOR_AUTH_NAME:-priorAuth}"
+      "value": "${PRIOR_AUTH_NAME:-autoauth}"
     },
     "frontendExists": {
       "value": "${SERVICE_FRONTEND_RESOURCE_EXISTS:-false}"

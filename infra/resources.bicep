@@ -18,6 +18,8 @@
 param frontendExists bool = false
 param backendExists bool = false
 // ----------------------------------------------------------------------------------------
+@description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
+param enableEasyAuth bool = true
 
 // Execute this main file to deploy Prior Authorization related resources in a basic configuration
 @minLength(2)
@@ -67,7 +69,7 @@ var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 7)
 var storageServiceName = toLower(replace('storage-${name}-${uniqueSuffix}', '-', ''))
 var location = resourceGroup().location
 
-// @TODO: Replace with AVM module
+// @TODO: Replace with AVM module; consolidate into AI Service
 module docIntelligence 'modules/ai/docintelligence.bicep' = {
   name: 'doc-intelligence-${name}-${uniqueSuffix}-deployment'
   params: {
@@ -208,6 +210,7 @@ module registry 'br/public:avm/res/container-registry/registry:0.1.1' = {
 
 var storageConnString = 'ResourceId=${storageAccount.outputs.storageAccountId}'
 
+
 var containerEnvArray = [
   {
     name: 'AZURE_CLIENT_ID'
@@ -269,7 +272,6 @@ var containerEnvArray = [
     name: 'AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT'
     value: docIntelligence.outputs.aiServicesEndpoint
   }
-  // Secrets
   {
     name: 'AZURE_OPENAI_KEY'
     value: openAiService.outputs.aiServicesKey
@@ -278,10 +280,6 @@ var containerEnvArray = [
     name: 'AZURE_AI_SEARCH_ADMIN_KEY'
     value: searchService.outputs.searchServicePrimaryKey
   }
-  // {
-  //   name: 'AZURE_STORAGE_ACCOUNT_KEY'
-  //   value: storageAccount.outputs.storageAccountPrimaryKey
-  // }
   {
     name: 'AZURE_STORAGE_CONNECTION_STRING'
     value: storageConnString
@@ -383,6 +381,7 @@ var frontendContainer = {
     memory: '4Gi'
   }
   env: containerEnvArray
+
 }
 
 var backendContainer = {
@@ -397,7 +396,7 @@ var backendContainer = {
   env: containerEnvArray
 }
 
-var jobAppContainers = {
+var jobAppContainer = {
   name: '${backendContainerName}-job'
   image: frontendImage
   command: ['/bin/bash']
@@ -405,7 +404,7 @@ var jobAppContainers = {
   env: containerEnvArray
 }
 
-module frontendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
+module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
   name: frontendContainerName
   params: {
     // Required parameters
@@ -413,6 +412,13 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
     environmentResourceId: containerAppsEnvironment.outputs.resourceId
     containers: [
       frontendContainer
+    ]
+
+    secrets: [
+      {
+        name: 'override-use-mi-fic-assertion-client-id'
+        value: appIdentity.outputs.clientId
+      }
     ]
 
     // Non-required parameters
@@ -433,7 +439,7 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
   }
 }
 
-module backendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
+module backendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
   name: backendContainerName
   params: {
     // Required parameters
@@ -441,6 +447,12 @@ module backendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
     environmentResourceId: containerAppsEnvironment.outputs.resourceId
     containers: [
       backendContainer
+    ]
+    secrets: [
+      {
+        name: 'override-use-mi-fic-assertion-client-id'
+        value: appIdentity.outputs.clientId
+      }
     ]
 
     // Non-required parameters
@@ -464,7 +476,7 @@ module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
   params: {
     // Required parameters
     containers: [
-      jobAppContainers
+      jobAppContainer
     ]
     environmentResourceId: containerAppsEnvironment.outputs.resourceId
     name: '${backendContainerName}-job'
@@ -495,6 +507,43 @@ module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
   }
 }
 
+// ----------------------------------------------------------------------------------------
+// Enabling EasyAuth for the ContainerApps
+// ----------------------------------------------------------------------------------------
+var issuer = '${environment().authentication.loginEndpoint}${tenant().tenantId}/v2.0'
+module easyAuthAppReg './modules/security/appregistration.bicep' = if (enableEasyAuth) {
+  name: 'easyauth-reg'
+  params: {
+    clientAppName: '${priorAuthName}-${uniqueSuffix}-easyauth-client-app'
+    clientAppDisplayName: '${priorAuthName}-${uniqueSuffix}-EasyAuth-app'
+    webAppEndpoint: 'https://${frontendContainerApp.outputs.fqdn}'
+    webAppIdentityId: appIdentity.outputs.principalId
+    issuer: issuer
+    // serviceManagementReference: serviceManagementReference
+  }
+}
+
+module feAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
+  name: 'easyauth-frontend-appupdate'
+  params: {
+    containerAppName: frontendContainerApp.outputs.name
+    clientId: easyAuthAppReg.outputs.clientAppId
+    openIdIssuer: issuer
+    // includeTokenStore: includeTokenStore
+    // appIdentityResourceId: includeTokenStore ? aca.outputs.identityResourceId : ''
+  }
+}
+
+module beAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
+  name: 'easyauth-backend-appupdate'
+  params: {
+    containerAppName: backendContainerApp.outputs.name
+    clientId: easyAuthAppReg.outputs.clientAppId
+    openIdIssuer: issuer
+    // includeTokenStore: includeTokenStore
+    // appIdentityResourceId: includeTokenStore ? aca.outputs.identityResourceId : ''
+  }
+}
 
 output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
 output AZURE_OPENAI_API_VERSION string = openAiApiVersion
@@ -522,5 +571,11 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_CONTAINER_ENVIRONMENT_ID string = containerAppsEnvironment.outputs.resourceId
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerAppsEnvironment.outputs.name
 output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
-
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
+
+output FRONTEND_CONTAINER_URL string = frontendContainerApp.outputs.fqdn
+output FRONTEND_CONTAINER_NAME string = frontendContainerApp.outputs.name
+output BACKEND_CONTAINER_URL string = backendContainerApp.outputs.fqdn
+output BACKEND_CONTAINER_NAME string = backendContainerApp.outputs.name
+output APP_IDENTITY_CLIENT_ID string = appIdentity.outputs.clientId
+output APP_IDENTITY_PRINCIPAL_ID string = appIdentity.outputs.principalId
