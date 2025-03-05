@@ -213,6 +213,16 @@ resource uaiStorageBlobReader 'Microsoft.Authorization/roleAssignments@2022-04-0
   }
 }
 
+resource aiFoundryWorkspaceReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiFoundry.name, appIdentity.name, 'Azure AI Developer')
+  scope: resourceGroup()
+  properties: {
+    principalId: appIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee') // Contributor Role ID
+  }
+}
+
 /**
  * Container related configurations start here.
  */
