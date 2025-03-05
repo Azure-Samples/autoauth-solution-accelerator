@@ -6,6 +6,9 @@ if ($(azd env get-value CONTAINER_JOB_RUN) -eq "true") {
     $rg_name = $(azd env get-value RESOURCE_GROUP_NAME)
     Write-Output "Logging into Azure Container Registry..."
     az acr login --name $(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)
+
+    # This is a workaround to the AZD limitation of updating the Container App Job
+    # image after deployment of the services.
     Write-Output "Updating container app job image..."
     az containerapp job update `
         -g $rg_name `

@@ -15,6 +15,8 @@ else
     job_name=$(azd env get-value CONTAINER_JOB_NAME)
     rg_name=$(azd env get-value RESOURCE_GROUP_NAME)
 
+    # This is a workaround to the AZD limitation of updating the Container App Job
+    # image after deployment of the services.
     echo "Updating container app job image..."
     az containerapp job update \
         -g $rg_name \
