@@ -595,7 +595,101 @@ module agenticRagEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
   }
 }
 
+//
+// ----------------------------------------------------------
+// Additional Evaluator Jobs for 'autoDetermination' and 'clinicalExtractor'
+// ----------------------------------------------------------
+//
 
+var autoDeterminationEvaluatorJob = {
+  name: 'evaluation-autodetermination-${uniqueSuffix}'     // lower-case
+  image: frontendImage                                    // or backendImage, if appropriate
+  command: ['/bin/bash']
+  args: [
+    '-c'
+    'python src/pipeline/autoDetermination/evaluator.py'
+  ]
+  env: containerEnvArray
+}
+
+module autoDeterminationEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
+  name: 'evaluation-autodetermination-${uniqueSuffix}'     // must match the above job's name
+  params: {
+    containers: [
+      autoDeterminationEvaluatorJob
+    ]
+    environmentResourceId: containerAppsEnvironment.outputs.resourceId
+    name: 'evaluation-autodetermination-${uniqueSuffix}'
+    triggerType: 'Manual'
+    manualTriggerConfig: {
+      parallelism: 1
+      replicaCompletionCount: 1
+    }
+    replicaTimeout: 1000
+    replicaRetryLimit: 3
+    managedIdentities: {
+      userAssignedResourceIds: [
+        appIdentity.outputs.resourceId
+      ]
+    }
+    roleAssignments: [
+      {
+        name: guid('evaluation-autodetermination-${uniqueSuffix}', 'Container App Jobs Operator')
+        principalId: appIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+        // Container App Job Contributor
+        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b')
+      }
+    ]
+    location: location
+  }
+}
+
+var clinicalExtractorEvaluatorJob = {
+  name: 'evaluation-clinicalextractor-${uniqueSuffix}'     // lower-case
+  image: frontendImage                                    // or backendImage, if appropriate
+  command: ['/bin/bash']
+  args: [
+    '-c'
+    'python src/pipeline/clinicalExtractor/evaluator.py'
+  ]
+  env: containerEnvArray
+}
+
+module clinicalExtractorEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
+  name: 'evaluation-clinicalextractor-${uniqueSuffix}'     // must match the above job's name
+  params: {
+    containers: [
+      clinicalExtractorEvaluatorJob
+    ]
+    environmentResourceId: containerAppsEnvironment.outputs.resourceId
+    name: 'evaluation-clinicalextractor-${uniqueSuffix}'
+    triggerType: 'Manual'
+    manualTriggerConfig: {
+      parallelism: 1
+      replicaCompletionCount: 1
+    }
+    replicaTimeout: 1000
+    replicaRetryLimit: 3
+    managedIdentities: {
+      userAssignedResourceIds: [
+        appIdentity.outputs.resourceId
+      ]
+    }
+    roleAssignments: [
+      {
+        name: guid('evaluation-clinicalextractor-${uniqueSuffix}', 'Container App Jobs Operator')
+        principalId: appIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+        // Container App Job Contributor
+        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b')
+      }
+    ]
+    location: location
+  }
+}
+
+// If you want to expose them as outputs too, you can optionally add:
 output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
 output AZURE_OPENAI_API_VERSION string = openAiApiVersion
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingModel.name
@@ -626,3 +720,6 @@ output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryCo
 
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
 output CONTAINER_EVALUATION_AGENTIC string = agenticRagEvaluationsJob.outputs.name
+output CONTAINER_EVALUATION_AUTO_DETERMINATION string = autoDeterminationEvaluationsJob.outputs.name
+output CONTAINER_EVALUATION_CLINICAL_EXTRACTOR string = clinicalExtractorEvaluationsJob.outputs.nam
+
