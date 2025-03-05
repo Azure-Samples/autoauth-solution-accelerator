@@ -134,12 +134,12 @@ class PipelineEvaluator(ABC):
                             "azure_endpoint": os.environ.get("AZURE_OPENAI_ENDPOINT"),
                             "api_key": os.environ.get("AZURE_OPENAI_KEY"),
                             "azure_deployment": os.environ.get(
-                                "AZURE_OPENAI_DEPLOYMENT"
+                                "AZURE_OPENAI_CHAT_DEPLOYMENT_ID"
                             ),
                         }
                         if any(value is None for value in model_config.values()):
                             raise ValueError(
-                                "model_config has null values, please check your environment variables: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_OPENAI_DEPLOYMENT."
+                                "model_config has null values, please check your environment variables: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_OPENAI_CHAT_DEPLOYMENT_ID."
                             )
                         args["model_config"] = model_config
 
@@ -165,6 +165,10 @@ class PipelineEvaluator(ABC):
 
     def _get_git_hash(self) -> str:
         """Retrieve the current Git commit hash (short version)."""
+        github_commit = os.environ.get("GITHUB_HASH")
+        if github_commit:
+            return github_commit
+
         try:
             git_hash = (
                 subprocess.check_output(

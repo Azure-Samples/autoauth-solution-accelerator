@@ -439,7 +439,7 @@ var jobAppContainers = {
 
 var agenticRagEvaluatorJob = {
   name: 'evaluation-rag-${uniqueSuffix}'
-  image: backendImage
+  image: frontendImage
   command: ['/bin/bash']
   args: ['-c', 'python src/pipeline/agenticRag/evaluator.py']
   env: containerEnvArray
