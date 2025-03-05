@@ -56,6 +56,8 @@ param embeddingModel object = {
     capacity: 16
 }
 
+param gitHash string = ''
+
 @description('Embedding model size for the OpenAI Embedding deployment')
 param embeddingModelDimension string = '1536'
 
@@ -343,6 +345,10 @@ var containerEnvArray = [
   {
     name: 'AZURE_AI_FOUNDRY_CONNECTION_STRING'
     value: aiFoundry.outputs.aiFoundryConnectionString
+  }
+  {
+    name: 'GIT_HASH'
+    value: gitHash
   }
 ]
 

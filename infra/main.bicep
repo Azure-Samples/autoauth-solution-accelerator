@@ -39,6 +39,7 @@ param priorAuthName string = 'priorAuth'
 param tags object = {
   environment: environmentName
   location: location
+  commit: GIT_HASH
 }
 
 @description('API Version of the OpenAI API')
@@ -61,6 +62,9 @@ param embeddingModel object = {
     skuName: 'Standard'
     capacity: 50
 }
+
+@description('Unique hash of the git commit that is being deployed. This is used to tag resources and support llm evaluation automation.')
+param GIT_HASH string = 'azd-deploy-1741105197' // This is the git hash of the commit that is being deployed. It is used to tag the image in ACR and also used to tag the container job in ACI. This is set by azd during deployment.
 
 @description('Embedding model size for the OpenAI Embedding deployment')
 param embeddingModelDimension string = '3072' // for embeddings-3-large, 3072 is expected
@@ -100,6 +104,7 @@ module resources 'resources.bicep' = {
     storageBlobContainerName: storageBlobContainerName
     // Optional Parameters
     tags: azd_tags
+    gitHash: GIT_HASH
     frontendExists: frontendExists
     backendExists: backendExists
   }

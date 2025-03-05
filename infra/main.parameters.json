@@ -21,6 +21,9 @@
     "acrContainerImage": {
       "value": "${ACR_CONTAINER_IMAGE:-}"
     },
+    "GIT_HASH": {
+      "value": "${GIT_HASH:-}"
+    },
     "openAiApiVersion": {
       "value": "${OPENAI_API_VERSION:-2024-08-01-preview}"
     },
