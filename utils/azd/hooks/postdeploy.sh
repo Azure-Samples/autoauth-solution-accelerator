@@ -20,7 +20,7 @@ else
     for job_var in "${jobs[@]}"; do
         job_name=$(azd env get-value "$job_var")
 
-        echo "Updating container app job image for job: $job_name..."
+        echo "Updating container app job image for job: $job_name, image: $image, rg: $rg_name"
         az containerapp job update \
             -g "$rg_name" \
             --name "$job_name" \

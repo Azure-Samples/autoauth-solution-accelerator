@@ -457,17 +457,9 @@ var agenticRagEvaluatorJob = {
   name: 'evaluation-rag-${uniqueSuffix}'
   image: frontendImage
   command: ['/bin/bash']
-  args: ['-c', 'python src/pipeline/agenticRag/evaluator.py']
+  args: ['-c', 'sleep 300 && python src/pipeline/agenticRag/evaluator.py']
   env: containerEnvArray
 }
-
-// var autoDeterminationEvaluatorJob = {
-//   name: '${backendContainerName}-evaluations'
-//   image: backendImage
-//   command: ['/bin/bash']
-//   args: ['-c', 'python src/pipeline/agenticRag/evaluator.py']
-//   env: containerEnvArray
-// }
 
 module frontendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
   name: frontendContainerName
@@ -595,32 +587,28 @@ module agenticRagEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
   }
 }
 
-//
-// ----------------------------------------------------------
-// Additional Evaluator Jobs for 'autoDetermination' and 'clinicalExtractor'
-// ----------------------------------------------------------
-//
-
 var autoDeterminationEvaluatorJob = {
-  name: 'evaluation-autodetermination-${uniqueSuffix}'     // lower-case
+  name: 'evaluation-ad-${uniqueSuffix}'     // lower-case
   image: frontendImage                                    // or backendImage, if appropriate
   command: ['/bin/bash']
   args: [
     '-c'
-    'python src/pipeline/autoDetermination/evaluator.py'
+    'sleep 300 && python src/pipeline/autoDetermination/evaluator.py'
   ]
   env: containerEnvArray
 }
 
 module autoDeterminationEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
-  name: 'evaluation-autodetermination-${uniqueSuffix}'     // must match the above job's name
+  name: 'evaluation-ad-${uniqueSuffix}'     // must match the above job's name
   params: {
     containers: [
       autoDeterminationEvaluatorJob
     ]
     environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    name: 'evaluation-autodetermination-${uniqueSuffix}'
+    name: 'evaluation-ad-${uniqueSuffix}'
     triggerType: 'Manual'
+
+    registries: registries
     manualTriggerConfig: {
       parallelism: 1
       replicaCompletionCount: 1
@@ -634,7 +622,7 @@ module autoDeterminationEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
     }
     roleAssignments: [
       {
-        name: guid('evaluation-autodetermination-${uniqueSuffix}', 'Container App Jobs Operator')
+        name: guid('evaluation-ad-${uniqueSuffix}', 'Container App Jobs Operator')
         principalId: appIdentity.outputs.principalId
         principalType: 'ServicePrincipal'
         // Container App Job Contributor
@@ -646,25 +634,27 @@ module autoDeterminationEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
 }
 
 var clinicalExtractorEvaluatorJob = {
-  name: 'evaluation-clinicalextractor-${uniqueSuffix}'     // lower-case
+  name: 'evaluation-ce-${uniqueSuffix}'     // lower-case
   image: frontendImage                                    // or backendImage, if appropriate
   command: ['/bin/bash']
   args: [
     '-c'
-    'python src/pipeline/clinicalExtractor/evaluator.py'
+    'sleep 300 && python src/pipeline/clinicalExtractor/evaluator.py'
   ]
   env: containerEnvArray
 }
 
 module clinicalExtractorEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
-  name: 'evaluation-clinicalextractor-${uniqueSuffix}'     // must match the above job's name
+  name: 'evaluation-ce-${uniqueSuffix}'     // must match the above job's name
   params: {
     containers: [
       clinicalExtractorEvaluatorJob
     ]
     environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    name: 'evaluation-clinicalextractor-${uniqueSuffix}'
+    name: 'evaluation-ce-${uniqueSuffix}'
     triggerType: 'Manual'
+
+    registries: registries
     manualTriggerConfig: {
       parallelism: 1
       replicaCompletionCount: 1
@@ -678,7 +668,7 @@ module clinicalExtractorEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
     }
     roleAssignments: [
       {
-        name: guid('evaluation-clinicalextractor-${uniqueSuffix}', 'Container App Jobs Operator')
+        name: guid('evaluation-ce-${uniqueSuffix}', 'Container App Jobs Operator')
         principalId: appIdentity.outputs.principalId
         principalType: 'ServicePrincipal'
         // Container App Job Contributor
@@ -721,5 +711,5 @@ output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryCo
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
 output CONTAINER_EVALUATION_AGENTIC string = agenticRagEvaluationsJob.outputs.name
 output CONTAINER_EVALUATION_AUTO_DETERMINATION string = autoDeterminationEvaluationsJob.outputs.name
-output CONTAINER_EVALUATION_CLINICAL_EXTRACTOR string = clinicalExtractorEvaluationsJob.outputs.nam
+output CONTAINER_EVALUATION_CLINICAL_EXTRACTOR string = clinicalExtractorEvaluationsJob.outputs.name
 
