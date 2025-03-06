@@ -138,6 +138,7 @@ class PipelineEvaluator(ABC):
                             "azure_deployment": os.environ.get(
                                 "AZURE_OPENAI_CHAT_DEPLOYMENT_ID"
                             ),
+                            "api_version": os.environ.get("AZURE_OPENAI_API_VERSION"),
                         }
                         if any(value is None for value in model_config.values()):
                             raise ValueError(

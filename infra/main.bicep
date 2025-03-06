@@ -124,7 +124,7 @@ output CONTAINER_JOB_NAME string = resources.outputs.CONTAINER_JOB_NAME
 output AZURE_OPENAI_ENDPOINT string = resources.outputs.AZURE_OPENAI_ENDPOINT
 
 @description('API version for Azure OpenAI')
-output AZURE_OPENAI_API_VERSION string = resources.outputs.AZURE_OPENAI_API_VERSION
+output AZURE_OPENAI_API_VERSION string = resources.outputs.AZURE_OPENAI_API_VERSION_O1 // hack for now, this is a mismatch intentionally
 
 @description('API version for Azure OpenAI O1')
 output AZURE_OPENAI_API_VERSION_O1 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
