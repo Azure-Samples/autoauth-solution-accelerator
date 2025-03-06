@@ -127,7 +127,7 @@ output AZURE_OPENAI_ENDPOINT string = resources.outputs.AZURE_OPENAI_ENDPOINT
 output AZURE_OPENAI_API_VERSION string = resources.outputs.AZURE_OPENAI_API_VERSION
 
 @description('API version for Azure OpenAI O1')
-output AZURE_OPENAI_API_VERSION_O1 string = resources.outputs.AZURE_OPENAI_API_VERSION
+output AZURE_OPENAI_API_VERSION_O1 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
 
 @description('Deployment name for Azure OpenAI embedding')
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = resources.outputs.AZURE_OPENAI_EMBEDDING_DEPLOYMENT
