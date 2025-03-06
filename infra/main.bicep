@@ -115,7 +115,7 @@ module resources 'resources.bicep' = {
 //  the environment variables within azd post provisioning
 // ----------------------------------------------------------------------------------------
 @description('Name of the resource group')
-output RESOURCE_GROUP_NAME string = rg.name
+output AZURE_RESOURCE_GROUP string = rg.name
 
 @description('Name of the container job')
 output CONTAINER_JOB_NAME string = resources.outputs.CONTAINER_JOB_NAME

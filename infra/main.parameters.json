@@ -46,7 +46,7 @@
       }
     },
     "embeddingModelDimension": {
-      "value": "${EMBEDDING_MODEL_DIMENSION:-1536}"
+      "value": "${EMBEDDING_MODEL_DIMENSION:-3072}"
     },
     "storageBlobContainerName": {
       "value": "${STORAGE_BLOB_CONTAINER_NAME:-default}"
