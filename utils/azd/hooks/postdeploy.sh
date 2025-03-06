@@ -11,7 +11,7 @@ elif [ -z "$(azd env get-value SERVICE_FRONTEND_IMAGE_NAME)" ]; then
 else
     echo "Logging into Azure Container Registry..."
     az acr login --name "$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)"
-    rg_name=$(azd env get-value RESOURCE_GROUP_NAME)
+    rg_name=$(azd env get-value AZURE_RESOURCE_GROUP)
     image=$(azd env get-value SERVICE_FRONTEND_IMAGE_NAME)
 
     # Array of job name environment variables.

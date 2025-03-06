@@ -5,7 +5,7 @@ if ((azd env get-value CONTAINER_JOB_RUN) -eq "true") {
     # Define an array with the environment variable names that hold the job names.
     $jobs = @("CONTAINER_JOB_NAME")
 
-    $rg_name = azd env get-value RESOURCE_GROUP_NAME
+    $rg_name = azd env get-value AZURE_RESOURCE_GROUP
     $acr_endpoint = azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT
     $image = azd env get-value SERVICE_FRONTEND_IMAGE_NAME
 
