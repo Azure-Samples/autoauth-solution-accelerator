@@ -203,55 +203,32 @@ The following test cases are currently under evaluation due to discrepancies and
 
 ## Usage
 
-To run the evaluations for specific pipelines, set the necessary environment variables and execute the corresponding evaluator script.
+To run the evaluations for specific pipelines, set the necessary environment variables and execute the corresponding evaluator script. `azd up` must be run first to set up the environment.
 
 **For the `agenticRag` evaluation pipeline:**
 
 ```bash
-export AZURE_OPENAI_ENDPOINT="https://foundryinstance12345.openai.azure.com" && \
-export AZURE_OPENAI_KEY="<scrubbed>" && \
-export AZURE_OPENAI_DEPLOYMENT="gpt-4o" && \
-export AZURE_AI_FOUNDRY_CONNECTION_STRING="eastus2.api.azureml.ms;28d2df62-e322-4b25-b581-c43b94bd2607;rg-priorauth-eastus2-hls-autoauth;evaluations" && \
-export PYTHONPATH="/Users/marcjimz/Documents/Development/gbb-ai-hls-factory-prior-auth:$PYTHONPATH" && \
+export PYTHONPATH=":$(pwd):$PYTHONPATH" && \
 python src/pipeline/agenticRag/evaluator.py
 ```
 
 **For the `clinicalExtractor` evaluation pipeline:**
 
 ```bash
-export AZURE_OPENAI_ENDPOINT="https://foundryinstance12345.openai.azure.com" && \
-export AZURE_OPENAI_KEY="<scrubbed>" && \
-export AZURE_OPENAI_DEPLOYMENT="gpt-4o" && \
-export AZURE_AI_FOUNDRY_CONNECTION_STRING="eastus2.api.azureml.ms;28d2df62-e322-4b25-b581-c43b94bd2607;rg-priorauth-eastus2-hls-autoauth;evaluations" && \
-export PYTHONPATH="/Users/marcjimz/Documents/Development/gbb-ai-hls-factory-prior-auth:$PYTHONPATH" && \
+export PYTHONPATH=":$(pwd):$PYTHONPATH" && \
 python src/pipeline/clinicalExtractor/evaluator.py
 ```
 
 **For the `autoDetermination` evaluation pipeline:**
 
 ```bash
-export AZURE_OPENAI_ENDPOINT="https://aoai-ai-factory-eus-dev.openai.azure.com" && \
-export AZURE_OPENAI_API_VERSION="2023-05-15" && \
-export AZURE_OPENAI_CHAT_DEPLOYMENT_ID="gpt-4o-standard" && \
-export AZURE_OPENAI_CHAT_DEPLOYMENT_01="o1-preview" && \
-export AZURE_OPENAI_KEY="" && \
-export AZURE_OPENAI_API_VERSION_01="2024-09-01-preview" && \
-export AZURE_AI_FOUNDRY_CONNECTION_STRING="eastus2.api.azureml.ms;28d2df62-e322-4b25-b581-c43b94bd2607;rg-priorauth-eastus2-hls-autoauth;evaluations" && \
+export PYTHONPATH=":$(pwd):$PYTHONPATH" && \
 python src/pipeline/autoDetermination/evaluator.py
 ```
 
 To run the e2e tests:
 
 ```bash
-export AZURE_OPENAI_ENDPOINT="https://aoai-ai-factory-eus-dev.openai.azure.com" && \
-export AZURE_OPENAI_API_VERSION="2023-05-15" && \
-export AZURE_OPENAI_CHAT_DEPLOYMENT_ID="gpt-4o-standard" && \
-export AZURE_OPENAI_CHAT_DEPLOYMENT_01="o1-preview" && \
-export AZURE_OPENAI_KEY="" && \
-export AZURE_OPENAI_API_VERSION_01="2024-09-01-preview" && \
-export export AZURE_AI_FOUNDRY_CONNECTION_STRING="eastus2.api.azureml.ms;28d2df62-e322-4b25-b581-c43b94bd2607;rg-priorauth-eastus2-hls-autoauth;evaluations" && \
-export AZURE_OPENAI_DEPLOYMENT="gpt-4o-standard" && \
-export PYTHONPATH="/Users/marcjimz/Documents/Development/gbb-ai-hls-factory-prior-auth:$PYTHONPATH" && \
 pytest --log-cli-level=DEBUG
 ```
 

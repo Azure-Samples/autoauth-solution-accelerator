@@ -30,11 +30,11 @@
     "chatCompletionModels": {
       "value": [
         {
-            "name": "gpt-4o",
-            "version": "2024-08-06",
-            "skuName": "GlobalStandard",
-            "capacity": 25
-          }
+          "name": "o1",
+          "version": "2024-12-17",
+          "skuName": "GlobalStandard",
+          "capacity": 100
+        }
       ]
     },
     "embeddingModel": {
@@ -42,7 +42,7 @@
         "name": "text-embedding-3-large",
         "version": "1",
         "skuName": "Standard",
-        "capacity": 25
+        "capacity": 100
       }
     },
     "embeddingModelDimension": {

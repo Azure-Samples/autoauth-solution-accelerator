@@ -1,11 +1,13 @@
 import importlib
 import inspect
+import json
 import logging
 import os
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
 from typing import List, Tuple, final
+from dotenv import load_dotenv
 
 import yaml
 from azure.ai.evaluation import evaluate
@@ -246,6 +248,39 @@ class PipelineEvaluator(ABC):
             # Key does not contain ':', treat value as a direct string (or raw data)
             return value
 
+    @final
+    def load_default_environment(self, config_file_path='.azure/config.json'):
+        """
+        Loads environment variables from the .env file specified by the default environment 
+        in the provided config file.
+
+        Args:
+            config_file_path (str): Path to the configuration JSON file. 
+                                    Defaults to '.azure/config.json'.
+
+        Raises:
+            ValueError: If the 'defaultEnvironment' key is not found in the config file or the .env file does not exist.
+        """
+        # Load the configuration JSON file
+        with open(config_file_path, 'r') as config_file:
+            config = json.load(config_file)
+        
+        # Retrieve the default environment
+        default_env = config.get("defaultEnvironment")
+        if not default_env:
+            raise ValueError("The 'defaultEnvironment' key was not found in the config file, make sure you run azd up.")
+
+        # Construct the path to the .env file for the default environment
+        env_file_path = os.path.join('.azure', default_env, '.env')
+        
+        # Check if the .env file exists
+        if not os.path.exists(env_file_path):
+            raise ValueError(f".env file not found at: {env_file_path}, make sure you run azd up successfully.")
+        
+        # Load the environment variables from the .env file
+        load_dotenv(dotenv_path=env_file_path)
+        print(f"Environment variables loaded from: {env_file_path}")
+        
     @abstractmethod
     async def preprocess(self):
         """

@@ -453,28 +453,28 @@ var jobAppContainers = {
   env: containerEnvArray
 }
 
-var evaluatorJob = {
-  name: 'evaluation-rag-${uniqueSuffix}'
-  image: frontendImage
-  command: ['/bin/bash']
-  // sleep 300 && 
-  args: ['-c', 'python src/pipeline/agenticRag/evaluator.py && python src/pipeline/autoDetermination/evaluator.py && python src/pipeline/clinicalExtractor/evaluator.py']
-  env: containerEnvArray
-  resources: {
-    cpu: '4.0'
-    memory: '8Gi'
-  }
-  volumeMounts: [
-    {
-      mountPath: '/root/.promptflow'
-      volumeName: 'promptflow'
-    }
-    {
-      mountPath: '/tmp'
-      volumeName: 'tmpemptydir'
-    }
-  ]
-}
+// var evaluatorJob = {
+//   name: 'evaluation-rag-${uniqueSuffix}'
+//   image: frontendImage
+//   command: ['/bin/bash']
+//   // sleep 300 && 
+//   args: ['-c', 'python src/pipeline/agenticRag/evaluator.py && python src/pipeline/autoDetermination/evaluator.py && python src/pipeline/clinicalExtractor/evaluator.py']
+//   env: containerEnvArray
+//   resources: {
+//     cpu: '4.0'
+//     memory: '8Gi'
+//   }
+//   volumeMounts: [
+//     {
+//       mountPath: '/root/.promptflow'
+//       volumeName: 'promptflow'
+//     }
+//     {
+//       mountPath: '/tmp'
+//       volumeName: 'tmpemptydir'
+//     }
+//   ]
+// }
 
 module frontendContainerApp 'br/public:avm/res/app/container-app:0.11.0' = {
   name: frontendContainerName
@@ -566,80 +566,18 @@ module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
   }
 }
 
-module evaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
-  name: 'evaluation-rag-${uniqueSuffix}'
-  params: {
-    // Required parameters
-    containers: [
-      evaluatorJob
-    ]
-    environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    name: 'evaluation-rag-${uniqueSuffix}'
-    triggerType: 'Manual'
-
-    // Non-required parameters
-    registries: registries
-    manualTriggerConfig: {
-      parallelism: 1
-      replicaCompletionCount: 1
-    }
-    replicaTimeout: 1000
-    replicaRetryLimit: 3
-    managedIdentities: {
-      userAssignedResourceIds:[
-        appIdentity.outputs.resourceId
-      ]
-    }
-    roleAssignments: [
-      {
-        name: guid('evaluation-rag-${uniqueSuffix}', 'Container App Jobs Operator')
-        principalId: appIdentity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b') // Container App Job Contributor
-      }
-    ]
-    volumes: [
-      {
-        name: 'promptflow'
-        storageType: 'EmptyDir'
-      }
-      {
-        name: 'tmpemptydir'
-        storageType: 'EmptyDir'
-      }
-    ]
-    location: location
-  }
-}
-
-// var autoDeterminationEvaluatorJob = {
-//   name: 'evaluation-ad-${uniqueSuffix}'     // lower-case
-//   image: frontendImage                                    // or backendImage, if appropriate
-//   command: ['/bin/bash']
-//   // 'sleep 300 && python src/pipeline/autoDetermination/evaluator.py'
-//   args: [
-//     '-c'
-//     'python src/pipeline/autoDetermination/evaluator.py'
-//   ]
-//   env: containerEnvArray
-//   volumeMounts: [
-//     {
-//       mountPath: '/root/.promptflow'
-//       volumeName: 'promptflow'
-//     }
-//   ]
-// }
-
-// module autoDeterminationEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
-//   name: 'evaluation-ad-${uniqueSuffix}'     // must match the above job's name
+// module evaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
+//   name: 'evaluation-rag-${uniqueSuffix}'
 //   params: {
+//     // Required parameters
 //     containers: [
-//       autoDeterminationEvaluatorJob
+//       evaluatorJob
 //     ]
 //     environmentResourceId: containerAppsEnvironment.outputs.resourceId
-//     name: 'evaluation-ad-${uniqueSuffix}'
+//     name: 'evaluation-rag-${uniqueSuffix}'
 //     triggerType: 'Manual'
 
+//     // Non-required parameters
 //     registries: registries
 //     manualTriggerConfig: {
 //       parallelism: 1
@@ -648,17 +586,16 @@ module evaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
 //     replicaTimeout: 1000
 //     replicaRetryLimit: 3
 //     managedIdentities: {
-//       userAssignedResourceIds: [
+//       userAssignedResourceIds:[
 //         appIdentity.outputs.resourceId
 //       ]
 //     }
 //     roleAssignments: [
 //       {
-//         name: guid('evaluation-ad-${uniqueSuffix}', 'Container App Jobs Operator')
+//         name: guid('evaluation-rag-${uniqueSuffix}', 'Container App Jobs Operator')
 //         principalId: appIdentity.outputs.principalId
 //         principalType: 'ServicePrincipal'
-//         // Container App Job Contributor
-//         roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b')
+//         roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b') // Container App Job Contributor
 //       }
 //     ]
 //     volumes: [
@@ -666,63 +603,8 @@ module evaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
 //         name: 'promptflow'
 //         storageType: 'EmptyDir'
 //       }
-//     ]
-//     location: location
-//   }
-// }
-
-// var clinicalExtractorEvaluatorJob = {
-//   name: 'evaluation-ce-${uniqueSuffix}'     // lower-case
-//   image: frontendImage                                    // or backendImage, if appropriate
-//   command: ['/bin/bash']
-//   // 'sleep 300 && python src/pipeline/clinicalExtractor/evaluator.py'
-//   args: [
-//     '-c'
-//     'python src/pipeline/clinicalExtractor/evaluator.py'
-//   ]
-//   env: containerEnvArray
-//   volumeMounts: [
-//     {
-//       mountPath: '/root/.promptflow'
-//       volumeName: 'promptflow'
-//     }
-//   ]
-// }
-
-// module clinicalExtractorEvaluationsJob 'br/public:avm/res/app/job:0.5.1' = {
-//   name: 'evaluation-ce-${uniqueSuffix}'     // must match the above job's name
-//   params: {
-//     containers: [
-//       clinicalExtractorEvaluatorJob
-//     ]
-//     environmentResourceId: containerAppsEnvironment.outputs.resourceId
-//     name: 'evaluation-ce-${uniqueSuffix}'
-//     triggerType: 'Manual'
-
-//     registries: registries
-//     manualTriggerConfig: {
-//       parallelism: 1
-//       replicaCompletionCount: 1
-//     }
-//     replicaTimeout: 1000
-//     replicaRetryLimit: 3
-//     managedIdentities: {
-//       userAssignedResourceIds: [
-//         appIdentity.outputs.resourceId
-//       ]
-//     }
-//     roleAssignments: [
 //       {
-//         name: guid('evaluation-ce-${uniqueSuffix}', 'Container App Jobs Operator')
-//         principalId: appIdentity.outputs.principalId
-//         principalType: 'ServicePrincipal'
-//         // Container App Job Contributor
-//         roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b')
-//       }
-//     ]
-//     volumes: [
-//       {
-//         name: 'promptflow'
+//         name: 'tmpemptydir'
 //         storageType: 'EmptyDir'
 //       }
 //     ]
@@ -760,5 +642,5 @@ output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryConnectionString
 
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
-output CONTAINER_EVALUATION_NAME string = evaluationsJob.outputs.name
+// output CONTAINER_EVALUATION_NAME string = evaluationsJob.outputs.name
 

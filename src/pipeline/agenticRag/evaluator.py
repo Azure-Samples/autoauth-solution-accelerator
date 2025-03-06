@@ -29,6 +29,7 @@ class AgenticRagEvaluator(PipelineEvaluator):
         self.config_file = os.path.join("agenticRag", "settings.yaml")
         self.config = load_config(self.config_file)
         self.run_config = self.config.get("run", {})
+        self.load_default_environment()
 
         self.logger = get_logger(
             name=self.run_config["logging"]["name"],

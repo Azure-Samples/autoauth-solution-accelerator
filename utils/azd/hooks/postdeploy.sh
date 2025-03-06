@@ -15,7 +15,8 @@ else
     image=$(azd env get-value SERVICE_FRONTEND_IMAGE_NAME)
 
     # Array of job name environment variables.
-    jobs=("CONTAINER_JOB_NAME" "CONTAINER_EVALUATION_NAME")
+    jobs=("CONTAINER_JOB_NAME")
+    # jobs=("CONTAINER_JOB_NAME" "CONTAINER_EVALUATION_NAME")
 
     for job_var in "${jobs[@]}"; do
         job_name=$(azd env get-value "$job_var")
