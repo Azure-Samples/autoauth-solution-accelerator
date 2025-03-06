@@ -3,9 +3,12 @@ if ($(azd env get-value CONTAINER_JOB_RUN) -eq "true") {
     exit 0
   } else {
     $job_name = $(azd env get-value CONTAINER_JOB_NAME)
-    $rg_name = $(azd env get-value RESOURCE_GROUP_NAME)
+    $rg_name = $(azd env get-value AZURE_RESOURCE_GROUP)
     Write-Output "Logging into Azure Container Registry..."
     az acr login --name $(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)
+
+    # This is a workaround to the AZD limitation of updating the Container App Job
+    # image after deployment of the services.
     Write-Output "Updating container app job image..."
     az containerapp job update `
         -g $rg_name `
@@ -14,7 +17,7 @@ if ($(azd env get-value CONTAINER_JOB_RUN) -eq "true") {
 
     Write-Output "Starting the job to initialize the Search Index..."
     az containerapp job start `
-        -g $(azd env get-value RESOURCE_GROUP_NAME) `
+        -g $(azd env get-value AZURE_RESOURCE_GROUP) `
         --name $job_name
 
     azd env set CONTAINER_JOB_RUN true

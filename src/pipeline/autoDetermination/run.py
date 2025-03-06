@@ -59,7 +59,7 @@ class AutoPADeterminator:
         self.azure_openai_client = azure_openai_client
 
         if azure_openai_client_o1 is None:
-            api_version = os.getenv("AZURE_OPENAI_API_VERSION_01", "2024-09-01-preview")
+            api_version = os.getenv("AZURE_OPENAI_API_VERSION_01", "2025-01-01-preview")
             azure_openai_client_o1 = AzureOpenAIManager(api_version=api_version)
         self.azure_openai_client_o1 = azure_openai_client_o1
 
