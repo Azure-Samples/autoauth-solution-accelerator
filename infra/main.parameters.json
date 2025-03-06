@@ -34,6 +34,12 @@
           "version": "2024-12-17",
           "skuName": "GlobalStandard",
           "capacity": 100
+        },
+        {
+          "name": "gpt-4o",
+          "version": "2024-08-06",
+          "skuName": "GlobalStandard",
+          "capacity": 100
         }
       ]
     },

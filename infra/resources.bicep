@@ -259,7 +259,11 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_OPENAI_API_VERSION'
-    value: openAiApiVersion
+    value: chatCompletionModels[1].name
+  }
+  {
+    name: 'AZURE_OPENAI_API_VERSION_01'
+    value: chatCompletionModels[0].name
   }
   {
     name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
@@ -267,7 +271,7 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_ID'
-    value: chatCompletionModels[0].name
+    value: chatCompletionModels[1].name
   }
   {
     name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_01'
@@ -614,9 +618,10 @@ module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
 
 // If you want to expose them as outputs too, you can optionally add:
 output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
-output AZURE_OPENAI_API_VERSION string = openAiApiVersion
+output AZURE_OPENAI_API_VERSION string = chatCompletionModels[1].version
+output AZURE_OPENAI_API_VERSION_O1 string = chatCompletionModels[0].version
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingModel.name
-output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = chatCompletionModels[0].name
+output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = chatCompletionModels[1].name
 output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = chatCompletionModels[0].name
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = embeddingModelDimension
 output AZURE_SEARCH_SERVICE_NAME string = searchService.outputs.searchServiceName
