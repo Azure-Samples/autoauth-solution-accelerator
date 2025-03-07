@@ -8,9 +8,6 @@ param enableEasyAuth bool = true
 @description('Name of the environment that can be used as part of naming resource convention')
 param environmentName string
 
-@description('API Version of the Azure OpenAI Service. This is not the same as the model version.')
-param openaiApiVersion string = '2025-01-01-preview'
-
 @minLength(1)
 @description('Primary location for all resources. Not all regions are supported due to OpenAI limitations')
 @allowed([
@@ -113,7 +110,7 @@ module resources 'resources.bicep' = {
   params: {
     // Required Parameters
     priorAuthName: priorAuthName
-    openaiApiVersion: openaiApiVersion
+    openaiApiVersion: openAiApiVersion
     chatModel: chatModel
     reasoningModel: reasoningModel
     embeddingModel: embeddingModel
