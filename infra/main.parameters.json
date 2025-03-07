@@ -10,7 +10,7 @@
       "value": "${AZURE_LOCATION:-eastus2}"
     },
     "priorAuthName": {
-      "value": "${PRIOR_AUTH_NAME:-priorAuth}"
+      "value": "${PRIOR_AUTH_NAME:-autoauth}"
     },
     "frontendExists": {
       "value": "${SERVICE_FRONTEND_RESOURCE_EXISTS:-false}"
@@ -25,23 +25,23 @@
       "value": "${GIT_HASH:-}"
     },
     "openAiApiVersion": {
-      "value": "${OPENAI_API_VERSION:-2024-08-01-preview}"
+      "value": "2025-01-01-preview"
     },
-    "chatCompletionModels": {
-      "value": [
-        {
-          "name": "o1",
-          "version": "2024-12-17",
-          "skuName": "GlobalStandard",
-          "capacity": 100
-        },
-        {
-          "name": "gpt-4o",
-          "version": "2024-08-06",
-          "skuName": "GlobalStandard",
-          "capacity": 100
-        }
-      ]
+    "chatModel": {
+      "value": {
+        "name": "gpt-4o",
+        "version": "2024-08-06",
+        "skuName": "Standard",
+        "capacity": 25
+      }
+    },
+    "reasoningModel": {
+      "value": {
+        "name": "o1",
+        "version": "2024-12-17",
+        "skuName": "GlobalStandard",
+        "capacity": 100
+      }
     },
     "embeddingModel": {
       "value": {

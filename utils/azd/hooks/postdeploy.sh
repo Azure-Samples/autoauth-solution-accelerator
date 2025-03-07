@@ -10,22 +10,17 @@ elif [ -z "$(azd env get-value SERVICE_FRONTEND_IMAGE_NAME)" ]; then
     exit 1
 else
     echo "Logging into Azure Container Registry..."
-    az acr login --name "$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)"
+    az acr login --name $(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)
+    job_name=$(azd env get-value CONTAINER_JOB_NAME)
     rg_name=$(azd env get-value AZURE_RESOURCE_GROUP)
-    image=$(azd env get-value SERVICE_FRONTEND_IMAGE_NAME)
 
-    # Array of job name environment variables.
-    jobs=("CONTAINER_JOB_NAME")
-    # jobs=("CONTAINER_JOB_NAME" "CONTAINER_EVALUATION_NAME")
-
-    for job_var in "${jobs[@]}"; do
-        job_name=$(azd env get-value "$job_var")
-
-        echo "Updating container app job image for job: $job_name, image: $image, rg: $rg_name"
-        az containerapp job update \
-            -g "$rg_name" \
-            --name "$job_name" \
-            --image "$image"
+    # This is a workaround to the AZD limitation of updating the Container App Job
+    # image after deployment of the services.
+    echo "Updating container app job image..."
+    az containerapp job update \
+        -g $rg_name \
+        --name $job_name \
+        --image $(azd env get-value SERVICE_FRONTEND_IMAGE_NAME)
 
         echo "Starting job $job_name..."
         az containerapp job start \
