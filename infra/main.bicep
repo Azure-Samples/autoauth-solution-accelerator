@@ -60,7 +60,7 @@ param reasoningModel object = {
 param chatModel object = {
   name: 'gpt-4o'
   version: '2024-08-06'
-  skuName: 'GlobalStandard'
+  skuName: 'Standard'
   capacity: 100
 }
 
