@@ -43,7 +43,7 @@ param tags object = {
 }
 
 @description('API Version of the OpenAI API')
-param openAiApiVersion string = '2024-08-01-preview'
+param openAiApiVersion string = '2025-01-01-preview'
 
 @description('List of completion models to be deployed to the OpenAI account.')
 param chatCompletionModels array = [
@@ -124,10 +124,10 @@ output CONTAINER_JOB_NAME string = resources.outputs.CONTAINER_JOB_NAME
 output AZURE_OPENAI_ENDPOINT string = resources.outputs.AZURE_OPENAI_ENDPOINT
 
 @description('API version for Azure OpenAI')
-output AZURE_OPENAI_API_VERSION string = resources.outputs.AZURE_OPENAI_API_VERSION_O1 // hack for now, this is a mismatch intentionally
+output AZURE_OPENAI_API_VERSION string = openAiApiVersion
 
 @description('API version for Azure OpenAI O1')
-output AZURE_OPENAI_API_VERSION_O1 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
+output AZURE_OPENAI_API_VERSION_O1 string = openAiApiVersion
 
 @description('Deployment name for Azure OpenAI embedding')
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = resources.outputs.AZURE_OPENAI_EMBEDDING_DEPLOYMENT

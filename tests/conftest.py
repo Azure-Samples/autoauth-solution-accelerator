@@ -25,14 +25,6 @@ def pytest_collection_modifyitems(items: list[Item]):
             item.add_marker(pytest.mark.integration)
 
 
-@pytest.fixture(scope="session")
-def set_o1_env_vars(monkeypatch):
-    monkeypatch.setenv(
-        "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
-        os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_01", "o1-preview"),
-    )
-
-
 @pytest.fixture(scope="function")
 def evaluation_setup(monkeypatch):
     required_envs = [

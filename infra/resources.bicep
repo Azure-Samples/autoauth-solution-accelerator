@@ -36,7 +36,7 @@ param cosmosDbCollectionName string = 'temp'
 param cosmosDbDatabaseName string = 'priorauthsessions'
 
 @description('API Version of the OpenAI API')
-param openAiApiVersion string = '2024-08-01-preview'
+param openAiApiVersion string = '2025-01-01-preview'
 
 @description('List of completion models to be deployed to the OpenAI account.')
 param chatCompletionModels array = [
