@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
-param enableEasyAuth bool = true
+param enableEasyAuth bool = false
 
 @minLength(1)
 @maxLength(64)
@@ -60,7 +60,7 @@ param reasoningModel object = {
 param chatModel object = {
   name: 'gpt-4o'
   version: '2024-08-06'
-  skuName: 'Standard'
+  skuName: 'GlobalStandard'
   capacity: 100
 }
 
