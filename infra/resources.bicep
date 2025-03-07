@@ -155,7 +155,7 @@ module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
 }
 
 module vault 'br/public:avm/res/key-vault/vault:0.12.1' = {
-  name: 'vaultDeployment'
+  name: 'vault-${name}-${uniqueSuffix}-deployment'
   params: {
     // Required parameter: name for the vault
     name: 'kv-${name}-${uniqueSuffix}'
@@ -165,9 +165,9 @@ module vault 'br/public:avm/res/key-vault/vault:0.12.1' = {
 }
 
 module aiFoundry 'modules/ai/aiFoundry.bicep' = {
-  name: 'aiFoundry-${name}-${uniqueSuffix}-deployment'
+  name: 'ai-foundry-${name}-${uniqueSuffix}-deployment'
   params: {
-    aiFoundryName: 'aiFoundry-${name}-${uniqueSuffix}'
+    aiFoundryName: 'ai-foundry-${name}-${uniqueSuffix}'
     aiFoundryFriendlyName: 'AI Foundry - ${name}'
     aiFoundryDescription: 'AI Foundry instance for the Prior Authorization scenario'
     applicationInsightsId: monitoring.outputs.applicationInsightsResourceId
