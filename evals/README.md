@@ -203,7 +203,7 @@ The following test cases are currently under evaluation due to discrepancies and
 
 ## Usage
 
-To run the evaluations for specific pipelines, set the necessary environment variables and execute the corresponding evaluator script. `azd up` must be run first to set up the environment.
+To run the evaluations for specific pipelines, set the necessary environment variables and execute the corresponding evaluator script. `azd up` must be run first to set up the environment followed by `pip install -r requirements.txt`.
 
 **For the `agenticRag` evaluation pipeline:**
 
