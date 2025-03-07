@@ -7,13 +7,13 @@ import shutil
 import subprocess
 from abc import ABC, abstractmethod
 from typing import List, Tuple, final
-from dotenv import load_dotenv
 
 import yaml
 from azure.ai.evaluation import evaluate
 
 # @TODO: Remove this import when the package fix is available.
 from azure.ai.evaluation._evaluate._eval_run import EvalRun
+from dotenv import load_dotenv
 
 import src.evals.sdk.custom_azure_ai_evaluations as custom_eval
 from src.aifoundry.aifoundry_helper import AIFoundryManager
