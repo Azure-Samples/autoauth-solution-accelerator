@@ -1,9 +1,4 @@
 
-Write-Output "Checking if the post-deployment job needs to be run..."
-if (-not (azd env get-value SERVICE_FRONTEND_IMAGE_NAME)) {
-  Write-Output "Backend image does not exist. Clearing CONTAINER_JOB_RUN value..."
-  azd env set CONTAINER_JOB_RUN false
-}
 Write-Output "
 AZURE_OPENAI_ENDPOINT=$(azd env get-value AZURE_OPENAI_ENDPOINT)
 AZURE_OPENAI_API_VERSION=$(azd env get-value AZURE_OPENAI_API_VERSION)
