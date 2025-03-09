@@ -44,7 +44,7 @@ while ($status -eq "Running" -or $status -eq "Pending") {
     $execution = az containerapp job execution list -g $rg_name --name $job_name --query "[0]" -o json | ConvertFrom-Json
     $status = $execution.properties.status
     $execution_name = $execution.name
-    Write-Output "Status: $status"
+    Write-Output "$execution_name Status: $status"
 }
 
 if ($status -eq "Succeeded") {
