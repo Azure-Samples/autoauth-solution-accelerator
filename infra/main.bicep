@@ -8,25 +8,23 @@ param enableEasyAuth bool = true
 @description('Name of the environment that can be used as part of naming resource convention')
 param environmentName string
 
-@description('API Version of the Azure OpenAI Service. This is not the same as the model version.')
-param openaiApiVersion string = '2025-01-01-preview'
-
 @minLength(1)
 @description('Primary location for all resources. Not all regions are supported due to OpenAI limitations')
 @allowed([
-  'australiaeast'
-  'canadaeast'
-  'eastus'
   'eastus2'
-  'francecentral'
-  'japaneast'
-  'norwayeast'
-  'polandcentral'
-  'southindia'
   'swedencentral'
-  'switzerlandnorth'
-  'uksouth'
-  'westus3'
+  //// The below regions do not currently support the combination of OpenAI models in scope.
+  // 'southcentralus'
+  // 'canadaeast'
+  // 'eastus'
+  // 'francecentral'
+  // 'japaneast'
+  // 'norwayeast'
+  // 'polandcentral'
+  // 'southindia'
+  // 'switzerlandnorth'
+  // 'uksouth'
+  // 'westus3'
 ])
 param location string
 
@@ -45,7 +43,11 @@ param priorAuthName string = 'priorAuth'
 param tags object = {
   environment: environmentName
   location: location
+  commit: GIT_HASH
 }
+
+@description('API Version of the OpenAI API')
+param openAiApiVersion string = '2025-01-01-preview'
 
 @description('Reasoning model object to be deployed to the OpenAI account. (i.e o1, o1-preview, o3-mini)')
 param reasoningModel object = {
@@ -59,7 +61,7 @@ param reasoningModel object = {
 param chatModel object = {
   name: 'gpt-4o'
   version: '2024-08-06'
-  skuName: 'Standard'
+  skuName: 'GlobalStandard'
   capacity: 100
 }
 
@@ -70,6 +72,9 @@ param embeddingModel object = {
     skuName: 'Standard'
     capacity: 50
 }
+
+@description('Unique hash of the git commit that is being deployed. This is used to tag resources and support llm evaluation automation.')
+param GIT_HASH string = 'azd-deploy-1741105197' // This is the git hash of the commit that is being deployed. It is used to tag the image in ACR and also used to tag the container job in ACI. This is set by azd during deployment.
 
 @description('Embedding model size for the OpenAI Embedding deployment')
 param embeddingModelDimension string = '3072' // for embeddings-3-large, 3072 is expected
@@ -106,7 +111,7 @@ module resources 'resources.bicep' = {
   params: {
     // Required Parameters
     priorAuthName: priorAuthName
-    openaiApiVersion: openaiApiVersion
+    openaiApiVersion: openAiApiVersion
     chatModel: chatModel
     reasoningModel: reasoningModel
     embeddingModel: embeddingModel
@@ -115,6 +120,7 @@ module resources 'resources.bicep' = {
     // Optional Parameters
     enableEasyAuth: enableEasyAuth
     tags: azd_tags
+    gitHash: GIT_HASH
     frontendExists: frontendExists
     backendExists: backendExists
   }
@@ -136,7 +142,7 @@ output CONTAINER_JOB_NAME string = resources.outputs.CONTAINER_JOB_NAME
 output AZURE_OPENAI_ENDPOINT string = resources.outputs.AZURE_OPENAI_ENDPOINT
 
 @description('API version for Azure OpenAI')
-output AZURE_OPENAI_API_VERSION string = resources.outputs.AZURE_OPENAI_API_VERSION
+output AZURE_OPENAI_API_VERSION string = openAiApiVersion
 
 @description('Deployment name for Azure OpenAI embedding')
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = resources.outputs.AZURE_OPENAI_EMBEDDING_DEPLOYMENT
@@ -148,7 +154,7 @@ output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = resources.outputs.AZURE_OPENAI_C
 output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01
 
 @description('Deployment openai version for chat model 01')
-output AZURE_OPENAI_API_VERSION_01 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
+output AZURE_OPENAI_API_VERSION_01 string = openAiApiVersion
 
 @description('Embedding dimensions for Azure OpenAI')
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = resources.outputs.AZURE_OPENAI_EMBEDDING_DIMENSIONS
@@ -206,3 +212,9 @@ output AZURE_OPENAI_KEY string = resources.outputs.AZURE_OPENAI_KEY
 
 @description('Service endpoint for Azure AI Search')
 output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = resources.outputs.AZURE_AI_SEARCH_SERVICE_ENDPOINT
+
+@description('AI Foundry connection string to connect to AI Foundry')
+output AZURE_AI_FOUNDRY_CONNECTION_STRING string = resources.outputs.AZURE_AI_FOUNDRY_CONNECTION_STRING
+
+// @description('Evaluation Job Name')
+// output CONTAINER_EVALUATION_NAME string = resources.outputs.CONTAINER_EVALUATION_NAME

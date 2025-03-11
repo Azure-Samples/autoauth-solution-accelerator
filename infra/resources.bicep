@@ -19,7 +19,7 @@ param frontendExists bool = false
 param backendExists bool = false
 // ----------------------------------------------------------------------------------------
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
-param enableEasyAuth bool = true
+param enableEasyAuth bool
 
 // Execute this main file to deploy Prior Authorization related resources in a basic configuration
 @minLength(2)
@@ -30,6 +30,7 @@ param priorAuthName string = 'priorAuth'
 @description('Set of tags to apply to all resources.')
 param tags object = {}
 
+@description('API Version of the OpenAI API')
 param openaiApiVersion string
 
 // @description('Admin password for the cluster')
@@ -50,6 +51,8 @@ var chatCompletionModels = [
   chatModel
   reasoningModel
 ]
+
+param gitHash string = ''
 
 @description('Embedding model size for the OpenAI Embedding deployment')
 param embeddingModelDimension string
@@ -151,6 +154,34 @@ module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
   }
 }
 
+module vault 'br/public:avm/res/key-vault/vault:0.12.1' = {
+  name: 'vault-${name}-${uniqueSuffix}-deployment'
+  params: {
+    // Required parameter: name for the vault
+    name: 'kv-${name}-${uniqueSuffix}'
+    // Non-required parameter
+    enablePurgeProtection: false
+  }
+}
+
+module aiFoundry 'modules/ai/aifoundry.bicep' = {
+  name: 'ai-foundry-${name}-${uniqueSuffix}-deployment'
+  params: {
+    aiFoundryName: 'ai-foundry-${name}-${uniqueSuffix}'
+    aiFoundryFriendlyName: 'AI Foundry - ${name}'
+    aiFoundryDescription: 'AI Foundry instance for the Prior Authorization scenario'
+    applicationInsightsId: monitoring.outputs.applicationInsightsResourceId
+    containerRegistryId: registry.outputs.resourceId
+    keyVaultId: vault.outputs.resourceId
+    storageAccountId: storageAccount.outputs.storageAccountId
+    aiServicesId: openAiService.outputs.aiServicesId
+    aiServicesKey: openAiService.outputs.aiServicesKey
+    aiServicesTarget: openAiService.outputs.aiServicesEndpoint
+    tags: tags
+    location: location
+  }
+}
+
 module appIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
   name: 'uai-app-${name}-${uniqueSuffix}-deployment'
   params: {
@@ -177,6 +208,16 @@ resource uaiStorageBlobReader 'Microsoft.Authorization/roleAssignments@2022-04-0
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1') // Storage Blob Data Reader
     principalId: appIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
+  }
+}
+
+resource aiFoundryWorkspaceReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: guid(aiFoundry.name, appIdentity.name, 'Azure AI Developer')
+  scope: resourceGroup()
+  properties: {
+    principalId: appIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee') // Contributor Role ID
   }
 }
 
@@ -297,6 +338,14 @@ var containerEnvArray = [
     name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
     value: monitoring.outputs.applicationInsightsConnectionString
   }
+  {
+    name: 'AZURE_AI_FOUNDRY_CONNECTION_STRING'
+    value: aiFoundry.outputs.aiFoundryConnectionString
+  }
+  {
+    name: 'GIT_HASH'
+    value: gitHash
+  }
 ]
 
 module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.8.1' = {
@@ -381,17 +430,17 @@ var frontendContainer = {
 
 }
 
-var backendContainer = {
-  name: backendContainerName
-  image: backendImage
-  command: []
-  args: []
-  resources: {
-    cpu: json('2.0')
-    memory: '4Gi'
-  }
-  env: containerEnvArray
-}
+// var backendContainer = {
+//   name: backendContainerName
+//   image: backendImage
+//   command: []
+//   args: []
+//   resources: {
+//     cpu: json('2.0')
+//     memory: '4Gi'
+//   }
+//   env: containerEnvArray
+// }
 
 var jobAppContainer = {
   name: '${backendContainerName}-job'
@@ -436,37 +485,37 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
   }
 }
 
-module backendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
-  name: backendContainerName
-  params: {
-    // Required parameters
-    name: backendContainerName
-    environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    containers: [
-      backendContainer
-    ]
-    secrets: [
-      {
-        name: 'override-use-mi-fic-assertion-client-id'
-        value: appIdentity.outputs.clientId
-      }
-    ]
+// module backendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
+//   name: backendContainerName
+//   params: {
+//     // Required parameters
+//     name: backendContainerName
+//     environmentResourceId: containerAppsEnvironment.outputs.resourceId
+//     containers: [
+//       backendContainer
+//     ]
+//     secrets: [
+//       {
+//         name: 'override-use-mi-fic-assertion-client-id'
+//         value: appIdentity.outputs.clientId
+//       }
+//     ]
 
-    // Non-required parameters
-    registries: registries
-    managedIdentities: {
-      userAssignedResourceIds:[
-        appIdentity.outputs.resourceId
-      ]
-    }
-    scaleMinReplicas: 0
-    scaleMaxReplicas: 1
+//     // Non-required parameters
+//     registries: registries
+//     managedIdentities: {
+//       userAssignedResourceIds:[
+//         appIdentity.outputs.resourceId
+//       ]
+//     }
+//     scaleMinReplicas: 0
+//     scaleMaxReplicas: 1
 
-    workloadProfileName: 'Consumption'
-    location: location
-    tags: union(tags, { 'azd-service-name': 'backend' })
-  }
-}
+//     workloadProfileName: 'Consumption'
+//     location: location
+//     tags: union(tags, { 'azd-service-name': 'backend' })
+//   }
+// }
 
 module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
   name: '${backendContainerName}-job'
@@ -531,16 +580,16 @@ module feAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
   }
 }
 
-module beAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
-  name: 'easyauth-backend-appupdate'
-  params: {
-    containerAppName: backendContainerApp.outputs.name
-    clientId: easyAuthAppReg.outputs.clientAppId
-    openIdIssuer: issuer
-    // includeTokenStore: includeTokenStore
-    // appIdentityResourceId: includeTokenStore ? aca.outputs.identityResourceId : ''
-  }
-}
+// module beAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
+//   name: 'easyauth-backend-appupdate'
+//   params: {
+//     containerAppName: backendContainerApp.outputs.name
+//     clientId: easyAuthAppReg.outputs.clientAppId
+//     openIdIssuer: issuer
+//     // includeTokenStore: includeTokenStore
+//     // appIdentityResourceId: includeTokenStore ? aca.outputs.identityResourceId : ''
+//   }
+// }
 
 output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
 output AZURE_OPENAI_API_VERSION string = chatModel.version
@@ -569,11 +618,12 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_CONTAINER_ENVIRONMENT_ID string = containerAppsEnvironment.outputs.resourceId
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerAppsEnvironment.outputs.name
 output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
+output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryConnectionString
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
 
 output FRONTEND_CONTAINER_URL string = frontendContainerApp.outputs.fqdn
 output FRONTEND_CONTAINER_NAME string = frontendContainerApp.outputs.name
-output BACKEND_CONTAINER_URL string = backendContainerApp.outputs.fqdn
-output BACKEND_CONTAINER_NAME string = backendContainerApp.outputs.name
+// output BACKEND_CONTAINER_URL string = backendContainerApp.outputs.fqdn
+// output BACKEND_CONTAINER_NAME string = backendContainerApp.outputs.name
 output APP_IDENTITY_CLIENT_ID string = appIdentity.outputs.clientId
 output APP_IDENTITY_PRINCIPAL_ID string = appIdentity.outputs.principalId

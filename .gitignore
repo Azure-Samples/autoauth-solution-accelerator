@@ -1,4 +1,5 @@
 main.parameters.json
+cleanup.sh
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -57,6 +58,9 @@ cover/
 # Translations
 *.mo
 *.pot
+
+#Cleanup
+.cleanup.sh
 
 # Django stuff:
 *.log
@@ -160,7 +164,7 @@ cython_debug/
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
-#.idea/
+.idea/
 
 notebooks/dev/test/*
 
@@ -171,3 +175,5 @@ temp/
 .DS_Store
 utils/data/cases/001/a/tmp/01_a_form.pdf
 .azure
+cleanup.sh
+docker-build.sh

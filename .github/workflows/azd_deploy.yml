@@ -24,7 +24,6 @@ on:
       - 'src'
       - 'app'
       - 'infra'
-      - 'Dockerfile'
 
 # Set up permissions for deploying with secretless Azure federated credentials
 # https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux#set-up-azure-login-with-openid-connect-authentication
@@ -38,9 +37,11 @@ env:
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
   AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+  RUN_EVALS: false
 
 jobs:
   provision:
+    environment: prod
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -73,19 +74,31 @@ jobs:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
 
       - name: Provision Infrastructure
-        if: ${{ github.event.inputs.action == 'provision' || github.event.inputs.action == 'all' }}
+        if: ${{ github.event.inputs.action != 'destroy' }}
         id: provision
         run: |
           azd provision --no-prompt
         shell: pwsh
         env:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+          AZURE_LOCATION: ${{ env.AZURE_LOCATION }}
+          ENABLE_EASY_AUTH: false
+
+      - name: Setup Conda 🔧
+        uses: conda-incubator/setup-miniconda@v2
+        if: ${{ env.RUN_EVALS == 'true' }}
+        with:
+          environment-file: environment.yaml # Create an environment.yml file
+          activate-environment: 'pa-ai-env'
+          python-version: '3.10'
+          auto-activate-base: false
 
       - name: Deploy Application
-        if: ${{ github.event.inputs.action == 'deploy' || (github.event.inputs.action == 'all' && steps.provision.outcome == 'success' ) }}
+        if: ${{ github.event.inputs.action != 'destroy' }}
         run: |
           azd deploy --no-prompt
         shell: pwsh
         env:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
-      
+          AZURE_LOCATION: ${{ env.AZURE_LOCATION }}
+          RUN_EVALS: ${{ env.RUN_EVALS}}

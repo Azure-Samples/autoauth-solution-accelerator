@@ -6,6 +6,7 @@ import shutil
 from datetime import datetime
 
 from src.aifoundry.aifoundry_helper import AIFoundryManager
+from src.aoai.aoai_helper import AzureOpenAIManager
 from src.evals.case import Case, Evaluation
 from src.evals.pipeline import PipelineEvaluator
 from src.pipeline.agenticRag.run import AgenticRAG
@@ -29,6 +30,16 @@ class AgenticRagEvaluator(PipelineEvaluator):
         self.config_file = os.path.join("agenticRag", "settings.yaml")
         self.config = load_config(self.config_file)
         self.run_config = self.config.get("run", {})
+        self.load_default_environment()
+
+        azure_openai_key = os.getenv("AZURE_OPENAI_KEY")
+        azure_openai_chat_deployment_id = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
+        azure_openai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+        self.azure_openai_client = AzureOpenAIManager(
+            completion_model_name=azure_openai_chat_deployment_id,
+            api_key=azure_openai_key,
+            azure_endpoint=azure_openai_endpoint,
+        )
 
         self.logger = get_logger(
             name=self.run_config["logging"]["name"],

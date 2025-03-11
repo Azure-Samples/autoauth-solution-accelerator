@@ -23,6 +23,7 @@
 - [Quick Start](#-quick-start)
     - [End-to-End Deployment Using AZD](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth/azd_deployment.html)
     - [PriorAuth SDK](#priorauth-sdk)
+    - [Evaluations Framework](#evaluations)
 - [What's Next?](#-whats-next)
 - [Contributors & License](#-contributors--license)
 
@@ -97,7 +98,7 @@ pa_pipeline = PAProcessingPipeline(send_cloud_logs=True)
 await pa_pipeline.run(uploaded_files=files, use_o1=True)
 ```
 > [!TIP]
-> To test the PA processing pipeline and get started, please refer to the notebook [`02-test-pa-workflow.ipynb`](./02-test-pa-workflow.ipynb).
+> To test the PA processing pipeline and get started, please refer to the notebook [`notebooks/02-test-pa-workflow.ipynb`](./notebooks/02-test-pa-workflow.ipynb).
 
 #### ⚙️ Build and Expand the SDK
 
@@ -112,6 +113,26 @@ For those looking for greater flexibility, the AutoAuth SDK enables you to embed
 With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Authorization workflows or select specific components to integrate into your system. Whether you require a full application or a microservice solution, AutoAuth provides the tools you need.
 
 **Note:** Detailed information, technical architecture, customization steps, references, and further documentation are available on our **[GitHub Pages](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**.
+
+### Evaluations
+
+For those looking to understand how quality of decisions and rationale changes, automated tests have been implemented as part of this repository in a declarative manner. You can use these, extend them or further enhance them to suit your needs, using the same pipeline components that are used to deliver the end-to-end PA pipeline.
+
+- ⚙️ **AutoAuth Evaluation Framework:** Leverages a configuration-driven approach to define and execute evaluation cases for generative AI tasks. Test configurations are decoupled from implementation code, enhancing clarity and maintainability.
+- 🧩 **Separation of Concerns:** Uses dedicated Python modules (with `evaluator.py`) to execute evaluations defined via YAML.
+- 🚀 **Flexibility & Scalability:** Easily update evaluation parameters, add new evaluators, or integrate additional test cases without modifying core pipeline logic.
+- 🔄 **Standardized Workflow:** Employs a robust three-step process—preprocessing, running evaluations, and post-processing—to ensure consistent execution alongside the Prior Auth pipeline.
+- 🏭 **AI Foundry Integration:** Seamlessly catalogs and monitors performance metrics for each evaluation case, with support for both integrated and custom evaluators.
+
+For a detailed explanation, please see our [Evaluations Documentation](./evals/README.md).
+
+To get started viewing evaluation runs in AI Foundry:
+
+```bash
+azd up
+pip install -r requirements.txt
+pytest
+```
 
 ## ✅ What's Next?
 

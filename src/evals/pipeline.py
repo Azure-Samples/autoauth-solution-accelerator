@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import json
 import logging
 import os
 import shutil
@@ -12,6 +13,7 @@ from azure.ai.evaluation import evaluate
 
 # @TODO: Remove this import when the package fix is available.
 from azure.ai.evaluation._evaluate._eval_run import EvalRun
+from dotenv import load_dotenv
 
 import src.evals.sdk.custom_azure_ai_evaluations as custom_eval
 from src.aifoundry.aifoundry_helper import AIFoundryManager
@@ -134,12 +136,13 @@ class PipelineEvaluator(ABC):
                             "azure_endpoint": os.environ.get("AZURE_OPENAI_ENDPOINT"),
                             "api_key": os.environ.get("AZURE_OPENAI_KEY"),
                             "azure_deployment": os.environ.get(
-                                "AZURE_OPENAI_DEPLOYMENT"
+                                "AZURE_OPENAI_CHAT_DEPLOYMENT_ID"
                             ),
+                            "api_version": os.environ.get("AZURE_OPENAI_API_VERSION"),
                         }
                         if any(value is None for value in model_config.values()):
                             raise ValueError(
-                                "model_config has null values, please check your environment variables: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_OPENAI_DEPLOYMENT."
+                                "model_config has null values, please check your environment variables: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_OPENAI_CHAT_DEPLOYMENT_ID."
                             )
                         args["model_config"] = model_config
 
@@ -165,6 +168,10 @@ class PipelineEvaluator(ABC):
 
     def _get_git_hash(self) -> str:
         """Retrieve the current Git commit hash (short version)."""
+        git_hash = os.environ.get("GIT_HASH")
+        if git_hash:
+            return git_hash
+
         try:
             git_hash = (
                 subprocess.check_output(
@@ -241,6 +248,43 @@ class PipelineEvaluator(ABC):
         else:
             # Key does not contain ':', treat value as a direct string (or raw data)
             return value
+
+    @final
+    def load_default_environment(self, config_file_path=".azure/config.json"):
+        """
+        Loads environment variables from the .env file specified by the default environment
+        in the provided config file.
+
+        Args:
+            config_file_path (str): Path to the configuration JSON file.
+                                    Defaults to '.azure/config.json'.
+
+        Raises:
+            ValueError: If the 'defaultEnvironment' key is not found in the config file or the .env file does not exist.
+        """
+        # Load the configuration JSON file
+        with open(config_file_path, "r") as config_file:
+            config = json.load(config_file)
+
+        # Retrieve the default environment
+        default_env = config.get("defaultEnvironment")
+        if not default_env:
+            raise ValueError(
+                "The 'defaultEnvironment' key was not found in the config file, make sure you run azd up."
+            )
+
+        # Construct the path to the .env file for the default environment
+        env_file_path = os.path.join(".azure", default_env, ".env")
+
+        # Check if the .env file exists
+        if not os.path.exists(env_file_path):
+            raise ValueError(
+                f".env file not found at: {env_file_path}, make sure you run azd up successfully."
+            )
+
+        # Load the environment variables from the .env file
+        load_dotenv(dotenv_path=env_file_path)
+        print(f"Environment variables loaded from: {env_file_path}")
 
     @abstractmethod
     async def preprocess(self):

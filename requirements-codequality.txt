@@ -11,3 +11,12 @@ pytest
 pytest-cov
 black[jupyter]
 types-PyYAML
+
+# For Evals
+jq
+semantic_kernel
+azure-monitor-opentelemetry
+azure-ai-inference[opentelemetry]
+opentelemetry-exporter-otlp
+azure-ai-projects
+opentelemetry-instrumentation-httpx

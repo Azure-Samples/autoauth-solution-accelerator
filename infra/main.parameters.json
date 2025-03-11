@@ -2,7 +2,9 @@
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
   "contentVersion": "1.0.0.0",
   "parameters": {
-
+    "enableEasyAuth": {
+      "value": "${ENABLE_EASY_AUTH:-}"
+    },
     "environmentName": {
       "value": "${AZURE_ENV_NAME:-defaultEnv}"
     },
@@ -21,6 +23,9 @@
     "acrContainerImage": {
       "value": "${ACR_CONTAINER_IMAGE:-}"
     },
+    "GIT_HASH": {
+      "value": "${GIT_HASH:-}"
+    },
     "openAiApiVersion": {
       "value": "2025-01-01-preview"
     },
@@ -29,7 +34,7 @@
         "name": "gpt-4o",
         "version": "2024-08-06",
         "skuName": "Standard",
-        "capacity": 25
+        "capacity": 100
       }
     },
     "reasoningModel": {

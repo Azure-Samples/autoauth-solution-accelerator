@@ -77,7 +77,9 @@ resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024
 var openAiKeys = openAiService.listKeys()
 
 output aiServicesId string = openAiService.id
-output aiServicesEndpoint string = openAiService.properties.endpoint
+output aiServicesEndpoint string = endsWith(openAiService.properties.endpoint, '/')
+  ? substring(openAiService.properties.endpoint, 0, length(openAiService.properties.endpoint) - 1)
+  : openAiService.properties.endpoint
 output aiServicesName string = openAiService.name
 output aiServicesPrincipalId string = openAiService.identity.principalId
 output aiServicesKey string = openAiKeys.key1

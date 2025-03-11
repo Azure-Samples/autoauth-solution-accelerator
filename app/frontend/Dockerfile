@@ -6,8 +6,7 @@ ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 COPY src /app/src
 COPY app /app/app
-COPY src/utils/ml_logging.py /app/utils/ml_logging.py
-COPY src/utils/__init__.py /app/utils/__init__.py
+COPY evals /app/evals
 COPY utils/images/ /app/utils/images/
 COPY utils/data/cases/policies /app/utils/data/cases/policies
 COPY requirements.txt /app/requirements.txt
