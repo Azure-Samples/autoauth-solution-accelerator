@@ -37,6 +37,7 @@ env:
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
   AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
+  RUN_EVALS: false
 
 jobs:
   provision:
@@ -72,7 +73,7 @@ jobs:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
 
       - name: Provision Infrastructure
-        if: ${{ github.event.inputs.action == 'provision' || github.event.inputs.action == 'all' }}
+        if: ${{ github.event.inputs.action != 'destroy' }}
         id: provision
         run: |
           azd provision --no-prompt
@@ -84,6 +85,7 @@ jobs:
 
       - name: Setup Conda 🔧
         uses: conda-incubator/setup-miniconda@v2
+        if: ${{ env.RUN_EVALS == 'true' }}
         with:
           environment-file: environment.yaml # Create an environment.yml file
           activate-environment: 'pa-ai-env'
@@ -91,12 +93,11 @@ jobs:
           auto-activate-base: false
 
       - name: Deploy Application
-        if: ${{ github.event.inputs.action == 'deploy' || (github.event.inputs.action == 'all' && steps.provision.outcome == 'success' ) }}
+        if: ${{ github.event.inputs.action != 'destroy' }}
         run: |
           azd deploy --no-prompt
         shell: pwsh
         env:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
           AZURE_LOCATION: ${{ env.AZURE_LOCATION }}
-          # RUN_EVALS: ${{ github.ref == 'refs/heads/main' && 'true' || 'false' }}
-          RUN_EVALS: true
+          RUN_EVALS: ${{ env.RUN_EVALS}}
