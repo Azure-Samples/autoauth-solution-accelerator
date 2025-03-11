@@ -59,3 +59,53 @@ else
         exit 1
     fi
 fi
+
+# Check if RUN_EVALS flag is set
+if [ -z "${RUN_EVALS:-}" ]; then
+    # RUN_EVALS is not set, prompt the user
+    read -p "Would you like to run model evaluations through AI Foundry? (y/n): " response
+    if [[ "$response" =~ ^[Yy] ]]; then
+        echo "[Pytest Evals] Model evaluations will be run."
+    else
+        echo "[Pytest Evals] Model evaluations will be skipped."
+        exit 0 
+    fi
+else
+    echo "[Pytest Evals] RUN_EVALS flag is already set to: $RUN_EVALS"
+fi
+echo "Running pytest in tests/ directory..."
+if [ -d "tests" ]; then
+    cd tests || { echo "Failed to change to tests directory"; exit 1; }
+
+    ## Due to current limitations with AI Hub Evals, we need to enable key-based auth temporarily on the storage account.
+    # Get storage account name from environment variables
+    storage_account=$(azd env get-value AZURE_STORAGE_ACCOUNT_NAME)
+
+    if [ -z "$storage_account" ]; then
+        echo "[Pytest Evals] Storage account name not found in environment variables. Skipping key access update."
+    else
+        echo "Enabling key-based access for storage account: $storage_account"
+        az storage account update --name "$storage_account" --resource-group "$rg_name" --allow-shared-key-access true
+        if [ $? -eq 0 ]; then
+            echo "[Pytest Evals] Successfully enabled key-based access for storage account."
+        else
+            echo "[Pytest Evals] Failed to enable key-based access for storage account."
+        fi
+    fi
+    
+    # Declare variable to store test result
+    test_result=0
+    
+    # Check if pytest is installed
+    if command -v pytest &>/dev/null; then
+        echo "Starting pytest..."
+            exit 1
+        fi
+    else
+        echo "pytest not found. Please install it with: pip install pytest"
+        exit 1
+    fi
+else
+    echo "tests directory not found!"
+    exit 1
+fi

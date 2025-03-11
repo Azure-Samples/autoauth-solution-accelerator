@@ -67,16 +67,3 @@ hooks:
       interactive: true
       continueOnError: false
       run: .\utils\azd\hooks\postprovision.ps1
-
-  postdown:
-    posix:
-      shell: sh
-      interactive: true
-      continueOnError: false
-      run: azd env set CONTAINER_JOB_RUN false
-
-    windows:
-      shell: pwsh
-      interactive: true
-      continueOnError: false
-      run: azd env set CONTAINER_JOB_RUN false

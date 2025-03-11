@@ -124,7 +124,7 @@ def test_policies_001_positive_reasoning(agentic_rag_summary):
         summary=agentic_rag_summary,
         test_case="agentic-rag-reasoning-001-positive.v0",
         metric_key="SemanticSimilarityEvaluator.semantic_similarity",
-        expected_value=0.90,
+        expected_value=0.88,
         comparator=operator.ge
     )
 

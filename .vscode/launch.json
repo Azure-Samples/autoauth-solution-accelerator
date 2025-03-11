@@ -29,9 +29,8 @@
                 "debug-test"
             ],
             "console": "integratedTerminal",
-            "justMyCode": false,
             "env": {
-                "PYTEST_ADDOPTS": "--no-cov -n0 --dist no"
+                // "PYTEST_ADDOPTS": "--no-cov -n0 --dist no"
             }
         }
     ]

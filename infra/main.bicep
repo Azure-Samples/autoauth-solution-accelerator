@@ -1,7 +1,7 @@
 targetScope = 'subscription'
 
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
-param enableEasyAuth bool = false
+param enableEasyAuth bool = true
 
 @minLength(1)
 @maxLength(64)
@@ -143,9 +143,6 @@ output AZURE_OPENAI_ENDPOINT string = resources.outputs.AZURE_OPENAI_ENDPOINT
 @description('API version for Azure OpenAI')
 output AZURE_OPENAI_API_VERSION string = openAiApiVersion
 
-@description('API version for Azure OpenAI O1')
-output AZURE_OPENAI_API_VERSION_O1 string = openAiApiVersion
-
 @description('Deployment name for Azure OpenAI embedding')
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = resources.outputs.AZURE_OPENAI_EMBEDDING_DEPLOYMENT
 
@@ -156,7 +153,7 @@ output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = resources.outputs.AZURE_OPENAI_C
 output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01
 
 @description('Deployment openai version for chat model 01')
-output AZURE_OPENAI_API_VERSION_01 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
+output AZURE_OPENAI_API_VERSION_01 string = openAiApiVersion
 
 @description('Embedding dimensions for Azure OpenAI')
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = resources.outputs.AZURE_OPENAI_EMBEDDING_DIMENSIONS
