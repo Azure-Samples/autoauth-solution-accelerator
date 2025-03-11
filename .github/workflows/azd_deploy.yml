@@ -94,7 +94,10 @@ jobs:
       - name: Deploy Application
         if: ${{ github.event.inputs.action == 'deploy' || (github.event.inputs.action == 'all' && steps.provision.outcome == 'success' ) }}
         run: |
-          azd env refresh
+          if ('${{ github.event.inputs.action }}' -eq 'deploy') {
+            azd env refresh
+            ./utils/azd/hooks/postprovision.ps1
+          }
           azd deploy --no-prompt
         shell: pwsh
         env:
