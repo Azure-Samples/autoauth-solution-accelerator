@@ -88,4 +88,5 @@ jobs:
         shell: pwsh
         env:
           AZD_INITIAL_ENVIRONMENT_CONFIG: ${{ secrets.AZD_INITIAL_ENVIRONMENT_CONFIG }}
+          RUN_EVALS: false
       

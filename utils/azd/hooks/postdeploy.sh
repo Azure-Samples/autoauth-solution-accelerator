@@ -76,11 +76,9 @@ run_evaluations() {
         exit 1
     fi
     
-    cd tests || { echo "Failed to change to tests directory"; exit 1; }
-    
     # Enable key-based auth for storage account
     if [ -n "$storage_account" ]; then
-        echo "Enabling key-based access for storage account: $storage_account"
+        echo "[Pytest Evals] Temporarily enabling key-based access for storage account: $storage_account"
         az storage account update --name "$storage_account" --resource-group "$rg_name" --allow-shared-key-access true || 
             echo "[Pytest Evals] Failed to enable key-based access for storage account."
     else
@@ -88,11 +86,24 @@ run_evaluations() {
     fi
     
     # Run tests
+    test_result=0
     if command -v pytest &>/dev/null; then
-        echo "Starting pytest..."
-        pytest || exit 1
+        echo "[Pytest Evals] Starting pytest..."
+        pytest tests || test_result=1
     else
-        echo "pytest not found. Please install it with: pip install pytest"
+        echo "[Pytest Evals] pytest not found. Please install it with: pip install pytest"
+        test_result=1
+    fi
+    
+    # Always disable shared key access regardless of results
+    if [ -n "$storage_account" ]; then
+        echo "[Pytest Evals] Disabling key-based access for storage account: $storage_account"
+        az storage account update --name "$storage_account" --resource-group "$rg_name" --allow-shared-key-access false || 
+            echo "[Pytest Evals] Failed to disable key-based access for storage account."
+    fi
+    
+    # Exit with appropriate code
+    if [ $test_result -ne 0 ]; then
         exit 1
     fi
 }
