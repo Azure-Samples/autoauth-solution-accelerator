@@ -485,37 +485,37 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
   }
 }
 
-module backendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
-  name: backendContainerName
-  params: {
-    // Required parameters
-    name: backendContainerName
-    environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    containers: [
-      backendContainer
-    ]
-    secrets: [
-      {
-        name: 'override-use-mi-fic-assertion-client-id'
-        value: appIdentity.outputs.clientId
-      }
-    ]
+// module backendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
+//   name: backendContainerName
+//   params: {
+//     // Required parameters
+//     name: backendContainerName
+//     environmentResourceId: containerAppsEnvironment.outputs.resourceId
+//     containers: [
+//       backendContainer
+//     ]
+//     secrets: [
+//       {
+//         name: 'override-use-mi-fic-assertion-client-id'
+//         value: appIdentity.outputs.clientId
+//       }
+//     ]
 
-    // Non-required parameters
-    registries: registries
-    managedIdentities: {
-      userAssignedResourceIds:[
-        appIdentity.outputs.resourceId
-      ]
-    }
-    scaleMinReplicas: 0
-    scaleMaxReplicas: 1
+//     // Non-required parameters
+//     registries: registries
+//     managedIdentities: {
+//       userAssignedResourceIds:[
+//         appIdentity.outputs.resourceId
+//       ]
+//     }
+//     scaleMinReplicas: 0
+//     scaleMaxReplicas: 1
 
-    workloadProfileName: 'Consumption'
-    location: location
-    tags: union(tags, { 'azd-service-name': 'backend' })
-  }
-}
+//     workloadProfileName: 'Consumption'
+//     location: location
+//     tags: union(tags, { 'azd-service-name': 'backend' })
+//   }
+// }
 
 module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
   name: '${backendContainerName}-job'
@@ -580,16 +580,16 @@ module feAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
   }
 }
 
-module beAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
-  name: 'easyauth-backend-appupdate'
-  params: {
-    containerAppName: backendContainerApp.outputs.name
-    clientId: easyAuthAppReg.outputs.clientAppId
-    openIdIssuer: issuer
-    // includeTokenStore: includeTokenStore
-    // appIdentityResourceId: includeTokenStore ? aca.outputs.identityResourceId : ''
-  }
-}
+// module beAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
+//   name: 'easyauth-backend-appupdate'
+//   params: {
+//     containerAppName: backendContainerApp.outputs.name
+//     clientId: easyAuthAppReg.outputs.clientAppId
+//     openIdIssuer: issuer
+//     // includeTokenStore: includeTokenStore
+//     // appIdentityResourceId: includeTokenStore ? aca.outputs.identityResourceId : ''
+//   }
+// }
 
 output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
 output AZURE_OPENAI_API_VERSION string = chatModel.version
