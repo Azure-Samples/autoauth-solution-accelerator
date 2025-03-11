@@ -164,7 +164,7 @@ module vault 'br/public:avm/res/key-vault/vault:0.12.1' = {
   }
 }
 
-module aiFoundry 'modules/ai/aiFoundry.bicep' = {
+module aiFoundry 'modules/ai/aifoundry.bicep' = {
   name: 'ai-foundry-${name}-${uniqueSuffix}-deployment'
   params: {
     aiFoundryName: 'ai-foundry-${name}-${uniqueSuffix}'
