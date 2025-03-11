@@ -291,8 +291,8 @@ List of embedding models to be deployed to the OpenAI account.
 
 ## Default Values
 
-- **aiServiceSkuName**: S0  
-- **chatCompletionModels**: @{name=gpt-4o; version=2024-08-06; skuName=GlobalStandard; capacity=25}  
+- **aiServiceSkuName**: S0
+- **chatCompletionModels**: @{name=gpt-4o; version=2024-08-06; skuName=GlobalStandard; capacity=25}
 - **embeddingModel**: @{name=text-embedding-ada-002; version=2; skuName=Standard; capacity=250}
 
 # aiFoundry

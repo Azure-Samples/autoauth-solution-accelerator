@@ -7,7 +7,9 @@ import pytest
 from src.pipeline.agenticRag.evaluator import AgenticRagEvaluator
 
 
-def check_case_metric(summary, test_case: str, metric_key: str, expected_value, comparator=operator.eq):
+def check_case_metric(
+    summary, test_case: str, metric_key: str, expected_value, comparator=operator.eq
+):
     """
     Helper function to verify that a given test case in the summary satisfies a metric condition.
 
@@ -25,10 +27,13 @@ def check_case_metric(summary, test_case: str, metric_key: str, expected_value, 
     metrics = case.get("results", {}).get("metrics")
     assert metrics is not None, f"Metrics not found for case '{test_case}'."
     actual = metrics.get(metric_key)
-    assert actual is not None, f"Metric '{metric_key}' not found for case '{test_case}'."
-    assert comparator(actual, expected_value), (
-        f"Case '{test_case}': expected {metric_key} {comparator.__name__} {expected_value}, got {actual}."
-    )
+    assert (
+        actual is not None
+    ), f"Metric '{metric_key}' not found for case '{test_case}'."
+    assert comparator(
+        actual, expected_value
+    ), f"Case '{test_case}': expected {metric_key} {comparator.__name__} {expected_value}, got {actual}."
+
 
 @pytest.fixture(scope="session")
 def agentic_rag_summary():
@@ -36,12 +41,17 @@ def agentic_rag_summary():
     Runs the AgenticRagEvaluator pipeline once and yields its parsed summary output.
     After tests complete, cleans up the temporary directory.
     """
-    evaluator = AgenticRagEvaluator(cases_dir="./evals/cases", temp_dir="./temp_evaluation_rag")
+    evaluator = AgenticRagEvaluator(
+        cases_dir="./evals/cases", temp_dir="./temp_evaluation_rag"
+    )
     loop = asyncio.get_event_loop()
     summary_json = loop.run_until_complete(evaluator.run_pipeline())
-    summary = json.loads(summary_json) if isinstance(summary_json, str) else summary_json
+    summary = (
+        json.loads(summary_json) if isinstance(summary_json, str) else summary_json
+    )
     yield summary
     evaluator.cleanup_temp_dir()
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -52,7 +62,9 @@ def test_summary_structure(agentic_rag_summary):
       - Must contain a "cases" key.
       - "cases" must be a list.
     """
-    assert isinstance(agentic_rag_summary, dict), "Summary output should be a dictionary."
+    assert isinstance(
+        agentic_rag_summary, dict
+    ), "Summary output should be a dictionary."
     assert "cases" in agentic_rag_summary, "Summary output must have a 'cases' key."
     assert isinstance(agentic_rag_summary["cases"], list), "'cases' must be a list."
 
@@ -69,8 +81,12 @@ def test_reasoning_and_policies_cases_present(agentic_rag_summary):
     cases = agentic_rag_summary["cases"]
     reasoning_found = any("reasoning" in case["case"] for case in cases)
     policies_found = any("policies" in case["case"] for case in cases)
-    assert reasoning_found, "At least one reasoning test case must be present in the summary."
-    assert policies_found, "At least one policies test case must be present in the summary."
+    assert (
+        reasoning_found
+    ), "At least one reasoning test case must be present in the summary."
+    assert (
+        policies_found
+    ), "At least one policies test case must be present in the summary."
 
 
 @pytest.mark.evaluation
@@ -84,7 +100,10 @@ def test_metrics_present_for_all_cases(agentic_rag_summary):
         results = case.get("results")
         assert results is not None, f"Case {case['case']} must include 'results'."
         metrics = results.get("metrics")
-        assert metrics is not None, f"Case {case['case']} must include 'metrics' in its results."
+        assert (
+            metrics is not None
+        ), f"Case {case['case']} must include 'metrics' in its results."
+
 
 # Now each test is decorated with the evaluation markers and uses the evaluation_setup fixture.
 @pytest.mark.evaluation
@@ -99,8 +118,9 @@ def test_policies_001_negative_policies(agentic_rag_summary):
         test_case="agentic-rag-policies-001-negative.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.eq
+        comparator=operator.eq,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -114,8 +134,9 @@ def test_policies_001_positive_policies(agentic_rag_summary):
         test_case="agentic-rag-policies-001-positive.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=60,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -125,8 +146,9 @@ def test_policies_001_positive_reasoning(agentic_rag_summary):
         test_case="agentic-rag-reasoning-001-positive.v0",
         metric_key="SemanticSimilarityEvaluator.semantic_similarity",
         expected_value=0.88,
-        comparator=operator.ge
+        comparator=operator.ge,
     )
+
 
 @pytest.mark.evaluation
 @pytest.mark.usefixtures("evaluation_setup")
@@ -136,5 +158,5 @@ def test_policies_001_negative_reasoning(agentic_rag_summary):
         test_case="agentic-rag-reasoning-001-negative.v0",
         metric_key="FuzzyEvaluator.indel_similarity",
         expected_value=100,
-        comparator=operator.ge
+        comparator=operator.ge,
     )

@@ -50,7 +50,7 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
         self.results = []
 
         self.load_default_environment()
-        
+
         # Create the runner (AutoPADeterminator) once we confirm pipeline class in preprocess().
         self.auto_determinator = None
 

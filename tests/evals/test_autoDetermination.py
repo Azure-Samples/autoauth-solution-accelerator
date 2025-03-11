@@ -34,6 +34,7 @@ def check_case_metric(
         actual, expected_value
     ), f"Case '{test_case}': expected {metric_key} {comparator.__name__} {expected_value}, got {actual}."
 
+
 @pytest.fixture(scope="session")
 def autodetermination_summary():
     """

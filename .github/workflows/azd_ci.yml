@@ -8,7 +8,7 @@ on:
     paths:
       - 'infra/**'
       - '!**/*.md'
-      
+
 permissions:
   id-token: write
   contents: read
@@ -36,7 +36,7 @@ jobs:
             --federated-credential-provider "github" `
             --tenant-id "$Env:AZURE_TENANT_ID"
       shell: pwsh
-      
+
     - name: Azure CLI Login
       uses: azure/login@a65d910e8af852a8061c627c456678983e180302
       with:
@@ -44,7 +44,7 @@ jobs:
         tenant-id: ${{ secrets.AZURE_TENANT_ID }}
         subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
         enable-AzPSSession: true
-        
+
     - name: Preview Infra Changes
       id: provision-preview
       run: |

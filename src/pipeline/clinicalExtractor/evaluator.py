@@ -43,7 +43,7 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
         self.uploaded_files = None  # Will be set from the YAML pipeline configuration.
 
         self.load_default_environment()
-        
+
         if logger is None:
             self.logger = logging.getLogger(__name__)
             if not self.logger.handlers:
