@@ -67,10 +67,9 @@ jobs:
         shell: bash -el {0}
         run: bandit -c pyproject.toml -r .
 
-# @TODO: Need to add the necessary environment variables to run the pytest.
-#      - name: Run Pytest 🧪
-#        shell: bash -el {0}
-#        run: pytest tests/ --log-cli-level=DEBUG
+      - name: Run Pytest 🧪
+        shell: bash -el {0}
+        run: pytest tests/ --log-cli-level=DEBUG
 
   # deployment:
   #   name: deploy
