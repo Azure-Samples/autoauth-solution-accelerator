@@ -11,19 +11,20 @@ param environmentName string
 @minLength(1)
 @description('Primary location for all resources. Not all regions are supported due to OpenAI limitations')
 @allowed([
-  'southcentralus'
-  'canadaeast'
-  'eastus'
   'eastus2'
-  'francecentral'
-  'japaneast'
-  'norwayeast'
-  'polandcentral'
-  'southindia'
   'swedencentral'
-  'switzerlandnorth'
-  'uksouth'
-  'westus3'
+  //// The below regions do not currently support the combination of OpenAI models in scope.
+  // 'southcentralus'
+  // 'canadaeast'
+  // 'eastus'
+  // 'francecentral'
+  // 'japaneast'
+  // 'norwayeast'
+  // 'polandcentral'
+  // 'southindia'
+  // 'switzerlandnorth'
+  // 'uksouth'
+  // 'westus3'
 ])
 param location string
 
@@ -60,7 +61,7 @@ param reasoningModel object = {
 param chatModel object = {
   name: 'gpt-4o'
   version: '2024-08-06'
-  skuName: 'Standard'
+  skuName: 'GlobalStandard'
   capacity: 100
 }
 
