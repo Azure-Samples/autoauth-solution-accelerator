@@ -24,7 +24,6 @@ on:
       - 'src'
       - 'app'
       - 'infra'
-      - 'Dockerfile'
 
 # Set up permissions for deploying with secretless Azure federated credentials
 # https://learn.microsoft.com/en-us/azure/developer/github/connect-from-azure?tabs=azure-portal%2Clinux#set-up-azure-login-with-openid-connect-authentication
@@ -94,10 +93,6 @@ jobs:
       - name: Deploy Application
         if: ${{ github.event.inputs.action == 'deploy' || (github.event.inputs.action == 'all' && steps.provision.outcome == 'success' ) }}
         run: |
-          if ('${{ github.event.inputs.action }}' -eq 'deploy') {
-            azd env refresh
-            ./utils/azd/hooks/postprovision.ps1
-          }
           azd deploy --no-prompt
         shell: pwsh
         env:

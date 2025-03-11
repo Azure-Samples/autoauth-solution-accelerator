@@ -7,6 +7,21 @@ rg_name=$(azd env get-value AZURE_RESOURCE_GROUP)
 frontend_image=$(azd env get-value SERVICE_FRONTEND_IMAGE_NAME)
 acr_endpoint=$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)
 storage_account=$(azd env get-value AZURE_STORAGE_ACCOUNT_NAME)
+# Find project root by searching for .git directory
+find_project_root() {
+    local current_dir="$PWD"
+    while [[ "$current_dir" != "/" ]]; do
+        if [[ -d "$current_dir/.git" ]]; then
+            echo "$current_dir"
+            return 0
+        fi
+        current_dir="$(dirname "$current_dir")"
+    done
+    echo "Error: .git directory not found in any parent directory" >&2
+    return 1
+}
+
+project_root=$(find_project_root)
 
 check_container_job() {
     echo "Checking if Container App Job exists and has successful executions..."
@@ -69,17 +84,28 @@ run_evaluations() {
         echo "[Pytest Evals] Model evaluations will be run."
     else
         echo "[Pytest Evals] RUN_EVALS flag is already set to: $RUN_EVALS"
+        if [[ "$RUN_EVALS" =~ ^[Ff][Aa][Ll][Ss][Ee]$ ]]; then
+            echo "[Pytest Evals] RUN_EVALS is set to false. Skipping evaluations."
+            return 0
+        fi
     fi
 
+    # Change to project root directory
+    echo "[Pytest Evals] Changing directory to project root: $project_root"
+    cd "$project_root" || { echo "[Pytest Evals] Failed to change directory to project root"; exit 1; }
+    echo "[Pytest Evals] Current directory: $(pwd)"
+
     if [ ! -d "tests" ]; then
-        echo "tests directory not found!"
+        echo "ERROR tests directory not found!"
+        echo "Current directory: $(pwd)"
         exit 1
     fi
 
     # Enable key-based auth for storage account
     if [ -n "$storage_account" ]; then
         echo "[Pytest Evals] Temporarily enabling key-based access for storage account: $storage_account"
-        az storage account update --name "$storage_account" --resource-group "$rg_name" --allow-shared-key-access true ||
+        az storage account update --name "$storage_account" --resource-group "$rg_name" --allow-shared-key-access true &>/dev/null &&
+            echo "[Pytest Evals] Successfully enabled key-based access for storage account." ||
             echo "[Pytest Evals] Failed to enable key-based access for storage account."
     else
         echo "[Pytest Evals] Storage account name not found in environment variables. Skipping key access update."
@@ -89,7 +115,20 @@ run_evaluations() {
     test_result=0
     if command -v pytest &>/dev/null; then
         echo "[Pytest Evals] Starting pytest..."
-        pytest tests || test_result=1
+        # Check if requirements.txt exists and install dependencies if needed
+        if [ -f "requirements.txt" ]; then
+            echo "[Pytest Evals] Checking requirements from requirements.txt..."
+            if ! pip install -r requirements.txt --quiet; then
+                echo "[Pytest Evals] Failed to install required packages."
+                test_result=1
+            else
+                echo "[Pytest Evals] Requirements installed successfully."
+            fi
+        else
+            echo "[Pytest Evals] No requirements.txt found. Proceeding without installing dependencies."
+        fi
+        # Use -s to disable output capturing, and let pytest show progress dots
+        pytest -s --color=yes tests || test_result=1
     else
         echo "[Pytest Evals] pytest not found. Please install it with: pip install pytest"
         test_result=1
@@ -98,7 +137,8 @@ run_evaluations() {
     # Always disable shared key access regardless of results
     if [ -n "$storage_account" ]; then
         echo "[Pytest Evals] Disabling key-based access for storage account: $storage_account"
-        az storage account update --name "$storage_account" --resource-group "$rg_name" --allow-shared-key-access false ||
+        az storage account update --name "$storage_account" --resource-group "$rg_name" --allow-shared-key-access false &>/dev/null &&
+            echo "[Pytest Evals] Successfully disabled key-based access for storage account." ||
             echo "[Pytest Evals] Failed to disable key-based access for storage account."
     fi
 
@@ -107,6 +147,7 @@ run_evaluations() {
         exit 1
     fi
 }
+
 
 # Main execution flow
 if ! check_container_job; then

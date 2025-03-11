@@ -1,29 +1,30 @@
 # Requires PowerShell 7+
 Set-StrictMode -Version Latest
 
-# Get environment values once
-$job_name       = azd env get-value CONTAINER_JOB_NAME
-$rg_name        = azd env get-value AZURE_RESOURCE_GROUP
-$frontend_image = azd env get-value SERVICE_FRONTEND_IMAGE_NAME
-$acr_endpoint   = azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT
-$storage_account= azd env get-value AZURE_STORAGE_ACCOUNT_NAME
+# Assume these environment values are set similarly to the Bash script
+$job_name        = azd env get-value CONTAINER_JOB_NAME
+$rg_name         = azd env get-value AZURE_RESOURCE_GROUP
+$frontend_image  = azd env get-value SERVICE_FRONTEND_IMAGE_NAME
+$acr_endpoint    = azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT
+$storage_account = azd env get-value AZURE_STORAGE_ACCOUNT_NAME
+
+# Assume $project_root is set earlier (for example by a Find-ProjectRoot function)
+# For this example, we use the current directory as the project root.
+$project_root = Get-Location
 
 function Test-ContainerJob {
     Write-Output "Checking if Container App Job exists and has successful executions..."
-
     try {
-        # Check if job exists
+        # Check if job exists.
         az containerapp job show -g $rg_name --name $job_name | Out-Null
-        # Job exists, check if it has successful executions
+        # Job exists, check for successful executions.
         $successful_count = az containerapp job execution list -g $rg_name --name $job_name --query "length([?properties.status=='Succeeded'])" -o tsv
         if ([int]$successful_count -gt 0) {
             Write-Output "Container App Job already has $successful_count successful execution(s). Skipping..."
             return $true
         }
-        else {
-            Write-Output "Container App Job exists but has no successful executions. Continuing..."
-            return $false
-        }
+        Write-Output "Container App Job exists but has no successful executions. Continuing..."
+        return $false
     }
     catch {
         Write-Output "Container App Job does not exist or could not be accessed. Continuing with deployment..."
@@ -66,32 +67,26 @@ function Update-AndRunJob {
 }
 
 function Invoke-Evaluations {
-    if ([string]::IsNullOrEmpty($env:RUN_EVALS)) {
-        $response = Read-Host "Would you like to run model evaluations through AI Foundry? (y/n)"
-        if ($response -notmatch '^[Yy]') {
-            Write-Output "[Pytest Evals] Model evaluations will be skipped."
-            return
-        }
-        Write-Output "[Pytest Evals] Model evaluations will be run."
-    }
-    else {
-        Write-Output "[Pytest Evals] RUN_EVALS flag is already set to: $env:RUN_EVALS"
-    }
+    # Change to project root directory.
+    Write-Output "[Pytest Evals] Changing directory to project root: $project_root"
+    Set-Location $project_root -ErrorAction Stop
+    Write-Output "[Pytest Evals] Current directory: $(Get-Location)"
 
+    # Ensure the "tests" directory exists.
     if (-not (Test-Path -Path "tests" -PathType Container)) {
-        Write-Output "tests directory not found!"
+        Write-Output "ERROR tests directory not found!"
+        Write-Output "Current directory: $(Get-Location)"
         exit 1
     }
 
-    Set-Location "tests" -ErrorAction Stop
-
-    # Enable key-based auth for storage account
+    # Enable key-based authentication for storage account, if defined.
     if (-not [string]::IsNullOrEmpty($storage_account)) {
-        Write-Output "Enabling key-based access for storage account: $storage_account"
-        try {
-            az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access true | Out-Null
+        Write-Output "[Pytest Evals] Temporarily enabling key-based access for storage account: $storage_account"
+        az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access true | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Output "[Pytest Evals] Successfully enabled key-based access for storage account."
         }
-        catch {
+        else {
             Write-Output "[Pytest Evals] Failed to enable key-based access for storage account."
         }
     }
@@ -99,14 +94,49 @@ function Invoke-Evaluations {
         Write-Output "[Pytest Evals] Storage account name not found in environment variables. Skipping key access update."
     }
 
-    # Run tests
+    # Run tests.
+    $global:test_result = 0
     if (Get-Command pytest -ErrorAction SilentlyContinue) {
-        Write-Output "Starting pytest..."
-        pytest
-        if ($LASTEXITCODE -ne 0) { exit 1 }
+        Write-Output "[Pytest Evals] Starting pytest..."
+        # Install dependencies if requirements.txt exists.
+        if (Test-Path "requirements.txt") {
+            Write-Output "[Pytest Evals] Checking requirements from requirements.txt..."
+            pip install -r requirements.txt --quiet
+            if ($LASTEXITCODE -ne 0) {
+                Write-Output "[Pytest Evals] Failed to install required packages."
+                $global:test_result = 1
+            }
+            else {
+                Write-Output "[Pytest Evals] Requirements installed successfully."
+            }
+        }
+        else {
+            Write-Output "[Pytest Evals] No requirements.txt found. Proceeding without installing dependencies."
+        }
+        pytest tests
+        if ($LASTEXITCODE -ne 0) {
+            $global:test_result = 1
+        }
     }
     else {
-        Write-Output "pytest not found. Please install it with: pip install pytest"
+        Write-Output "[Pytest Evals] pytest not found. Please install it with: pip install pytest"
+        $global:test_result = 1
+    }
+
+    # Always disable shared key access regardless of test results.
+    if (-not [string]::IsNullOrEmpty($storage_account)) {
+        Write-Output "[Pytest Evals] Disabling key-based access for storage account: $storage_account"
+        az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access false | Out-Null
+        if ($LASTEXITCODE -eq 0) {
+            Write-Output "[Pytest Evals] Successfully disabled key-based access for storage account."
+        }
+        else {
+            Write-Output "[Pytest Evals] Failed to disable key-based access for storage account."
+        }
+    }
+
+    # Exit with nonzero code if tests failed.
+    if ($global:test_result -ne 0) {
         exit 1
     }
 }
