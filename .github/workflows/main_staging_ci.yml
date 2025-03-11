@@ -67,9 +67,10 @@ jobs:
         shell: bash -el {0}
         run: bandit -c pyproject.toml -r .
 
-      - name: Run Pytest 🧪
-        shell: bash -el {0}
-        run: pytest tests/ --log-cli-level=DEBUG
+      ## Pytest will be handled via the azd_deploy.yml as it depends on parameters from the azd pipeline
+      # - name: Run Pytest 🧪
+      #   shell: bash -el {0}
+      #   run: pytest tests/ --log-cli-level=DEBUG
 
   # deployment:
   #   name: deploy

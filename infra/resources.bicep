@@ -19,7 +19,7 @@ param frontendExists bool = false
 param backendExists bool = false
 // ----------------------------------------------------------------------------------------
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
-param enableEasyAuth bool = true
+param enableEasyAuth bool
 
 // Execute this main file to deploy Prior Authorization related resources in a basic configuration
 @minLength(2)

@@ -11,7 +11,7 @@ param environmentName string
 @minLength(1)
 @description('Primary location for all resources. Not all regions are supported due to OpenAI limitations')
 @allowed([
-  'australiaeast'
+  'southcentralus'
   'canadaeast'
   'eastus'
   'eastus2'
