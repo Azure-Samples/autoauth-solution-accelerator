@@ -430,17 +430,17 @@ var frontendContainer = {
 
 }
 
-var backendContainer = {
-  name: backendContainerName
-  image: backendImage
-  command: []
-  args: []
-  resources: {
-    cpu: json('2.0')
-    memory: '4Gi'
-  }
-  env: containerEnvArray
-}
+// var backendContainer = {
+//   name: backendContainerName
+//   image: backendImage
+//   command: []
+//   args: []
+//   resources: {
+//     cpu: json('2.0')
+//     memory: '4Gi'
+//   }
+//   env: containerEnvArray
+// }
 
 var jobAppContainer = {
   name: '${backendContainerName}-job'
@@ -623,7 +623,7 @@ output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
 
 output FRONTEND_CONTAINER_URL string = frontendContainerApp.outputs.fqdn
 output FRONTEND_CONTAINER_NAME string = frontendContainerApp.outputs.name
-output BACKEND_CONTAINER_URL string = backendContainerApp.outputs.fqdn
-output BACKEND_CONTAINER_NAME string = backendContainerApp.outputs.name
+// output BACKEND_CONTAINER_URL string = backendContainerApp.outputs.fqdn
+// output BACKEND_CONTAINER_NAME string = backendContainerApp.outputs.name
 output APP_IDENTITY_CLIENT_ID string = appIdentity.outputs.clientId
 output APP_IDENTITY_PRINCIPAL_ID string = appIdentity.outputs.principalId
