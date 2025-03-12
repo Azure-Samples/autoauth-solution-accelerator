@@ -5,6 +5,9 @@
     "enableEasyAuth": {
       "value": "${ENABLE_EASY_AUTH:-}"
     },
+    "disableIngress": {
+      "value": "${DISABLE_INGRESS:-}"
+    },
     "environmentName": {
       "value": "${AZURE_ENV_NAME:-defaultEnv}"
     },

@@ -21,6 +21,9 @@ param backendExists bool = false
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
 param enableEasyAuth bool
 
+@description('Flag to indicate if the Container App should be deployed with ingress disabled')
+param disableIngress bool
+
 // Execute this main file to deploy Prior Authorization related resources in a basic configuration
 @minLength(2)
 @maxLength(12)
@@ -413,10 +416,6 @@ var frontendImage = frontendExists
                     ? frontendFetchLatestImage.outputs.containers[0].image
                     : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 
-var backendImage = backendExists
-                    ? backendFetchLatestImage.outputs.containers[0].image
-                    : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
-
 var frontendContainer = {
   name: frontendContainerName
   image: frontendImage
@@ -430,17 +429,6 @@ var frontendContainer = {
 
 }
 
-// var backendContainer = {
-//   name: backendContainerName
-//   image: backendImage
-//   command: []
-//   args: []
-//   resources: {
-//     cpu: json('2.0')
-//     memory: '4Gi'
-//   }
-//   env: containerEnvArray
-// }
 
 var jobAppContainer = {
   name: '${backendContainerName}-job'
@@ -466,6 +454,7 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
         value: appIdentity.outputs.clientId
       }
     ]
+    disableIngress: disableIngress
 
     // Non-required parameters
     scaleMinReplicas: 1
@@ -484,38 +473,6 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
     tags: union(tags, { 'azd-service-name': 'frontend' })
   }
 }
-
-// module backendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
-//   name: backendContainerName
-//   params: {
-//     // Required parameters
-//     name: backendContainerName
-//     environmentResourceId: containerAppsEnvironment.outputs.resourceId
-//     containers: [
-//       backendContainer
-//     ]
-//     secrets: [
-//       {
-//         name: 'override-use-mi-fic-assertion-client-id'
-//         value: appIdentity.outputs.clientId
-//       }
-//     ]
-
-//     // Non-required parameters
-//     registries: registries
-//     managedIdentities: {
-//       userAssignedResourceIds:[
-//         appIdentity.outputs.resourceId
-//       ]
-//     }
-//     scaleMinReplicas: 0
-//     scaleMaxReplicas: 1
-
-//     workloadProfileName: 'Consumption'
-//     location: location
-//     tags: union(tags, { 'azd-service-name': 'backend' })
-//   }
-// }
 
 module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
   name: '${backendContainerName}-job'
@@ -579,17 +536,6 @@ module feAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
     // appIdentityResourceId: includeTokenStore ? aca.outputs.identityResourceId : ''
   }
 }
-
-// module beAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
-//   name: 'easyauth-backend-appupdate'
-//   params: {
-//     containerAppName: backendContainerApp.outputs.name
-//     clientId: easyAuthAppReg.outputs.clientAppId
-//     openIdIssuer: issuer
-//     // includeTokenStore: includeTokenStore
-//     // appIdentityResourceId: includeTokenStore ? aca.outputs.identityResourceId : ''
-//   }
-// }
 
 output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
 output AZURE_OPENAI_API_VERSION string = chatModel.version
