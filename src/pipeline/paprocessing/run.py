@@ -117,7 +117,9 @@ class PAProcessingPipeline:
             api_key=azure_openai_key,
         )
         self.azure_openai_client_o1 = AzureOpenAIManager(
-            api_version=os.getenv("AZURE_OPENAI_API_VERSION_01") or "2024-09-01-preview"
+            completion_model_name=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_01") or "o1",
+            api_version=os.getenv("AZURE_OPENAI_API_VERSION_01")
+            or "2025-01-01-preview",
         )
 
         self.search_client = SearchClient(

@@ -18,8 +18,11 @@
 param frontendExists bool = false
 param backendExists bool = false
 // ----------------------------------------------------------------------------------------
-@description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
+@description('Flag to indicate if EasyAuth should be enabled for the Container Apps')
 param enableEasyAuth bool
+
+@description('Flag to indicate if API Management should be enabled for the AI Services')
+param enableAPIManagement bool
 
 // Execute this main file to deploy Prior Authorization related resources in a basic configuration
 @minLength(2)
@@ -65,17 +68,6 @@ var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 7)
 var storageServiceName = toLower(replace('storage-${name}-${uniqueSuffix}', '-', ''))
 var location = resourceGroup().location
 
-// @TODO: Replace with AVM module; consolidate into AI Service
-module docIntelligence 'modules/ai/docintelligence.bicep' = {
-  name: 'doc-intelligence-${name}-${uniqueSuffix}-deployment'
-  params: {
-    aiServiceName: 'doc-intelligence-${name}-${uniqueSuffix}'
-    location: location
-    tags: tags
-    aiServiceSkuName: 'S0'
-  }
-}
-
 // @TODO: Replace with AVM module
 module multiAccountAiServices 'modules/ai/mais.bicep' = {
   name: 'multiservice-${name}-${uniqueSuffix}-deployment'
@@ -87,8 +79,22 @@ module multiAccountAiServices 'modules/ai/mais.bicep' = {
   }
 }
 
+
+// @TODO: Replace with AVM module; consolidate into AI Service
+// Preserving this structure for backwards compatibility
+module docIntelligence 'modules/ai/docintelligence.bicep' = if (!enableAPIManagement) {
+  name: 'doc-intelligence-${name}-${uniqueSuffix}-deployment'
+  params: {
+    aiServiceName: 'doc-intelligence-${name}-${uniqueSuffix}'
+    location: location
+    tags: tags
+    aiServiceSkuName: 'S0'
+  }
+}
+
 // @TODO: Replace with AVM module
-module openAiService 'modules/ai/openai.bicep' = {
+// Preserving this structure for backwards compatibility
+module openAiService 'modules/ai/openai.bicep' = if (!enableAPIManagement)  {
   name: 'openai-${name}-${uniqueSuffix}-deployment'
   params: {
     aiServiceName: 'openai-${name}-${uniqueSuffix}'
@@ -97,6 +103,22 @@ module openAiService 'modules/ai/openai.bicep' = {
     aiServiceSkuName: 'S0'
     embeddingModel: embeddingModel
     chatCompletionModels: chatCompletionModels
+  }
+}
+
+module aiGateway 'ai-gateway.bicep' = if (enableAPIManagement) {
+  name: 'ai-gateway-${name}-${uniqueSuffix}-deployment'
+  params: {
+    name: 'ai-gateway-${name}-${uniqueSuffix}'
+    location: location
+    tags: tags
+
+    aiModels: [
+      chatCompletionModels
+      reasoningModel
+      embeddingModel
+    ]
+    aiServiceSkuName: 'S0'
   }
 }
 
