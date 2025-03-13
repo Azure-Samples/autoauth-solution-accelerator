@@ -58,10 +58,10 @@ hooks:
       shell: sh
       interactive: true
       continueOnError: false
-      run: ./utils/azd/hooks/postprovision.sh
+      run: utils/azd/hooks/postprovision.sh
 
     windows:
       shell: pwsh
       interactive: true
       continueOnError: false
-      run: .\utils\azd\hooks\postprovision.ps1
+      run: utils\azd\hooks\postprovision.ps1
