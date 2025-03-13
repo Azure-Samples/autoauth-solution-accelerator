@@ -1,150 +1,362 @@
-# Requires PowerShell 7+
+[CmdletBinding()]
+param()
+
+# Enable strict mode and error handling
 Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
-# Assume these environment values are set similarly to the Bash script
-$job_name        = azd env get-value CONTAINER_JOB_NAME
-$rg_name         = azd env get-value AZURE_RESOURCE_GROUP
-$frontend_image  = azd env get-value SERVICE_FRONTEND_IMAGE_NAME
-$acr_endpoint    = azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT
-$storage_account = azd env get-value AZURE_STORAGE_ACCOUNT_NAME
+# Constants and configuration
+$ScriptName = (Get-Item $MyInvocation.MyCommand.Path).BaseName
+$SpinnerChars = '|/-\'
+$SpinnerDelay = 0.1
 
-# Assume $project_root is set earlier (for example by a Find-ProjectRoot function)
-# For this example, we use the current directory as the project root.
-$project_root = Get-Location
+# Initialize logging
+function Write-Log {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('INFO', 'WARN', 'ERROR')]
+        [string]$Level,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Message
+    )
+
+    $logMessage = "[$ScriptName] [$Level] $Message"
+
+    if ($Level -eq 'ERROR') {
+        Write-Error $logMessage
+    } else {
+        Write-Host $logMessage
+    }
+}
+
+function Write-LogInfo {
+    param([string]$Message)
+    Write-Log -Level 'INFO' -Message $Message
+}
+
+function Write-LogError {
+    param([string]$Message)
+    Write-Log -Level 'ERROR' -Message $Message
+}
+
+function Write-LogWarning {
+    param([string]$Message)
+    Write-Log -Level 'WARN' -Message $Message
+}
+
+# Check required dependencies
+function Test-Dependencies {
+    Write-LogInfo "Checking required dependencies..."
+    $missing = $false
+
+    foreach ($cmd in @('az', 'pytest')) {
+        if (-not (Get-Command $cmd -ErrorAction SilentlyContinue)) {
+            Write-LogError "Required command not found: $cmd"
+            $missing = $true
+        }
+    }
+
+    # Check for equivalent of jq in PowerShell - we'll use ConvertFrom-Json
+
+    if ($missing) {
+        Write-LogError "Please install missing dependencies"
+        return $false
+    }
+
+    return $true
+}
+
+# Load environment variables
+function Get-EnvironmentVariables {
+    Write-LogInfo "Loading environment variables..."
+    $script:JobName = (& azd env get-value CONTAINER_JOB_NAME).Trim()
+    $script:RgName = (& azd env get-value AZURE_RESOURCE_GROUP).Trim()
+    $script:FrontendImage = (& azd env get-value SERVICE_FRONTEND_IMAGE_NAME).Trim()
+    $script:AcrEndpoint = (& azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT).Trim()
+    $script:StorageAccount = (& azd env get-value AZURE_STORAGE_ACCOUNT_NAME).Trim()
+
+    # Validate required variables
+    if ([string]::IsNullOrEmpty($script:JobName) -or [string]::IsNullOrEmpty($script:RgName)) {
+        Write-LogError "Required environment variables not set"
+        return $false
+    }
+
+    return $true
+}
+
+# Find project root by searching for .git directory
+function Get-ProjectRoot {
+    $currentDir = Get-Location
+
+    while ($true) {
+        if (Test-Path -Path (Join-Path -Path $currentDir -ChildPath ".git") -PathType Container) {
+            return $currentDir
+        }
+
+        $parentDir = Split-Path -Path $currentDir -Parent
+        if ($parentDir -eq $currentDir) {
+            Write-LogError ".git directory not found in any parent directory"
+            return $null
+        }
+
+        $currentDir = $parentDir
+    }
+}
 
 function Test-ContainerJob {
-    Write-Output "Checking if Container App Job exists and has successful executions..."
+    Write-LogInfo "Checking if Container App Job exists and has successful executions..."
+
+    # Check if job exists
     try {
-        # Check if job exists.
-        az containerapp job show -g $rg_name --name $job_name | Out-Null
-        # Job exists, check for successful executions.
-        $successful_count = az containerapp job execution list -g $rg_name --name $job_name --query "length([?properties.status=='Succeeded'])" -o tsv
-        if ([int]$successful_count -gt 0) {
-            Write-Output "Container App Job already has $successful_count successful execution(s). Skipping..."
+        $null = & az containerapp job show -g $script:RgName --name $script:JobName 2>$null
+
+        # Job exists, check for successful executions
+        $successfulCount = (& az containerapp job execution list -g $script:RgName --name $script:JobName `
+                --query "length([?properties.status=='Succeeded'])" -o tsv).Trim()
+
+        if ([int]$successfulCount -gt 0) {
+            Write-LogInfo "Container App Job already has $successfulCount successful execution(s). Skipping..."
             return $true
         }
-        Write-Output "Container App Job exists but has no successful executions. Continuing..."
+
+        Write-LogInfo "Container App Job exists but has no successful executions. Continuing..."
         return $false
     }
     catch {
-        Write-Output "Container App Job does not exist or could not be accessed. Continuing with deployment..."
+        Write-LogInfo "Container App Job does not exist or could not be accessed. Continuing with deployment..."
         return $false
     }
 }
 
 function Update-AndRunJob {
-    if ([string]::IsNullOrEmpty($frontend_image)) {
-        Write-Output "SERVICE_FRONTEND_IMAGE_NAME is null. Ensure your azd deployment succeeded. Exiting..."
-        exit 1
+    if ([string]::IsNullOrEmpty($script:FrontendImage)) {
+        Write-LogError "SERVICE_FRONTEND_IMAGE_NAME is null. Ensure your azd deployment succeeded. Exiting..."
+        return $false
     }
 
-    Write-Output "Logging into Azure Container Registry..."
-    az acr login --name $acr_endpoint
+    Write-LogInfo "Logging into Azure Container Registry..."
+    & az acr login --name $script:AcrEndpoint
 
-    Write-Output "Updating container app job image..."
-    az containerapp job update -g $rg_name --name $job_name --image $frontend_image
+    Write-LogInfo "Updating container app job image..."
+    & az containerapp job update -g $script:RgName --name $script:JobName --image $script:FrontendImage
 
-    Write-Output "Starting job $job_name..."
-    az containerapp job start -g $rg_name --name $job_name
+    Write-LogInfo "Starting job $script:JobName..."
+    & az containerapp job start -g $script:RgName --name $script:JobName
 
-    Write-Output "Waiting for job to complete..."
+    Write-LogInfo "Waiting for job to complete..."
     $status = "Running"
+
     while ($status -eq "Running" -or $status -eq "Pending") {
         Start-Sleep -Seconds 10
-        $executionJson = az containerapp job execution list -g $rg_name --name $job_name --query "[0]" -o json
+        $executionJson = & az containerapp job execution list -g $script:RgName --name $script:JobName --query "[0]" -o json
         $execution = $executionJson | ConvertFrom-Json
         $status = $execution.properties.status
-        Write-Output "Status: $status"
+        Write-LogInfo "Status: $status"
     }
 
     if ($status -eq "Succeeded") {
-        Write-Output "Job completed successfully."
+        Write-LogInfo "Job completed successfully."
+        return $true
     }
     else {
-        Write-Output "Job failed with status: $status"
-        exit 1
+        Write-LogError "Job failed with status: $status"
+        return $false
+    }
+}
+
+# Display a spinner for long-running processes
+function Show-Spinner {
+    param([int]$ProcessId)
+
+    $i = 0
+    $spinnerLength = $SpinnerChars.Length
+
+    while (Get-Process -Id $ProcessId -ErrorAction SilentlyContinue) {
+        Write-Host "`r[$ScriptName] $($SpinnerChars[$i % $spinnerLength])" -NoNewline
+        Start-Sleep -Milliseconds ($SpinnerDelay * 1000)
+        $i++
+    }
+
+    # Clear the spinner line
+    Write-Host "`r$((" " * 50))`r" -NoNewline
+}
+
+# Toggle storage account shared key access
+function Set-StorageSharedKeyAccess {
+    param(
+        [bool]$Enable
+    )
+
+    if ([string]::IsNullOrEmpty($script:StorageAccount)) {
+        Write-LogWarning "Storage account name not found in environment variables. Skipping key access update."
+        return $true
+    }
+
+    $action = if ($Enable) { "Enabling" } else { "Disabling" }
+    Write-LogInfo "$action key-based access for storage account: $script:StorageAccount"
+
+    try {
+        & az storage account update --name $script:StorageAccount --resource-group $script:RgName --allow-shared-key-access $Enable.ToString().ToLower() 2>$null
+        $actionPast = if ($Enable) { "enabled" } else { "disabled" }
+        Write-LogInfo "Successfully $actionPast key-based access."
+        return $true
+    }
+    catch {
+        $actionPresent = if ($Enable) { "enable" } else { "disable" }
+        Write-LogError "Failed to $actionPresent key-based access."
+        return $false
     }
 }
 
 function Invoke-Evaluations {
-    # Change to project root directory.
-    Write-Output "[Pytest Evals] Changing directory to project root: $project_root"
-    Set-Location $project_root -ErrorAction Stop
-    Write-Output "[Pytest Evals] Current directory: $(Get-Location)"
-
-    # Ensure the "tests" directory exists.
-    if (-not (Test-Path -Path "tests" -PathType Container)) {
-        Write-Output "ERROR tests directory not found!"
-        Write-Output "Current directory: $(Get-Location)"
-        exit 1
+    # Ask user if they want to run evaluations (if not already set)
+    if ([string]::IsNullOrEmpty($env:RUN_EVALS)) {
+        $response = Read-Host "Would you like to run model evaluations through AI Foundry? (y/n)"
+        if ($response -notmatch '^[Yy]') {
+            Write-LogInfo "Model evaluations will be skipped."
+            return $true
+        }
+        Write-LogInfo "Model evaluations will be run."
+    }
+    else {
+        Write-LogInfo "RUN_EVALS flag is already set to: $env:RUN_EVALS"
+        if ($env:RUN_EVALS -match '^[Ff][Aa][Ll][Ss][Ee]$') {
+            Write-LogInfo "RUN_EVALS is set to false. Skipping evaluations."
+            return $true
+        }
     }
 
-    # Enable key-based authentication for storage account, if defined.
-    if (-not [string]::IsNullOrEmpty($storage_account)) {
-        Write-Output "[Pytest Evals] Temporarily enabling key-based access for storage account: $storage_account"
-        az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access true | Out-Null
-        if ($LASTEXITCODE -eq 0) {
-            Write-Output "[Pytest Evals] Successfully enabled key-based access for storage account."
+    # Change to project root directory
+    $projectRoot = Get-ProjectRoot
+    if (-not $projectRoot) {
+        return $false
+    }
+
+    Write-LogInfo "Changing directory to project root: $projectRoot"
+    try {
+        Push-Location -Path $projectRoot
+    }
+    catch {
+        Write-LogError "Failed to change directory to project root"
+        return $false
+    }
+
+    if (-not (Test-Path -Path "tests" -PathType Container)) {
+        Write-LogError "Tests directory not found! Current directory: $(Get-Location)"
+        Pop-Location
+        return $false
+    }
+
+    # Enable key-based auth for storage account
+    Set-StorageSharedKeyAccess -Enable $true
+
+    $testResult = $true
+
+    # Install dependencies
+    Write-LogInfo "Checking and installing dependencies..."
+    if (Test-Path -Path "requirements.txt" -PathType Leaf) {
+        try {
+            & pip install -r requirements.txt --quiet
+            Write-LogInfo "Dependencies installed."
         }
-        else {
-            Write-Output "[Pytest Evals] Failed to enable key-based access for storage account."
+        catch {
+            Write-LogError "Failed to install required packages."
+            $testResult = $false
         }
     }
     else {
-        Write-Output "[Pytest Evals] Storage account name not found in environment variables. Skipping key access update."
+        Write-LogWarning "No requirements.txt found. Skipping dependency installation."
     }
 
-    # Run tests.
-    $global:test_result = 0
-    if (Get-Command pytest -ErrorAction SilentlyContinue) {
-        Write-Output "[Pytest Evals] Starting pytest..."
-        # Install dependencies if requirements.txt exists.
-        if (Test-Path "requirements.txt") {
-            Write-Output "[Pytest Evals] Checking requirements from requirements.txt..."
-            pip install -r requirements.txt --quiet
-            if ($LASTEXITCODE -ne 0) {
-                Write-Output "[Pytest Evals] Failed to install required packages."
-                $global:test_result = 1
+    # Run tests
+    if ($testResult) {
+        Write-LogInfo "Starting pytest..."
+
+        try {
+            $process = Start-Process -FilePath pytest -ArgumentList "-s", "--color=yes", "tests" -PassThru -NoNewWindow
+
+            # Start the spinner in a job
+            $spinnerJob = Start-Job -ScriptBlock {
+                param($processId, $scriptName, $spinnerChars, $spinnerDelay)
+
+                $i = 0
+                $spinnerLength = $spinnerChars.Length
+
+                while (Get-Process -Id $processId -ErrorAction SilentlyContinue) {
+                    Write-Host "`r[$scriptName] $($spinnerChars[$i % $spinnerLength])" -NoNewline
+                    Start-Sleep -Milliseconds ($spinnerDelay * 1000)
+                    $i++
+                }
+
+                # Clear the spinner line
+                Write-Host "`r$((" " * 50))`r" -NoNewline
+
+            } -ArgumentList $process.Id, $ScriptName, $SpinnerChars, $SpinnerDelay
+
+            # Wait for the process to complete
+            $process.WaitForExit()
+
+            # Stop the spinner job
+            Stop-Job -Job $spinnerJob
+            Remove-Job -Job $spinnerJob -Force
+
+            if ($process.ExitCode -ne 0) {
+                $testResult = $false
+                Write-LogError "Tests failed."
             }
             else {
-                Write-Output "[Pytest Evals] Requirements installed successfully."
+                Write-LogInfo "Tests completed successfully."
             }
         }
-        else {
-            Write-Output "[Pytest Evals] No requirements.txt found. Proceeding without installing dependencies."
-        }
-        pytest tests
-        if ($LASTEXITCODE -ne 0) {
-            $global:test_result = 1
-        }
-    }
-    else {
-        Write-Output "[Pytest Evals] pytest not found. Please install it with: pip install pytest"
-        $global:test_result = 1
-    }
-
-    # Always disable shared key access regardless of test results.
-    if (-not [string]::IsNullOrEmpty($storage_account)) {
-        Write-Output "[Pytest Evals] Disabling key-based access for storage account: $storage_account"
-        az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access false | Out-Null
-        if ($LASTEXITCODE -eq 0) {
-            Write-Output "[Pytest Evals] Successfully disabled key-based access for storage account."
-        }
-        else {
-            Write-Output "[Pytest Evals] Failed to disable key-based access for storage account."
+        catch {
+            $testResult = $false
+            Write-LogError "Error running tests: $_"
         }
     }
 
-    # Exit with nonzero code if tests failed.
-    if ($global:test_result -ne 0) {
-        exit 1
-    }
+    # Disable shared key access
+    Set-StorageSharedKeyAccess -Enable $false
+
+    # Return to original directory
+    Pop-Location
+
+    return $testResult
 }
 
 # Main execution flow
-if (-not (Test-ContainerJob)) {
-    Update-AndRunJob
+function Invoke-Main {
+    try {
+        if (-not (Test-Dependencies)) {
+            exit 1
+        }
+
+        if (-not (Get-EnvironmentVariables)) {
+            exit 1
+        }
+
+        if (-not (Test-ContainerJob)) {
+            if (-not (Update-AndRunJob)) {
+                exit 1
+            }
+        }
+
+        if (-not (Invoke-Evaluations)) {
+            exit 1
+        }
+
+        exit 0
+    }
+    finally {
+        # Ensure storage account key access is disabled
+        if ($script:StorageAccount) {
+            Set-StorageSharedKeyAccess -Enable $false | Out-Null
+        }
+
+        Write-LogInfo "Script finished"
+    }
 }
 
-Invoke-Evaluations
-exit 0
+# Run the script
+Invoke-Main
