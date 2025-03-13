@@ -447,7 +447,7 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
     containers: [
       frontendContainer
     ]
-
+    stickySessionsAffinity: 'sticky'
     secrets: [
       {
         name: 'override-use-mi-fic-assertion-client-id'
