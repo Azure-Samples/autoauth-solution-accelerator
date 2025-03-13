@@ -13,7 +13,7 @@ services:
       context: ../../
       remoteBuild: true
     hooks:
-      predeploy:
+      postdeploy:
         posix:
           shell: sh
           interactive: true
