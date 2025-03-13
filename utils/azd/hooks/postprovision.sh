@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo "Generating .env file..."
 echo "
 AZURE_OPENAI_ENDPOINT=$(azd env get-value AZURE_OPENAI_ENDPOINT)
@@ -29,8 +28,10 @@ AZURE_CONTAINER_REGISTRY_ENDPOINT=$(azd env get-value AZURE_CONTAINER_REGISTRY_E
 AZURE_AI_FOUNDRY_CONNECTION_STRING=$(azd env get-value AZURE_AI_FOUNDRY_CONNECTION_STRING)
 " > .env
 
-echo "Checking if the post-deployment job needs to be run..."
-if [ -z "$(azd env get-value SERVICE_FRONTEND_IMAGE_NAME)" ]; then
-    echo "Backend image does not exist. Clearing CONTAINER_JOB_RUN value..."
-    azd env set CONTAINER_JOB_RUN false
+disableIngress=$(azd env get-value DISABLE_INGRESS)
+if [ "$disableIngress" = "true" ]; then
+    echo -e "\033[31m!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\033[0m"
+    echo -e "\033[31mWARNING: Ingress is disabled. The application endpoint will NOT be reachable!\033[0m"
+    echo -e "\033[31m!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\033[0m"
+    echo -e "\033[33mHowever, your local debugger should work fine.\033[0m"
 fi
