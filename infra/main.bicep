@@ -3,6 +3,9 @@ targetScope = 'subscription'
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
 param enableEasyAuth bool = true
 
+@description('Flag to indicate if the Container App should be deployed with ingress disabled')
+param disableIngress bool = false
+
 @minLength(1)
 @maxLength(64)
 @description('Name of the environment that can be used as part of naming resource convention')
@@ -117,8 +120,10 @@ module resources 'resources.bicep' = {
     embeddingModel: embeddingModel
     embeddingModelDimension: embeddingModelDimension
     storageBlobContainerName: storageBlobContainerName
-    // Optional Parameters
     enableEasyAuth: enableEasyAuth
+    disableIngress: disableIngress
+
+    // Optional Parameters
     tags: azd_tags
     gitHash: GIT_HASH
     frontendExists: frontendExists

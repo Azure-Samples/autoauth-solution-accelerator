@@ -13,7 +13,7 @@ services:
       context: ../../
       remoteBuild: true
     hooks:
-      predeploy:
+      postdeploy:
         posix:
           shell: sh
           interactive: true
@@ -43,27 +43,25 @@ hooks:
       shell: sh
       interactive: true
       continueOnError: false
-      # run: ../utils/azd/hooks/preprovision.sh
       run: |
         echo "Setting executable permissions on hook scripts..."
         chmod +x ./utils/azd/hooks/*.sh
-        # ./utils/azd/hooks/preprovision.sh
+        utils/azd/hooks/preprovision.sh
     windows:
       shell: pwsh
       interactive: true
       continueOnError: false
-      # run: ../utils/azd/hooks/preprovision.ps1
-      run: Write-Output 'Windows preprovisioning hook'
+      run: utils\azd\hooks\preprovision.ps1
 
   postprovision:
     posix:
       shell: sh
       interactive: true
       continueOnError: false
-      run: ./utils/azd/hooks/postprovision.sh
+      run: utils/azd/hooks/postprovision.sh
 
     windows:
       shell: pwsh
       interactive: true
       continueOnError: false
-      run: .\utils\azd\hooks\postprovision.ps1
+      run: utils\azd\hooks\postprovision.ps1
