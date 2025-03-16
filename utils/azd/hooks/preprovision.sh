@@ -10,8 +10,14 @@ echo " Current User Client ID: $CURRENT_USER_CLIENT_ID"
 echo " Git Commit Hash:        $GIT_HASH"
 echo "======================================="
 
-
-if [[ -z "$(azd env get-value ENABLE_EASY_AUTH 2>/dev/null)" || -z "$(azd env get-value DISABLE_INGRESS 2>/dev/null)" ]]; then
+# Check if ENABLE_EASY_AUTH and DISABLE_INGRESS are set
+ENABLE_EASY_AUTH=$(azd env get-value ENABLE_EASY_AUTH 2>/dev/null) || ENABLE_EASY_AUTH=""
+DISABLE_INGRESS=$(azd env get-value DISABLE_INGRESS 2>/dev/null) || DISABLE_INGRESS=""
+echo "======================================="
+echo " ENABLE_EASY_AUTH: $ENABLE_EASY_AUTH"
+echo " DISABLE_INGRESS:  $DISABLE_INGRESS"
+echo "======================================="
+if [[ -z "$ENABLE_EASY_AUTH" || -z "$DISABLE_INGRESS" ]]; then
     while true; do
         read -p "Would you like to enable Easy Auth for your Container App? (y/n): " enable_easy_auth
         if [[ "$enable_easy_auth" =~ ^[Yy]$ ]]; then
