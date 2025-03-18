@@ -208,3 +208,19 @@ class PromptManager:
             query=query,
             SearchResults=search_results,
         )
+
+    def create_prompt_transform_determination_markdown_user(
+        self,
+        autodetermination_text: str
+    ) -> str:
+        return self.get_prompt(
+            "transform_determination_markdown_user_prompt.jinja",
+            autodetermination_text=autodetermination_text
+        )
+
+    def create_prompt_transform_determination_markdown_system(
+        self
+    ) -> str:
+        return self.get_prompt(
+            "transform_determination_markdown_system_prompt.jinja"
+        )

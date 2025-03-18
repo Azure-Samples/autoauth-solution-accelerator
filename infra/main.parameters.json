@@ -37,7 +37,7 @@
         "name": "gpt-4o",
         "version": "2024-08-06",
         "skuName": "Standard",
-        "capacity": 25
+        "capacity": 50
       }
     },
     "reasoningModel": {
@@ -45,7 +45,7 @@
         "name": "o1",
         "version": "2024-12-17",
         "skuName": "GlobalStandard",
-        "capacity": 25
+        "capacity": 50
       }
     },
     "embeddingModel": {
