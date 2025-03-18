@@ -5,6 +5,9 @@
     "enableEasyAuth": {
       "value": "${ENABLE_EASY_AUTH:-}"
     },
+    "disableIngress": {
+      "value": "${DISABLE_INGRESS:-}"
+    },
     "environmentName": {
       "value": "${AZURE_ENV_NAME:-defaultEnv}"
     },
@@ -34,7 +37,7 @@
         "name": "gpt-4o",
         "version": "2024-08-06",
         "skuName": "Standard",
-        "capacity": 100
+        "capacity": 25
       }
     },
     "reasoningModel": {
@@ -42,7 +45,7 @@
         "name": "o1",
         "version": "2024-12-17",
         "skuName": "GlobalStandard",
-        "capacity": 100
+        "capacity": 25
       }
     },
     "embeddingModel": {
@@ -50,7 +53,7 @@
         "name": "text-embedding-3-large",
         "version": "1",
         "skuName": "Standard",
-        "capacity": 100
+        "capacity": 55
       }
     },
     "embeddingModelDimension": {

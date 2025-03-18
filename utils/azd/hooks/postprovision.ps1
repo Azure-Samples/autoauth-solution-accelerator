@@ -1,4 +1,5 @@
 
+
 Write-Output "
 AZURE_OPENAI_ENDPOINT=$(azd env get-value AZURE_OPENAI_ENDPOINT)
 AZURE_OPENAI_API_VERSION=$(azd env get-value AZURE_OPENAI_API_VERSION)
@@ -26,3 +27,11 @@ APPLICATIONINSIGHTS_CONNECTION_STRING=$(azd env get-value APPLICATIONINSIGHTS_CO
 AZURE_CONTAINER_REGISTRY_ENDPOINT=$(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)
 AZURE_AI_FOUNDRY_CONNECTION_STRING=$(azd env get-value AZURE_AI_FOUNDRY_CONNECTION_STRING)
 " > .env
+
+$disableIngress = azd env get-value DISABLE_INGRESS
+if ($disableIngress -eq "true") {
+    Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" -ForegroundColor Red
+    Write-Host "WARNING: Ingress is disabled. The application endpoint will NOT be reachable!" -ForegroundColor Red
+    Write-Host "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!" -ForegroundColor Red
+    Write-Host "However, your local debugger should work fine." -ForegroundColor Yellow
+}

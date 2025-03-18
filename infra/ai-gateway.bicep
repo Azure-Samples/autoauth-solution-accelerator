@@ -14,13 +14,18 @@ param diagnosticSettings array = [
   // }
 ]
 
-// Given O1's availabilities are limited to eastus2 and swedencentral, we will configure the backend's reasoning pool to be on only 2 of 3 ai services
-var backend_regions = ['eastus2', 'swedencentral']
+// var o1_enabled = contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3')
 
-var allowedO1Regions = [
-  'eastus2'
-  'swedencentral'
-]
+// // Given O1's availabilities are limited to eastus2 and swedencentral, we will configure the backend's reasoning pool to be on only 2 of 3 ai services
+// var o1SupportedRegions = o1_enabled ? [
+//   'westus2'
+//   'swedencentral'
+// ] : []
+
+// var allowedO1Regions = [
+//   'eastus2'
+//   'swedencentral'
+// ]
 
 // Authentication / Access settings
 @description('Optionally provide a client ID for the local test account. If not provided, the client ID from the AutoAuth App will be used.')
@@ -74,7 +79,7 @@ param tags object = {}
 var resourceSuffix = uniqueString(subscription().id, resourceGroup().id)
 var _namedValues = concat(namedValues, [
   {
-    displayName: 'LocalAccountApp'
+    displayName: 'LocalAccountApp'openAIModels
     name: 'LocalAccountApp'
     value: localClientId ?? appClientId
     secret: false
@@ -86,6 +91,166 @@ var _namedValues = concat(namedValues, [
     secret: false
   }
 ])
+
+// o1 reasoning models for GlobalStandard are only available in eastus2 and swedencentral.
+// We will configure the backend's reasoning pool to be on only 2 of 3 ai services
+
+// var backendPools = [
+//   {
+//     poolName: 'embedding-backendpool'
+//     poolTypeName: 'Pool'
+//     services: [
+//       {
+//         id: circuitBreakerBackends.outputs.eusBackendId
+//         priority: null
+//         weight: null
+//       }
+//       {
+//         id: circuitBreakerBackends.outputs.scusBackendId
+//         priority: null
+//         weight: null
+//       }
+//       {
+//         id: circuitBreakerBackends.outputs.weuBackendId
+//         priority: null
+//         weight: null
+//       }
+//     ]
+//   }
+//   {
+//     poolName: 'reasoning-backendpool'
+//     poolTypeName: 'Pool'
+//     services: [
+//       {
+//         id: circuitBreakerBackends.outputs.eusBackendId
+//         priority: null
+//         weight: null
+//       }
+//       {
+//         id: circuitBreakerBackends.outputs.scusBackendId
+//         priority: null
+//         weight: null
+//       }
+//     ]
+//   }
+//   {
+//     poolName: 'chat-backendpool'
+//     poolTypeName: 'Pool'
+//     services: [
+//       {
+//         id: circuitBreakerBackends.outputs.eusBackendId
+//         priority: null
+//         weight: null
+//       }
+//       {
+//         id: circuitBreakerBackends.outputs.scusBackendId
+//         priority: null
+//         weight: null
+//       }
+//     ]
+//   }
+// ]
+// ============================================================
+// Section: AI Services for each backendConfig object
+// ============================================================
+
+param backendConfig array = [
+  {
+    aiServiceName: 'openai-eus2'
+    location: 'eastus2'
+    chatCompletion: {
+      sku: 'GlobalStandard'
+      capacity: 10
+      modelName: 'gpt-4o'
+      modelVersion: '2024-08-06'
+    }
+    reasoning: {
+      sku: 'GlobalStandard'
+      capacity: 10
+      modelName: 'o1'
+      modelVersion: '2025-01-01-preview'
+    }
+    embedding: {
+      sku: 'Standard'
+      capacity: 10
+      modelName: 'text-embedding-3-large'
+      modelVersion: '1'
+    }
+  }
+  {
+    aiServiceName: 'openai-swedencentral'
+    location: 'swedencentral'
+    chatCompletion: {
+      sku: 'GlobalStandard'
+      capacity: 10
+      modelName: 'gpt-4o'
+      modelVersion: '2024-08-06'
+    }
+    reasoning: {
+      sku: 'GlobalStandard'
+      capacity: 10
+      modelName: 'o1'
+      modelVersion: '2025-01-01-preview'
+    }
+    embedding: {
+      sku: 'Standard'
+      capacity: 10
+      modelName: 'text-embedding-3-large'
+      modelVersion: '1'
+    }
+  }
+  {
+    aiServiceName: 'openai-westus2'
+    location: 'westus2'
+    chatCompletion: {
+      sku: 'GlobalStandard'
+      capacity: 10
+      modelName: 'gpt-4o'
+      modelVersion: '2024-08-06'
+    }
+    embedding: {
+      sku: 'Standard'
+      capacity: 10
+      modelName: 'text-embedding-3-large'
+      modelVersion: '1'
+    }
+  }
+]
+module aiServices './modules/ai/aiservices.bicep' = [for (backend, i) in backendConfig: {
+  name: 'module-ai-services-${backend.name}-${name}-${resourceSuffix}'
+  params: {
+    name: '${backend.aiServiceName}-${name}-${resourceSuffix}'
+    location: backend.location
+    sku: backend.chatCompletion.sku
+    tags: tags
+    openAIUserClientIds: [
+      appClientId
+      localClientId
+    ]
+    openAIModels: [
+      {
+        name: backend.chatCompletion.modelName
+        version: backend.chatCompletion.modelVersion
+        sku: backend.chatCompletion.sku
+        capacity: backend.chatCompletion.capacity
+      }
+      {
+        name: backend.embedding.modelName
+        version: backend.embedding.modelVersion
+        sku: backend.embedding.sku
+        capacity: backend.embedding.capacity
+      }
+      // Add reasoning model if reasoning configuration exists and is not empty
+      contains(backend, 'reasoning') && !empty(backend.reasoning) && contains(backend.reasoning, 'sku') ? {
+        name: 'gpt-4o'
+        version: '2024-05-13'
+        sku: backend.reasoning.sku
+        capacity: backend.reasoning.capacity
+      } : null
+    ]
+  }
+}]
+
 
 // ===========================================================
 // Section: API Management (APIM)

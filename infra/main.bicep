@@ -3,6 +3,12 @@ targetScope = 'subscription'
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
 param enableEasyAuth bool = true
 
+@description('Flag to indicate if the Container App should be deployed with ingress disabled')
+param disableIngress bool = false
+
+@description('Flag to indicate if API Management should be enabled for AI Services (Defaults to true)')
+param enableAPIManagement bool = true
+
 @minLength(1)
 @maxLength(64)
 @description('Name of the environment that can be used as part of naming resource convention')
@@ -14,17 +20,17 @@ param environmentName string
   'eastus2'
   'swedencentral'
   //// The below regions do not currently support the combination of OpenAI models in scope.
-  // 'southcentralus'
-  // 'canadaeast'
-  // 'eastus'
-  // 'francecentral'
-  // 'japaneast'
-  // 'norwayeast'
-  // 'polandcentral'
-  // 'southindia'
-  // 'switzerlandnorth'
-  // 'uksouth'
-  // 'westus3'
+  'southcentralus'
+  'canadaeast'
+  'eastus'
+  'francecentral'
+  'japaneast'
+  'norwayeast'
+  'polandcentral'
+  'southindia'
+  'switzerlandnorth'
+  'uksouth'
+  'westus3'
 ])
 param location string
 
@@ -73,6 +79,85 @@ param embeddingModel object = {
     capacity: 50
 }
 
+// -------------------------------------------------------------------------------------------
+// API Management Config
+// -------------------------------------------------------------------------------------------
+// If enableAPIManagement is true, deploy the API Management module
+// ===========================================================
+// 1. Configure the backend configuration for the various openai models
+var o1_enabled = contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3')
+
+var o1SupportedRegions = o1_enabled ? [
+  'westus2'
+  'swedencentral'
+] : []
+
+var openAIBackendPools = [
+  {
+    name: 'openai1'
+    locaiton: location
+    priority: 1
+    backendWeight: 80
+    chatCompletion: {
+      name: chatModel.name
+      version: chatModel.version
+      capacity: chatModel.capacity
+    }
+    embeddings: {
+      name: embeddingModel.name
+      version: embeddingModel.version
+      capacity: embeddingModel.capacity
+    }
+    reasoning: contains(o1SupportedRegions, location) && o1_enabled ? {
+      name: reasoningModel.name
+      version: reasoningModel.version
+      capacity: reasoningModel.capacity
+    } : {}
+  }
+  {
+    name: 'openai2'
+    locaiton: location
+    priority: 2
+    backendWeight: 10
+    chatCompletion: {
+      name: chatModel.name
+      version: chatModel.version
+      capacity: chatModel.capacity
+    }
+    embeddings: {
+      name: embeddingModel.name
+      version: embeddingModel.version
+      capacity: embeddingModel.capacity
+    }
+    reasoning: contains(o1SupportedRegions, location) && o1_enabled ? {
+      name: reasoningModel.name
+      version: reasoningModel.version
+      capacity: reasoningModel.capacity
+    } : {}
+  }
+  {
+    name: 'openai3'
+    locaiton: location
+    priority: 3
+    backendWeight: 10
+    chatCompletion: {
+      name: chatModel.name
+      version: chatModel.version
+      capacity: chatModel.capacity
+    }
+    embeddings: {
+      name: embeddingModel.name
+      version: embeddingModel.version
+      capacity: embeddingModel.capacity
+    }
+    reasoning:contains(o1SupportedRegions, location) && o1_enabled ? {
+      name: reasoningModel.name
+      version: reasoningModel.version
+      capacity: reasoningModel.capacity
+    } : {}
+  }
+]
+
 @description('Unique hash of the git commit that is being deployed. This is used to tag resources and support llm evaluation automation.')
 param GIT_HASH string = 'azd-deploy-1741105197' // This is the git hash of the commit that is being deployed. It is used to tag the image in ACR and also used to tag the container job in ACI. This is set by azd during deployment.
 
@@ -117,8 +202,10 @@ module resources 'resources.bicep' = {
     embeddingModel: embeddingModel
     embeddingModelDimension: embeddingModelDimension
     storageBlobContainerName: storageBlobContainerName
-    // Optional Parameters
     enableEasyAuth: enableEasyAuth
+    disableIngress: disableIngress
+
+    // Optional Parameters
     tags: azd_tags
     gitHash: GIT_HASH
     frontendExists: frontendExists

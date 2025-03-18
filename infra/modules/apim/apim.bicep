@@ -114,7 +114,7 @@ resource apimService 'Microsoft.ApiManagement/service@2023-09-01-preview' = {
   }
 }
 
-module openAIAPI 'apis/openai/main.bicep' = {
+module openAIAPI 'api.bicep' = {
   name: 'api-openai-${apimResourceName}-${resourceSuffix}'
   scope: resourceGroup()
   params: {

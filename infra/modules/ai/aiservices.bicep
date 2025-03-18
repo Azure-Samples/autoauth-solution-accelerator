@@ -28,7 +28,7 @@ param location string
 param tags object
 
 @description('Name of the AI service. Note: Only alphanumeric characters and no dashes used to ensure DNS compatibility.')
-param aiServiceName string
+param name string
 
 @allowed([
   'S0'
@@ -39,36 +39,16 @@ param sku string = 'S0'
 @description('List of client IDs to grant OpenAI User role.')
 param openAIUserClientIds array = []
 
-@description('List of openAI models to be deployed to the AIServices OpenAI account.')
-param oaiModels array = [
-  // {
-  //   name: 'gpt-4o'
-       // Optional Values below
-  //   version: '2024-08-06'
-  //   skuName: 'GlobalStandard'
-  //   capacity: 25
-  // }
-]
+param openAIModels array = []
 
-// Mapping for chat completion model API versions
-var oaiModelVersions = {
-  'gpt-4o': '2024-08-06'
-  'gpt-4o-mini': '2024-07-18'
-  o1: '2025-01-01-preview'
-  'o1-mini': '2024-12-01-preview'
-  'o3-mini': '2025-01-01-preview'
-  'text-embedding-3-large': '1'
-  'text-embedding-3-small': '1'
-  'text-embedding-ada-002': '2'
-}
 
 
 // Clean the AI service name by removing dashes to ensure valid DNS names
-var aiServicesHostname = '${aiServiceName}.cognitiveservices.azure.com'
+var aiServicesHostname = '${name}.cognitiveservices.azure.com'
 
 // Define the AI service resource with managed identity
 resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
-  name: aiServiceName
+  name: name
   location: location
   sku: {
     name: sku
@@ -80,7 +60,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
     apiProperties: {
       statisticsEnabled: false
     }
-    customSubDomainName: aiServiceName
+    customSubDomainName: aiServicesHostname
   }
   identity: {
     type: 'SystemAssigned'
@@ -89,7 +69,7 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 }
 
 @batchSize(1)
-resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024-06-01-preview' = [for (model, i) in oaiModels: {
+resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024-06-01-preview' = [for (model, i) in openAIModels: {
   parent: aiServices
   name: '${model.name}'
   sku: {
@@ -100,9 +80,7 @@ resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024
     model: {
       format: 'OpenAI'
       name: model.name
-      version: model.version != ''
-        ? model.version
-        : (contains(oaiModelVersions, model.name) ? oaiModelVersions[model.name] : 'version-not-found')
+      version: model.version
     }
     currentCapacity: model.capacity
   }
@@ -124,8 +102,5 @@ output name string = aiServices.name
 output principalId string = aiServices.identity.principalId
 output key string = aiServices.listKeys().key1
 
-output endpoints object = {
-  general: aiServices.properties.endpoint
-  docIntelligence: 'https://${aiServicesHostname}/'
-  openAI: 'https://${aiServices.name}.openai.azure.com/'
-}
+output openAIEndpoint string = aiServices.properties.endpoints.openAI
+output docIntelEndpoint string = aiServices.properties.endpoints.documentIntelligence
