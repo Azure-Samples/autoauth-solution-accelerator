@@ -15,8 +15,8 @@ from src.aoai.aoai_helper import AzureOpenAIManager
 from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
 from src.entraid.generate_id import generate_unique_id
 from src.pipeline.paprocessing.run import PAProcessingPipeline
-from src.utils.ml_logging import get_logger
 from src.pipeline.promptEngineering.prompt_manager import PromptManager
+from src.utils.ml_logging import get_logger
 
 logger = get_logger()
 
@@ -82,6 +82,7 @@ st.set_page_config(
 )
 
 prompt_manager = PromptManager()
+
 
 def cleanup_temp_dir(temp_dir) -> None:
     """
@@ -349,18 +350,21 @@ async def generate_ai_response(
         logger.error(f"Error generating AI response: {e}")
         return {}
 
+
 async def update_results_with_markdown(pa_result):
-    autodetermination_text=pa_result.get("pa_determination_results")
-    user_pa = prompt_manager.create_prompt_transform_determination_markdown_user(autodetermination_text=autodetermination_text)
+    autodetermination_text = pa_result.get("pa_determination_results")
+    user_pa = prompt_manager.create_prompt_transform_determination_markdown_user(
+        autodetermination_text=autodetermination_text
+    )
     system_pa = prompt_manager.create_prompt_transform_determination_markdown_system()
     markdown_response = await generate_ai_response(
         user_prompt=user_pa,
         system_prompt=system_pa,
         image_paths=[],  # No images are needed for this prompt.
         stream=False,
-        response_format="text"  # Requesting plain text (markdown formatted) output.
+        response_format="text",  # Requesting plain text (markdown formatted) output.
     )
-    return markdown_response['response']
+    return markdown_response["response"]
 
 
 async def run_pipeline_with_spinner(uploaded_files, use_o1):
@@ -378,7 +382,9 @@ async def run_pipeline_with_spinner(uploaded_files, use_o1):
     last_key = next(iter(pa_processing.results.keys()))
 
     # formatting for o1 markdown
-    additional_result = await update_results_with_markdown(pa_processing.results[last_key])
+    additional_result = await update_results_with_markdown(
+        pa_processing.results[last_key]
+    )
     pa_processing.results[last_key]["pa_determination_results_md"] = additional_result
 
     if "case_ids" not in st.session_state:
@@ -415,9 +421,11 @@ def display_case_data(document, results_container):
             with col1:
                 st.header("📋 AI Determination")
             with col2:
-                format_choice = st.radio("Select display format:", ("Markdown (Beta)", "Plain text"), index=0)
+                format_choice = st.radio(
+                    "Select display format:", ("Markdown (Beta)", "Plain text"), index=0
+                )
             if format_choice == "Markdown (Beta)":
-                final_determination = document.get("pa_determination_results_md","N/A")
+                final_determination = document.get("pa_determination_results_md", "N/A")
             else:
                 final_determination = document.get("pa_determination_results", "N/A")
             st.markdown(final_determination)
