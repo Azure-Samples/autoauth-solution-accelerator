@@ -1,6 +1,7 @@
 name: Code Quality and Tests 🚀
 
 permissions:
+  id-token: write
   contents: read
   pull-requests: write
 
