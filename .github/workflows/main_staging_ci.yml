@@ -105,6 +105,7 @@ jobs:
     - name: Preview Infra Changes
       id: provision-preview
       run: |
+        azd env refresh
         azd provision --no-prompt --preview
       shell: pwsh
       env:
