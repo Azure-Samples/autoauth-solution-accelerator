@@ -152,12 +152,8 @@ set_storage_shared_key_access() {
 run_evaluations() {
     # Ask user if they want to run evaluations (if not already set)
     if [ -z "${RUN_EVALS:-}" ]; then
-        read -p "Would you like to run model evaluations through AI Foundry? (y/n): " response
-        if [[ ! "$response" =~ ^[Yy] ]]; then
-            log_info "Model evaluations will be skipped."
-            return 0
-        fi
-        log_info "Model evaluations will be run."
+        log_info "RUN_EVALS env flag currently not set. Model evaluations will be skipped."
+        return 0
     else
         log_info "RUN_EVALS flag is already set to: $RUN_EVALS"
         if [[ "$RUN_EVALS" =~ ^[Ff][Aa][Ll][Ss][Ee]$ ]]; then

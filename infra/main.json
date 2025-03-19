@@ -15471,10 +15471,6 @@
               "type": "string",
               "value": "[if(contains(parameters('reasoningModel').name, 'o1'), parameters('reasoningModel').name, '')]"
             },
-            "AZURE_OPENAI_API_VERSION_O1": {
-              "type": "string",
-              "value": "[if(contains(parameters('reasoningModel').name, 'o1'), parameters('reasoningModel').version, '')]"
-            },
             "AZURE_OPENAI_EMBEDDING_DIMENSIONS": {
               "type": "string",
               "value": "[parameters('embeddingModelDimension')]"
