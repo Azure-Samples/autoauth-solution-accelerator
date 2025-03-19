@@ -1,6 +1,7 @@
 name: Code Quality and Tests 🚀
 
 permissions:
+  id-token: write
   contents: read
   pull-requests: write
 
@@ -105,6 +106,7 @@ jobs:
     - name: Preview Infra Changes
       id: provision-preview
       run: |
+        azd env refresh
         azd provision --no-prompt --preview
       shell: pwsh
       env:

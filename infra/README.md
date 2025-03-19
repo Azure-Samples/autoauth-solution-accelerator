@@ -18,6 +18,8 @@
 
 Parameter name | Required | Description
 -------------- | -------- | -----------
+enableEasyAuth | No       | Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)
+disableIngress | No       | Flag to indicate if the Container App should be deployed with ingress disabled
 environmentName | Yes      | Name of the environment that can be used as part of naming resource convention
 location       | Yes      | Primary location for all resources. Not all regions are supported due to OpenAI limitations
 frontendExists | No       | Flag to indicate if Frontend app image exists. This is managed by AZD
@@ -25,10 +27,28 @@ backendExists  | No       | Flag to indicate if Backend app image exists. This i
 priorAuthName  | No       | Name for the PriorAuth resource and used to derive the name of dependent resources.
 tags           | No       | Tags to be applied to all resources
 openAiApiVersion | No       | API Version of the OpenAI API
-chatCompletionModels | No       | List of completion models to be deployed to the OpenAI account.
-embeddingModel | No       | List of embedding models to be deployed to the OpenAI account.
+reasoningModel | No       | Reasoning model object to be deployed to the OpenAI account. (i.e o1, o1-preview, o3-mini)
+chatModel      | No       | Chat model object to be deployed to the OpenAI account. (i.e gpt-4o, gpt-4o-turbo, gpt-4o-turbo-16k, gpt-4o-turbo-32k)
+embeddingModel | No       | Embedding model to be deployed to the OpenAI account.
+GIT_HASH       | No       | Unique hash of the git commit that is being deployed. This is used to tag resources and support llm evaluation automation.
 embeddingModelDimension | No       | Embedding model size for the OpenAI Embedding deployment
 storageBlobContainerName | No       | Storage Blob Container name to land the files for Prior Auth
+
+### enableEasyAuth
+
+![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
+
+Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)
+
+- Default value: `True`
+
+### disableIngress
+
+![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
+
+Flag to indicate if the Container App should be deployed with ingress disabled
+
+- Default value: `False`
 
 ### environmentName
 
@@ -42,7 +62,7 @@ Name of the environment that can be used as part of naming resource convention
 
 Primary location for all resources. Not all regions are supported due to OpenAI limitations
 
-- Allowed values: `australiaeast`, `canadaeast`, `eastus`, `eastus2`, `francecentral`, `japaneast`, `norwayeast`, `polandcentral`, `southindia`, `swedencentral`, `switzerlandnorth`, `uksouth`, `westus3`
+- Allowed values: `eastus2`, `swedencentral`
 
 ### frontendExists
 
@@ -74,7 +94,7 @@ Name for the PriorAuth resource and used to derive the name of dependent resourc
 
 Tags to be applied to all resources
 
-- Default value: `@{environment=[parameters('environmentName')]; location=[parameters('location')]}`
+- Default value: `@{environment=[parameters('environmentName')]; location=[parameters('location')]; commit=[parameters('GIT_HASH')]}`
 
 ### openAiApiVersion
 
@@ -82,21 +102,39 @@ Tags to be applied to all resources
 
 API Version of the OpenAI API
 
-- Default value: `2024-08-01-preview`
+- Default value: `2025-01-01-preview`
 
-### chatCompletionModels
+### reasoningModel
 
 ![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
 
-List of completion models to be deployed to the OpenAI account.
+Reasoning model object to be deployed to the OpenAI account. (i.e o1, o1-preview, o3-mini)
+
+- Default value: `@{name=o1; version=2025-01-01-preview; skuName=GlobalStandard; capacity=100}`
+
+### chatModel
+
+![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
+
+Chat model object to be deployed to the OpenAI account. (i.e gpt-4o, gpt-4o-turbo, gpt-4o-turbo-16k, gpt-4o-turbo-32k)
+
+- Default value: `@{name=gpt-4o; version=2024-08-06; skuName=GlobalStandard; capacity=100}`
 
 ### embeddingModel
 
 ![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
 
-List of embedding models to be deployed to the OpenAI account.
+Embedding model to be deployed to the OpenAI account.
 
 - Default value: `@{name=text-embedding-3-large; version=1; skuName=Standard; capacity=50}`
+
+### GIT_HASH
+
+![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
+
+Unique hash of the git commit that is being deployed. This is used to tag resources and support llm evaluation automation.
+
+- Default value: `azd-deploy-1741105197`
 
 ### embeddingModelDimension
 
@@ -125,6 +163,7 @@ AZURE_OPENAI_API_VERSION | string | API version for Azure OpenAI
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT | string | Deployment name for Azure OpenAI embedding
 AZURE_OPENAI_CHAT_DEPLOYMENT_ID | string | Deployment ID for Azure OpenAI chat
 AZURE_OPENAI_CHAT_DEPLOYMENT_01 | string | Deployment name for Azure OpenAI chat model 01
+AZURE_OPENAI_API_VERSION_01 | string | Deployment openai version for chat model 01
 AZURE_OPENAI_EMBEDDING_DIMENSIONS | string | Embedding dimensions for Azure OpenAI
 AZURE_SEARCH_SERVICE_NAME | string | Name of the Azure Search service
 AZURE_SEARCH_INDEX_NAME | string | Name of the Azure Search index
@@ -144,7 +183,7 @@ AZURE_CONTAINER_REGISTRY_ENDPOINT | string | Endpoint for Azure Container Regist
 AZURE_CONTAINER_ENVIRONMENT_ID | string | ID for Azure Container Environment
 AZURE_OPENAI_KEY | string | Key for Azure OpenAI
 AZURE_AI_SEARCH_SERVICE_ENDPOINT | string | Service endpoint for Azure AI Search
-AZURE_AI_FOUNDRY_CONNECTION_STRING | string | Connection string for AI Foundry
+AZURE_AI_FOUNDRY_CONNECTION_STRING | string | AI Foundry connection string to connect to AI Foundry
 
 ## Snippets
 
@@ -158,6 +197,12 @@ AZURE_AI_FOUNDRY_CONNECTION_STRING | string | Connection string for AI Foundry
         "template": "infra/main.json"
     },
     "parameters": {
+        "enableEasyAuth": {
+            "value": true
+        },
+        "disableIngress": {
+            "value": false
+        },
         "environmentName": {
             "value": ""
         },
@@ -176,21 +221,28 @@ AZURE_AI_FOUNDRY_CONNECTION_STRING | string | Connection string for AI Foundry
         "tags": {
             "value": {
                 "environment": "[parameters('environmentName')]",
-                "location": "[parameters('location')]"
+                "location": "[parameters('location')]",
+                "commit": "[parameters('GIT_HASH')]"
             }
         },
         "openAiApiVersion": {
-            "value": "2024-08-01-preview"
+            "value": "2025-01-01-preview"
         },
-        "chatCompletionModels": {
-            "value": [
-                {
-                    "name": "o1",
-                    "version": "2024-12-17",
-                    "skuName": "Standard",
-                    "capacity": 100
-                }
-            ]
+        "reasoningModel": {
+            "value": {
+                "name": "o1",
+                "version": "2025-01-01-preview",
+                "skuName": "GlobalStandard",
+                "capacity": 100
+            }
+        },
+        "chatModel": {
+            "value": {
+                "name": "gpt-4o",
+                "version": "2024-08-06",
+                "skuName": "GlobalStandard",
+                "capacity": 100
+            }
         },
         "embeddingModel": {
             "value": {
@@ -199,6 +251,9 @@ AZURE_AI_FOUNDRY_CONNECTION_STRING | string | Connection string for AI Foundry
                 "skuName": "Standard",
                 "capacity": 50
             }
+        },
+        "GIT_HASH": {
+            "value": "azd-deploy-1741105197"
         },
         "embeddingModelDimension": {
             "value": "3072"
@@ -213,15 +268,21 @@ AZURE_AI_FOUNDRY_CONNECTION_STRING | string | Connection string for AI Foundry
 ## Default Values
 
 
+- **enableEasyAuth**: True
+
 - **priorAuthName**: priorAuth
 
-- **tags**: @{environment=[parameters('environmentName')]; location=[parameters('location')]}
+- **tags**: @{environment=[parameters('environmentName')]; location=[parameters('location')]; commit=[parameters('GIT_HASH')]}
 
-- **openAiApiVersion**: 2024-08-01-preview
+- **openAiApiVersion**: 2025-01-01-preview
 
-- **chatCompletionModels**: @{name=o1; version=2024-12-17; skuName=Standard; capacity=100}
+- **reasoningModel**: @{name=o1; version=2025-01-01-preview; skuName=GlobalStandard; capacity=100}
+
+- **chatModel**: @{name=gpt-4o; version=2024-08-06; skuName=GlobalStandard; capacity=100}
 
 - **embeddingModel**: @{name=text-embedding-3-large; version=1; skuName=Standard; capacity=50}
+
+- **GIT_HASH**: azd-deploy-1741105197
 
 - **embeddingModelDimension**: 3072
 
@@ -234,14 +295,18 @@ Parameter name | Required | Description
 -------------- | -------- | -----------
 frontendExists | No       |
 backendExists  | No       |
+enableEasyAuth | Yes      | Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)
+disableIngress | Yes      | Flag to indicate if the Container App should be deployed with ingress disabled
 priorAuthName  | No       | Name for the PriorAuth resource and used to derive the name of dependent resources.
 tags           | No       | Set of tags to apply to all resources.
+openaiApiVersion | Yes      | API Version of the OpenAI API
 cosmosDbCollectionName | No       |
 cosmosDbDatabaseName | No       |
-openAiApiVersion | No       | API Version of the OpenAI API
-chatCompletionModels | No       | List of completion models to be deployed to the OpenAI account.
-embeddingModel | No       | List of embedding models to be deployed to the OpenAI account.
-embeddingModelDimension | No       | Embedding model size for the OpenAI Embedding deployment
+reasoningModel | Yes      |
+chatModel      | Yes      |
+embeddingModel | Yes      |
+gitHash        | No       |
+embeddingModelDimension | Yes      | Embedding model size for the OpenAI Embedding deployment
 storageBlobContainerName | No       | Storage Blob Container name to land the files for Prior Auth
 
 ### frontendExists
@@ -260,6 +325,18 @@ storageBlobContainerName | No       | Storage Blob Container name to land the fi
 
 - Default value: `False`
 
+### enableEasyAuth
+
+![Parameter Setting](https://img.shields.io/badge/parameter-required-orange?style=flat-square)
+
+Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)
+
+### disableIngress
+
+![Parameter Setting](https://img.shields.io/badge/parameter-required-orange?style=flat-square)
+
+Flag to indicate if the Container App should be deployed with ingress disabled
+
 ### priorAuthName
 
 ![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
@@ -273,6 +350,12 @@ Name for the PriorAuth resource and used to derive the name of dependent resourc
 ![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
 
 Set of tags to apply to all resources.
+
+### openaiApiVersion
+
+![Parameter Setting](https://img.shields.io/badge/parameter-required-orange?style=flat-square)
+
+API Version of the OpenAI API
 
 ### cosmosDbCollectionName
 
@@ -290,35 +373,35 @@ Set of tags to apply to all resources.
 
 - Default value: `priorauthsessions`
 
-### openAiApiVersion
+### reasoningModel
 
-![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
+![Parameter Setting](https://img.shields.io/badge/parameter-required-orange?style=flat-square)
 
-API Version of the OpenAI API
 
-- Default value: `2024-08-01-preview`
 
-### chatCompletionModels
+### chatModel
 
-![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
+![Parameter Setting](https://img.shields.io/badge/parameter-required-orange?style=flat-square)
 
-List of completion models to be deployed to the OpenAI account.
+
 
 ### embeddingModel
 
+![Parameter Setting](https://img.shields.io/badge/parameter-required-orange?style=flat-square)
+
+
+
+### gitHash
+
 ![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
 
-List of embedding models to be deployed to the OpenAI account.
 
-- Default value: `@{name=text-embedding-ada-002; version=2; skuName=Standard; capacity=16}`
 
 ### embeddingModelDimension
 
-![Parameter Setting](https://img.shields.io/badge/parameter-optional-green?style=flat-square)
+![Parameter Setting](https://img.shields.io/badge/parameter-required-orange?style=flat-square)
 
 Embedding model size for the OpenAI Embedding deployment
-
-- Default value: `1536`
 
 ### storageBlobContainerName
 
@@ -337,6 +420,7 @@ AZURE_OPENAI_API_VERSION | string |
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT | string |
 AZURE_OPENAI_CHAT_DEPLOYMENT_ID | string |
 AZURE_OPENAI_CHAT_DEPLOYMENT_01 | string |
+AZURE_OPENAI_API_VERSION_O1 | string |
 AZURE_OPENAI_EMBEDDING_DIMENSIONS | string |
 AZURE_SEARCH_SERVICE_NAME | string |
 AZURE_SEARCH_INDEX_NAME | string |
@@ -357,7 +441,12 @@ AZURE_CONTAINER_REGISTRY_ENDPOINT | string |
 AZURE_CONTAINER_ENVIRONMENT_ID | string |
 AZURE_CONTAINER_ENVIRONMENT_NAME | string |
 AZURE_OPENAI_KEY | string |
+AZURE_AI_FOUNDRY_CONNECTION_STRING | string |
 CONTAINER_JOB_NAME | string |
+FRONTEND_CONTAINER_URL | string |
+FRONTEND_CONTAINER_NAME | string |
+APP_IDENTITY_CLIENT_ID | string |
+APP_IDENTITY_PRINCIPAL_ID | string |
 
 ## Snippets
 
@@ -377,11 +466,20 @@ CONTAINER_JOB_NAME | string |
         "backendExists": {
             "value": false
         },
+        "enableEasyAuth": {
+            "value": null
+        },
+        "disableIngress": {
+            "value": null
+        },
         "priorAuthName": {
             "value": "priorAuth"
         },
         "tags": {
             "value": {}
+        },
+        "openaiApiVersion": {
+            "value": ""
         },
         "cosmosDbCollectionName": {
             "value": "temp"
@@ -389,29 +487,20 @@ CONTAINER_JOB_NAME | string |
         "cosmosDbDatabaseName": {
             "value": "priorauthsessions"
         },
-        "openAiApiVersion": {
-            "value": "2024-08-01-preview"
+        "reasoningModel": {
+            "value": {}
         },
-        "chatCompletionModels": {
-            "value": [
-                {
-                    "name": "gpt-4o",
-                    "version": "2024-08-06",
-                    "skuName": "GlobalStandard",
-                    "capacity": 25
-                }
-            ]
+        "chatModel": {
+            "value": {}
         },
         "embeddingModel": {
-            "value": {
-                "name": "text-embedding-ada-002",
-                "version": "2",
-                "skuName": "Standard",
-                "capacity": 16
-            }
+            "value": {}
+        },
+        "gitHash": {
+            "value": ""
         },
         "embeddingModelDimension": {
-            "value": "1536"
+            "value": ""
         },
         "storageBlobContainerName": {
             "value": "default"
@@ -430,13 +519,5 @@ CONTAINER_JOB_NAME | string |
 - **cosmosDbCollectionName**: temp
 
 - **cosmosDbDatabaseName**: priorauthsessions
-
-- **openAiApiVersion**: 2024-08-01-preview
-
-- **chatCompletionModels**: @{name=gpt-4o; version=2024-08-06; skuName=GlobalStandard; capacity=25}
-
-- **embeddingModel**: @{name=text-embedding-ada-002; version=2; skuName=Standard; capacity=16}
-
-- **embeddingModelDimension**: 1536
 
 - **storageBlobContainerName**: default

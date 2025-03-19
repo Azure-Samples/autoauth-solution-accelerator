@@ -1,0 +1,179 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.1-experimental",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_EXPERIMENTAL_WARNING": "This template uses ARM features that are experimental. Experimental features should be enabled for testing purposes only, as there are no guarantees about the quality or stability of these features. Do not enable these settings for any production usage, or your production environment may be subject to breaking.",
+    "_EXPERIMENTAL_FEATURES_ENABLED": [
+      "Extensibility"
+    ],
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "9273646746255530900"
+    }
+  },
+  "parameters": {
+    "cloudEnvironment": {
+      "type": "string",
+      "defaultValue": "[environment().name]",
+      "metadata": {
+        "description": "Specifies the name of cloud environment to run this deployment in."
+      }
+    },
+    "audiences": {
+      "type": "object",
+      "defaultValue": {
+        "AzureCloud": {
+          "uri": "api://AzureADTokenExchange"
+        },
+        "AzureUSGovernment": {
+          "uri": "api://AzureADTokenExchangeUSGov"
+        },
+        "USNat": {
+          "uri": "api://AzureADTokenExchangeUSNat"
+        },
+        "USSec": {
+          "uri": "api://AzureADTokenExchangeUSSec"
+        },
+        "AzureChinaCloud": {
+          "uri": "api://AzureADTokenExchangeChina"
+        }
+      },
+      "metadata": {
+        "description": "Audience uris for public and national clouds"
+      }
+    },
+    "webAppIdentityId": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the ID of the user-assigned managed identity."
+      }
+    },
+    "clientAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the unique name for the client application."
+      }
+    },
+    "clientAppDisplayName": {
+      "type": "string",
+      "metadata": {
+        "description": "Specifies the display name for the client application"
+      }
+    },
+    "clientAppScopes": {
+      "type": "array",
+      "defaultValue": [
+        "User.Read",
+        "offline_access",
+        "openid",
+        "profile"
+      ],
+      "metadata": {
+        "description": "Specifies the scopes that the client application requires."
+      }
+    },
+    "serviceManagementReference": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "issuer": {
+      "type": "string"
+    },
+    "webAppEndpoint": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "msGraphAppId": "00000003-0000-0000-c000-000000000000"
+  },
+  "imports": {
+    "MicrosoftGraph": {
+      "provider": "MicrosoftGraph",
+      "version": "0.1.8-preview"
+    }
+  },
+  "resources": {
+    "clientApp::clientAppFic": {
+      "import": "MicrosoftGraph",
+      "type": "Microsoft.Graph/applications/federatedIdentityCredentials@v1.0",
+      "properties": {
+        "name": "[format('{0}/miAsFic', reference('clientApp').uniqueName)]",
+        "audiences": [
+          "[parameters('audiences')[parameters('cloudEnvironment')].uri]"
+        ],
+        "issuer": "[parameters('issuer')]",
+        "subject": "[parameters('webAppIdentityId')]"
+      },
+      "dependsOn": [
+        "clientApp"
+      ]
+    },
+    "msGraphSP": {
+      "existing": true,
+      "import": "MicrosoftGraph",
+      "type": "Microsoft.Graph/servicePrincipals@v1.0",
+      "properties": {
+        "appId": "[variables('msGraphAppId')]"
+      }
+    },
+    "clientApp": {
+      "import": "MicrosoftGraph",
+      "type": "Microsoft.Graph/applications@v1.0",
+      "properties": {
+        "uniqueName": "[parameters('clientAppName')]",
+        "displayName": "[parameters('clientAppDisplayName')]",
+        "signInAudience": "AzureADMyOrg",
+        "serviceManagementReference": "[if(empty(parameters('serviceManagementReference')), null(), parameters('serviceManagementReference'))]",
+        "web": {
+          "redirectUris": [
+            "http://localhost:8051/.auth/login/aad/callback",
+            "[format('{0}/.auth/login/aad/callback', parameters('webAppEndpoint'))]"
+          ],
+          "implicitGrantSettings": {
+            "enableIdTokenIssuance": true
+          }
+        },
+        "requiredResourceAccess": [
+          {
+            "copy": [
+              {
+                "name": "resourceAccess",
+                "count": "[length(parameters('clientAppScopes'))]",
+                "input": {
+                  "id": "[filter(reference('msGraphSP').oauth2PermissionScopes, lambda('graphScopes', equals(lambdaVariables('graphScopes').value, parameters('clientAppScopes')[copyIndex('resourceAccess')])))[0].id]",
+                  "type": "Scope"
+                }
+              }
+            ],
+            "resourceAppId": "[variables('msGraphAppId')]"
+          }
+        ]
+      },
+      "dependsOn": [
+        "msGraphSP"
+      ]
+    },
+    "clientSp": {
+      "import": "MicrosoftGraph",
+      "type": "Microsoft.Graph/servicePrincipals@v1.0",
+      "properties": {
+        "appId": "[reference('clientApp').appId]"
+      },
+      "dependsOn": [
+        "clientApp"
+      ]
+    }
+  },
+  "outputs": {
+    "clientAppId": {
+      "type": "string",
+      "value": "[reference('clientApp').appId]"
+    },
+    "clientSpId": {
+      "type": "string",
+      "value": "[reference('clientSp').id]"
+    }
+  }
+}
