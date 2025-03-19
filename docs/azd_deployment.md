@@ -36,15 +36,16 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
 
       Before deployment, verify these models are available in your target region using the [Azure OpenAI models documentation](https://learn.microsoft.com/azure/ai-services/openai/concepts/models?tabs=global-standard%2Cstandard-chat-completions#models-by-deployment-type). If any model isn't available in your region, update the corresponding parameter in `infra/main.parameters.json` with an alternative model.
 
-
 1. **Initialize Environment**
     - Run `azd init` to prepare your environment.
         -  Be sure to select "Use code in the current directory"
 
+
+
 ## Deployment Steps
 
 1. **Adjust Infra Config [Optional]**
-  - You can use the variables provided in the defaults in [infra/main.parameters.json](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/blob/main/infra/main.parameters.json), or you can choose to provide your own desired values.
+  - You can use the variables provided in the defaults in [infra/main.parameters.json](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/infra/main.parameters.json), or you can choose to provide your own desired values.
 
     <details>
       <summary><strong style="color: blue; cursor: pointer;">Main Deployment Parameters (main.bicep)</strong></summary>
@@ -176,7 +177,7 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
       - `azd deploy`: Only deploys applications to already-provisioned infrastructure as defined in `azure.yaml`
       - `azd up`: Combines both steps (provision + deploy) in a single command
         - If you want to deploy only a specific service, use `azd deploy <service>` (e.g., `azd deploy frontend`).
-        - This provisions defined resources in [infra/main.bicep](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/blob/main/infra/main.bicep) and deploys services defined in [azure.yaml](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/blob/main/azure.yaml#L6), generating a `.env` file for local development.
+        - This provisions defined resources in [infra/main.bicep](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/infra/main.bicep) and deploys services defined in [azure.yaml](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/azure.yaml#L6), generating a `.env` file for local development.
 
 1. **During Deployment**
     - AZD will guide you through certain deployment flag parameters:
@@ -290,7 +291,7 @@ You can automate deployment with azd-generated pipelines.
 1. **Create a Pipeline**
     - Run `azd pipeline config` to generate pipeline files for GitHub Actions.
 2. **Use Existing Pipelines**
-    - Reference [.github/workflows/azd_deploy.yml](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/blob/main/.github/workflows/azd_deploy.yml) for GitHub Actions.
+    - Reference [.github/workflows/azd_deploy.yml](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/.github/workflows/azd_deploy.yml) for GitHub Actions.
 
 ### Required Secrets for Federated Workload Identities
 
