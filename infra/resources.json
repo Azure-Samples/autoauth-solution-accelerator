@@ -4,8 +4,8 @@
   "metadata": {
     "_generator": {
       "name": "bicep",
-      "version": "0.30.23.60470",
-      "templateHash": "5511276665988769861"
+      "version": "0.33.93.31351",
+      "templateHash": "3047095069429492611"
     }
   },
   "parameters": {
@@ -19,9 +19,14 @@
     },
     "enableEasyAuth": {
       "type": "bool",
-      "defaultValue": true,
       "metadata": {
         "description": "Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)"
+      }
+    },
+    "disableIngress": {
+      "type": "bool",
+      "metadata": {
+        "description": "Flag to indicate if the Container App should be deployed with ingress disabled"
       }
     },
     "priorAuthName": {
@@ -140,14 +145,14 @@
     {
       "type": "Microsoft.Authorization/roleAssignments",
       "apiVersion": "2022-04-01",
-      "name": "[guid(format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')), format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')), 'Azure AI Developer')]",
+      "name": "[guid(format('ai-foundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')), format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')), 'Azure AI Developer')]",
       "properties": {
         "principalId": "[reference(resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.principalId.value]",
         "principalType": "ServicePrincipal",
         "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee')]"
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('ai-foundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]"
       ]
     },
@@ -180,8 +185,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "13187125603664042907"
+              "version": "0.33.93.31351",
+              "templateHash": "9467403434055282454"
             }
           },
           "parameters": {
@@ -252,7 +257,7 @@
             },
             "aiServiceDocIntelligenceEndpoint": {
               "type": "string",
-              "value": "[format('https://{0}.cognitiveservices.azure.com/', variables('aiServiceNameCleaned'))]"
+              "value": "[format('https://{0}.cognitiveservices.azure.com', variables('aiServiceNameCleaned'))]"
             },
             "aiServicesName": {
               "type": "string",
@@ -299,8 +304,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "2020181929981449900"
+              "version": "0.33.93.31351",
+              "templateHash": "14264198139338104743"
             }
           },
           "parameters": {
@@ -420,8 +425,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "9888651400661279103"
+              "version": "0.33.93.31351",
+              "templateHash": "8998205790483916158"
             }
           },
           "parameters": {
@@ -541,7 +546,7 @@
             },
             "aiServicesEndpoint": {
               "type": "string",
-              "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint]"
+              "value": "[if(endsWith(reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint, '/'), substring(reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint, 0, sub(length(reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint), 1)), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint)]"
             },
             "aiServicesName": {
               "type": "string",
@@ -588,8 +593,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "8316932184717932170"
+              "version": "0.33.93.31351",
+              "templateHash": "9778162961165438260"
             }
           },
           "parameters": {
@@ -698,8 +703,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "10577189309037437460"
+              "version": "0.33.93.31351",
+              "templateHash": "5089957452887823260"
             }
           },
           "parameters": {
@@ -837,8 +842,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "17338897395286068483"
+              "version": "0.33.93.31351",
+              "templateHash": "2865037101428017356"
             }
           },
           "parameters": {
@@ -5547,7 +5552,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "vaultDeployment",
+      "name": "[format('vault-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -8682,7 +8687,7 @@
     {
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2022-09-01",
-      "name": "[format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
+      "name": "[format('ai-foundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))]",
       "properties": {
         "expressionEvaluationOptions": {
           "scope": "inner"
@@ -8690,7 +8695,7 @@
         "mode": "Incremental",
         "parameters": {
           "aiFoundryName": {
-            "value": "[format('aiFoundry-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
+            "value": "[format('ai-foundry-{0}-{1}', variables('name'), variables('uniqueSuffix'))]"
           },
           "aiFoundryFriendlyName": {
             "value": "[format('AI Foundry - {0}', variables('name'))]"
@@ -8705,7 +8710,7 @@
             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('avm-registry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.resourceId.value]"
           },
           "keyVaultId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'vaultDeployment'), '2022-09-01').outputs.resourceId.value]"
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('vault-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.resourceId.value]"
           },
           "storageAccountId": {
             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountId.value]"
@@ -8732,8 +8737,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "14660236153959793021"
+              "version": "0.33.93.31351",
+              "templateHash": "4045785786345308041"
             }
           },
           "parameters": {
@@ -8944,7 +8949,7 @@
         "[resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('avm-registry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', 'vaultDeployment')]"
+        "[resourceId('Microsoft.Resources/deployments', format('vault-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]"
       ]
     },
     {
@@ -12195,8 +12200,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "7653984458509856568"
+              "version": "0.33.93.31351",
+              "templateHash": "9643843979796575983"
             }
           },
           "parameters": {
@@ -12240,8 +12245,8 @@
           "metadata": {
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "7653984458509856568"
+              "version": "0.33.93.31351",
+              "templateHash": "9643843979796575983"
             }
           },
           "parameters": {
@@ -12384,7 +12389,7 @@
                   },
                   {
                     "name": "AZURE_AI_FOUNDRY_CONNECTION_STRING",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiFoundryConnectionString.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('ai-foundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiFoundryConnectionString.value]"
                   },
                   {
                     "name": "GIT_HASH",
@@ -12394,6 +12399,9 @@
               }
             ]
           },
+          "stickySessionsAffinity": {
+            "value": "sticky"
+          },
           "secrets": {
             "value": [
               {
@@ -12401,6 +12409,9 @@
                 "value": "[reference(resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.clientId.value]"
               }
             ]
+          },
+          "disableIngress": {
+            "value": "[parameters('disableIngress')]"
           },
           "scaleMinReplicas": {
             "value": 1
@@ -13602,1363 +13613,12 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('ai-foundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('managedenv-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', 'frontend-fetch-image')]",
-        "[resourceId('Microsoft.Resources/deployments', format('avm-monitoring-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', format('avm-registry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]"
-      ]
-    },
-    {
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2022-09-01",
-      "name": "[variables('backendContainerName')]",
-      "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
-        "mode": "Incremental",
-        "parameters": {
-          "name": {
-            "value": "[variables('backendContainerName')]"
-          },
-          "environmentResourceId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', format('managedenv-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.resourceId.value]"
-          },
-          "containers": {
-            "value": [
-              {
-                "name": "[variables('backendContainerName')]",
-                "image": "[if(parameters('backendExists'), reference(resourceId('Microsoft.Resources/deployments', 'backend-fetch-image'), '2022-09-01').outputs.containers.value[0].image, 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest')]",
-                "command": [],
-                "args": [],
-                "resources": {
-                  "cpu": "[json('2.0')]",
-                  "memory": "4Gi"
-                },
-                "env": [
-                  {
-                    "name": "AZURE_CLIENT_ID",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.clientId.value]"
-                  },
-                  {
-                    "name": "AZURE_OPENAI_ENDPOINT",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
-                  },
-                  {
-                    "name": "AZURE_OPENAI_API_VERSION",
-                    "value": "[parameters('openaiApiVersion')]"
-                  },
-                  {
-                    "name": "AZURE_OPENAI_API_VERSION_01",
-                    "value": "[if(or(contains(parameters('reasoningModel').name, 'o1'), contains(parameters('reasoningModel').name, 'o3')), parameters('openaiApiVersion'), '')]"
-                  },
-                  {
-                    "name": "AZURE_OPENAI_EMBEDDING_DEPLOYMENT",
-                    "value": "[parameters('embeddingModel').name]"
-                  },
-                  {
-                    "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_ID",
-                    "value": "[parameters('chatModel').name]"
-                  },
-                  {
-                    "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
-                    "value": "[if(or(contains(parameters('reasoningModel').name, 'o1'), contains(parameters('reasoningModel').name, 'o3')), parameters('reasoningModel').name, '')]"
-                  },
-                  {
-                    "name": "AZURE_OPENAI_EMBEDDING_DIMENSIONS",
-                    "value": "[parameters('embeddingModelDimension')]"
-                  },
-                  {
-                    "name": "AZURE_SEARCH_SERVICE_NAME",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServiceName.value]"
-                  },
-                  {
-                    "name": "AZURE_SEARCH_INDEX_NAME",
-                    "value": "ai-policies-index"
-                  },
-                  {
-                    "name": "AZURE_AI_SEARCH_SERVICE_ENDPOINT",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServiceEndpoint.value]"
-                  },
-                  {
-                    "name": "AZURE_BLOB_CONTAINER_NAME",
-                    "value": "[parameters('storageBlobContainerName')]"
-                  },
-                  {
-                    "name": "AZURE_STORAGE_ACCOUNT_NAME",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountName.value]"
-                  },
-                  {
-                    "name": "AZURE_COSMOS_DB_DATABASE_NAME",
-                    "value": "[parameters('cosmosDbDatabaseName')]"
-                  },
-                  {
-                    "name": "AZURE_COSMOS_DB_COLLECTION_NAME",
-                    "value": "[parameters('cosmosDbCollectionName')]"
-                  },
-                  {
-                    "name": "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesEndpoint.value]"
-                  },
-                  {
-                    "name": "AZURE_OPENAI_KEY",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesKey.value]"
-                  },
-                  {
-                    "name": "AZURE_AI_SEARCH_ADMIN_KEY",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('search-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.searchServicePrimaryKey.value]"
-                  },
-                  {
-                    "name": "AZURE_STORAGE_CONNECTION_STRING",
-                    "value": "[format('ResourceId={0}', reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountId.value)]"
-                  },
-                  {
-                    "name": "AZURE_AI_SERVICES_KEY",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesPrimaryKey.value]"
-                  },
-                  {
-                    "name": "AZURE_COSMOS_CONNECTION_STRING",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.mongoConnectionString.value]"
-                  },
-                  {
-                    "name": "AZURE_DOCUMENT_INTELLIGENCE_KEY",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesKey.value]"
-                  },
-                  {
-                    "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('avm-monitoring-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.applicationInsightsConnectionString.value]"
-                  },
-                  {
-                    "name": "AZURE_AI_FOUNDRY_CONNECTION_STRING",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiFoundryConnectionString.value]"
-                  },
-                  {
-                    "name": "GIT_HASH",
-                    "value": "[parameters('gitHash')]"
-                  }
-                ]
-              }
-            ]
-          },
-          "secrets": {
-            "value": [
-              {
-                "name": "override-use-mi-fic-assertion-client-id",
-                "value": "[reference(resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.clientId.value]"
-              }
-            ]
-          },
-          "registries": {
-            "value": [
-              {
-                "identity": "[reference(resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.resourceId.value]",
-                "server": "[reference(resourceId('Microsoft.Resources/deployments', format('avm-registry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.loginServer.value]"
-              }
-            ]
-          },
-          "managedIdentities": {
-            "value": {
-              "userAssignedResourceIds": [
-                "[reference(resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.resourceId.value]"
-              ]
-            }
-          },
-          "scaleMinReplicas": {
-            "value": 0
-          },
-          "scaleMaxReplicas": {
-            "value": 1
-          },
-          "workloadProfileName": {
-            "value": "Consumption"
-          },
-          "location": {
-            "value": "[variables('location')]"
-          },
-          "tags": {
-            "value": "[union(parameters('tags'), createObject('azd-service-name', 'backend'))]"
-          }
-        },
-        "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "languageVersion": "2.0",
-          "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_generator": {
-              "name": "bicep",
-              "version": "0.33.93.31351",
-              "templateHash": "1964938100334091991"
-            },
-            "name": "Container Apps",
-            "description": "This module deploys a Container App."
-          },
-          "definitions": {
-            "containerType": {
-              "type": "object",
-              "properties": {
-                "args": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Container start command arguments."
-                  }
-                },
-                "command": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Container start command."
-                  }
-                },
-                "env": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/environmentVarType"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Container environment variables."
-                  }
-                },
-                "image": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. Container image tag."
-                  }
-                },
-                "name": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Custom container name."
-                  }
-                },
-                "probes": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/containerAppProbeType"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. List of probes for the container."
-                  }
-                },
-                "resources": {
-                  "type": "object",
-                  "metadata": {
-                    "description": "Required. Container resource requirements."
-                  }
-                },
-                "volumeMounts": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/volumeMountType"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Container volume mounts."
-                  }
-                }
-              },
-              "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for a container."
-              }
-            },
-            "ingressPortMappingType": {
-              "type": "object",
-              "properties": {
-                "exposedPort": {
-                  "type": "int",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Specifies the exposed port for the target port. If not specified, it defaults to target port."
-                  }
-                },
-                "external": {
-                  "type": "bool",
-                  "metadata": {
-                    "description": "Required. Specifies whether the app port is accessible outside of the environment."
-                  }
-                },
-                "targetPort": {
-                  "type": "int",
-                  "metadata": {
-                    "description": "Required. Specifies the port the container listens on."
-                  }
-                }
-              },
-              "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for an ingress port mapping."
-              }
-            },
-            "serviceBindingType": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. The name of the service."
-                  }
-                },
-                "serviceId": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. The service ID."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "The type for a service binding."
-              }
-            },
-            "environmentVarType": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. Environment variable name."
-                  }
-                },
-                "secretRef": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Name of the Container App secret from which to pull the environment variable value."
-                  }
-                },
-                "value": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Non-secret environment variable value."
-                  }
-                }
-              },
-              "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for an environment variable."
-              }
-            },
-            "containerAppProbeType": {
-              "type": "object",
-              "properties": {
-                "failureThreshold": {
-                  "type": "int",
-                  "nullable": true,
-                  "minValue": 1,
-                  "maxValue": 10,
-                  "metadata": {
-                    "description": "Optional. Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3."
-                  }
-                },
-                "httpGet": {
-                  "$ref": "#/definitions/containerAppProbeHttpGetType",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. HTTPGet specifies the http request to perform."
-                  }
-                },
-                "initialDelaySeconds": {
-                  "type": "int",
-                  "nullable": true,
-                  "minValue": 1,
-                  "maxValue": 60,
-                  "metadata": {
-                    "description": "Optional. Number of seconds after the container has started before liveness probes are initiated."
-                  }
-                },
-                "periodSeconds": {
-                  "type": "int",
-                  "nullable": true,
-                  "minValue": 1,
-                  "maxValue": 240,
-                  "metadata": {
-                    "description": "Optional. How often (in seconds) to perform the probe. Default to 10 seconds."
-                  }
-                },
-                "successThreshold": {
-                  "type": "int",
-                  "nullable": true,
-                  "minValue": 1,
-                  "maxValue": 10,
-                  "metadata": {
-                    "description": "Optional. Minimum consecutive successes for the probe to be considered successful after having failed. Defaults to 1. Must be 1 for liveness and startup."
-                  }
-                },
-                "tcpSocket": {
-                  "$ref": "#/definitions/containerAppProbeTcpSocketType",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The TCP socket specifies an action involving a TCP port. TCP hooks not yet supported."
-                  }
-                },
-                "terminationGracePeriodSeconds": {
-                  "type": "int",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Optional duration in seconds the pod needs to terminate gracefully upon probe failure. The grace period is the duration in seconds after the processes running in the pod are sent a termination signal and the time when the processes are forcibly halted with a kill signal. Set this value longer than the expected cleanup time for your process. If this value is nil, the pod's terminationGracePeriodSeconds will be used. Otherwise, this value overrides the value provided by the pod spec. Value must be non-negative integer. The value zero indicates stop immediately via the kill signal (no opportunity to shut down). This is an alpha field and requires enabling ProbeTerminationGracePeriod feature gate. Maximum value is 3600 seconds (1 hour)."
-                  }
-                },
-                "timeoutSeconds": {
-                  "type": "int",
-                  "nullable": true,
-                  "minValue": 1,
-                  "maxValue": 240,
-                  "metadata": {
-                    "description": "Optional. Number of seconds after which the probe times out. Defaults to 1 second."
-                  }
-                },
-                "type": {
-                  "type": "string",
-                  "allowedValues": [
-                    "Liveness",
-                    "Readiness",
-                    "Startup"
-                  ],
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The type of probe."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "The type for a container app probe."
-              }
-            },
-            "corsPolicyType": {
-              "type": "object",
-              "properties": {
-                "allowCredentials": {
-                  "type": "bool",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Switch to determine whether the resource allows credentials."
-                  }
-                },
-                "allowedHeaders": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Specifies the content for the access-control-allow-headers header."
-                  }
-                },
-                "allowedMethods": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Specifies the content for the access-control-allow-methods header."
-                  }
-                },
-                "allowedOrigins": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Specifies the content for the access-control-allow-origins header."
-                  }
-                },
-                "exposeHeaders": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Specifies the content for the access-control-expose-headers header."
-                  }
-                },
-                "maxAge": {
-                  "type": "int",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Specifies the content for the access-control-max-age header."
-                  }
-                }
-              },
-              "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for a CORS policy."
-              }
-            },
-            "containerAppProbeHttpGetType": {
-              "type": "object",
-              "properties": {
-                "host": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Host name to connect to. Defaults to the pod IP."
-                  }
-                },
-                "httpHeaders": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/containerAppProbeHttpGetHeadersItemType"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. HTTP headers to set in the request."
-                  }
-                },
-                "path": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. Path to access on the HTTP server."
-                  }
-                },
-                "port": {
-                  "type": "int",
-                  "metadata": {
-                    "description": "Required. Name or number of the port to access on the container."
-                  }
-                },
-                "scheme": {
-                  "type": "string",
-                  "allowedValues": [
-                    "HTTP",
-                    "HTTPS"
-                  ],
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Scheme to use for connecting to the host. Defaults to HTTP."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "The type for a container app probe HTTP GET."
-              }
-            },
-            "containerAppProbeHttpGetHeadersItemType": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. Name of the header."
-                  }
-                },
-                "value": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. Value of the header."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "The type for a container app probe HTTP GET header."
-              }
-            },
-            "containerAppProbeTcpSocketType": {
-              "type": "object",
-              "properties": {
-                "host": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Host name to connect to, defaults to the pod IP."
-                  }
-                },
-                "port": {
-                  "type": "int",
-                  "minValue": 1,
-                  "maxValue": 65535,
-                  "metadata": {
-                    "description": "Required. Number of the port to access on the container. Name must be an IANA_SVC_NAME."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "The type for a container app probe TCP socket."
-              }
-            },
-            "volumeMountType": {
-              "type": "object",
-              "properties": {
-                "mountPath": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. Path within the container at which the volume should be mounted.Must not contain ':'."
-                  }
-                },
-                "subPath": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Path within the volume from which the container's volume should be mounted. Defaults to \"\" (volume's root)."
-                  }
-                },
-                "volumeName": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. This must match the Name of a Volume."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "The type for a volume mount."
-              }
-            },
-            "runtimeType": {
-              "type": "object",
-              "properties": {
-                "dotnet": {
-                  "type": "object",
-                  "properties": {
-                    "autoConfigureDataProtection": {
-                      "type": "bool",
-                      "metadata": {
-                        "description": "Required. Enable to auto configure the ASP.NET Core Data Protection feature."
-                      }
-                    }
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Runtime configuration for ASP.NET Core."
-                  }
-                },
-                "java": {
-                  "type": "object",
-                  "properties": {
-                    "enableMetrics": {
-                      "type": "bool",
-                      "metadata": {
-                        "description": "Required. Enable JMX core metrics for the Java app."
-                      }
-                    },
-                    "enableJavaAgent": {
-                      "type": "bool",
-                      "metadata": {
-                        "description": "Required. Enable Java agent injection for the Java app."
-                      }
-                    },
-                    "loggerSettings": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "logger": {
-                            "type": "string",
-                            "metadata": {
-                              "description": "Required. Name of the logger."
-                            }
-                          },
-                          "level": {
-                            "type": "string",
-                            "allowedValues": [
-                              "debug",
-                              "error",
-                              "info",
-                              "off",
-                              "trace",
-                              "warn"
-                            ],
-                            "metadata": {
-                              "description": "Required. Java agent logging level."
-                            }
-                          }
-                        }
-                      },
-                      "nullable": true,
-                      "metadata": {
-                        "description": "Optional. Java agent logging configuration."
-                      }
-                    }
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Runtime configuration for Java."
-                  }
-                }
-              },
-              "nullable": true,
-              "metadata": {
-                "__bicep_export!": true,
-                "description": "Optional. App runtime configuration for the Container App."
-              }
-            },
-            "secretType": {
-              "type": "object",
-              "properties": {
-                "identity": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Resource ID of a managed identity to authenticate with Azure Key Vault, or System to use a system-assigned identity."
-                  }
-                },
-                "keyVaultUrl": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Conditional. Azure Key Vault URL pointing to the secret referenced by the Container App Job. Required if `value` is null."
-                  }
-                },
-                "name": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The name of the secret."
-                  }
-                },
-                "value": {
-                  "type": "securestring",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Conditional. The secret value, if not fetched from Key Vault. Required if `keyVaultUrl` is not null."
-                  }
-                }
-              },
-              "metadata": {
-                "__bicep_export!": true,
-                "description": "The type for a secret."
-              }
-            },
-            "lockType": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Specify the name of lock."
-                  }
-                },
-                "kind": {
-                  "type": "string",
-                  "allowedValues": [
-                    "CanNotDelete",
-                    "None",
-                    "ReadOnly"
-                  ],
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Specify the type of lock."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "An AVM-aligned type for a lock.",
-                "__bicep_imported_from!": {
-                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.4.1"
-                }
-              }
-            },
-            "managedIdentityAllType": {
-              "type": "object",
-              "properties": {
-                "systemAssigned": {
-                  "type": "bool",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Enables system assigned managed identity on the resource."
-                  }
-                },
-                "userAssignedResourceIds": {
-                  "type": "array",
-                  "items": {
-                    "type": "string"
-                  },
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The resource ID(s) to assign to the resource. Required if a user assigned identity is used for encryption."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "An AVM-aligned type for a managed identity configuration. To be used if both a system-assigned & user-assigned identities are supported by the resource provider.",
-                "__bicep_imported_from!": {
-                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.4.1"
-                }
-              }
-            },
-            "roleAssignmentType": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The name (as GUID) of the role assignment. If not provided, a GUID will be generated."
-                  }
-                },
-                "roleDefinitionIdOrName": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. The role to assign. You can provide either the display name of the role definition, the role definition GUID, or its fully qualified ID in the following format: '/providers/Microsoft.Authorization/roleDefinitions/c2f4ef07-c644-48eb-af81-4b1b4947fb11'."
-                  }
-                },
-                "principalId": {
-                  "type": "string",
-                  "metadata": {
-                    "description": "Required. The principal ID of the principal (user/group/identity) to assign the role to."
-                  }
-                },
-                "principalType": {
-                  "type": "string",
-                  "allowedValues": [
-                    "Device",
-                    "ForeignGroup",
-                    "Group",
-                    "ServicePrincipal",
-                    "User"
-                  ],
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The principal type of the assigned principal ID."
-                  }
-                },
-                "description": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The description of the role assignment."
-                  }
-                },
-                "condition": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The conditions on the role assignment. This limits the resources it can be assigned to. e.g.: @Resource[Microsoft.Storage/storageAccounts/blobServices/containers:ContainerName] StringEqualsIgnoreCase \"foo_storage_container\"."
-                  }
-                },
-                "conditionVersion": {
-                  "type": "string",
-                  "allowedValues": [
-                    "2.0"
-                  ],
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. Version of the condition."
-                  }
-                },
-                "delegatedManagedIdentityResourceId": {
-                  "type": "string",
-                  "nullable": true,
-                  "metadata": {
-                    "description": "Optional. The Resource Id of the delegated managed identity resource."
-                  }
-                }
-              },
-              "metadata": {
-                "description": "An AVM-aligned type for a role assignment.",
-                "__bicep_imported_from!": {
-                  "sourceTemplate": "br:mcr.microsoft.com/bicep/avm/utl/types/avm-common-types:0.4.1"
-                }
-              }
-            }
-          },
-          "parameters": {
-            "name": {
-              "type": "string",
-              "metadata": {
-                "description": "Required. Name of the Container App."
-              }
-            },
-            "location": {
-              "type": "string",
-              "defaultValue": "[resourceGroup().location]",
-              "metadata": {
-                "description": "Optional. Location for all Resources."
-              }
-            },
-            "disableIngress": {
-              "type": "bool",
-              "defaultValue": false,
-              "metadata": {
-                "description": "Optional. Bool to disable all ingress traffic for the container app."
-              }
-            },
-            "ingressExternal": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Bool indicating if the App exposes an external HTTP endpoint."
-              }
-            },
-            "clientCertificateMode": {
-              "type": "string",
-              "defaultValue": "ignore",
-              "allowedValues": [
-                "accept",
-                "ignore",
-                "require"
-              ],
-              "metadata": {
-                "description": "Optional. Client certificate mode for mTLS."
-              }
-            },
-            "corsPolicy": {
-              "$ref": "#/definitions/corsPolicyType",
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. Object userd to configure CORS policy."
-              }
-            },
-            "stickySessionsAffinity": {
-              "type": "string",
-              "defaultValue": "none",
-              "allowedValues": [
-                "none",
-                "sticky"
-              ],
-              "metadata": {
-                "description": "Optional. Bool indicating if the Container App should enable session affinity."
-              }
-            },
-            "ingressTransport": {
-              "type": "string",
-              "defaultValue": "auto",
-              "allowedValues": [
-                "auto",
-                "http",
-                "http2",
-                "tcp"
-              ],
-              "metadata": {
-                "description": "Optional. Ingress transport protocol."
-              }
-            },
-            "service": {
-              "type": "object",
-              "defaultValue": {},
-              "metadata": {
-                "description": "Optional. Dev ContainerApp service type."
-              }
-            },
-            "includeAddOns": {
-              "type": "bool",
-              "defaultValue": false,
-              "metadata": {
-                "description": "Optional. Toggle to include the service configuration."
-              }
-            },
-            "additionalPortMappings": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/ingressPortMappingType"
-              },
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. Settings to expose additional ports on container app."
-              }
-            },
-            "ingressAllowInsecure": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Bool indicating if HTTP connections to is allowed. If set to false HTTP connections are automatically redirected to HTTPS connections."
-              }
-            },
-            "ingressTargetPort": {
-              "type": "int",
-              "defaultValue": 80,
-              "metadata": {
-                "description": "Optional. Target Port in containers for traffic from ingress."
-              }
-            },
-            "scaleMaxReplicas": {
-              "type": "int",
-              "defaultValue": 10,
-              "metadata": {
-                "description": "Optional. Maximum number of container replicas. Defaults to 10 if not set."
-              }
-            },
-            "scaleMinReplicas": {
-              "type": "int",
-              "defaultValue": 3,
-              "metadata": {
-                "description": "Optional. Minimum number of container replicas. Defaults to 3 if not set."
-              }
-            },
-            "scaleRules": {
-              "type": "array",
-              "defaultValue": [],
-              "metadata": {
-                "description": "Optional. Scaling rules."
-              }
-            },
-            "serviceBinds": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/serviceBindingType"
-              },
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. List of container app services bound to the app."
-              }
-            },
-            "activeRevisionsMode": {
-              "type": "string",
-              "defaultValue": "Single",
-              "allowedValues": [
-                "Multiple",
-                "Single"
-              ],
-              "metadata": {
-                "description": "Optional. Controls how active revisions are handled for the Container app."
-              }
-            },
-            "environmentResourceId": {
-              "type": "string",
-              "metadata": {
-                "description": "Required. Resource ID of environment."
-              }
-            },
-            "lock": {
-              "$ref": "#/definitions/lockType",
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. The lock settings of the service."
-              }
-            },
-            "tags": {
-              "type": "object",
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. Tags of the resource."
-              }
-            },
-            "registries": {
-              "type": "array",
-              "defaultValue": [],
-              "metadata": {
-                "description": "Optional. Collection of private container registry credentials for containers used by the Container app."
-              }
-            },
-            "managedIdentities": {
-              "$ref": "#/definitions/managedIdentityAllType",
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. The managed identity definition for this resource."
-              }
-            },
-            "roleAssignments": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/roleAssignmentType"
-              },
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. Array of role assignments to create."
-              }
-            },
-            "enableTelemetry": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Enable/Disable usage telemetry for module."
-              }
-            },
-            "customDomains": {
-              "type": "array",
-              "defaultValue": [],
-              "metadata": {
-                "description": "Optional. Custom domain bindings for Container App hostnames."
-              }
-            },
-            "exposedPort": {
-              "type": "int",
-              "defaultValue": 0,
-              "metadata": {
-                "description": "Optional. Exposed Port in containers for TCP traffic from ingress."
-              }
-            },
-            "ipSecurityRestrictions": {
-              "type": "array",
-              "defaultValue": [],
-              "metadata": {
-                "description": "Optional. Rules to restrict incoming IP address."
-              }
-            },
-            "trafficLabel": {
-              "type": "string",
-              "defaultValue": "label-1",
-              "metadata": {
-                "description": "Optional. Associates a traffic label with a revision. Label name should be consist of lower case alphanumeric characters or dashes."
-              }
-            },
-            "trafficLatestRevision": {
-              "type": "bool",
-              "defaultValue": true,
-              "metadata": {
-                "description": "Optional. Indicates that the traffic weight belongs to a latest stable revision."
-              }
-            },
-            "trafficRevisionName": {
-              "type": "string",
-              "defaultValue": "",
-              "metadata": {
-                "description": "Optional. Name of a revision."
-              }
-            },
-            "trafficWeight": {
-              "type": "int",
-              "defaultValue": 100,
-              "metadata": {
-                "description": "Optional. Traffic weight assigned to a revision."
-              }
-            },
-            "dapr": {
-              "type": "object",
-              "defaultValue": {},
-              "metadata": {
-                "description": "Optional. Dapr configuration for the Container App."
-              }
-            },
-            "maxInactiveRevisions": {
-              "type": "int",
-              "defaultValue": 0,
-              "metadata": {
-                "description": "Optional. Max inactive revisions a Container App can have."
-              }
-            },
-            "runtime": {
-              "$ref": "#/definitions/runtimeType",
-              "metadata": {
-                "description": "Optional. Runtime configuration for the Container App."
-              }
-            },
-            "containers": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/containerType"
-              },
-              "metadata": {
-                "description": "Required. List of container definitions for the Container App."
-              }
-            },
-            "initContainersTemplate": {
-              "type": "array",
-              "defaultValue": [],
-              "metadata": {
-                "description": "Optional. List of specialized containers that run before app containers."
-              }
-            },
-            "secrets": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/secretType"
-              },
-              "nullable": true,
-              "metadata": {
-                "description": "Optional. The secrets of the Container App."
-              }
-            },
-            "revisionSuffix": {
-              "type": "string",
-              "defaultValue": "",
-              "metadata": {
-                "description": "Optional. User friendly suffix that is appended to the revision name."
-              }
-            },
-            "volumes": {
-              "type": "array",
-              "defaultValue": [],
-              "metadata": {
-                "description": "Optional. List of volume definitions for the Container App."
-              }
-            },
-            "workloadProfileName": {
-              "type": "string",
-              "defaultValue": "",
-              "metadata": {
-                "description": "Optional. Workload profile name to pin for container app execution."
-              }
-            }
-          },
-          "variables": {
-            "copy": [
-              {
-                "name": "formattedRoleAssignments",
-                "count": "[length(coalesce(parameters('roleAssignments'), createArray()))]",
-                "input": "[union(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')], createObject('roleDefinitionId', coalesce(tryGet(variables('builtInRoleNames'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName), if(contains(coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, '/providers/Microsoft.Authorization/roleDefinitions/'), coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName, subscriptionResourceId('Microsoft.Authorization/roleDefinitions', coalesce(parameters('roleAssignments'), createArray())[copyIndex('formattedRoleAssignments')].roleDefinitionIdOrName)))))]"
-              }
-            ],
-            "formattedUserAssignedIdentities": "[reduce(map(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createArray()), lambda('id', createObject(format('{0}', lambdaVariables('id')), createObject()))), createObject(), lambda('cur', 'next', union(lambdaVariables('cur'), lambdaVariables('next'))))]",
-            "identity": "[if(not(empty(parameters('managedIdentities'))), createObject('type', if(coalesce(tryGet(parameters('managedIdentities'), 'systemAssigned'), false()), if(not(empty(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createObject()))), 'SystemAssigned,UserAssigned', 'SystemAssigned'), if(not(empty(coalesce(tryGet(parameters('managedIdentities'), 'userAssignedResourceIds'), createObject()))), 'UserAssigned', 'None')), 'userAssignedIdentities', if(not(empty(variables('formattedUserAssignedIdentities'))), variables('formattedUserAssignedIdentities'), null())), null())]",
-            "builtInRoleNames": {
-              "ContainerApp Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ad2dd5fb-cd4b-4fd4-a9b6-4fed3630980b')]",
-              "Contributor": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')]",
-              "Owner": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8e3af657-a8ff-443c-a75c-2fe8c4bcb635')]",
-              "Reader": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'acdd72a7-3385-48ef-bd42-f606fba81ae7')]",
-              "Role Based Access Control Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'f58310d9-a9f6-439a-9e8d-f62e7b41a168')]",
-              "User Access Administrator": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '18d7d88d-d35e-4fb5-a5c3-7773c20a72d9')]"
-            }
-          },
-          "resources": {
-            "avmTelemetry": {
-              "condition": "[parameters('enableTelemetry')]",
-              "type": "Microsoft.Resources/deployments",
-              "apiVersion": "2024-03-01",
-              "name": "[format('46d3xbcp.res.app-containerapp.{0}.{1}', replace('0.13.0', '.', '-'), substring(uniqueString(deployment().name, parameters('location')), 0, 4))]",
-              "properties": {
-                "mode": "Incremental",
-                "template": {
-                  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-                  "contentVersion": "1.0.0.0",
-                  "resources": [],
-                  "outputs": {
-                    "telemetry": {
-                      "type": "String",
-                      "value": "For more information, see https://aka.ms/avm/TelemetryInfo"
-                    }
-                  }
-                }
-              }
-            },
-            "containerApp": {
-              "type": "Microsoft.App/containerApps",
-              "apiVersion": "2024-10-02-preview",
-              "name": "[parameters('name')]",
-              "tags": "[parameters('tags')]",
-              "location": "[parameters('location')]",
-              "identity": "[variables('identity')]",
-              "properties": {
-                "environmentId": "[parameters('environmentResourceId')]",
-                "configuration": {
-                  "activeRevisionsMode": "[parameters('activeRevisionsMode')]",
-                  "dapr": "[if(not(empty(parameters('dapr'))), parameters('dapr'), null())]",
-                  "ingress": "[if(parameters('disableIngress'), null(), createObject('additionalPortMappings', parameters('additionalPortMappings'), 'allowInsecure', if(not(equals(parameters('ingressTransport'), 'tcp')), parameters('ingressAllowInsecure'), false()), 'customDomains', if(not(empty(parameters('customDomains'))), parameters('customDomains'), null()), 'corsPolicy', if(and(not(equals(parameters('corsPolicy'), null())), not(equals(parameters('ingressTransport'), 'tcp'))), createObject('allowCredentials', coalesce(tryGet(parameters('corsPolicy'), 'allowCredentials'), false()), 'allowedHeaders', coalesce(tryGet(parameters('corsPolicy'), 'allowedHeaders'), createArray()), 'allowedMethods', coalesce(tryGet(parameters('corsPolicy'), 'allowedMethods'), createArray()), 'allowedOrigins', coalesce(tryGet(parameters('corsPolicy'), 'allowedOrigins'), createArray()), 'exposeHeaders', coalesce(tryGet(parameters('corsPolicy'), 'exposeHeaders'), createArray()), 'maxAge', tryGet(parameters('corsPolicy'), 'maxAge')), null()), 'clientCertificateMode', if(not(equals(parameters('ingressTransport'), 'tcp')), parameters('clientCertificateMode'), null()), 'exposedPort', parameters('exposedPort'), 'external', parameters('ingressExternal'), 'ipSecurityRestrictions', if(not(empty(parameters('ipSecurityRestrictions'))), parameters('ipSecurityRestrictions'), null()), 'targetPort', parameters('ingressTargetPort'), 'stickySessions', createObject('affinity', parameters('stickySessionsAffinity')), 'traffic', if(not(equals(parameters('ingressTransport'), 'tcp')), createArray(createObject('label', parameters('trafficLabel'), 'latestRevision', parameters('trafficLatestRevision'), 'revisionName', parameters('trafficRevisionName'), 'weight', parameters('trafficWeight'))), null()), 'transport', parameters('ingressTransport')))]",
-                  "service": "[if(and(parameters('includeAddOns'), not(empty(parameters('service')))), parameters('service'), null())]",
-                  "maxInactiveRevisions": "[parameters('maxInactiveRevisions')]",
-                  "registries": "[if(not(empty(parameters('registries'))), parameters('registries'), null())]",
-                  "secrets": "[parameters('secrets')]",
-                  "runtime": {
-                    "dotnet": "[if(not(empty(tryGet(parameters('runtime'), 'dotnet'))), createObject('autoConfigureDataProtection', tryGet(parameters('runtime'), 'dotnet', 'autoConfigureDataProtection')), null())]",
-                    "java": "[if(not(empty(tryGet(parameters('runtime'), 'java'))), createObject('enableMetrics', tryGet(parameters('runtime'), 'java', 'enableMetrics'), 'javaAgent', createObject('enabled', tryGet(parameters('runtime'), 'java', 'enableJavaAgent'), 'logging', createObject('loggerSettings', tryGet(tryGet(parameters('runtime'), 'java'), 'loggerSettings')))), null())]"
-                  }
-                },
-                "template": {
-                  "containers": "[parameters('containers')]",
-                  "initContainers": "[if(not(empty(parameters('initContainersTemplate'))), parameters('initContainersTemplate'), null())]",
-                  "revisionSuffix": "[parameters('revisionSuffix')]",
-                  "scale": {
-                    "maxReplicas": "[parameters('scaleMaxReplicas')]",
-                    "minReplicas": "[parameters('scaleMinReplicas')]",
-                    "rules": "[if(not(empty(parameters('scaleRules'))), parameters('scaleRules'), null())]"
-                  },
-                  "serviceBinds": "[if(and(parameters('includeAddOns'), not(empty(parameters('serviceBinds')))), parameters('serviceBinds'), null())]",
-                  "volumes": "[if(not(empty(parameters('volumes'))), parameters('volumes'), null())]"
-                },
-                "workloadProfileName": "[parameters('workloadProfileName')]"
-              }
-            },
-            "containerApp_lock": {
-              "condition": "[and(not(empty(coalesce(parameters('lock'), createObject()))), not(equals(tryGet(parameters('lock'), 'kind'), 'None')))]",
-              "type": "Microsoft.Authorization/locks",
-              "apiVersion": "2020-05-01",
-              "scope": "[format('Microsoft.App/containerApps/{0}', parameters('name'))]",
-              "name": "[coalesce(tryGet(parameters('lock'), 'name'), format('lock-{0}', parameters('name')))]",
-              "properties": {
-                "level": "[coalesce(tryGet(parameters('lock'), 'kind'), '')]",
-                "notes": "[if(equals(tryGet(parameters('lock'), 'kind'), 'CanNotDelete'), 'Cannot delete resource or child resources.', 'Cannot delete or modify the resource or child resources.')]"
-              },
-              "dependsOn": [
-                "containerApp"
-              ]
-            },
-            "containerApp_roleAssignments": {
-              "copy": {
-                "name": "containerApp_roleAssignments",
-                "count": "[length(coalesce(variables('formattedRoleAssignments'), createArray()))]"
-              },
-              "type": "Microsoft.Authorization/roleAssignments",
-              "apiVersion": "2022-04-01",
-              "scope": "[format('Microsoft.App/containerApps/{0}', parameters('name'))]",
-              "name": "[coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'name'), guid(resourceId('Microsoft.App/containerApps', parameters('name')), coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId, coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId))]",
-              "properties": {
-                "roleDefinitionId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].roleDefinitionId]",
-                "principalId": "[coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()].principalId]",
-                "description": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'description')]",
-                "principalType": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'principalType')]",
-                "condition": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'condition')]",
-                "conditionVersion": "[if(not(empty(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'condition'))), coalesce(tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'conditionVersion'), '2.0'), null())]",
-                "delegatedManagedIdentityResourceId": "[tryGet(coalesce(variables('formattedRoleAssignments'), createArray())[copyIndex()], 'delegatedManagedIdentityResourceId')]"
-              },
-              "dependsOn": [
-                "containerApp"
-              ]
-            }
-          },
-          "outputs": {
-            "resourceId": {
-              "type": "string",
-              "metadata": {
-                "description": "The resource ID of the Container App."
-              },
-              "value": "[resourceId('Microsoft.App/containerApps', parameters('name'))]"
-            },
-            "fqdn": {
-              "type": "string",
-              "metadata": {
-                "description": "The configuration of ingress fqdn."
-              },
-              "value": "[if(parameters('disableIngress'), 'IngressDisabled', reference('containerApp').configuration.ingress.fqdn)]"
-            },
-            "resourceGroupName": {
-              "type": "string",
-              "metadata": {
-                "description": "The name of the resource group the Container App was deployed into."
-              },
-              "value": "[resourceGroup().name]"
-            },
-            "name": {
-              "type": "string",
-              "metadata": {
-                "description": "The name of the Container App."
-              },
-              "value": "[parameters('name')]"
-            },
-            "systemAssignedMIPrincipalId": {
-              "type": "string",
-              "nullable": true,
-              "metadata": {
-                "description": "The principal ID of the system assigned identity."
-              },
-              "value": "[tryGet(tryGet(reference('containerApp', '2024-10-02-preview', 'full'), 'identity'), 'principalId')]"
-            },
-            "location": {
-              "type": "string",
-              "metadata": {
-                "description": "The location the resource was deployed into."
-              },
-              "value": "[reference('containerApp', '2024-10-02-preview', 'full').location]"
-            }
-          }
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', 'backend-fetch-image')]",
-        "[resourceId('Microsoft.Resources/deployments', format('managedenv-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
-        "[resourceId('Microsoft.Resources/deployments', format('doc-intelligence-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('avm-monitoring-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('openai-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
@@ -15084,7 +13744,7 @@
                   },
                   {
                     "name": "AZURE_AI_FOUNDRY_CONNECTION_STRING",
-                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiFoundryConnectionString.value]"
+                    "value": "[reference(resourceId('Microsoft.Resources/deployments', format('ai-foundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiFoundryConnectionString.value]"
                   },
                   {
                     "name": "GIT_HASH",
@@ -16233,7 +14893,7 @@
         }
       },
       "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
+        "[resourceId('Microsoft.Resources/deployments', format('ai-foundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('uai-app-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('managedenv-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
         "[resourceId('Microsoft.Resources/deployments', format('cosmosdb-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix')))]",
@@ -16285,8 +14945,8 @@
             ],
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "16442509567224939684"
+              "version": "0.33.93.31351",
+              "templateHash": "9273646746255530900"
             }
           },
           "parameters": {
@@ -16491,8 +15151,8 @@
             ],
             "_generator": {
               "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "533717727648954586"
+              "version": "0.33.93.31351",
+              "templateHash": "17423085415077576562"
             },
             "description": "Creates an Azure Container Apps Auth Config using Microsoft Entra as Identity Provider."
           },
@@ -16574,10 +15234,7 @@
                     "azureBlobStorage": "[if(parameters('includeTokenStore'), createObject('blobContainerUri', parameters('blobContainerUri'), 'managedIdentityResourceId', parameters('appIdentityResourceId')), createObject())]"
                   }
                 }
-              },
-              "dependsOn": [
-                "app"
-              ]
+              }
             }
           }
         }
@@ -16585,134 +15242,6 @@
       "dependsOn": [
         "[resourceId('Microsoft.Resources/deployments', 'easyauth-reg')]",
         "[resourceId('Microsoft.Resources/deployments', variables('frontendContainerName'))]"
-      ]
-    },
-    {
-      "condition": "[parameters('enableEasyAuth')]",
-      "type": "Microsoft.Resources/deployments",
-      "apiVersion": "2022-09-01",
-      "name": "easyauth-backend-appupdate",
-      "properties": {
-        "expressionEvaluationOptions": {
-          "scope": "inner"
-        },
-        "mode": "Incremental",
-        "parameters": {
-          "containerAppName": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', variables('backendContainerName')), '2022-09-01').outputs.name.value]"
-          },
-          "clientId": {
-            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'easyauth-reg'), '2022-09-01').outputs.clientAppId.value]"
-          },
-          "openIdIssuer": {
-            "value": "[variables('issuer')]"
-          }
-        },
-        "template": {
-          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-          "languageVersion": "2.1-experimental",
-          "contentVersion": "1.0.0.0",
-          "metadata": {
-            "_EXPERIMENTAL_WARNING": "This template uses ARM features that are experimental. Experimental features should be enabled for testing purposes only, as there are no guarantees about the quality or stability of these features. Do not enable these settings for any production usage, or your production environment may be subject to breaking.",
-            "_EXPERIMENTAL_FEATURES_ENABLED": [
-              "Extensibility"
-            ],
-            "_generator": {
-              "name": "bicep",
-              "version": "0.30.23.60470",
-              "templateHash": "533717727648954586"
-            },
-            "description": "Creates an Azure Container Apps Auth Config using Microsoft Entra as Identity Provider."
-          },
-          "parameters": {
-            "containerAppName": {
-              "type": "string",
-              "metadata": {
-                "description": "The name of the container apps resource within the current resource group scope"
-              }
-            },
-            "clientId": {
-              "type": "string",
-              "metadata": {
-                "description": "The client ID of the Microsoft Entra application."
-              }
-            },
-            "openIdIssuer": {
-              "type": "string"
-            },
-            "includeTokenStore": {
-              "type": "bool",
-              "defaultValue": false,
-              "metadata": {
-                "description": "Enable token store for the Container App."
-              }
-            },
-            "blobContainerUri": {
-              "type": "string",
-              "defaultValue": "",
-              "metadata": {
-                "description": "The URI of the Azure Blob Storage container to be used for token storage."
-              }
-            },
-            "appIdentityResourceId": {
-              "type": "string",
-              "defaultValue": "",
-              "metadata": {
-                "description": "The resource ID of the managed identity to be used for accessing the Azure Blob Storage."
-              }
-            }
-          },
-          "resources": {
-            "app": {
-              "existing": true,
-              "type": "Microsoft.App/containerApps",
-              "apiVersion": "2023-05-01",
-              "name": "[parameters('containerAppName')]"
-            },
-            "auth": {
-              "type": "Microsoft.App/containerApps/authConfigs",
-              "apiVersion": "2024-10-02-preview",
-              "name": "[format('{0}/{1}', parameters('containerAppName'), 'current')]",
-              "properties": {
-                "platform": {
-                  "enabled": true
-                },
-                "globalValidation": {
-                  "redirectToProvider": "azureactivedirectory",
-                  "unauthenticatedClientAction": "RedirectToLoginPage"
-                },
-                "identityProviders": {
-                  "azureActiveDirectory": {
-                    "enabled": true,
-                    "registration": {
-                      "clientId": "[parameters('clientId')]",
-                      "clientSecretSettingName": "override-use-mi-fic-assertion-client-id",
-                      "openIdIssuer": "[parameters('openIdIssuer')]"
-                    },
-                    "validation": {
-                      "defaultAuthorizationPolicy": {
-                        "allowedApplications": []
-                      }
-                    }
-                  }
-                },
-                "login": {
-                  "tokenStore": {
-                    "enabled": "[parameters('includeTokenStore')]",
-                    "azureBlobStorage": "[if(parameters('includeTokenStore'), createObject('blobContainerUri', parameters('blobContainerUri'), 'managedIdentityResourceId', parameters('appIdentityResourceId')), createObject())]"
-                  }
-                }
-              },
-              "dependsOn": [
-                "app"
-              ]
-            }
-          }
-        }
-      },
-      "dependsOn": [
-        "[resourceId('Microsoft.Resources/deployments', variables('backendContainerName'))]",
-        "[resourceId('Microsoft.Resources/deployments', 'easyauth-reg')]"
       ]
     }
   ],
@@ -16823,7 +15352,7 @@
     },
     "AZURE_AI_FOUNDRY_CONNECTION_STRING": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', format('aiFoundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiFoundryConnectionString.value]"
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', format('ai-foundry-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiFoundryConnectionString.value]"
     },
     "CONTAINER_JOB_NAME": {
       "type": "string",
@@ -16836,14 +15365,6 @@
     "FRONTEND_CONTAINER_NAME": {
       "type": "string",
       "value": "[reference(resourceId('Microsoft.Resources/deployments', variables('frontendContainerName')), '2022-09-01').outputs.name.value]"
-    },
-    "BACKEND_CONTAINER_URL": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', variables('backendContainerName')), '2022-09-01').outputs.fqdn.value]"
-    },
-    "BACKEND_CONTAINER_NAME": {
-      "type": "string",
-      "value": "[reference(resourceId('Microsoft.Resources/deployments', variables('backendContainerName')), '2022-09-01').outputs.name.value]"
     },
     "APP_IDENTITY_CLIENT_ID": {
       "type": "string",

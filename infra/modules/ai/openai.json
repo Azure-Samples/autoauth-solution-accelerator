@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "5226470766090485548"
+      "templateHash": "8998205790483916158"
     }
   },
   "parameters": {
@@ -125,7 +125,7 @@
     },
     "aiServicesEndpoint": {
       "type": "string",
-      "value": "[reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint]"
+      "value": "[if(endsWith(reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint, '/'), substring(reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint, 0, sub(length(reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint), 1)), reference(resourceId('Microsoft.CognitiveServices/accounts', variables('aiServiceNameCleaned')), '2023-05-01').endpoint)]"
     },
     "aiServicesName": {
       "type": "string",

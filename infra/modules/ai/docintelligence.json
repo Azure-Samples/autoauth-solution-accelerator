@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.33.93.31351",
-      "templateHash": "4461883980771064824"
+      "templateHash": "9467403434055282454"
     }
   },
   "parameters": {
@@ -76,7 +76,7 @@
     },
     "aiServiceDocIntelligenceEndpoint": {
       "type": "string",
-      "value": "[format('https://{0}.cognitiveservices.azure.com/', variables('aiServiceNameCleaned'))]"
+      "value": "[format('https://{0}.cognitiveservices.azure.com', variables('aiServiceNameCleaned'))]"
     },
     "aiServicesName": {
       "type": "string",

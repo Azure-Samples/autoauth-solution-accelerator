@@ -16,18 +16,17 @@ param environmentName string
 @allowed([
   'eastus2'
   'swedencentral'
-  //// The below regions do not currently support the combination of OpenAI models in scope.
-  // 'southcentralus'
-  // 'canadaeast'
-  // 'eastus'
-  // 'francecentral'
-  // 'japaneast'
-  // 'norwayeast'
-  // 'polandcentral'
-  // 'southindia'
-  // 'switzerlandnorth'
-  // 'uksouth'
-  // 'westus3'
+  'southcentralus'
+  'canadaeast'
+  'eastus'
+  'francecentral'
+  'japaneast'
+  'norwayeast'
+  'polandcentral'
+  'southindia'
+  'switzerlandnorth'
+  'uksouth'
+  'westus3'
 ])
 param location string
 
