@@ -14,6 +14,14 @@ on:
                 - provision
                 - deploy
                 - destroy
+        run_evals:
+            description: 'Run evals'
+            required: false
+            default: 'false'
+            type: choice
+            options:
+                - true
+                - false
   push:
     # Run when commits are pushed to mainline branch (main or master)
     # Set this to the mainline branch you are using
@@ -37,7 +45,7 @@ env:
   AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
   AZURE_ENV_NAME: ${{ vars.AZURE_ENV_NAME }}
   AZURE_LOCATION: ${{ vars.AZURE_LOCATION }}
-  RUN_EVALS: false
+  RUN_EVALS: ${{ github.event.inputs.run_evals || 'false' }}
 
 jobs:
   provision:
