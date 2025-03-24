@@ -54,8 +54,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Install azd
-        uses: Azure/setup-azd@ae0f8b5482eeac61e940f447327d84c73beb8b1e
+      # Disabling due to embedded sudo cmdlet.
+      #  Relying on the self-hosted runner to have azd installed
+      # - name: Install azd
+      #   uses: Azure/setup-azd@ae0f8b5482eeac61e940f447327d84c73beb8b1e
       - name: Azure CLI Login
         # Uses azure/login@v2.2
         uses: azure/login@a65d910e8af852a8061c627c456678983e180302
