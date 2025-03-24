@@ -10,7 +10,7 @@
 🚀 **Welcome! Ready to streamline your Prior Authorization process?** Click below to get started with your deployment and unlock the full potential of AutoAuth.
 
 <div align="center">
-    <a href="https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth/azd_deployment.html">
+    <a href="https://azure-samples.github.io/autoauth-solution-accelerator/azd_deployment.html">
         <img src="https://img.shields.io/badge/🚀%20Click Me-Deploy%20To%20Azure-blue?style=for-the-badge&logo=github&logoWidth=20" alt="📚 Wiki" height="32">
     </a>
     </a>
@@ -21,7 +21,7 @@
 - [Overview](#-overview)
 - [Introducing AutoAuth](#-introducing-autoauth)
 - [Quick Start](#-quick-start)
-    - [End-to-End Deployment Using AZD](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth/azd_deployment.html)
+    - [End-to-End Deployment Using AZD](https://azure-samples.github.io/autoauth-solution-accelerator/azd_deployment.html)
     - [PriorAuth SDK](#priorauth-sdk)
     - [Evaluations Framework](#evaluations)
 - [What's Next?](#-whats-next)
@@ -61,7 +61,7 @@ This repository aims to **streamline and automate** the PA process using Azure A
   </p>
 </div>
 
-**Note:** For comprehensive details, including technical architecture, customization steps, references, and additional documentation, please visit our **[GitHub Pages](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**.
+**Note:** For comprehensive details, including technical architecture, customization steps, references, and additional documentation, please visit our **[GitHub Pages](https://azure-samples.github.io/autoauth-solution-accelerator)**.
 
 <div align="center">
   <a href="https://player.vimeo.com/video/1040993686?h=f9c8e5ffba">
@@ -78,7 +78,7 @@ This repository aims to **streamline and automate** the PA process using Azure A
 
 > [!TIP]
 > *Want to customize or learn more about configuration?*
-> **[Read the detailed instructions on our GitHub Pages ➜](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**
+> **[Read the detailed instructions on our GitHub Pages ➜](https://azure-samples.github.io/autoauth-solution-accelerator)**
 
 More detailed documentation can be found in [docs/azd_deployment.md](docs/azd_deployment.md).
 
@@ -112,7 +112,7 @@ For those looking for greater flexibility, the AutoAuth SDK enables you to embed
 
 With the AutoAuth SDK, you have the flexibility to automate end-to-end Prior Authorization workflows or select specific components to integrate into your system. Whether you require a full application or a microservice solution, AutoAuth provides the tools you need.
 
-**Note:** Detailed information, technical architecture, customization steps, references, and further documentation are available on our **[GitHub Pages](https://pablosalvador10.github.io/gbb-ai-hls-factory-prior-auth)**.
+**Note:** Detailed information, technical architecture, customization steps, references, and further documentation are available on our **[GitHub Pages](https://azure-samples.github.io/autoauth-solution-accelerator)**.
 
 ### Evaluations
 
