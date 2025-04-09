@@ -34,7 +34,7 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
         "src.pipeline.autoDetermination.evaluator.AutoDeterminationEvaluator"
     )
 
-    def __init__(self, cases_dir: str, temp_dir: str = "./temp", logger=None):
+    def __init__(self, cases_dir: str, temp_dir: str = "./temp", config_file_path=None, logger=None):
         """
         :param cases_dir: Directory containing the YAML files that define the test cases.
         :param temp_dir:  Directory for temporary data, if needed.
@@ -49,7 +49,7 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
         self.cases = {}  # Dict[str, Case]
         self.results = []
 
-        self.load_default_environment()
+        self.load_default_environment(config_file_path=config_file_path)
 
         # Create the runner (AutoPADeterminator) once we confirm pipeline class in preprocess().
         self.auto_determinator = None

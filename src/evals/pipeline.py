@@ -262,27 +262,30 @@ class PipelineEvaluator(ABC):
         Raises:
             ValueError: If the 'defaultEnvironment' key is not found in the config file or the .env file does not exist.
         """
-        # Load the configuration JSON file
+        # Load the configuration JSON file.
         with open(config_file_path, "r") as config_file:
             config = json.load(config_file)
 
-        # Retrieve the default environment
+        # Retrieve the default environment from the config.
         default_env = config.get("defaultEnvironment")
         if not default_env:
             raise ValueError(
                 "The 'defaultEnvironment' key was not found in the config file, make sure you run azd up."
             )
 
-        # Construct the path to the .env file for the default environment
-        env_file_path = os.path.join(".azure", default_env, ".env")
+        # Determine the base directory from the config_file_path by removing the filename.
+        base_dir = os.path.dirname(config_file_path)
 
-        # Check if the .env file exists
+        # Build the .env file path by joining the base directory, the default environment, and ".env"
+        env_file_path = os.path.join(base_dir, default_env, ".env")
+
+        # Check if the .env file exists.
         if not os.path.exists(env_file_path):
             raise ValueError(
                 f".env file not found at: {env_file_path}, make sure you run azd up successfully."
             )
 
-        # Load the environment variables from the .env file
+        # Load the environment variables from the .env file.
         load_dotenv(dotenv_path=env_file_path)
         print(f"Environment variables loaded from: {env_file_path}")
 
