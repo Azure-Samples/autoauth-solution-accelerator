@@ -23,7 +23,53 @@
  */
 
  @description('Array of backend instance definitions.')
- param backendInstances array
+type statusCodeRangeType = {
+  @description('Minimum status code in the range')
+  min: int
+
+  @description('Maximum status code in the range')
+  max: int
+}
+
+type backendInstanceType = {
+  @description('Unique backend name')
+  name: string
+
+  @description('Service endpoint URL')
+  url: string
+
+  @description('Optional description for the backend')
+  description: string?
+
+  @description('Backend weight for the pool. Default is 10.')
+  weight: int?
+
+  @description('Backend priority for the pool. Default is 1.')
+  priority: int?
+
+  @description('Number of failures to trigger the circuit breaker. Default is 1.')
+  failureCount: int?
+
+  @description('List of error reasons. Default is ["Server errors"].')
+  errorReasons: string[]?
+
+  @description('Time interval to evaluate failures. Default is "PT5M".')
+  failureInterval: string?
+
+  @description('List of status code ranges. Default is [{min:429, max:429}].')
+  statusCodeRanges: statusCodeRangeType[]?
+
+  @description('Circuit breaker rule name. Default is "defaultBreakerRule".')
+  breakerRuleName: string?
+
+  @description('Duration the breaker remains open. Default is "PT1M".')
+  tripDuration: string?
+
+  @description('Whether Retry-After header is supported. Default is false.')
+  acceptRetryAfter: bool?
+}
+
+param backendInstances backendInstanceType[]
 
  @description('Name for the backend pool; used if more than one backend instance is provided.')
  param backendPoolName string = 'backend-pool'
@@ -36,6 +82,7 @@
  }
 
  // Create individual backend resources for each provided instance
+ @batchSize(1)
  resource backends 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = [for instance in backendInstances: {
    name: instance.name
    parent: apimResource
@@ -52,20 +99,20 @@
          {
            failureCondition: {
              count: 1
-             errorReasons: [
+             errorReasons: instance.?errorReasons ?? [
                'Server errors'
              ]
-             interval: 'PT5M'
-             statusCodeRanges: [
+             interval: instance.?failureInterval ?? 'PT5M'
+             statusCodeRanges: instance.?statusCodeRanges ?? [
                {
                  min: 429
                  max: 429
                }
              ]
            }
-           name: 'defaultBreakerRule'
-           tripDuration: 'PT1M'
-           acceptRetryAfter: true
+           name: instance.?breakerRuleName ?? 'defaultBreakerRule'
+           tripDuration: instance.?tripDuration ?? 'PT1M'
+           acceptRetryAfter: instance.?acceptRetryAfter ?? true
          }
        ]
      }
@@ -73,7 +120,7 @@
  }]
 
  // If more than one backend instance is provided, create a backend pool resource.
- resource backendPool 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = if (length(backendInstances) > 1) {
+ resource backendPool 'Microsoft.ApiManagement/service/backends@2023-09-01-preview' = {
    name: backendPoolName
    parent: apimResource
    properties: {
@@ -82,8 +129,8 @@
      pool: {
        services: [for instance in backendInstances: {
            id: '/backends/${instance.name}'
-           priority: instance.priority ?? 1
-           weight: instance.weight ?? 10
+           priority: instance.?priority ?? 1
+           weight: instance.?weight ?? 10
        }]
      }
    }
@@ -93,5 +140,5 @@
  }
 
 
- @description('Outputs the created backend pool resource. If only one backend is used, this will be null.')
- output backendPoolOutput object = backendPool
+//  @description('Outputs the created backend pool resource. If only one backend is used, this will be null.')
+//  output backendPoolOutput object = length(backendInstances) > 1 ? backendPool : null

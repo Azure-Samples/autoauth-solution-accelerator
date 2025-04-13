@@ -1,3 +1,22 @@
+/*
+  Inputs:
+  - Regional deployments of Azure AI Services instances (both OpenAI and DocIntel)
+    - Outline which deployments should go where (i.e eus has chat/reasoning, vs eus2 which has chat/reasoning/embedding)
+  -  Is it better to just customize this current module to have everything?
+    - i.e just take inputs for which backend regions, and then deploy everything here?
+
+
+    - main.bicep (takes in flag, optional parameter set with defaults?)
+    - resources.bicep (invokes this module)
+      - Passes in the following inputs:
+        - chat model
+        - reasoning model
+        - embedding model
+        - backend config
+*/
+import { ModelConfig, BackendConfigItem } from './modules/ai/types.bicep'
+
+
 param name string
 param location string = resourceGroup().location
 param env string?
@@ -42,13 +61,16 @@ param openAIAPISpecURL string = 'https://raw.githubusercontent.com/Azure/azure-r
 param docIntelAPISpecURL string = 'https://raw.githubusercontent.com/Azure/azure-rest-api-specs/refs/heads/main/specification/cognitiveservices/data-plane/FormRecognizer/stable/2023-07-31/FormRecognizer.json'
 
 @allowed([
-  'Developer'
+  'S0'
+])
+param aiServicesSku string = 'S0'
+
+@allowed([
   'BasicV2'
   'StandardV2'
-  'Premium'
-  // 'PremiumV2' // Currently in Preview
 ])
-param sku string = 'BasicV2'
+param apimSku string = 'BasicV2'
+
 param namedValues array = [
   // {
   //   name: 'exampleNamedValue1'
@@ -79,9 +101,9 @@ param tags object = {}
 var resourceSuffix = uniqueString(subscription().id, resourceGroup().id)
 var _namedValues = concat(namedValues, [
   {
-    displayName: 'LocalAccountApp'openAIModels
+    displayName: 'LocalAccountApp'
     name: 'LocalAccountApp'
-    value: localClientId ?? appClientId
+    value: localClientId == '' ? appClientId : localClientId
     secret: false
   }
   {
@@ -92,178 +114,148 @@ var _namedValues = concat(namedValues, [
   }
 ])
 
-// o1 reasoning models for GlobalStandard are only available in eastus2 and swedencentral.
-// We will configure the backend's reasoning pool to be on only 2 of 3 ai services
-
-// var backendPools = [
-//   {
-//     poolName: 'embedding-backendpool'
-//     poolTypeName: 'Pool'
-//     services: [
-//       {
-//         id: circuitBreakerBackends.outputs.eusBackendId
-//         priority: null
-//         weight: null
-//       }
-//       {
-//         id: circuitBreakerBackends.outputs.scusBackendId
-//         priority: null
-//         weight: null
-//       }
-//       {
-//         id: circuitBreakerBackends.outputs.weuBackendId
-//         priority: null
-//         weight: null
-//       }
-//     ]
-//   }
-//   {
-//     poolName: 'reasoning-backendpool'
-//     poolTypeName: 'Pool'
-//     services: [
-//       {
-//         id: circuitBreakerBackends.outputs.eusBackendId
-//         priority: null
-//         weight: null
-//       }
-//       {
-//         id: circuitBreakerBackends.outputs.scusBackendId
-//         priority: null
-//         weight: null
-//       }
-//     ]
-//   }
-//   {
-//     poolName: 'chat-backendpool'
-//     poolTypeName: 'Pool'
-//     services: [
-//       {
-//         id: circuitBreakerBackends.outputs.eusBackendId
-//         priority: null
-//         weight: null
-//       }
-//       {
-//         id: circuitBreakerBackends.outputs.scusBackendId
-//         priority: null
-//         weight: null
-//       }
-//     ]
-//   }
-// ]
 // ============================================================
 // Section: AI Services for each backendConfig object
 // ============================================================
 
-param backendConfig array = [
+@description('Chat model configuration for deployment')
+param chatModel ModelConfig = {
+  sku: 'GlobalStandard'
+  capacity: 10
+  name: 'gpt-4o'
+  version: '2024-08-06'
+}
+
+@description('Reasoning model configuration for deployment')
+param reasoningModel ModelConfig = {
+  sku: 'GlobalStandard'
+  capacity: 10
+  name: 'o1'
+  version: '2025-01-01-preview'
+}
+
+@description('Embedding model configuration for deployment')
+param embeddingModel ModelConfig = {
+  sku: 'Standard'
+  capacity: 10
+  name: 'text-embedding-3-large'
+  version: '1'
+}
+
+param backendConfig BackendConfigItem[] = [
   {
-    aiServiceName: 'openai-eus2'
-    location: 'eastus2'
-    chatCompletion: {
-      sku: 'GlobalStandard'
-      capacity: 10
-      modelName: 'gpt-4o'
-      modelVersion: '2024-08-06'
+    name: 'eus2'
+    priority: 1
+    location: location ?? 'eastus2'
+    chat: {
+      sku: chatModel.sku
+      capacity: chatModel.capacity
+      name: chatModel.name
+      version: chatModel.version
     }
     reasoning: {
-      sku: 'GlobalStandard'
-      capacity: 10
-      modelName: 'o1'
-      modelVersion: '2025-01-01-preview'
+      sku: reasoningModel.sku
+      capacity: reasoningModel.capacity
+      name: reasoningModel.name
+      version: reasoningModel.version
     }
     embedding: {
-      sku: 'Standard'
-      capacity: 10
-      modelName: 'text-embedding-3-large'
-      modelVersion: '1'
+      sku: embeddingModel.sku
+      capacity: embeddingModel.capacity
+      name: embeddingModel.name
+      version: embeddingModel.version
     }
   }
   {
-    aiServiceName: 'openai-swedencentral'
+    name: 'sc'
+    priority: 2
     location: 'swedencentral'
-    chatCompletion: {
-      sku: 'GlobalStandard'
-      capacity: 10
-      modelName: 'gpt-4o'
-      modelVersion: '2024-08-06'
+    chat: {
+      sku: chatModel.sku
+      capacity: chatModel.capacity
+      name: chatModel.name
+      version: chatModel.version
     }
     reasoning: {
-      sku: 'GlobalStandard'
-      capacity: 10
-      modelName: 'o1'
-      modelVersion: '2025-01-01-preview'
+      sku: reasoningModel.sku
+      capacity: reasoningModel.capacity
+      name: reasoningModel.name
+      version: reasoningModel.version
     }
     embedding: {
-      sku: 'Standard'
-      capacity: 10
-      modelName: 'text-embedding-3-large'
-      modelVersion: '1'
+      sku: embeddingModel.sku
+      capacity: embeddingModel.capacity
+      name: embeddingModel.name
+      version: embeddingModel.version
     }
   }
-  {
-    aiServiceName: 'openai-westus2'
-    location: 'westus2'
-    chatCompletion: {
-      sku: 'GlobalStandard'
-      capacity: 10
-      modelName: 'gpt-4o'
-      modelVersion: '2024-08-06'
-    }
-    embedding: {
-      sku: 'Standard'
-      capacity: 10
-      modelName: 'text-embedding-3-large'
-      modelVersion: '1'
-    }
-  }
+  // {
+  //   name: 'wus2'
+  //   priority: 3
+  //   location: 'westus2'
+  //   chat: {
+  //     sku: chatModel.sku
+  //     capacity: chatModel.capacity
+  //     name: chatModel.name
+  //     version: chatModel.version
+  //   }
+  //   reasoning: {
+  //     sku: reasoningModel.sku
+  //     capacity: reasoningModel.capacity
+  //     name: reasoningModel.name
+  //     version: reasoningModel.version
+  //   }
+  // }
 ]
+
+// Expected outputs from AI Services:
+// - IF exists, endpoints for:
+//  - chatModel, embeddingModel, reasoningModel
+//  - documentIntelligence
+@batchSize(1)
 module aiServices './modules/ai/aiservices.bicep' = [for (backend, i) in backendConfig: {
-  name: 'module-ai-services-${backend.name}-${name}-${resourceSuffix}'
+  name: 'module-ai-services-${backend.name}${name}${resourceSuffix}'
   params: {
-    name: '${backend.aiServiceName}-${name}-${resourceSuffix}'
+    name: '${backend.name}${name}${resourceSuffix}'
     location: backend.location
-    sku: backend.chatCompletion.sku
+    sku: aiServicesSku
     tags: tags
     openAIUserClientIds: [
       appClientId
       localClientId
     ]
-    openAIModels: [
-      {
-        name: backend.chatCompletion.modelName
-        version: backend.chatCompletion.modelVersion
-        sku: backend.chatCompletion.sku
-        capacity: backend.chatCompletion.capacity
-      }
-      {
-        name: backend.embedding.modelName
-        version: backend.embedding.modelVersion
-        sku: backend.embedding.sku
-        capacity: backend.embedding.capacity
-      }
-      // Add reasoning model if reasoning configuration exists and is not empty
-      contains(backend, 'reasoning') && !empty(backend.reasoning) && contains(backend.reasoning, 'sku') ? {
-        name: 'gpt-4o'
-        version: '2024-05-13'
-        sku: backend.reasoning.sku
-        capacity: backend.reasoning.capacity
-      } : null
-    ]
+    models: concat(
+      contains(backend, 'chat') ? [backend.?chat] : [],
+      contains(backend, 'reasoning') ? [backend.?reasoning] : [],
+      contains(backend, 'embedding') ? [backend.?embedding] : []
+    )
   }
 }]
+
+
+// Loop through client IDs and assign the OpenAI User role to each client using the managed identity scope.
+resource azureAIDeveloperRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = {
+  name: guid(resourceGroup().name, appClientId, 'Azure AI Developer')
+  scope: resourceGroup()
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee')
+    principalId: appClientId
+  }
+}
 
 
 // ===========================================================
 // Section: API Management (APIM)
 // ===========================================================
-module apim 'br/public:avm/res/api-management/service:0.8.0' = {
-  name: name
+module apim 'br/public:avm/res/api-management/service:0.9.1' = {
+  name: 'apim-${name}-${resourceSuffix}'
   params: {
     // Required parameters
     name: 'apim-${name}-${resourceSuffix}'
     publisherEmail: apimPublisherEmail
     publisherName: apimPublisherName
     location: location
-    sku: sku
+    sku: apimSku
     namedValues: _namedValues
     lock: lock
     managedIdentities: {
@@ -281,47 +273,83 @@ resource _apim 'Microsoft.ApiManagement/service@2022-08-01' existing = {
   name: apim.name
 }
 
+// Add role assignment for APIM system-assigned identity to access each AI service
+resource apimSystemMIDRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = if (enableSystemAssignedIdentity) {
+  name: guid(resourceGroup().id, _apim.id, 'Azure-AI-Developer')
+  scope: resourceGroup()
 
+  properties: {
+    principalId: _apim.identity.principalId
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee') // Azure AI Developer role
+    principalType: 'ServicePrincipal'
+  }
+  dependsOn: [
+    aiServices
+  ]
+}
+
+resource uaiAIServiceRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = [for (id, i) in (userAssignedResourceIds ?? []): {
+  name: guid(resourceGroup().id, id, 'Azure-AI-Developer')
+  scope: resourceGroup()
+
+  properties: {
+    principalId: id
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee') // Azure AI Developer role
+    principalType: 'ServicePrincipal'
+  }
+  dependsOn: [
+    aiServices
+  ]
+}]
 
 //===========================================================
 // OpenAI Backend + Backend Pool (if multiple deployments)
 //===========================================================
 // Deploy individual OpenAI backend instances
-module openAIBackend './modules/apim/backend.bicep' = if (length(openAIInstances) > 0) {
+
+module openAIBackendPool './modules/apim/backend.bicep' = {
   name: 'module-backend-openai-${name}-${resourceSuffix}'
   params: {
     apimName: _apim.name
-    backendInstances: openAIInstances
+    backendInstances: [ for (backend, i) in backendConfig: {
+      name: 'oai-${backend.name}'
+      priority: backend.?priority ?? 1
+      url: aiServices[i].outputs.openAIEndpoint
+      description: '${aiServices[i].name} openai endpoint with priority ${backend.?priority ?? 1} based out of ${aiServices[i].outputs.location}'
+    }]
     backendPoolName: 'openai-backend-pool'
     // Add additional backend configurations if needed
   }
 }
 
-module docIntelBackend './modules/apim/backend.bicep' = if (length(docIntelInstances) > 0) {
+module docIntelBackend './modules/apim/backend.bicep' = {
   name: 'module-backend-docintel-${name}-${resourceSuffix}'
   params: {
     apimName: _apim.name
-    backendInstances: docIntelInstances
+    backendInstances: [ for (backend, i) in backendConfig: {
+      name: 'docintel-${backend.name}'
+      priority: backend.?priority ?? 1
+      url: aiServices[i].outputs.docIntelEndpoint
+      description: '${aiServices[i].name} Document Intelligence Endpoint with priority ${backend.?priority ?? 1} based out of ${aiServices[i].outputs.location}'
+    }]
     backendPoolName: 'docintel-backend-pool'
   }
 }
 
-//===========================================================
-// API Configuration + Named Values
-//===========================================================
-module openAIAPI './modules/apim/api.bicep' = if (length(openAIInstances) > 0) {
+
+module openAIAPI './modules/apim/api.bicep' = {
   name: 'module-api-openai-${name}-${resourceSuffix}'
   params: {
-    apimName: _apim.name                // expected path, e.g. 'openai'
+    apimName: _apim.name
     // API resource properties
     name: 'api-openai-${name}-${resourceSuffix}'
     apiPath: 'openai'
-    apiDescription: 'Azure OpenAI API'            // e.g. 'Azure OpenAI API inferencing API'
-    apiDisplayName: 'Auto Auth OpenAI API'               // e.g. 'AutoAuth OpenAI API'
+    apiDescription: 'Azure OpenaI API'
+    apiDisplayName: 'Auto Auth OpenAI API'
     apiSpecURL: openAIAPISpecURL
 
     // Policy properties
-    policyContent: loadTextContent('./modules/apim/policies/openai/inbound.xml')
+    policyContent: loadTextContent('./modules/apim/policies/openAI/inbound.xml')
 
     // Subscription properties
     apiSubscriptionName: 'openai-subscription'
@@ -329,12 +357,11 @@ module openAIAPI './modules/apim/api.bicep' = if (length(openAIInstances) > 0) {
   }
 
   dependsOn: [
-    openAIBackend
+    docIntelBackend
   ]
 }
 
-
-module docIntelAPI './modules/apim/api.bicep' = if (length(docIntelInstances) > 0) {
+module docIntelAPI './modules/apim/api.bicep' = {
   name: 'module-api-docintel-${name}-${resourceSuffix}'
   params: {
     apimName: _apim.name

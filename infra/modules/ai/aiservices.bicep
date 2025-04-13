@@ -20,6 +20,7 @@
 //   • aiServicesPrincipalId: The managed identity principal ID for the AI service.
 //   • endpoints: An object with various endpoints for accessing the created service.
 //////////////////////////////////////////////
+import { ModelConfig, BackendConfigItem } from './types.bicep'
 
 @description('Azure region of the deployment.')
 param location string
@@ -39,15 +40,18 @@ param sku string = 'S0'
 @description('List of client IDs to grant OpenAI User role.')
 param openAIUserClientIds array = []
 
-param openAIModels array = []
+// param chatModel ModelConfig = {}
+// param embeddingModel ModelConfig = {}
+// param reasoningModel ModelConfig = {}
 
+param models ModelConfig[] = []
 
-
-// Clean the AI service name by removing dashes to ensure valid DNS names
-var aiServicesHostname = '${name}.cognitiveservices.azure.com'
-
+// Ensure hostname meets custom subdomain requirements: alphanumeric and hyphens only, 2-64 chars, no trailing hyphen
+// Ensure name is not longer than 36 characters and has no trailing hyphens
+var nameTrimmed = length(name) > 64 ? substring(name, 0, 64) : name
+var aiServicesHostname =  replace(nameTrimmed, '-', '')
 // Define the AI service resource with managed identity
-resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
+resource aiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   name: name
   location: location
   sku: {
@@ -69,30 +73,20 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
 }
 
 @batchSize(1)
-resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024-06-01-preview' = [for (model, i) in openAIModels: {
+resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = [ for m in models: {
   parent: aiServices
-  name: '${model.name}'
+  name: m.name
   sku: {
-    name: model.sku
-    capacity: model.capacity
+    name: m.sku
+    capacity: m.capacity
   }
   properties: {
     model: {
       format: 'OpenAI'
-      name: model.name
-      version: model.version
+      name: m.name
+      version: m.version
     }
-    currentCapacity: model.capacity
-  }
-}]
-
-// Loop through client IDs and assign the OpenAI User role to each client using the managed identity scope.
-resource openAIUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2020-04-01-preview' = [for clientId in openAIUserClientIds: {
-  name: guid(aiServices.id, clientId, 'CognitiveServicesOpenAIUser')
-  scope: aiServices
-  properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '146c0133-10bd-4905-8e44-40779abb5e79')
-    principalId: clientId
+    currentCapacity: m.capacity
   }
 }]
 
@@ -101,6 +95,19 @@ output id string = aiServices.id
 output name string = aiServices.name
 output principalId string = aiServices.identity.principalId
 output key string = aiServices.listKeys().key1
+output location string = aiServices.location
 
-output openAIEndpoint string = aiServices.properties.endpoints.openAI
-output docIntelEndpoint string = aiServices.properties.endpoints.documentIntelligence
+output openAIEndpoint string = '${aiServices.properties.endpoints['OpenAI Language Model Instance API']}openai'
+output docIntelEndpoint string = endsWith(aiServices.properties.endpoints.FormRecognizer, '/') ? substring(aiServices.properties.endpoints.FormRecognizer, 0, length(aiServices.properties.endpoints.FormRecognizer) - 1) : aiServices.properties.endpoints.FormRecognizer
+
+output modelDeployments array = [for (m, i) in models: {
+  name: modelDeployments[i].name
+  id: modelDeployments[i].id
+  model: {
+    name: m.name
+    version: m.version
+  }
+  capacity: m.capacity
+  sku: m.sku
+  endpoint: '${aiServices.properties.endpoints['OpenAI Language Model Instance API']}/deployments/${modelDeployments[i].name}'
+}]
