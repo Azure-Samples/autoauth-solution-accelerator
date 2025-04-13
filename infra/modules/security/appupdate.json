@@ -1,0 +1,98 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "languageVersion": "2.1-experimental",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_EXPERIMENTAL_WARNING": "This template uses ARM features that are experimental. Experimental features should be enabled for testing purposes only, as there are no guarantees about the quality or stability of these features. Do not enable these settings for any production usage, or your production environment may be subject to breaking.",
+    "_EXPERIMENTAL_FEATURES_ENABLED": [
+      "Extensibility"
+    ],
+    "_generator": {
+      "name": "bicep",
+      "version": "0.33.93.31351",
+      "templateHash": "17423085415077576562"
+    },
+    "description": "Creates an Azure Container Apps Auth Config using Microsoft Entra as Identity Provider."
+  },
+  "parameters": {
+    "containerAppName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the container apps resource within the current resource group scope"
+      }
+    },
+    "clientId": {
+      "type": "string",
+      "metadata": {
+        "description": "The client ID of the Microsoft Entra application."
+      }
+    },
+    "openIdIssuer": {
+      "type": "string"
+    },
+    "includeTokenStore": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable token store for the Container App."
+      }
+    },
+    "blobContainerUri": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The URI of the Azure Blob Storage container to be used for token storage."
+      }
+    },
+    "appIdentityResourceId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The resource ID of the managed identity to be used for accessing the Azure Blob Storage."
+      }
+    }
+  },
+  "resources": {
+    "app": {
+      "existing": true,
+      "type": "Microsoft.App/containerApps",
+      "apiVersion": "2023-05-01",
+      "name": "[parameters('containerAppName')]"
+    },
+    "auth": {
+      "type": "Microsoft.App/containerApps/authConfigs",
+      "apiVersion": "2024-10-02-preview",
+      "name": "[format('{0}/{1}', parameters('containerAppName'), 'current')]",
+      "properties": {
+        "platform": {
+          "enabled": true
+        },
+        "globalValidation": {
+          "redirectToProvider": "azureactivedirectory",
+          "unauthenticatedClientAction": "RedirectToLoginPage"
+        },
+        "identityProviders": {
+          "azureActiveDirectory": {
+            "enabled": true,
+            "registration": {
+              "clientId": "[parameters('clientId')]",
+              "clientSecretSettingName": "override-use-mi-fic-assertion-client-id",
+              "openIdIssuer": "[parameters('openIdIssuer')]"
+            },
+            "validation": {
+              "defaultAuthorizationPolicy": {
+                "allowedApplications": []
+              }
+            }
+          }
+        },
+        "login": {
+          "tokenStore": {
+            "enabled": "[parameters('includeTokenStore')]",
+            "azureBlobStorage": "[if(parameters('includeTokenStore'), createObject('blobContainerUri', parameters('blobContainerUri'), 'managedIdentityResourceId', parameters('appIdentityResourceId')), createObject())]"
+          }
+        }
+      }
+    }
+  }
+}

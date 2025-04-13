@@ -10,7 +10,7 @@ nav_order: 7
 
 1. [Prerequisites](#prerequisites)
 2. [Deployment Steps](#deployment-steps)
-3. [Common Issues](#common-issues)
+3. [Run the App Locally](#run-the-app-locally)
 4. [Customizing or Configuring AZD Deployments](#customizing-or-configuring-azd-deployments)
 5. [CI/CD with Azure Developer CLI (azd)](#cicd-with-azure-developer-cli-azd)
 6. [Required Secrets for Federated Workload Identities](#required-secrets-for-federated-workload-identities)
@@ -25,17 +25,27 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
     - You need `Contributor` to provision resources.
     - You need `User Access Administrator` to assign roles to managed identities.
 
-2. **Install Azure Developer CLI**
+1. **Install Azure Developer CLI**
     - Follow the [installation guide](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd).
 
-3. **Initialize Environment**
+1. **Check Model Availability by Region**
+    - **Check Azure OpenAI Model Availability**: This solution uses the following models by default:
+      - Reasoning model: `o1`
+      - Chat completions model: `gpt-4o`
+      - Embeddings model: `text-embedding-3-large`
+
+      Before deployment, verify these models are available in your target region using the [Azure OpenAI models documentation](https://learn.microsoft.com/azure/ai-services/openai/concepts/models?tabs=global-standard%2Cstandard-chat-completions#models-by-deployment-type). If any model isn't available in your region, update the corresponding parameter in `infra/main.parameters.json` with an alternative model.
+
+1. **Initialize Environment**
     - Run `azd init` to prepare your environment.
         -  Be sure to select "Use code in the current directory"
+
+
 
 ## Deployment Steps
 
 1. **Adjust Infra Config [Optional]**
-  - You can use the variables provided in the defaults in [infra/main.parameters.json](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/blob/main/infra/main.parameters.json), or you can choose to provide your own desired values.
+  - You can use the variables provided in the defaults in [infra/main.parameters.json](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/infra/main.parameters.json), or you can choose to provide your own desired values.
 
     <details>
       <summary><strong style="color: blue; cursor: pointer;">Main Deployment Parameters (main.bicep)</strong></summary>
@@ -49,6 +59,18 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
           </tr>
         </thead>
         <tbody>
+          <tr>
+            <td>enableEasyAuth</td>
+            <td>No</td>
+            <td>Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)</td>
+            <td><code>true</code></td>
+          </tr>
+          <tr>
+            <td>disableIngress</td>
+            <td>No</td>
+            <td>Flag to indicate if the Container App should be deployed with ingress disabled</td>
+            <td><code>false</code></td>
+          </tr>
           <tr>
             <td>environmentName</td>
             <td>Yes</td>
@@ -76,7 +98,7 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
           <tr>
             <td>priorAuthName</td>
             <td>No</td>
-            <td>Name for the PriorAuth resource and used to derive the name of dependent resources.</td>
+            <td>Name for the PriorAuth resource and used to derive the name of dependent resources</td>
             <td><code>priorAuth</code></td>
           </tr>
           <tr>
@@ -89,19 +111,31 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
             <td>openAiApiVersion</td>
             <td>No</td>
             <td>API Version of the OpenAI API</td>
-            <td><code>2024-08-01-preview</code></td>
+            <td><code>2025-01-01-preview</code></td>
           </tr>
           <tr>
-            <td>chatCompletionModels</td>
+            <td>reasoningModel</td>
             <td>No</td>
-            <td>List of completion models to be deployed to the OpenAI account.</td>
-            <td><code>[ { name: 'o1', version: '2024-12-17', skuName: 'Standard', capacity: 100 } ]</code></td>
+            <td>Reasoning model object to be deployed to the OpenAI account (i.e o1, o1-preview, o3-mini)</td>
+            <td><code>{ name: 'o1', version: '2025-01-01-preview', skuName: 'GlobalStandard', capacity: 100 }</code></td>
+          </tr>
+          <tr>
+            <td>chatModel</td>
+            <td>No</td>
+            <td>Chat model object to be deployed to the OpenAI account (i.e gpt-4o, gpt-4o-turbo, gpt-4o-turbo-16k, gpt-4o-turbo-32k)</td>
+            <td><code>{ name: 'gpt-4o', version: '2024-08-06', skuName: 'GlobalStandard', capacity: 100 }</code></td>
           </tr>
           <tr>
             <td>embeddingModel</td>
             <td>No</td>
-            <td>List of embedding models to be deployed to the OpenAI account.</td>
+            <td>Embedding model to be deployed to the OpenAI account</td>
             <td><code>{ name: 'text-embedding-3-large', version: '1', skuName: 'Standard', capacity: 50 }</code></td>
+          </tr>
+          <tr>
+            <td>GIT_HASH</td>
+            <td>No</td>
+            <td>Unique hash of the git commit that is being deployed. This is used to tag resources and support llm evaluation automation</td>
+            <td><code>azd-deploy-1741105197</code></td>
           </tr>
           <tr>
             <td>embeddingModelDimension</td>
@@ -119,9 +153,9 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
       </table>
     </details>
 
-    > **Note:** If you don't have access to the `o1` model yet, try using the `gpt-4o` configuration for the `chatCompletionModels`
+    > **Note:** If you don't have access to the `o1` model yet, try using the `gpt-4o` configuration for the `reasoningModel`
      ```json
-        "chatCompletionModels": {
+        "reasoningModel": {
           "value": [
             {
               "name": "gpt-4o",
@@ -132,13 +166,108 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
           ]
         }
       ```
-1. **Deploy**
-    - Use `azd up` to provision and deploy.
-    - If you want to deploy only a specific service, use `azd deploy <service>` (e.g., `azd deploy frontend`).
-    - This provisions defined resources in [infra/main.bicep](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/blob/main/infra/main.bicep) and deploys services defined in [azure.yaml](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/blob/main/azure.yaml#L6), generating a `.env` file for local development.
+1. **Guided End-to-End Deployment to Azure**
+    To get up and running right away:
+    ```bash
+    azd up
+    ```
+
+      **Understand `azd` command structure:**
+      - `azd provision`: Only provisions infrastructure resources defined in the `/infra` directory
+      - `azd deploy`: Only deploys applications to already-provisioned infrastructure as defined in `azure.yaml`
+      - `azd up`: Combines both steps (provision + deploy) in a single command
+        - If you want to deploy only a specific service, use `azd deploy <service>` (e.g., `azd deploy frontend`).
+        - This provisions defined resources in [infra/main.bicep](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/infra/main.bicep) and deploys services defined in [azure.yaml](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/azure.yaml#L6), generating a `.env` file for local development.
+
+1. **During Deployment**
+    - AZD will guide you through certain deployment flag parameters:
+
+      | Parameter Name | Description |
+      |----------------|-------------|
+      | `ENABLE_EASY_AUTH` | Given your deployment identity has the permissions to create service principals, enabling this flag will enable Entra sign-ons on your deployed applications so only users in your tenant may access. |
+      | `DISABLE_INGRESS` | This flag will disable the network ingress into your container app. Enabling this flag will make your container application unrouteable. |
+      | `RUN_EVALS` | This flag will run the pytest large language model evaluations after the |
+
+1. **Post Deployment Model Evaluation**
+    The solution includes functionality to evaluate AI model performance (see [postdeploy.sh](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/utils/azd/hooks/postdeploy.sh) for more details and customization):
+    ```bash
+    # Enable model evaluations
+    export RUN_EVALS=true
+    azd deploy
+
+    # Alternatively, you can run the script directly once you had a successful deployment.
+    # From your autoauth project root directory..
+    export RUN_EVALS=true
+    ./utils/azd/hooks/postdeploy.sh
+    ```
 
 1. **Verify Deployment**
     - Run `azd show` to confirm resources and endpoints.
+    - Run `azd monitor show` to open the application dashboard
+
+## Run the App Locally
+
+To run and debug this project locally, you need to set up a Python environment with the required dependencies. You can choose either Conda or virtualenv for environment management.
+
+### Option 1: Using Conda
+
+1. **[Optional] Install Conda**
+    - If you don't have Conda installed, download and install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/download/)
+
+2. **Create and activate the environment**
+    ```bash
+    # Create Python environment from the YAML file
+    conda env create -f environment.yaml
+
+    # Activate the environment
+    conda activate pa-ai-env
+    ```
+
+### Option 2: Using Python virtualenv
+
+1. **Create a virtual environment**
+    ```bash
+    # Create a new virtual environment (ensure you're using Python 3.10+)
+    python -m venv .venv
+
+    # Activate the environment
+    source .venv/bin/activate
+    ```
+
+2. **Install requirements**
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+### Running the Application
+
+#### Method 1: Using VS Code Debugger
+
+1. **Configure environment in VS Code**
+    - Ensure VS Code is using your conda environment or virtualenv
+    - In VS Code, press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+    - Type "Python: Select Interpreter" and select your environment
+
+1. **Run with debugger**
+    - Open the Streamlit frontend file in the editor
+    - Go to the "Run and Debug" view in the sidebar (or press `Ctrl+Shift+D`)
+    - Select "Python: Streamlit" from the dropdown menu (or create this configuration if it doesn't exist)
+    - Click the green play button or press `F5` to start debugging
+
+#### Method 2: Running Directly with Python
+
+You can also run the Streamlit frontend directly using Python:
+
+```bash
+# Make sure your environment is activated, then run:
+python app/frontend/streamlit/Home.py
+```
+
+#### Accessing the Application
+
+- Once running, the Streamlit app should automatically open in your default web browser
+- If not, you can access it at http://localhost:8501
+
 
 ## Customizing or Configuring AZD Deployments
 
@@ -162,7 +291,7 @@ You can automate deployment with azd-generated pipelines.
 1. **Create a Pipeline**
     - Run `azd pipeline config` to generate pipeline files for GitHub Actions.
 2. **Use Existing Pipelines**
-    - Reference [.github/workflows/azd_deploy.yml](https://github.com/pablosalvador10/gbb-ai-hls-factory-prior-auth/blob/main/.github/workflows/azd_deploy.yml) for GitHub Actions.
+    - Reference [.github/workflows/azd_deploy.yml](https://github.com/Azure-Samples/autoauth-solution-accelerator/blob/main/.github/workflows/azd_deploy.yml) for GitHub Actions.
 
 ### Required Secrets for Federated Workload Identities
 
@@ -227,6 +356,10 @@ After deployment, visit the service endpoints returned by `azd show`.
       - run `az account show` to check your local azure credentials
       - run `az login` or `azd auth login` to refresh your credentials
     - Verify that the service principal or managed identity has the necessary permissions.
+
+1. **OpenAI Model Unavailable in your Region**
+    - Reference [Azure OpenAI models documentation](https://learn.microsoft.com/azure/ai-services/openai/concepts/models?tabs=global-standard%2Cstandard-chat-completions#models-by-deployment-type) to ensure your current region has support for your desired Azure OpenAI models.
+
 
 1. **Resource Provisioning Failures**
     - Check the Azure portal for any resource-specific error messages under the deployments tab.
