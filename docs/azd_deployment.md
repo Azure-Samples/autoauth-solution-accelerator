@@ -25,6 +25,26 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
     - You need `Contributor` to provision resources.
     - You need `User Access Administrator` to assign roles to managed identities.
 
+1. **Enable EasyAuth Permissions**
+      - To use [EasyAuth](https://learn.microsoft.com/en-us/azure/container-apps/authentication), ensure you have the following permissions:
+        - **Create Service Principals**: Required to generate the necessary identities for EasyAuth.
+        - **Authorize API Permissions on Entra**: Required to grant API permissions for the service principal to access resources securely.
+      - If you lack these permissions, contact your Azure administrator to grant them or perform these actions on your behalf.
+
+1. **Install Docker**
+    - Docker is required to build and publish container images to Azure Container Registry (ACR). Follow the steps below to install Docker:
+      - **Windows/Mac**: Download and install [Docker Desktop](https://www.docker.com/products/docker-desktop/).
+      - **Linux**: Follow the [official Docker installation guide](https://docs.docker.com/engine/install/).
+    - After installation, verify Docker is running by executing:
+      ```bash
+      docker --version
+      ```
+    - Ensure you have sufficient permissions to run Docker commands. On Linux, you may need to add your user to the `docker` group:
+      ```bash
+      sudo usermod -aG docker $USER
+      ```
+      Log out and back in for the changes to take effect.
+
 1. **Install Azure Developer CLI**
     - Follow the [installation guide](https://learn.microsoft.com/azure/developer/azure-developer-cli/install-azd).
 
@@ -39,6 +59,7 @@ This guide covers how to deploy the project end-to-end with Azure Developer CLI 
 1. **Initialize Environment**
     - Run `azd init` to prepare your environment.
         -  Be sure to select "Use code in the current directory"
+
 
 
 
