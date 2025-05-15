@@ -5,6 +5,9 @@
     "enableEasyAuth": {
       "value": "${ENABLE_EASY_AUTH:-}"
     },
+    "enableAPIManagement":{
+      "value": "${ENABLE_API_MANAGEMENT:false}"
+    },
     "disableIngress": {
       "value": "${DISABLE_INGRESS:-}"
     },
@@ -36,7 +39,7 @@
       "value": {
         "name": "gpt-4o",
         "version": "2024-08-06",
-        "skuName": "Standard",
+        "sku": "Standard",
         "capacity": 50
       }
     },
@@ -44,7 +47,7 @@
       "value": {
         "name": "o1",
         "version": "2024-12-17",
-        "skuName": "GlobalStandard",
+        "sku": "GlobalStandard",
         "capacity": 50
       }
     },
@@ -52,7 +55,7 @@
       "value": {
         "name": "text-embedding-3-large",
         "version": "1",
-        "skuName": "Standard",
+        "sku": "Standard",
         "capacity": 55
       }
     },

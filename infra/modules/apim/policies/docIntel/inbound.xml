@@ -1,12 +1,5 @@
 <policies>
     <inbound>
-        <validate-azure-ad-token tenant-id="9249ded8-dff5-4e90-9d80-3ae45c13ec3f">
-            <client-application-ids>
-                <application-id>{{LocalAccountApp}}</application-id>
-                <application-id>{{AutoAuthApp}}</application-id>
-            </client-application-ids>
-        </validate-azure-ad-token>
-
         <base />
         <authentication-managed-identity resource="https://cognitiveservices.azure.com" output-token-variable-name="managed-id-access-token" ignore-error="false" />
         <set-header name="Authorization" exists-action="override">

@@ -58,7 +58,6 @@ resource apiPolicy 'Microsoft.ApiManagement/service/apis/policies@2023-09-01-pre
   }
 }
 
-
 resource apiSubscription 'Microsoft.ApiManagement/service/subscriptions@2023-09-01-preview' = {
   name: apiSubscriptionName
   parent: _apim
@@ -70,9 +69,33 @@ resource apiSubscription 'Microsoft.ApiManagement/service/subscriptions@2023-09-
   }
 }
 
+@description('Optional. A list of operations to apply specific policies to. Each object should include operationName and operationPolicyContent.')
+type OperationPolicy = {
+  operationName: string
+  operationPolicyContent: string
+}
+
+param operations OperationPolicy[] = []
+
+resource existingOperations 'Microsoft.ApiManagement/service/apis/operations@2022-08-01' existing = [for operation in operations: if (!empty(operation.operationName)) {
+  name: operation.operationName
+  parent: api
+}]
+
+resource operationPolicies 'Microsoft.ApiManagement/service/apis/operations/policies@2023-09-01-preview' = [for (operation, iterationIndex) in operations: if (!empty(operation.operationName) && !empty(operation.operationPolicyContent)) {
+  name: 'policy'
+  parent: existingOperations[iterationIndex]
+  properties: {
+    format: 'rawxml'
+    value: operation.operationPolicyContent
+  }
+}]
+
+output apiName string = api.name
 output apiPath string = api.properties.path
 output apiId string = api.id
 output apiScope string = '/apis/${api.id}'
 output apiSubscriptionId string = apiSubscription.id
 output apiSubscriptionName string = apiSubscription.name
-// output apiSubscriptionKey string = apiSubscription.properties.primaryKey
+// Output the subscription key for the API subscription
+output apiSubscriptionKey string = apiSubscription.listSecrets().primaryKey

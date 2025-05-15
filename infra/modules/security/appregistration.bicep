@@ -73,13 +73,13 @@ resource clientApp 'Microsoft.Graph/applications@v1.0' = {
     }
   ]
 
-resource clientAppFic 'federatedIdentityCredentials@v1.0' = {
-  name: '${clientApp.uniqueName}/miAsFic'
-  audiences: [
-    audiences[cloudEnvironment].uri
-  ]
-  issuer: issuer
-  subject: webAppIdentityId
+  resource clientAppFic 'federatedIdentityCredentials@v1.0' = {
+    name: '${clientApp.uniqueName}/miAsFic'
+    audiences: [
+      audiences[cloudEnvironment].uri
+    ]
+    issuer: issuer
+    subject: webAppIdentityId
   }
 }
 

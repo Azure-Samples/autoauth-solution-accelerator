@@ -11,7 +11,6 @@
 // Parameters:
 //   • location: The Azure region where the resource will be deployed.
 //   • tags: An object representing the tags to apply to all resources.
-//   • openAIUserClientIds: An array of client IDs assigned the OpenAI User role.
 //   • oaiModels: An array of OpenAI models to be deployed to the AI service.
 //
 // Outputs:
@@ -37,13 +36,6 @@ param name string
 @description('AI service SKU. Only S0 is currently allowed.')
 param sku string = 'S0'
 
-@description('List of client IDs to grant OpenAI User role.')
-param openAIUserClientIds array = []
-
-// param chatModel ModelConfig = {}
-// param embeddingModel ModelConfig = {}
-// param reasoningModel ModelConfig = {}
-
 param models ModelConfig[] = []
 
 // Ensure hostname meets custom subdomain requirements: alphanumeric and hyphens only, 2-64 chars, no trailing hyphen
@@ -61,9 +53,6 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   properties: {
     publicNetworkAccess: 'Enabled'
     disableLocalAuth: false
-    apiProperties: {
-      statisticsEnabled: false
-    }
     customSubDomainName: aiServicesHostname
   }
   identity: {
@@ -97,8 +86,11 @@ output principalId string = aiServices.identity.principalId
 output key string = aiServices.listKeys().key1
 output location string = aiServices.location
 
-output openAIEndpoint string = '${aiServices.properties.endpoints['OpenAI Language Model Instance API']}openai'
-output docIntelEndpoint string = endsWith(aiServices.properties.endpoints.FormRecognizer, '/') ? substring(aiServices.properties.endpoints.FormRecognizer, 0, length(aiServices.properties.endpoints.FormRecognizer) - 1) : aiServices.properties.endpoints.FormRecognizer
+output endpoints object = {
+  // openAI: replace(aiServices.properties.endpoints['OpenAI Language Model Instance API'], '/$', '')
+  openAI: '${aiServices.properties.endpoints['OpenAI Language Model Instance API']}openai'
+  documentIntelligence: replace(aiServices.properties.endpoints['FormRecognizer'], '/$', '')
+}
 
 output modelDeployments array = [for (m, i) in models: {
   name: modelDeployments[i].name

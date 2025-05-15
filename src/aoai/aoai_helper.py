@@ -67,6 +67,8 @@ class AzureOpenAIManager:
             api_version or os.getenv("AZURE_OPENAI_API_VERSION") or "2024-02-01"
         )
         self.azure_endpoint = azure_endpoint or os.getenv("AZURE_OPENAI_ENDPOINT")
+        if self.azure_endpoint and self.azure_endpoint.endswith("/openai"):
+            self.azure_endpoint = self.azure_endpoint.rstrip("/openai")
         self.completion_model_name = completion_model_name or os.getenv(
             "AZURE_AOAI_COMPLETION_MODEL_DEPLOYMENT_ID"
         )

@@ -25,8 +25,8 @@ param keyVaultId string
 @description('Resource ID of the Storage Account for experimentation outputs')
 param storageAccountId string
 
-@description('Resource ID of the AI Services resource')
-param aiServicesId string
+@description('Resource IDs of the AI Services resource')
+param aiServicesIds string[]
 
 @description('API key for the AI Services resource')
 param aiServicesKey string
@@ -127,8 +127,8 @@ resource aiFoundryProject 'Microsoft.MachineLearningServices/workspaces@2024-04-
 }
 
 // Create a nested connection to the AI Services resource under the hub using managed identity
-resource aiServicesConnection 'Microsoft.MachineLearningServices/workspaces/connections@2024-07-01-preview' = {
-  name: '${aiFoundryName}-connection-AzureOpenAI'
+resource aiServicesConnections 'Microsoft.MachineLearningServices/workspaces/connections@2024-07-01-preview' = [for aiServicesId in aiServicesIds: {
+  name: '${aiFoundryName}-connection-${last(split(aiServicesId, '/'))}'
   parent: aiFoundry
   properties: {
     category: 'AzureOpenAI'
@@ -149,7 +149,7 @@ resource aiServicesConnection 'Microsoft.MachineLearningServices/workspaces/conn
       DeploymentApiVersion: '2023-10-01-preview'
     }
   }
-}
+}]
 
 // // Grant the Storage Blob Data Contributor role on the storage account to the AI Foundry managed identity
 // resource uaiStorageBlobContrib 'Microsoft.Authorization/roleAssignments@2022-04-01' = {

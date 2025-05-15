@@ -27,6 +27,9 @@ param disableIngress bool
 @description('Flag to indicate if API Management should be enabled for the AI Services')
 param enableAPIManagement bool
 
+import { ModelConfig, BackendConfigItem } from './modules/ai/types.bicep'
+
+
 // Execute this main file to deploy Prior Authorization related resources in a basic configuration
 @minLength(2)
 @maxLength(12)
@@ -37,27 +40,27 @@ param priorAuthName string = 'priorAuth'
 param tags object = {}
 
 @description('API Version of the OpenAI API')
-param openaiApiVersion string
+param openAiApiVersion string
 
-// @description('Admin password for the cluster')
-// @secure()
-// param cosmosAdministratorPassword string
-
+@description('Name of the Cosmos DB collection.')
 param cosmosDbCollectionName string = 'temp'
+
+@description('Name of the Cosmos DB database.')
 param cosmosDbDatabaseName string = 'priorauthsessions'
 
-param reasoningModel object
+@description('For when APIM is enabled: Array of backend configurations for the AI services.')
+param backendConfig BackendConfigItem[] = []
 
-param chatModel object
+@description('Object containing the reasoning model configuration for OpenAI.')
+param reasoningModel ModelConfig
 
-param embeddingModel object
+@description('Object containing the chat model configuration for OpenAI.')
+param chatModel ModelConfig
 
-// Create an array of models for the OpenAI service deployment
-var chatCompletionModels = [
-  chatModel
-  reasoningModel
-]
+@description('Object containing the embedding model configuration for OpenAI.')
+param embeddingModel ModelConfig
 
+@description('Git hash of the deployed code. Used for tracking purposes.')
 param gitHash string = ''
 
 @description('Embedding model size for the OpenAI Embedding deployment')
@@ -66,148 +69,62 @@ param embeddingModelDimension string
 @description('Storage Blob Container name to land the files for Prior Auth')
 param storageBlobContainerName string = 'default'
 
-var name = toLower('${priorAuthName}')
-var uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 7)
-var storageServiceName = toLower(replace('storage-${name}-${uniqueSuffix}', '-', ''))
-var location = resourceGroup().location
+var _name = toLower('${priorAuthName}')
+var _uniqueSuffix = substring(uniqueString(resourceGroup().id), 0, 7)
+var _storageServiceName = toLower(replace('storage-${_name}-${_uniqueSuffix}', '-', ''))
+var _location = resourceGroup().location
 
-// @TODO: Replace with AVM module
 module multiAccountAiServices 'modules/ai/mais.bicep' = {
-  name: 'multiservice-${name}-${uniqueSuffix}-deployment'
+  name: 'multiservice-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    aiServiceName: 'multiservice-${name}-${uniqueSuffix}'
-    location: location
+    aiServiceName: 'multiservice-${_name}-${_uniqueSuffix}'
+    location: _location
     tags: tags
     aiServiceSkuName: 'S0' // or another allowed SKU if appropriate
   }
 }
 
-
-// @TODO: Replace with AVM module; consolidate into AI Service
-// Preserving this structure for backwards compatibility
-module docIntelligence 'modules/ai/docintelligence.bicep' = if (!enableAPIManagement) {
-  name: 'doc-intelligence-${name}-${uniqueSuffix}-deployment'
-  params: {
-    aiServiceName: 'doc-intelligence-${name}-${uniqueSuffix}'
-    location: location
-    tags: tags
-    aiServiceSkuName: 'S0'
-  }
-}
-
-// @TODO: Replace with AVM module
-// Preserving this structure for backwards compatibility
-module openAiService 'modules/ai/openai.bicep' = if (!enableAPIManagement)  {
-  name: 'openai-${name}-${uniqueSuffix}-deployment'
-  params: {
-    aiServiceName: 'openai-${name}-${uniqueSuffix}'
-    location: location
-    tags: tags
-    aiServiceSkuName: 'S0'
-    embeddingModel: embeddingModel
-    chatCompletionModels: chatCompletionModels
-  }
-}
-
-
-// If enableAPIManagement is true, deploy the API Management module
+// AI Gateway deployment (AI Services, APIM and its related components)
 // ===========================================================
-// 1. Configure the backend configuration for the various openai models
-var o1SupportedRegions = [
-  'westus2'
-  'swedencentral'
-]
-
-var openAIBackendPools = [
-  {
-    name: 'openai1'
-    locaiton: location
-    priority: 1
-    backendWeight: 80
-    chatCompletion: {
-      name: chatModel.name
-      version: chatModel.version
-      capacity: chatModel.capacity
-    }
-    embeddings: {
-      name: embeddingModel.name
-      version: embeddingModel.version
-      capacity: embeddingModel.capacity
-    }
-    reasoning: contains(o1SupportedRegions, location) ? {
-      name: reasoningModel.name
-      version: reasoningModel.version
-      capacity: reasoningModel.capacity
-    } : {}
-  }
-  {
-    name: 'openai2'
-    locaiton: location
-    priority: 2
-    backendWeight: 10
-    chatCompletion: {
-      name: chatModel.name
-      version: chatModel.version
-      capacity: chatModel.capacity
-    }
-    embeddings: {
-      name: embeddingModel.name
-      version: embeddingModel.version
-      capacity: embeddingModel.capacity
-    }
-    reasoning: contains(o1SupportedRegions, location) ? {
-      name: reasoningModel.name
-      version: reasoningModel.version
-      capacity: reasoningModel.capacity
-    } : {}
-  }
-  {
-    name: 'openai3'
-    locaiton: location
-    priority: 3
-    backendWeight: 10
-    chatCompletion: {
-      name: chatModel.name
-      version: chatModel.version
-      capacity: chatModel.capacity
-    }
-    reasoning: contains(o1SupportedRegions, location) ? {
-      name: reasoningModel.name
-      version: reasoningModel.version
-      capacity: reasoningModel.capacity
-    } : {}
-    embeddings: {
-      name: embeddingModel.name
-      version: embeddingModel.version
-      capacity: embeddingModel.capacity
-    }
-  }
-]
-
-module aiGateway 'ai-gateway.bicep' = if (enableAPIManagement) {
-  name: 'ai-gateway-${name}-${uniqueSuffix}-deployment'
+module aiGateway 'ai-gateway.bicep' = {
+  name: 'ai-gateway-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    name: 'ai-gateway-${name}-${uniqueSuffix}'
-    location: location
+    name: 'ai-gateway-${_name}-${_uniqueSuffix}'
+    enableAPIManagement: enableAPIManagement
+    location: _location
     tags: tags
-
-    aiModels: [
-      chatCompletionModels
-      reasoningModel
-      embeddingModel
-    ]
-    aiServiceSkuName: 'S0'
+    apimSku: 'StandardV2'
+    backendConfig: backendConfig
+    chatModel: chatModel
+    reasoningModel: reasoningModel
+    embeddingModel: embeddingModel
   }
 }
 
-// @TODO: Replace with AVM module
+var _openAiEndpoint = aiGateway.outputs.endpoints.openAI
+var _openAiKey = aiGateway.outputs.subscriptionKeys.openAI
+var _docIntelligenceEndpoint = aiGateway.outputs.aiServices[0].endpoints.value.documentIntelligence
+var _docIntelligenceKey = aiGateway.outputs.aiServices[0].key.value
+var _aiServicesIdForFoundry = aiGateway.outputs.aiServicesIds
+
 module searchService 'modules/data/search.bicep' = {
-  name: 'search-${name}-${uniqueSuffix}-deployment'
+  name: 'search-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    aiServiceName: 'search-${name}-${uniqueSuffix}'
-    location: location
+    aiServiceName: 'search-${_name}-${_uniqueSuffix}'
+    location: _location
     tags: tags
     aiServiceSkuName: 'basic'
+  }
+}
+
+module vault 'br/public:avm/res/key-vault/vault:0.12.1' = {
+  name: 'vault-${_name}-${_uniqueSuffix}-deployment'
+  params: {
+    // Required parameter: name for the vault
+    name: 'kv-${_name}-${_uniqueSuffix}'
+    // Non-required parameter
+    enablePurgeProtection: false
+
   }
 }
 
@@ -221,72 +138,59 @@ resource searchStorageBlobReader 'Microsoft.Authorization/roleAssignments@2022-0
   }
 }
 
-// @TODO: Replace with AVM module
 module storageAccount 'modules/data/storage.bicep' = {
-  name: 'storage-${name}-${uniqueSuffix}-deployment'
+  name: 'storage-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    aiServiceName: storageServiceName
-    location: location
+    aiServiceName: _storageServiceName
+    location: _location
     tags: tags
     aiServiceSkuName: 'Standard_LRS'
   }
 }
 
-// @TODO: Replace with AVM module
 module cosmosDb 'modules/data/cosmos-mongo-ru.bicep' = {
-  name: 'cosmosdb-${name}-${uniqueSuffix}-deployment'
+  name: 'cosmosdb-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    aiServiceName: 'cosmosdb-${name}-${uniqueSuffix}'
-    location: location
+    aiServiceName: 'cosmosdb-${_name}-${_uniqueSuffix}'
+    location: _location
     tags: tags
   }
 }
 
-// Monitor application with Azure Monitor
 module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
-  name: 'avm-monitoring-${name}-${uniqueSuffix}-deployment'
+  name: 'avm-monitoring-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    logAnalyticsName: 'loganalytics-${name}-${uniqueSuffix}'
-    applicationInsightsName: 'appinsights-${name}-${uniqueSuffix}'
-    applicationInsightsDashboardName: 'aiDashboard-${name}-${uniqueSuffix}'
-    location: location
+    logAnalyticsName: 'loganalytics-${_name}-${_uniqueSuffix}'
+    applicationInsightsName: 'appinsights-${_name}-${_uniqueSuffix}'
+    applicationInsightsDashboardName: 'aiDashboard-${_name}-${_uniqueSuffix}'
+    location: _location
     tags: tags
-  }
-}
-
-module vault 'br/public:avm/res/key-vault/vault:0.12.1' = {
-  name: 'vault-${name}-${uniqueSuffix}-deployment'
-  params: {
-    // Required parameter: name for the vault
-    name: 'kv-${name}-${uniqueSuffix}'
-    // Non-required parameter
-    enablePurgeProtection: false
   }
 }
 
 module aiFoundry 'modules/ai/aifoundry.bicep' = {
-  name: 'ai-foundry-${name}-${uniqueSuffix}-deployment'
+  name: 'ai-foundry-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    aiFoundryName: 'ai-foundry-${name}-${uniqueSuffix}'
-    aiFoundryFriendlyName: 'AI Foundry - ${name}'
+    aiFoundryName: 'ai-foundry-${_name}-${_uniqueSuffix}'
+    aiFoundryFriendlyName: 'AI Foundry - ${_name}'
     aiFoundryDescription: 'AI Foundry instance for the Prior Authorization scenario'
     applicationInsightsId: monitoring.outputs.applicationInsightsResourceId
     containerRegistryId: registry.outputs.resourceId
     keyVaultId: vault.outputs.resourceId
     storageAccountId: storageAccount.outputs.storageAccountId
-    aiServicesId: openAiService.outputs.aiServicesId
-    aiServicesKey: openAiService.outputs.aiServicesKey
-    aiServicesTarget: openAiService.outputs.aiServicesEndpoint
+    aiServicesIds: _aiServicesIdForFoundry
+    aiServicesKey: _openAiKey
+    aiServicesTarget: _openAiEndpoint
     tags: tags
-    location: location
+    location: _location
   }
 }
 
 module appIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
-  name: 'uai-app-${name}-${uniqueSuffix}-deployment'
+  name: 'uai-app-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    name: 'uai-app-${name}-${uniqueSuffix}'
-    location: location
+    name: 'uai-app-${_name}-${_uniqueSuffix}'
+    location: _location
   }
 }
 
@@ -325,12 +229,12 @@ resource aiFoundryWorkspaceReader 'Microsoft.Authorization/roleAssignments@2022-
  * Container related configurations start here.
  */
 module registry 'br/public:avm/res/container-registry/registry:0.1.1' = {
-  name: 'avm-registry-${name}-${uniqueSuffix}-deployment'
+  name: 'avm-registry-${_name}-${_uniqueSuffix}-deployment'
   params: {
-    name: toLower(replace('registry-${name}-${uniqueSuffix}', '-', ''))
+    name: toLower(replace('registry-${_name}-${_uniqueSuffix}', '-', ''))
     acrAdminUserEnabled: false
     publicNetworkAccess: 'Enabled'
-    location: location
+    location: _location
     tags: tags
     roleAssignments: [
       {
@@ -342,25 +246,21 @@ module registry 'br/public:avm/res/container-registry/registry:0.1.1' = {
   }
 }
 
-var storageConnString = 'ResourceId=${storageAccount.outputs.storageAccountId}'
+// Adjusting Connection String to use Managed Identity
+var _storageConnString = 'ResourceId=${storageAccount.outputs.storageAccountId}'
 
-
-var containerEnvArray = [
+var _containerEnvArray = [
   {
     name: 'AZURE_CLIENT_ID'
     value: appIdentity.outputs.clientId
   }
   {
-    name: 'AZURE_OPENAI_ENDPOINT'
-    value: openAiService.outputs.aiServicesEndpoint
-  }
-  {
     name: 'AZURE_OPENAI_API_VERSION'
-    value: openaiApiVersion
+    value: openAiApiVersion
   }
   {
     name: 'AZURE_OPENAI_API_VERSION_01'
-    value: contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? openaiApiVersion : ''
+    value: contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? openAiApiVersion : ''
   }
   {
     name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT'
@@ -408,11 +308,7 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT'
-    value: docIntelligence.outputs.aiServicesEndpoint
-  }
-  {
-    name: 'AZURE_OPENAI_KEY'
-    value: openAiService.outputs.aiServicesKey
+    value: _docIntelligenceEndpoint
   }
   {
     name: 'AZURE_AI_SEARCH_ADMIN_KEY'
@@ -420,7 +316,7 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_STORAGE_CONNECTION_STRING'
-    value: storageConnString
+    value: _storageConnString
   }
   {
     name: 'AZURE_AI_SERVICES_KEY'
@@ -432,7 +328,7 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_DOCUMENT_INTELLIGENCE_KEY'
-    value: docIntelligence.outputs.aiServicesKey
+    value: _docIntelligenceKey
   }
   {
     name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
@@ -449,13 +345,13 @@ var containerEnvArray = [
 ]
 
 module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.8.1' = {
-  name: 'managedenv-${name}-${uniqueSuffix}-deployment'
+  name: 'managedenv-${_name}-${_uniqueSuffix}-deployment'
   params: {
     // Required parameters
     logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
-    name: toLower('managedEnv-${name}-${uniqueSuffix}')
+    name: toLower('managedEnv-${_name}-${_uniqueSuffix}')
     // Non-required parameters
-    location: location
+    location: _location
     zoneRedundant: false
     appInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
     openTelemetryConfiguration: {
@@ -480,8 +376,8 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.8.1
   }
 }
 
-var frontendContainerName = toLower('pe-fe-${name}-${uniqueSuffix}')
-var backendContainerName = toLower('pe-be-${name}-${uniqueSuffix}')
+var frontendContainerName = toLower('frontend-${_name}-${_uniqueSuffix}')
+var backendContainerName = toLower('backend-${_name}-${_uniqueSuffix}')
 
 var registries = [
   {
@@ -519,20 +415,48 @@ var frontendContainer = {
   command: []
   args: []
   resources: {
-    cpu: json('2.0')
+    cpu: '2.0'
     memory: '4Gi'
   }
-  env: containerEnvArray
+  env: union(_containerEnvArray, [
+    {
+      name: 'AZURE_OPENAI_ENDPOINT'
+      value: _openAiEndpoint
+    }
+    {
+      name: 'AZURE_OPENAI_KEY'
+      value: _openAiKey
+    }
+  ])
 
 }
 
-
-var jobAppContainer = {
+// Due to limitations with the current Python SDK, the URL for the apim
+//  endpoint does not meet the domain pattern requirements:
+// Error in Vectorizer 'myOpenAI' : Invalid resourceUri. For Github endpoints, the uri
+//  suffix must be inference.ai.azure.com. For Azure OpenAI endpoints, the uri suffix
+//  must be one of: (openai.azure.com). Please provide a valid resourceUri for the Azure
+//  OpenAI service.
+// Therefore, providing a custom URL for the OpenAI endpoint for the indexer job
+var _indexInitializationContainer = {
   name: '${backendContainerName}-job'
   image: frontendImage
   command: ['/bin/bash']
+  resources: {
+    cpu: '2.0'
+    memory: '4Gi'
+  }
   args: ['-c', 'python /app/src/pipeline/policyIndexer/indexerSetup.py --target \'/app\'']
-  env: containerEnvArray
+  env: union(_containerEnvArray, [
+    {
+      name: 'AZURE_OPENAI_ENDPOINT'
+      value: aiGateway.outputs.aiServices[0].endpoints.value.openAI
+    }
+    {
+      name: 'AZURE_OPENAI_KEY'
+      value: aiGateway.outputs.aiServices[0].key.value
+    }
+  ])
 }
 
 module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
@@ -566,7 +490,7 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
       ]
     }
     workloadProfileName: 'Consumption'
-    location: location
+    location: _location
     tags: union(tags, { 'azd-service-name': 'frontend' })
   }
 }
@@ -576,7 +500,7 @@ module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
   params: {
     // Required parameters
     containers: [
-      jobAppContainer
+      _indexInitializationContainer
     ]
     environmentResourceId: containerAppsEnvironment.outputs.resourceId
     name: '${backendContainerName}-job'
@@ -603,7 +527,7 @@ module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
         roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b') // Container App Job Contributor
       }
     ]
-    location: location
+    location: _location
   }
 }
 
@@ -614,8 +538,8 @@ var issuer = '${environment().authentication.loginEndpoint}${tenant().tenantId}/
 module easyAuthAppReg './modules/security/appregistration.bicep' = if (enableEasyAuth) {
   name: 'easyauth-reg'
   params: {
-    clientAppName: '${priorAuthName}-${uniqueSuffix}-easyauth-client-app'
-    clientAppDisplayName: '${priorAuthName}-${uniqueSuffix}-EasyAuth-app'
+    clientAppName: '${priorAuthName}-${_uniqueSuffix}-easyauth-client-app'
+    clientAppDisplayName: '${priorAuthName}-${_uniqueSuffix}-EasyAuth-app'
     webAppEndpoint: 'https://${frontendContainerApp.outputs.fqdn}'
     webAppIdentityId: appIdentity.outputs.principalId
     issuer: issuer
@@ -634,33 +558,32 @@ module feAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
   }
 }
 
-output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
-output AZURE_OPENAI_API_VERSION string = chatModel.version
+output AZURE_OPENAI_ENDPOINT string = _openAiEndpoint
+output AZURE_OPENAI_API_VERSION string = openAiApiVersion
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingModel.name
-output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = chatCompletionModels[0].name
-output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = contains(reasoningModel.name, 'o1') ? reasoningModel.name : ''
-output AZURE_OPENAI_API_VERSION_O1 string = contains(reasoningModel.name, 'o1') ? reasoningModel.version : ''
+output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = chatModel.name
+output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = reasoningModel.name
+output AZURE_OPENAI_API_VERSION_O1 string = reasoningModel.version
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = embeddingModelDimension
 output AZURE_SEARCH_SERVICE_NAME string = searchService.outputs.searchServiceName
 output AZURE_SEARCH_INDEX_NAME string = 'ai-policies-index'
 output AZURE_AI_SEARCH_ADMIN_KEY string = searchService.outputs.searchServicePrimaryKey
 output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.searchServiceEndpoint
-output AZURE_STORAGE_ACCOUNT_KEY string = ''
 output AZURE_BLOB_CONTAINER_NAME string = storageBlobContainerName
 output AZURE_STORAGE_ACCOUNT_NAME string = storageAccount.outputs.storageAccountName
-output AZURE_STORAGE_CONNECTION_STRING string = storageConnString
+output AZURE_STORAGE_CONNECTION_STRING string = _storageConnString
 output AZURE_AI_SERVICES_KEY string = multiAccountAiServices.outputs.aiServicesPrimaryKey
 output AZURE_COSMOS_DB_DATABASE_NAME string = 'priorauthsessions'
 
 output AZURE_COSMOS_DB_COLLECTION_NAME string = 'temp'
 output AZURE_COSMOS_CONNECTION_STRING string = cosmosDb.outputs.mongoConnectionString
-output AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT string = docIntelligence.outputs.aiServicesEndpoint
-output AZURE_DOCUMENT_INTELLIGENCE_KEY string = docIntelligence.outputs.aiServicesKey
+output AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT string = _docIntelligenceEndpoint
+output AZURE_DOCUMENT_INTELLIGENCE_KEY string = _docIntelligenceKey
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_CONTAINER_ENVIRONMENT_ID string = containerAppsEnvironment.outputs.resourceId
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerAppsEnvironment.outputs.name
-output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
+output AZURE_OPENAI_KEY string = _openAiKey
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryConnectionString
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
 

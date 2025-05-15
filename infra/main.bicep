@@ -7,7 +7,7 @@ param enableEasyAuth bool = true
 param disableIngress bool = false
 
 @description('Flag to indicate if API Management should be enabled for AI Services (Defaults to true)')
-param enableAPIManagement bool = true
+param enableAPIManagement bool
 
 @minLength(1)
 @maxLength(64)
@@ -58,7 +58,7 @@ param openAiApiVersion string = '2025-01-01-preview'
 param reasoningModel object = {
   name: 'o1'
   version: '2025-01-01-preview'
-  skuName: 'GlobalStandard'
+  sku: 'GlobalStandard'
   capacity: 100
 }
 
@@ -66,7 +66,7 @@ param reasoningModel object = {
 param chatModel object = {
   name: 'gpt-4o'
   version: '2024-08-06'
-  skuName: 'GlobalStandard'
+  sku: 'GlobalStandard'
   capacity: 100
 }
 
@@ -74,7 +74,7 @@ param chatModel object = {
 param embeddingModel object = {
     name: 'text-embedding-3-large'
     version: '1'
-    skuName: 'Standard'
+    sku: 'Standard'
     capacity: 50
 }
 
@@ -84,79 +84,6 @@ param embeddingModel object = {
 // If enableAPIManagement is true, deploy the API Management module
 // ===========================================================
 // 1. Configure the backend configuration for the various openai models
-var o1_enabled = contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3')
-
-var o1SupportedRegions = o1_enabled ? [
-  'westus2'
-  'swedencentral'
-] : []
-
-var openAIBackendPools = [
-  {
-    name: 'openai1'
-    locaiton: location
-    priority: 1
-    backendWeight: 80
-    chatCompletion: {
-      name: chatModel.name
-      version: chatModel.version
-      capacity: chatModel.capacity
-    }
-    embeddings: {
-      name: embeddingModel.name
-      version: embeddingModel.version
-      capacity: embeddingModel.capacity
-    }
-    reasoning: contains(o1SupportedRegions, location) && o1_enabled ? {
-      name: reasoningModel.name
-      version: reasoningModel.version
-      capacity: reasoningModel.capacity
-    } : {}
-  }
-  {
-    name: 'openai2'
-    locaiton: location
-    priority: 2
-    backendWeight: 10
-    chatCompletion: {
-      name: chatModel.name
-      version: chatModel.version
-      capacity: chatModel.capacity
-    }
-    embeddings: {
-      name: embeddingModel.name
-      version: embeddingModel.version
-      capacity: embeddingModel.capacity
-    }
-    reasoning: contains(o1SupportedRegions, location) && o1_enabled ? {
-      name: reasoningModel.name
-      version: reasoningModel.version
-      capacity: reasoningModel.capacity
-    } : {}
-  }
-  {
-    name: 'openai3'
-    locaiton: location
-    priority: 3
-    backendWeight: 10
-    chatCompletion: {
-      name: chatModel.name
-      version: chatModel.version
-      capacity: chatModel.capacity
-    }
-    embeddings: {
-      name: embeddingModel.name
-      version: embeddingModel.version
-      capacity: embeddingModel.capacity
-    }
-    reasoning:contains(o1SupportedRegions, location) && o1_enabled ? {
-      name: reasoningModel.name
-      version: reasoningModel.version
-      capacity: reasoningModel.capacity
-    } : {}
-  }
-]
-
 @description('Unique hash of the git commit that is being deployed. This is used to tag resources and support llm evaluation automation.')
 param GIT_HASH string = 'azd-deploy-1741105197' // This is the git hash of the commit that is being deployed. It is used to tag the image in ACR and also used to tag the container job in ACI. This is set by azd during deployment.
 
@@ -195,7 +122,7 @@ module resources 'resources.bicep' = {
   params: {
     // Required Parameters
     priorAuthName: priorAuthName
-    openaiApiVersion: openAiApiVersion
+    openAiApiVersion: openAiApiVersion
     chatModel: chatModel
     reasoningModel: reasoningModel
     embeddingModel: embeddingModel
@@ -205,14 +132,13 @@ module resources 'resources.bicep' = {
     disableIngress: disableIngress
 
     // Optional Parameters
+    enableAPIManagement: enableAPIManagement
     tags: azd_tags
     gitHash: GIT_HASH
     frontendExists: frontendExists
     backendExists: backendExists
   }
 }
-
-
 
 // ----------------------------------------------------------------------------------------
 // Setting the outputs at main.bicep (or whatever is defined in your azure.yaml's infra block) sets
@@ -239,6 +165,9 @@ output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = resources.outputs.AZURE_OPENAI_C
 @description('Deployment name for Azure OpenAI chat model 01')
 output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01
 
+@description('API version for Azure OpenAI model 01')
+output AZURE_OPENAI_API_VERSION_O1 string = resources.outputs.AZURE_OPENAI_API_VERSION_O1
+
 @description('Deployment openai version for chat model 01')
 output AZURE_OPENAI_API_VERSION_01 string = openAiApiVersion
 
@@ -259,9 +188,6 @@ output AZURE_BLOB_CONTAINER_NAME string = resources.outputs.AZURE_BLOB_CONTAINER
 
 @description('Name of the Azure Storage account')
 output AZURE_STORAGE_ACCOUNT_NAME string = resources.outputs.AZURE_STORAGE_ACCOUNT_NAME
-
-@description('Key for the Azure Storage account')
-output AZURE_STORAGE_ACCOUNT_KEY string = resources.outputs.AZURE_STORAGE_ACCOUNT_KEY
 
 @description('Connection string for the Azure Storage account')
 output AZURE_STORAGE_CONNECTION_STRING string = resources.outputs.AZURE_STORAGE_CONNECTION_STRING

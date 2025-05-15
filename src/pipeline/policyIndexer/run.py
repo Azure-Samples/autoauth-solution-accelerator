@@ -95,6 +95,9 @@ class PolicyIndexingPipeline:
 
         self.azure_openai_endpoint: str = os.environ["AZURE_OPENAI_ENDPOINT"]
 
+        # if self.azure_openai_endpoint.endswith("/openai"):
+        #     self.azure_openai_endpoint = self.azure_openai_endpoint.rstrip("/openai")
+
         self.azure_openai_key: str = os.getenv("AZURE_OPENAI_KEY")
         self.azure_openai_embedding_deployment: str = os.getenv(
             "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-large"
@@ -292,7 +295,14 @@ class PolicyIndexingPipeline:
                             resource_url=self.azure_openai_endpoint,
                             deployment_name=self.azure_openai_embedding_deployment,
                             model_name=self.azure_openai_model_name,
-                            api_key=self.azure_openai_key,
+                            auth_identity=(
+                                DefaultAzureCredential()
+                                if not self.azure_openai_key
+                                else None
+                            ),
+                            api_key=(
+                                self.azure_openai_key if self.azure_openai_key else None
+                            ),
                         ),
                     ),
                 ],
@@ -693,16 +703,16 @@ class IndexerRunner:
                     logger.warning("No last result available for the indexer.")
 
                 if status.status == "running":
-                    if status.last_result.status == "inProgress":
+                    if status.last_result and status.last_result.status == "inProgress":
                         logger.info(
                             "Indexer is still running... waiting for completion."
                         )
-                    elif status.last_result.status == "success":
+                    elif status.last_result and status.last_result.status == "success":
                         logger.info(
                             f"Indexer '{self.indexer_name}' completed successfully."
                         )
                         break
-                    elif status.last_result.status == "error":
+                    elif status.last_result and status.last_result.status == "error":
                         logger.error(
                             f"Indexer '{self.indexer_name}' encountered errors: {status.last_result.errors}"
                         )

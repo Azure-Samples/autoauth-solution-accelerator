@@ -66,7 +66,10 @@ class AzureDocumentIntelligenceManager:
             endpoint=self.azure_endpoint,
             credential=AzureKeyCredential(self.azure_key),
             api_version="2024-11-30",
-            headers={"x-ms-useragent": "langchain-parser/1.0.0"},
+            headers={
+                "x-ms-useragent": "langchain-parser/1.0.0",
+                "api-key": self.azure_key,
+            },
             polling_interval=30,
         )
 
