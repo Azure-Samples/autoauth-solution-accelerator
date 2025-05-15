@@ -542,7 +542,6 @@ output AZURE_OPENAI_API_VERSION string = chatModel.version
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingModel.name
 output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = chatCompletionModels[0].name
 output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = contains(reasoningModel.name, 'o1') ? reasoningModel.name : ''
-output AZURE_OPENAI_API_VERSION_O1 string = contains(reasoningModel.name, 'o1') ? reasoningModel.version : ''
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = embeddingModelDimension
 output AZURE_SEARCH_SERVICE_NAME string = searchService.outputs.searchServiceName
 output AZURE_SEARCH_INDEX_NAME string = 'ai-policies-index'
