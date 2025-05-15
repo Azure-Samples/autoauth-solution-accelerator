@@ -177,3 +177,4 @@ utils/data/cases/001/a/tmp/01_a_form.pdf
 .azure
 cleanup.sh
 docker-build.sh
+*.rest
