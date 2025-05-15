@@ -27,7 +27,7 @@ azure-ai-evaluation==1.2.0
 azure-cosmos==4.7.0
 azure-search-documents==11.6.0b5
 azure-storage-blob==12.23.1
-azure-monitor-opentelemetry==1.6.4
+azure-monitor-opentelemetry==1.6.7
 
 # LLM Metrics
 ragas==0.2.3
@@ -57,7 +57,6 @@ asyncio==3.4.3
 tenacity==8.5.0
 
 semantic_kernel
-azure-monitor-opentelemetry
 azure-ai-inference[opentelemetry]
 opentelemetry-exporter-otlp
 azure-ai-projects

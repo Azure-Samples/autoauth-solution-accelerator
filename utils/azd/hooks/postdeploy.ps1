@@ -40,10 +40,10 @@ if (-not $jobExists) {
     az acr login --name $acr_endpoint
 
     Write-Info "Updating container app job image..."
-    $null = & az containerapp job update -g $rg_name --name $job_name --image $frontend_image 2>&1
+    $null = & az containerapp job update -g $rg_name --name $job_name --image $frontend_image --cpu 2 --memory 4Gi 2>&1
 
     Write-Info "Starting job $job_name..."
-    az containerapp job start -g $rg_name --name $job_name
+    az containerapp job start -g $rg_name --name $job_name --cpu 2 --memory 4Gi
 
     Write-Info "Waiting for job to complete..."
     $status = "Running"

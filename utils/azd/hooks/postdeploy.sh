@@ -95,10 +95,11 @@ update_and_run_job() {
     az acr login --name "$acr_endpoint"
 
     log_info "Updating container app job image..."
-    az containerapp job update -g "$rg_name" --name "$job_name" --image "$frontend_image"
+    az containerapp job update -g "$rg_name" --name "$job_name" --image "$frontend_image" \
+        --cpu 2.0 --memory 4.0
 
     log_info "Starting job $job_name..."
-    az containerapp job start -g "$rg_name" --name "$job_name"
+    az containerapp job start -g "$rg_name" --name "$job_name" --cpu 2.0 --memory 4.0
 
     log_info "Waiting for job to complete..."
     status="Running"
