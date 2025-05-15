@@ -222,18 +222,18 @@ trap cleanup EXIT
 
 # Main execution flow
 main() {
-    check_dependencies || exit 1
+    check_dependencies || exit 1h
     load_environment || exit 1
 
     if ! check_container_job; then
         update_and_run_job || exit 1
     fi
 
-    # Ask user if they want to run evaluations (if not already set)
     if [ -z "${RUN_EVALS:-}" ]; then
-        read -p "Would you like to run model evaluations through AI Foundry? (y/n): " response
+        response="${RUN_EVALS:-n}"
         if [[ ! "$response" =~ ^[Yy] ]]; then
             log_info "Model evaluations will be skipped."
+            log_info "To enable evaluations, run: azd env set RUN_EVALS true"
             return 0
         fi
         log_info "Model evaluations will be run."
