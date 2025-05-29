@@ -26,7 +26,6 @@ resource aiServices 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
     publicNetworkAccess: 'Enabled'
     disableLocalAuth: false
     apiProperties: {
-      statisticsEnabled: false
     }
     customSubDomainName: aiServiceNameCleaned
   }
