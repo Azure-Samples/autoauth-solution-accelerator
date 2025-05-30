@@ -271,4 +271,203 @@ response = await aoai.chat_completion("Analyze this document")
 4. **Async Operations**: Asynchronous programming for better performance
 5. **Evaluation-Driven Development**: All pipelines include corresponding evaluation frameworks
 
-This modular architecture enables **separation of concerns**, **reusability**, and **testability** across the entire AutoAuth solution accelerator.
+## Adding Custom Modules
+
+The AutoAuth solution accelerator is designed to be extensible. You can add your own modules by following these patterns:
+
+### 1. Creating a New Service Module
+
+For new Azure service integrations, follow this structure:
+
+```python
+# src/myservice/myservice_manager.py
+import logging
+from typing import Optional, Dict, Any
+from src.utils.ml_logging import get_logger
+
+class MyServiceManager:
+    """Manager class for MyService integration."""
+
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        self.logger = get_logger(__name__)
+        self.config = config or {}
+        self._initialize_client()
+
+    def _initialize_client(self):
+        """Initialize the service client."""
+        # Your service client initialization
+        pass
+
+    async def process_data(self, data: Any) -> Any:
+        """Main processing method."""
+        try:
+            # Your processing logic
+            self.logger.info("Processing data with MyService")
+            return processed_data
+        except Exception as e:
+            self.logger.error(f"Error processing data: {e}")
+            raise
+```
+
+### 2. Creating a New Pipeline Module
+
+For business logic pipelines, create a new directory under `pipeline/`:
+
+```python
+# src/pipeline/mypipeline/run.py
+from typing import Dict, List, Any
+from src.utils.ml_logging import get_logger
+from src.aoai.aoai_helper import AzureOpenAIManager
+from src.storage.blob_helper import AzureBlobManager
+
+class MyPipeline:
+    """Custom pipeline for specific business logic."""
+
+    def __init__(self, config_path: str = None):
+        self.logger = get_logger(__name__)
+        self.aoai_manager = AzureOpenAIManager()
+        self.storage_manager = AzureBlobManager()
+
+    async def run(self, input_data: Any) -> Dict[str, Any]:
+        """Execute the pipeline."""
+        self.logger.info("Starting MyPipeline execution")
+
+        # Pipeline steps
+        step1_result = await self._step_1(input_data)
+        step2_result = await self._step_2(step1_result)
+
+        return {
+            "status": "completed",
+            "results": step2_result
+        }
+
+    async def _step_1(self, data: Any) -> Any:
+        """First pipeline step."""
+        # Implementation
+        pass
+
+    async def _step_2(self, data: Any) -> Any:
+        """Second pipeline step."""
+        # Implementation
+        pass
+```
+
+### 3. Adding Evaluation Support
+
+Create corresponding evaluators for your modules:
+
+```python
+# src/evals/mypipeline_evaluator.py
+from src.evals.pipeline_evaluator import PipelineEvaluator
+from src.pipeline.mypipeline.run import MyPipeline
+
+class MyPipelineEvaluator(PipelineEvaluator):
+    """Evaluator for MyPipeline."""
+
+    def __init__(self):
+        super().__init__(pipeline_class=MyPipeline)
+
+    def evaluate_custom_metrics(self, results: Dict) -> Dict[str, float]:
+        """Custom evaluation metrics for your pipeline."""
+        # Your evaluation logic
+        return {
+            "custom_metric_1": 0.95,
+            "custom_metric_2": 0.87
+        }
+```
+
+### 4. Configuration Integration
+
+Add your module configuration to the settings files:
+
+```yaml
+# Add to appropriate settings.yaml
+myservice:
+  endpoint: "https://myservice.example.com"
+  api_version: "2024-01-01"
+  timeout: 30
+
+mypipeline:
+  batch_size: 100
+  max_retries: 3
+  custom_parameter: "value"
+```
+
+### 5. Agentic AI Skills Integration
+
+To integrate with the agentic framework, create skill plugins:
+
+```python
+# src/agenticai/skills/my_custom_skill.py
+from typing import Dict, Any
+from src.utils.ml_logging import get_logger
+
+async def my_custom_skill(context: Dict[str, Any], **kwargs) -> Dict[str, Any]:
+    """Custom skill for the agentic framework."""
+    logger = get_logger(__name__)
+
+    try:
+        # Your skill implementation
+        result = process_with_custom_logic(context, **kwargs)
+
+        return {
+            "status": "success",
+            "result": result,
+            "skill_name": "my_custom_skill"
+        }
+    except Exception as e:
+        logger.error(f"Error in custom skill: {e}")
+        return {
+            "status": "error",
+            "error": str(e),
+            "skill_name": "my_custom_skill"
+        }
+
+def process_with_custom_logic(context: Dict[str, Any], **kwargs) -> Any:
+    """Your custom processing logic."""
+    # Implementation
+    pass
+```
+
+### 6. Module Integration Checklist
+
+When adding a new module, ensure you:
+
+- [ ] **Follow naming conventions**: Use descriptive, consistent naming
+- [ ] **Add proper logging**: Use the centralized logging framework from `utils/ml_logging`
+- [ ] **Include error handling**: Comprehensive try-catch blocks with appropriate logging
+- [ ] **Create configuration schema**: Add settings to YAML configuration files
+- [ ] **Write unit tests**: Create test files in the `tests/` directory
+- [ ] **Add evaluation support**: Create evaluators for pipeline modules
+- [ ] **Update documentation**: Add module description to this README
+- [ ] **Follow async patterns**: Use async/await for I/O operations
+- [ ] **Implement proper initialization**: Follow the established manager class patterns
+
+### 7. Example Integration
+
+Here's how to integrate your new module into existing workflows:
+
+```python
+# In your application code
+from src.pipeline.mypipeline.run import MyPipeline
+from src.myservice.myservice_manager import MyServiceManager
+
+# Initialize your custom components
+my_service = MyServiceManager(config=load_config()["myservice"])
+my_pipeline = MyPipeline(config_path="config/settings.yaml")
+
+# Use in the main workflow
+async def enhanced_workflow():
+    # Existing AutoAuth logic
+    standard_result = await existing_pipeline.run(data)
+
+    # Your custom enhancement
+    custom_result = await my_pipeline.run(standard_result)
+
+    # Additional processing with your service
+    final_result = await my_service.process_data(custom_result)
+
+    return final_result
+```
+
+This extensible architecture allows you to enhance the AutoAuth solution with domain-specific logic while maintaining consistency with the existing codebase patterns.
