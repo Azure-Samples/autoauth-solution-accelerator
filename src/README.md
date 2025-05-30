@@ -222,8 +222,7 @@ results = evaluator.run_evaluation(test_cases)
 Configuration cascades from utils through all modules:
 
 ```mermaid
-block-beta
-    columns 3
+graph TD
     Config[utils/config] --> Pipeline[pipeline/]
     Config --> Services[Service Modules]
     Pipeline --> Services

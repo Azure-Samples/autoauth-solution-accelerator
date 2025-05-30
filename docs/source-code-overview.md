@@ -229,8 +229,7 @@ results = evaluator.run_evaluation(test_cases)
 Configuration cascades from utils through all modules:
 
 ```mermaid
-block-beta
-    columns 3
+graph TD
     Config[utils/config] --> Pipeline[pipeline/]
     Config --> Services[Service Modules]
     Pipeline --> Services
@@ -483,5 +482,5 @@ This modular architecture enables **separation of concerns**, **reusability**, a
 
 ---
 
-{: .note }
+### Note:
 > **Source Code Location**: The complete source code with detailed implementation can be found in the [`src/` directory](../src/) of this repository. For the most up-to-date technical details and code examples, refer to the [src/README.md](../src/README.md) file.
