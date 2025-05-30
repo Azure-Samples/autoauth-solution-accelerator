@@ -2,12 +2,23 @@
 layout: default
 title: "Source Code Overview"
 nav_order: 6
-description: "Detailed breakdown of the src directory modules and their interconnections"
+description: "Comprehensive guide to AutoAuth's architecture, application flows, and implementation details"
 ---
 
 # AutoAuth Solution Accelerator - Source Code Overview
 
-This directory contains the core business logic and infrastructure for the AutoAuth solution accelerator, organized into modular components that handle different aspects of the automated prior authorization workflow.
+The AutoAuth solution accelerator transforms manual prior authorization processes through intelligent automation, leveraging advanced AI capabilities for document processing, policy analysis, and clinical decision-making. This comprehensive overview details the application's architecture, workflow implementation, and component interactions.
+
+## Executive Summary
+
+AutoAuth addresses the healthcare industry's most pressing administrative challenge by automating prior authorization workflows that traditionally require **13 hours per week** of physician time. The solution uses **agentic AI** to intelligently process clinical documents, retrieve relevant policies, and generate accurate authorization decisions while maintaining full audit trails and regulatory compliance.
+
+### Key Capabilities
+- **Document Intelligence**: Automated extraction from clinical documents using Azure Document Intelligence
+- **Agentic RAG**: Intelligent policy retrieval with contextual understanding
+- **Clinical Reasoning**: AI-powered decision making following regulatory guidelines
+- **End-to-End Automation**: Complete workflow from document upload to final determination
+- **Audit & Compliance**: Full traceability and regulatory compliance features
 
 ## Module Overview
 
@@ -113,6 +124,317 @@ flowchart TD
 
     AgenticRAG --> Evals
     AutoDetermination --> Evals
+```
+
+## Application Workflows
+
+This section details the comprehensive application flows showing how AutoAuth processes prior authorization requests from document upload to final determination.
+
+### Complete Prior Authorization Processing Flow
+
+The following diagram shows the end-to-end PA processing workflow with all major components and decision points:
+
+```mermaid
+flowchart TD
+    A[📤 Document Upload<br/>Clinical Files & PA Forms] --> B[🔄 File Processing<br/>PDF → Image Extraction]
+    B --> C[🧠 Clinical Data Extraction<br/>Concurrent AI Processing]
+
+    C --> C1[👤 Patient Data<br/>Demographics, History]
+    C --> C2[👨‍⚕️ Physician Data<br/>Credentials, Rationale]
+    C --> C3[🏥 Clinical Data<br/>Diagnosis, Treatment Plan]
+
+    C1 --> D[📝 Query Expansion<br/>AI-Powered Query Formulation]
+    C2 --> D
+    C3 --> D
+
+    D --> E[🔍 Agentic RAG Pipeline<br/>Policy Retrieval & Evaluation]
+
+    E --> E1[🔎 Hybrid Search<br/>Vector + BM25]
+    E1 --> E2[🤖 AI Evaluator<br/>Policy Relevance Assessment]
+    E2 --> E3{Policy<br/>Sufficient?}
+
+    E3 -->|No| E4[🔄 Query Refinement<br/>Iterative Improvement]
+    E4 --> E1
+
+    E3 -->|Yes| F[📊 Policy Summarization<br/>Context Length Management]
+
+    F --> G[⚖️ Auto-Determination<br/>AI Decision Generation]
+
+    G --> G1{Model<br/>Selection}
+    G1 -->|Available| G2[🚀 O1 Model<br/>Advanced Reasoning]
+    G1 -->|Fallback| G3[🔄 GPT-4 Model<br/>Retry Logic]
+
+    G2 --> H{Context<br/>Length OK?}
+    G3 --> H
+
+    H -->|No| I[📝 Policy Summary<br/>Compress & Retry]
+    I --> G
+
+    H -->|Yes| J[✅ Final Determination<br/>Approve/Deny/More Info]
+
+    J --> K[💾 Store Results<br/>CosmosDB + Audit Trail]
+    K --> L[📋 Return Decision<br/>Structured Response]
+
+    style A fill:#e1f5fe
+    style L fill:#e8f5e8
+    style E fill:#fff3e0
+    style G fill:#f3e5f5
+```
+
+### Clinical Data Extraction Pipeline
+
+The clinical data extraction process runs three AI agents concurrently to extract structured information:
+
+```mermaid
+flowchart LR
+    A[📑 Image Files<br/>from PDF Extraction] --> B[🔄 Concurrent Processing]
+
+    B --> C1[👤 Patient Agent<br/>Demographics Extraction]
+    B --> C2[👨‍⚕️ Physician Agent<br/>Credentials Extraction]
+    B --> C3[🏥 Clinical Agent<br/>Medical Data Extraction]
+
+    C1 --> D1[📊 Patient Model<br/>Structured JSON]
+    C2 --> D2[📊 Physician Model<br/>Structured JSON]
+    C3 --> D3[📊 Clinical Model<br/>Structured JSON]
+
+    D1 --> E[🔍 Validation<br/>Field-Level Correction]
+    D2 --> E
+    D3 --> E
+
+    E --> F[✅ Validated Data<br/>Ready for Processing]
+
+    subgraph "AI Processing Details"
+        G[🤖 Azure OpenAI<br/>Vision + Text Models]
+        H[📝 Prompt Templates<br/>Specialized for Each Type]
+        I[🔧 Pydantic Models<br/>Schema Validation]
+    end
+
+    C1 -.-> G
+    C2 -.-> G
+    C3 -.-> G
+
+    C1 -.-> H
+    C2 -.-> H
+    C3 -.-> H
+
+    E -.-> I
+
+    style A fill:#e1f5fe
+    style F fill:#e8f5e8
+    style B fill:#fff3e0
+```
+
+### Agentic RAG Policy Retrieval Flow
+
+The Agentic RAG pipeline implements intelligent policy retrieval with adaptive query refinement:
+
+```mermaid
+flowchart TD
+    A[🏥 Clinical Information<br/>Structured Data] --> B[📝 Query Expansion<br/>AI-Powered Enhancement]
+
+    B --> C[🔍 Initial Search<br/>Hybrid Vector + BM25]
+
+    C --> D[📋 Policy Results<br/>Ranked by Relevance]
+
+    D --> E[🤖 AI Evaluator<br/>Policy Relevance Assessment]
+
+    E --> F{Evaluation<br/>Result}
+
+    F -->|APPROVED| G[✅ Sufficient Policies<br/>High Confidence Match]
+    F -->|NEEDS_MORE_INFO| H[🔄 Query Refinement<br/>Expand Search Terms]
+    F -->|INSUFFICIENT| I[❌ No Suitable Policies<br/>Request Manual Review]
+
+    H --> J[📝 Enhanced Query<br/>Additional Medical Context]
+    J --> C
+
+    G --> K[📊 Policy Text Extraction<br/>Document Intelligence]
+    K --> L[📝 Policy Summarization<br/>Context Length Management]
+    L --> M[✅ Ready for Determination<br/>Processed Policy Text]
+
+    subgraph "Retry Logic"
+        N[🔢 Max Retries: 3<br/>Prevents Infinite Loops]
+        O[⏱️ Timeout Handling<br/>Graceful Degradation]
+    end
+
+    H -.-> N
+    C -.-> O
+
+    subgraph "Search Technology"
+        P[🧠 Vector Search<br/>Semantic Similarity]
+        Q[📝 BM25 Search<br/>Lexical Matching]
+        R[🔗 Hybrid Ranking<br/>Combined Scores]
+    end
+
+    C -.-> P
+    C -.-> Q
+    C -.-> R
+
+    style A fill:#e1f5fe
+    style M fill:#e8f5e8
+    style E fill:#fff3e0
+    style I fill:#ffebee
+```
+
+### Auto-Determination Decision Flow
+
+The final determination process uses advanced AI models with fallback mechanisms:
+
+```mermaid
+flowchart TD
+    A[📊 Input Data<br/>Patient + Physician + Clinical + Policy] --> B[📝 Prompt Engineering<br/>Structured Decision Template]
+
+    B --> C{Model<br/>Selection}
+
+    C -->|Preferred| D[🚀 O1 Model<br/>Advanced Reasoning Chain]
+    C -->|Fallback| E[🔄 GPT-4 Model<br/>Standard Processing]
+
+    D --> F{Context<br/>Length Check}
+    E --> F
+
+    F -->|Exceeds Limit| G[📝 Policy Summarization<br/>Intelligent Compression]
+    G --> H[🔄 Retry with Summary<br/>Reduced Context]
+
+    F -->|Within Limit| I[🧠 AI Processing<br/>Multi-Criteria Analysis]
+    H --> I
+
+    I --> J{Processing<br/>Success?}
+
+    J -->|Failed| K[🔄 Retry Logic<br/>Max 2 Attempts]
+    K --> L{Retry<br/>Count OK?}
+    L -->|Yes| E
+    L -->|No| M[❌ Processing Failed<br/>Manual Review Required]
+
+    J -->|Success| N[📋 Decision Analysis<br/>Policy Compliance Check]
+
+    N --> O[⚖️ Final Decision<br/>Approve/Deny/More Info]
+
+    O --> P[📝 Rationale Generation<br/>Evidence-Based Explanation]
+    P --> Q[✅ Structured Response<br/>Decision + Reasoning]
+
+    subgraph "Decision Criteria"
+        R[✅ Policy Compliance<br/>All Requirements Met]
+        S[❌ Policy Violation<br/>Clear Non-Compliance]
+        T[❓ Insufficient Info<br/>Missing Required Data]
+    end
+
+    N -.-> R
+    N -.-> S
+    N -.-> T
+
+    subgraph "Model Capabilities"
+        U[🧠 O1 Model<br/>Advanced Chain-of-Thought]
+        V[🔄 GPT-4 Model<br/>Reliable Fallback]
+        W[📊 Context Management<br/>15K Token Limit]
+    end
+
+    D -.-> U
+    E -.-> V
+    F -.-> W
+
+    style A fill:#e1f5fe
+    style Q fill:#e8f5e8
+    style M fill:#ffebee
+    style O fill:#f3e5f5
+```
+
+### Error Handling and Retry Mechanisms
+
+AutoAuth implements comprehensive error handling across all workflows:
+
+```mermaid
+flowchart TD
+    A[🔄 Process Start] --> B{Operation<br/>Type}
+
+    B -->|Data Extraction| C[👤 Clinical Extraction<br/>Patient/Physician/Clinical]
+    B -->|Policy Search| D[🔍 Agentic RAG<br/>Policy Retrieval]
+    B -->|Decision Making| E[⚖️ Auto-Determination<br/>Final Decision]
+
+    C --> F{Extraction<br/>Success?}
+    D --> G{Search<br/>Success?}
+    E --> H{Decision<br/>Success?}
+
+    F -->|Failed| I[🔄 Field-Level Validation<br/>Pydantic Model Correction]
+    G -->|Failed| J[🔄 Query Refinement<br/>Max 3 Retries]
+    H -->|Failed| K[🔄 Model Fallback<br/>O1 → GPT-4]
+
+    I --> L{Validation<br/>Success?}
+    J --> M{Retry<br/>Count OK?}
+    K --> N{Context<br/>Length OK?}
+
+    L -->|Failed| O[📝 Default Values<br/>Graceful Degradation]
+    M -->|No| P[❌ Search Failed<br/>Manual Review]
+    N -->|No| Q[📝 Policy Summary<br/>Compress & Retry]
+
+    L -->|Success| R[✅ Validated Data]
+    M -->|Yes| D
+    N -->|Yes| S[✅ Decision Generated]
+    Q --> E
+
+    O --> R
+    R --> T[📊 Continue Pipeline]
+    S --> T
+
+    P --> U[📧 Error Notification<br/>Admin Alert]
+    U --> V[📋 Manual Review Queue<br/>Human Intervention]
+
+    subgraph "Logging & Monitoring"
+        W[📝 Comprehensive Logging<br/>All Operations Tracked]
+        X[📊 Performance Metrics<br/>Success/Failure Rates]
+        Y[🔔 Alert System<br/>Critical Error Notifications]
+    end
+
+    T -.-> W
+    U -.-> X
+    V -.-> Y
+
+    style A fill:#e1f5fe
+    style T fill:#e8f5e8
+    style P fill:#ffebee
+    style V fill:#fff3e0
+```
+
+### Streamlit UI Integration Flow
+
+The user interface provides real-time feedback during processing:
+
+```mermaid
+flowchart LR
+    A[🖥️ Streamlit UI<br/>User Interface] --> B[📤 File Upload<br/>Clinical Documents]
+
+    B --> C[🔄 Progress Tracking<br/>4-Step Process]
+
+    C --> D[📊 Step 1: Analysis<br/>🔍 Analyzing clinical information...]
+    D --> E[📊 Step 2: Search<br/>🔎 Expanding query and searching...]
+    E --> F[📊 Step 3: Determination<br/>📝 Generating final determination...]
+    F --> G[📊 Step 4: Complete<br/>✅ Processing completed!]
+
+    G --> H[📋 Results Display<br/>Decision + Rationale]
+
+    subgraph "Backend Processing"
+        I[🔄 PAProcessingPipeline<br/>Orchestration Layer]
+        J[📊 Real-time Updates<br/>Progress Callbacks]
+        K[⏱️ Execution Timing<br/>Performance Metrics]
+    end
+
+    C -.-> I
+    D -.-> J
+    E -.-> J
+    F -.-> J
+    G -.-> K
+
+    subgraph "Error Handling"
+        L[❌ Processing Errors<br/>User-Friendly Messages]
+        M[🔄 Retry Options<br/>Manual Intervention]
+        N[📧 Support Contact<br/>Help Resources]
+    end
+
+    H -.-> L
+    L -.-> M
+    M -.-> N
+
+    style A fill:#e1f5fe
+    style H fill:#e8f5e8
+    style L fill:#ffebee
 ```
 
 ## Module Detailed Descriptions
