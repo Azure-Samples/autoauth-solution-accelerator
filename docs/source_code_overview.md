@@ -39,67 +39,24 @@ The `src` directory follows a layered architecture with distinct responsibilitie
 ## Architecture Overview
 
 ### High-Level System Flow
-
 ```mermaid
 flowchart TB
-    UI[Streamlit UI] --> Pipeline[pipeline/]
-    Pipeline --> AgenticAI[agenticai/]
-    Pipeline --> AOAI[aoai/]
-    Pipeline --> Storage[storage/]
-    Pipeline --> DocIntel[documentintelligence/]
+    Pipeline[pipeline/] --> AOAI[aoai/]
     Pipeline --> CosmosDB[cosmosdb/]
-
-    AgenticAI --> AOAI
-    DocIntel --> Storage
+    Pipeline --> DocIntel[documentintelligence/]
+    Pipeline --> Search[Azure AI Search SDK]
     Pipeline --> Evals[evals/]
+
+    Evals --> AOAI
 
     Utils[utils/] -.-> Pipeline
     Utils -.-> AOAI
-    Utils -.-> Storage
     Utils -.-> CosmosDB
-```
-
-### Pipeline-Centric Architecture
-
-```mermaid
-flowchart LR
-    subgraph "pipeline/"
-        PAProcessing[paprocessing/run.py]
-        AgenticRAG[agenticRag/run.py]
-        PolicyIndexer[policyIndexer/run.py]
-        AutoDetermination[autoDetermination/run.py]
-        ClinicalExtractor[clinicalExtractor/run.py]
-    end
-
-    subgraph "External Services"
-        AOAI[aoai/AzureOpenAIManager]
-        Storage[storage/AzureBlobManager]
-        CosmosDB[cosmosdb/CosmosDBMongoCoreManager]
-        DocIntel[documentintelligence/AzureDocumentIntelligenceManager]
-        Search[Azure Cognitive Search]
-    end
-
-    PAProcessing --> AgenticRAG
-    PAProcessing --> AutoDetermination
-    PAProcessing --> ClinicalExtractor
-    PAProcessing --> Storage
-    PAProcessing --> CosmosDB
-
-    AgenticRAG --> AOAI
-    AgenticRAG --> Search
-
-    PolicyIndexer --> Storage
-    PolicyIndexer --> Search
-    PolicyIndexer --> DocIntel
-
-    ClinicalExtractor --> DocIntel
-    ClinicalExtractor --> AOAI
-
-    AutoDetermination --> AOAI
+    Utils -.-> DocIntel
+    Utils -.-> Search
 ```
 
 ### Data Flow Architecture
-
 ```mermaid
 flowchart TD
     Upload[Document Upload] --> Storage[storage/AzureBlobManager]
@@ -125,6 +82,9 @@ flowchart TD
     AgenticRAG --> Evals
     AutoDetermination --> Evals
 ```
+
+### Removed Redundant Charts
+- Charts that repeated similar flows or components have been removed to streamline the document and focus on unique workflows.
 
 ## Application Workflows
 
@@ -275,7 +235,7 @@ flowchart TD
     style I fill:#ffebee
 ```
 
-### Auto-Determination Decision Flow
+### Final-Determination Decision Flow
 
 The final determination process uses advanced AI models with fallback mechanisms:
 
