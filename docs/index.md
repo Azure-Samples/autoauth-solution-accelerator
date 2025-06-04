@@ -20,8 +20,8 @@ Welcome to the documentation for **AutoAuth**, a solution designed to modernize 
 
 1. **[Challenges & Opportunities](challenges.md)**: Understand the pain points and real-world impact of inefficient PA.
 2. **[AutoAuth Solution](solution.md)**: Learn how our approach uses AI, LLMOps, and research-backed prompts to solve these challenges.
-3. **[Technical Architecture](architecture.md)**: Dive into the components and data flow powering AutoAuth.
-4. **[Source Code Overview](source-code-overview.md)**: Explore the detailed breakdown of modules and their interconnections in the src directory.
+3. **[Technical Architecture](architecture/index.md)**: Dive into the components and data flow powering AutoAuth.
+4. **[SDK Overview](sdk/sdk_overview.md)**: Explore the detailed breakdown of modules and their interconnections in the src directory.
 5. **[Deployment Guide](azd_deployment.md)**: Follow step-by-step instructions for one-click deployment into your Azure environment.
 
-**Ready to begin?** Jump into [Challenges & Opportunities](challenges.md), explore the [Source Code Overview](source-code-overview.md), or [Deploy Now](deployment.md) / [Deploy Now with AZD](azd_deployment.md).
+**Ready to begin?** Jump into [Challenges & Opportunities](challenges.md), explore the [SDK Overview](sdk/sdk_overview.md), or [Deploy Now](deployment.md) / [Deploy Now with AZD](azd_deployment.md).

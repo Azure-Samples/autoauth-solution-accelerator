@@ -1,12 +1,12 @@
 ---
 layout: default
-parent: "Technical Architecture"
-title: "Source Code Overview"
-nav_order: 4
+parent: "AutoAuth SDK"
+title: "SDK Technical Details"
+nav_order: 2
 description: "Comprehensive guide to AutoAuth's architecture, application flows, and implementation details"
 ---
 
-# AutoAuth Solution Accelerator - Source Code Overview
+# AutoAuth Solution Accelerator - SDK Technical Details
 
 The AutoAuth solution accelerator transforms manual prior authorization processes through intelligent automation, leveraging advanced AI capabilities for document processing, policy analysis, and clinical decision-making. This comprehensive overview details the application's architecture, workflow implementation, and component interactions.
 
