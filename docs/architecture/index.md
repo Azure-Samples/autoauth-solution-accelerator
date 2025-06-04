@@ -8,7 +8,7 @@ nav_order: 5
 
 AutoAuth’s architecture orchestrates multiple Azure services and techniques to seamlessly process requests, retrieve policies, and generate recommendations.
 
-![Architecture](./images/diagram_latest.png)
+![Architecture](../images/diagram_latest.png)
 
 ## High-Level Overview
 

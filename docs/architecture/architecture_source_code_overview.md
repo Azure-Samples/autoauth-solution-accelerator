@@ -2,7 +2,7 @@
 layout: default
 parent: "Technical Architecture"
 title: "Source Code Overview"
-nav_order: 2
+nav_order: 4
 description: "Comprehensive guide to AutoAuth's architecture, application flows, and implementation details"
 ---
 
