@@ -1,7 +1,7 @@
 ---
 layout: default
 parent: "Technical Architecture"
-nav_order: 5
+nav_order: 12
 description: "Deep technical dive into AutoAuth's pipeline implementations and API details"
 ---
 

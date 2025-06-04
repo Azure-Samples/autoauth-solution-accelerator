@@ -2,7 +2,7 @@
 layout: default
 parent: "Technical Architecture"
 title: "Agentic AI Flow"
-nav_order: 3
+nav_order: 11
 description: "How AutoAuth leverages Agentic AI for Prior Authorization"
 ---
 

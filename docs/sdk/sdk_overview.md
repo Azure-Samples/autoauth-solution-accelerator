@@ -2,7 +2,7 @@
 layout: default
 parent: "AutoAuth SDK"
 title: "SDK Technical Details"
-nav_order: 2
+nav_order: 21
 description: "Comprehensive guide to AutoAuth's architecture, application flows, and implementation details"
 ---
 
