@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "AutoAuth SDK"
-nav_order: 4
+nav_order: 20
 ---
 
 # Getting Started with the AutoAuth SDK
