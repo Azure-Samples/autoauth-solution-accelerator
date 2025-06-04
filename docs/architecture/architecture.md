@@ -1,7 +1,7 @@
 ---
 layout: default
 title: "Technical Architecture"
-nav_order: 5
+nav_order: 15
 ---
 
 # ⚙️ Technical Architecture

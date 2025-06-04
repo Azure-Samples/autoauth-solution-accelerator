@@ -22,7 +22,6 @@ Welcome to the documentation for **AutoAuth**, a solution designed to modernize 
 2. **[AutoAuth Solution](solution.md)**: Learn how our approach uses AI, LLMOps, and research-backed prompts to solve these challenges.
 3. **[Technical Architecture](architecture.md)**: Dive into the components and data flow powering AutoAuth.
 4. **[Source Code Overview](source-code-overview.md)**: Explore the detailed breakdown of modules and their interconnections in the src directory.
-5. **[Deployment Guide](deployment.md)**: Follow step-by-step instructions for one-click deployment into your Azure environment.
-5.1 **[Azure Developer CLI (azd) Deployment Guide](azd_deployment.md)**: Follow step-by-step instructions for end-to-end infra and app deployment using azd.
+5. **[Deployment Guide](azd_deployment.md)**: Follow step-by-step instructions for one-click deployment into your Azure environment.
 
 **Ready to begin?** Jump into [Challenges & Opportunities](challenges.md), explore the [Source Code Overview](source-code-overview.md), or [Deploy Now](deployment.md) / [Deploy Now with AZD](azd_deployment.md).
