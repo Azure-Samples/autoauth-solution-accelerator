@@ -24,6 +24,7 @@
     - [End-to-End Deployment Using AZD](https://azure-samples.github.io/autoauth-solution-accelerator/azd_deployment.html)
     - [PriorAuth SDK](#priorauth-sdk)
     - [Evaluations Framework](#evaluations)
+- [Responsible AI](#responsible-ai)
 - [What's Next?](#-whats-next)
 - [Contributors & License](#-contributors--license)
 
@@ -133,6 +134,18 @@ azd up
 pip install -r requirements.txt
 pytest
 ```
+
+## Responsible AI
+
+This project was designed with Responsible AI (RAI) principles in mind from day one:
+
+- **Bias Reduction**: The system is not designed to make final decisions (e.g., approve or deny). Instead, it acts as a decision-support tool that surfaces facts by cross-referencing structured clinical data. This approach helps reduce bias, eliminate subjectivity, and ensure consistent outputs (focus on facts).
+- **Human-in-the-Loop**: AutoAuth is designed to support clinical experts—not replace them. Final determinations are always made by humans, with the AI providing transparent rationale along the way.
+- **Explainability & Transparency**: Every decision path is traceable. Clinicians can understand what data was used, how it was interpreted, and what led to the suggested outcomes.
+- **Data Privacy & Governance**: All demos and tests use synthetic data. Customers are expected to conduct their own RAI impact assessments before going live, ensuring proper alignment with internal policies and regulations.
+- **Evaluation & Monitoring Framework**: We created a companion evaluation suite, **MedEvals**, to rigorously test the quality and rationale of PA decisions using Azure AI Foundry. This enables continuous monitoring, validation, and fairness tracking.
+
+> ℹ️ For more information, check out our [MedEvals Evaluation Framework](https://github.com/Azure-Samples/aihlsignited-medevals)
 
 ## ✅ What's Next?
 
