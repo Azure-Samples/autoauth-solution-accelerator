@@ -2,3 +2,7 @@ title: "AutoAuth Documentation"
 description: "Streamlining Prior Authorization with Azure AI"
 remote_theme: just-the-docs/just-the-docs
 markdown: kramdown
+mermaid:
+  # Version of mermaid library
+  # Pick an available version from https://cdn.jsdelivr.net/npm/mermaid/
+  version: "11.6.0"
