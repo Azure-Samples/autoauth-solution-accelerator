@@ -4,9 +4,6 @@
 
 <br>
 
-> **Important Notice:**
-> New development and ongoing enhancements have migrated to the [Microsoft AutoAuth Repository](https://github.com/microsoft/autoauth). For the latest updates and improved features, please refer to that repository.
-
 🚀 **Welcome! Ready to streamline your Prior Authorization process?** Click below to get started with your deployment and unlock the full potential of AutoAuth.
 
 <div align="center">
@@ -79,7 +76,7 @@ This repository aims to **streamline and automate** the PA process using Azure A
 
 > [!TIP]
 > *Want to customize or learn more about configuration?*
-> **[Read the detailed instructions on our GitHub Pages ➜](https://azure-samples.github.io/autoauth-solution-accelerator)**
+> **[Read the detailed instructions on our GitHub Pages ➜]()**
 
 More detailed documentation can be found in [docs/azd_deployment.md](docs/azd_deployment.md).
 
@@ -162,7 +159,7 @@ Please read through our [contributing guidelines](./CONTRIBUTING.md). Directions
 
 ## Data Collection
 
- The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at https://go.microsoft.com/fwlink/?LinkID=824704. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
+The software may collect information about you and your use of the software and send it to Microsoft. Microsoft may use this information to provide services and improve our products and services. You may turn off the telemetry as described in the repository. There are also some features in the software that may enable you and Microsoft to collect data from users of your applications. If you use these features, you must comply with applicable law, including providing appropriate notices to users of your applications together with a copy of Microsoft’s privacy statement. Our privacy statement is located at https://go.microsoft.com/fwlink/?LinkID=824704. You can learn more about data collection and use in the help documentation and our privacy statement. Your use of the software operates as your consent to these practices.
 
 ## Trademarks
 This project may contain trademarks or logos for projects, products, or services. Authorized use of Microsoft trademarks or logos is subject to and must follow Microsoft’s Trademark & Brand Guidelines. Use of Microsoft trademarks or logos in modified versions of this project must not cause confusion or imply Microsoft sponsorship. Any use of third-party trademarks or logos are subject to those third-party’s policies.
