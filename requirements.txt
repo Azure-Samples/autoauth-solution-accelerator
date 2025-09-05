@@ -14,7 +14,7 @@ pydantic-settings
 openai==1.52.0
 tiktoken==0.8.0
 langchain==0.3.1
-langchain-community==0.3.1
+langchain-community==0.3.27
 langchain-core==0.3.40
 transformers[torch]==4.48.0
 
