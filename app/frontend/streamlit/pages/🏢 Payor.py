@@ -20,6 +20,14 @@ from src.utils.ml_logging import get_logger
 
 logger = get_logger()
 
+# Import MAF adapter for new Agent Framework processing
+try:
+    from src.agenticai.streamlit_adapter import MAFPipelineAdapter, create_pa_pipeline
+    MAF_AVAILABLE = True
+except ImportError:
+    MAF_AVAILABLE = False
+    logger.warning("Microsoft Agent Framework not available. MAF mode disabled.")
+
 dotenv.load_dotenv(".env", override=True)
 
 # Initialize session state managers
@@ -367,13 +375,21 @@ async def update_results_with_markdown(pa_result):
     return markdown_response["response"]
 
 
-async def run_pipeline_with_spinner(uploaded_files, use_o1):
+async def run_pipeline_with_spinner(uploaded_files, use_o1, use_maf=False, use_maf_mock=False):
     caseID = generate_unique_id()
     with st.spinner("Processing... Please wait."):
-        if use_o1:
-            st.toast("Using the o1 model for final determination.", icon="🔥")
-
-        pa_processing = PAProcessingPipeline(send_cloud_logs=True)
+        if use_maf:
+            st.toast("🚀 Using Microsoft Agent Framework workflow", icon="⚡")
+            if use_maf_mock:
+                st.toast("Running in mock mode (no Azure calls)", icon="🧪")
+            pa_processing = MAFPipelineAdapter(
+                use_mock=use_maf_mock,
+                send_cloud_logs=True
+            )
+        else:
+            if use_o1:
+                st.toast("Using the o1 model for final determination.", icon="🔥")
+            pa_processing = PAProcessingPipeline(send_cloud_logs=True)
 
         await pa_processing.run(
             uploaded_files, streamlit=True, caseId=caseID, use_o1=use_o1
@@ -381,11 +397,15 @@ async def run_pipeline_with_spinner(uploaded_files, use_o1):
 
     last_key = next(iter(pa_processing.results.keys()))
 
-    # formatting for o1 markdown
-    additional_result = await update_results_with_markdown(
-        pa_processing.results[last_key]
-    )
-    pa_processing.results[last_key]["pa_determination_results_md"] = additional_result
+    # formatting for o1 markdown (skip for MAF as it's already formatted)
+    if not use_maf:
+        additional_result = await update_results_with_markdown(
+            pa_processing.results[last_key]
+        )
+        pa_processing.results[last_key]["pa_determination_results_md"] = additional_result
+    
+    # Store the processing mode for display
+    pa_processing.results[last_key]["processing_mode"] = "maf" if use_maf else "legacy"
 
     if "case_ids" not in st.session_state:
         st.session_state["case_ids"] = []
@@ -407,6 +427,13 @@ async def run_pipeline_with_spinner(uploaded_files, use_o1):
 
 def display_case_data(document, results_container):
     with results_container:
+        # Show processing mode badge
+        processing_mode = document.get("processing_mode", "legacy")
+        if processing_mode == "maf":
+            st.success("⚡ Processed with **Microsoft Agent Framework**")
+        else:
+            st.info("🔧 Processed with **Legacy Pipeline**")
+        
         tab1, tab2, tab3, tab4, tab5 = st.tabs(
             [
                 "📋 AI Determination",
@@ -567,6 +594,42 @@ def main() -> None:
 
     USE_O1 = True
 
+    # Processing Mode Selection
+    st.sidebar.markdown("### ⚙️ Processing Mode")
+    
+    # MAF toggle - only show if MAF is available
+    if MAF_AVAILABLE:
+        use_maf = st.sidebar.toggle(
+            "🚀 Use Agent Framework",
+            value=False,
+            help="Enable Microsoft Agent Framework for processing. This is the new agentic workflow architecture."
+        )
+        
+        if use_maf:
+            use_maf_mock = st.sidebar.toggle(
+                "🧪 Mock Mode (Testing)",
+                value=True,
+                help="Use mock implementations - no Azure calls. Useful for testing the workflow."
+            )
+            st.sidebar.info(
+                "**Agent Framework Mode**\n\n"
+                "Using the new Microsoft Agent Framework workflow with:\n"
+                "- ClinicalExtractor Executor\n"
+                "- AgenticRAG Executor\n"
+                "- Determination Executor"
+            )
+        else:
+            use_maf_mock = False
+    else:
+        use_maf = False
+        use_maf_mock = False
+        st.sidebar.warning(
+            "⚠️ Agent Framework not available.\n\n"
+            "Install with: `pip install agent-framework-azure-ai --pre`"
+        )
+
+    st.sidebar.markdown("")
+
     st.sidebar.markdown(
         '<div class="centered-button-container">', unsafe_allow_html=True
     )
@@ -588,7 +651,12 @@ def main() -> None:
         try:
             with results_container:
                 selected_case_id = asyncio.run(
-                    run_pipeline_with_spinner(uploaded_file_paths, USE_O1)
+                    run_pipeline_with_spinner(
+                        uploaded_file_paths, 
+                        USE_O1,
+                        use_maf=use_maf,
+                        use_maf_mock=use_maf_mock
+                    )
                 )
         finally:
             cleanup_temp_dir(temp_dir)
