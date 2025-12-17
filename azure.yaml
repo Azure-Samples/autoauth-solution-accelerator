@@ -3,6 +3,12 @@
 name: gbb-ai-hls-factory-prior-auth
 metadata:
   template: priorAuth-aca@1.11.0
+
+infra:
+  provider: bicep
+  path: infra
+  module: main
+
 services:
   frontend: # <-- This is the name of your service (tag:azdServiceName in bicep config)
     project: app/frontend

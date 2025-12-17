@@ -1,3 +1,75 @@
+# ============================================================================
+# AZURE LOCATION CHECK - Must be set before provisioning
+# ============================================================================
+
+$validLocations = @("eastus2", "swedencentral", "southcentralus", "canadaeast", "eastus", "francecentral", "japaneast", "norwayeast", "polandcentral", "southindia", "switzerlandnorth", "uksouth", "westus3")
+
+function Get-CleanAzdValue {
+    param([string]$key)
+    $output = & azd env get-value $key 2>$null
+    if ($LASTEXITCODE -eq 0) {
+        if ($output -match "^([^\r\n]+)") {
+            return $Matches[1].Trim()
+        }
+    }
+    return ""
+}
+
+$azureLocation = Get-CleanAzdValue "AZURE_LOCATION"
+
+if ([string]::IsNullOrEmpty($azureLocation)) {
+    Write-Host "======================================="
+    Write-Host "⚠️  AZURE_LOCATION is not set"
+    Write-Host "======================================="
+    Write-Host ""
+    Write-Host "Azure OpenAI is only available in specific regions."
+    Write-Host "Valid locations: $($validLocations -join ' ')"
+    Write-Host ""
+    
+    while ($true) {
+        $locationChoice = Read-Host "Enter Azure location (default: eastus2)"
+        
+        # Use default if empty
+        if ([string]::IsNullOrEmpty($locationChoice)) {
+            $azureLocation = "eastus2"
+            break
+        }
+        
+        # Validate input
+        if ($validLocations -contains $locationChoice) {
+            $azureLocation = $locationChoice
+            break
+        }
+        else {
+            Write-Host "❌ Invalid location: '$locationChoice'"
+            Write-Host "Valid locations: $($validLocations -join ' ')"
+            Write-Host ""
+        }
+    }
+    
+    & azd env set AZURE_LOCATION $azureLocation
+    Write-Host ""
+    Write-Host "✅ AZURE_LOCATION set to: $azureLocation"
+    Write-Host ""
+}
+else {
+    if ($validLocations -notcontains $azureLocation) {
+        Write-Host "======================================="
+        Write-Host "❌ ERROR: Invalid AZURE_LOCATION: $azureLocation"
+        Write-Host "======================================="
+        Write-Host ""
+        Write-Host "Valid locations are: $($validLocations -join ' ')"
+        Write-Host ""
+        Write-Host "Please run: azd env set AZURE_LOCATION <valid-location>"
+        exit 1
+    }
+    Write-Host "✅ AZURE_LOCATION: $azureLocation"
+}
+
+# ============================================================================
+# USER AND GIT INFO
+# ============================================================================
+
 # Get current user ID and git hash
 $currentUserClientId = (& az ad signed-in-user show --query id -o tsv).Trim()
 $gitHash = (& git rev-parse --short HEAD).Trim()
@@ -11,21 +83,8 @@ Write-Host "======================================="
 Write-Host " Current User Client ID: $currentUserClientId"
 Write-Host " Git Commit Hash:        $gitHash"
 Write-Host "======================================="
-# Capture just the actual values from azd, ignoring warnings
-function Get-CleanAzdValue {
-    param([string]$key)
 
-    $output = & azd env get-value $key 2>$null
-
-    if ($LASTEXITCODE -eq 0) {
-        # Extract just the first line or just the value before any warnings
-        if ($output -match "^([^\r\n]+)") {
-            return $Matches[1].Trim()
-        }
-    }
-
-    return ""
-}
+# (Get-CleanAzdValue function already defined above)
 
 # Get clean values
 $enableEasyAuth = Get-CleanAzdValue "ENABLE_EASY_AUTH"

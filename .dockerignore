@@ -2,14 +2,28 @@
 node_modules
 
 # Ignore Python virtual environments
+.venv
 venv
 env
+.env
 __pycache__
 paprocessing_env
+*.pyc
+*.pyo
 
 # Ignore Git files
 .git
 .gitignore
+
+# Ignore Azure/IDE files
+.azure
+.vscode
+.idea
+
+# Ignore notebooks and dev files
+notebooks
+*.ipynb
+.ipynb_checkpoints
 
 # Ignore Docker files
 .dockerignore

@@ -31,7 +31,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_pa_workflow(
-    use_mock: bool = True,
+    use_mock: bool = False,
     confidence_threshold: float = 0.85,
 ) -> Workflow:
     """Create the Prior Authorization processing workflow.

@@ -1,5 +1,63 @@
 #!/bin/bash
 
+# ============================================================================
+# AZURE LOCATION CHECK - Must be set before provisioning
+# ============================================================================
+AZURE_LOCATION=$(azd env get-value AZURE_LOCATION 2>/dev/null) || AZURE_LOCATION=""
+
+VALID_LOCATIONS="eastus2 swedencentral southcentralus canadaeast eastus francecentral japaneast norwayeast polandcentral southindia switzerlandnorth uksouth westus3"
+
+if [[ -z "$AZURE_LOCATION" ]]; then
+    echo "======================================="
+    echo "⚠️  AZURE_LOCATION is not set"
+    echo "======================================="
+    echo ""
+    echo "Azure OpenAI is only available in specific regions."
+    echo "Valid locations: $VALID_LOCATIONS"
+    echo ""
+    
+    while true; do
+        read -p "Enter Azure location (default: eastus2): " location_choice
+        
+        # Use default if empty
+        if [[ -z "$location_choice" ]]; then
+            AZURE_LOCATION="eastus2"
+            break
+        fi
+        
+        # Validate input
+        if echo "$VALID_LOCATIONS" | grep -qw "$location_choice"; then
+            AZURE_LOCATION="$location_choice"
+            break
+        else
+            echo "❌ Invalid location: '$location_choice'"
+            echo "Valid locations: $VALID_LOCATIONS"
+            echo ""
+        fi
+    done
+    
+    azd env set AZURE_LOCATION "$AZURE_LOCATION"
+    echo ""
+    echo "✅ AZURE_LOCATION set to: $AZURE_LOCATION"
+    echo ""
+else
+    # Validate existing location
+    if ! echo "$VALID_LOCATIONS" | grep -qw "$AZURE_LOCATION"; then
+        echo "======================================="
+        echo "❌ ERROR: Invalid AZURE_LOCATION: $AZURE_LOCATION"
+        echo "======================================="
+        echo ""
+        echo "Valid locations are: $VALID_LOCATIONS"
+        echo ""
+        echo "Please run: azd env set AZURE_LOCATION <valid-location>"
+        exit 1
+    fi
+    echo "✅ AZURE_LOCATION: $AZURE_LOCATION"
+fi
+
+# ============================================================================
+# USER AND GIT INFO
+# ============================================================================
 CURRENT_USER_CLIENT_ID=$(az ad signed-in-user show --query id -o tsv)
 GIT_HASH=$(git rev-parse --short HEAD)
 azd env set PRINCIPAL_ID $CURRENT_USER_CLIENT_ID
