@@ -274,8 +274,24 @@ var containerEnvArray = [
     value: chatModel.name
   }
   {
-    name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_01'
-    value: contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? reasoningModel.name : ''
+    name: 'AZURE_OPENAI_REASONING_DEPLOYMENT_ID'
+    value: reasoningModel.name
+  }
+  {
+    name: 'AZURE_OPENAI_CHAT_API_VERSION'
+    value: 'v1'
+  }
+  {
+    name: 'AZURE_OPENAI_CHAT_DEPLOYMENT_USE_V1'
+    value: 'true'
+  }
+  {
+    name: 'AZURE_OPENAI_REASONING_API_VERSION'
+    value:  'v1'
+  }
+  {
+    name: 'AZURE_OPENAI_REASONING_DEPLOYMENT_USE_V1'
+    value: 'true'
   }
   {
     name: 'AZURE_OPENAI_EMBEDDING_DIMENSIONS'
@@ -537,11 +553,15 @@ module feAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
   }
 }
 
-output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
+output AZURE_OPENAI_ENDPOINT string = aiFoundry.outputs.aiFoundryConnectionString
 output AZURE_OPENAI_API_VERSION string = chatModel.version
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingModel.name
 output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = chatCompletionModels[0].name
-output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = contains(reasoningModel.name, 'o1') ? reasoningModel.name : ''
+output AZURE_OPENAI_CHAT_API_VERSION string = 'v1'
+output AZURE_OPENAI_CHAT_DEPLOYMENT_USE_V1 string = 'true'
+output AZURE_OPENAI_REASONING_DEPLOYMENT_ID string = contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? reasoningModel.name : ''
+output AZURE_OPENAI_REASONING_API_VERSION string = contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? 'v1' : ''
+output AZURE_OPENAI_REASONING_DEPLOYMENT_USE_V1 string = contains(reasoningModel.name, 'o1') || contains(reasoningModel.name, 'o3') ? 'true' : 'false'
 output AZURE_OPENAI_EMBEDDING_DIMENSIONS string = embeddingModelDimension
 output AZURE_SEARCH_SERVICE_NAME string = searchService.outputs.searchServiceName
 output AZURE_SEARCH_INDEX_NAME string = 'ai-policies-index'
@@ -564,6 +584,7 @@ output AZURE_CONTAINER_ENVIRONMENT_ID string = containerAppsEnvironment.outputs.
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerAppsEnvironment.outputs.name
 output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryConnectionString
+output AZURE_AI_PROJECT_ENDPOINT string = aiFoundry.outputs.aiFoundryProjectEndpoint
 output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
 
 output FRONTEND_CONTAINER_URL string = frontendContainerApp.outputs.fqdn

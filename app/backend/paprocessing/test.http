@@ -10,6 +10,6 @@ Content-Type: application/json
     "https://storageaeastusfactory.blob.core.windows.net/pre-auth-policies/pa_proccesing_runs/eac70ae6/raw_uploaded_files/01_b_form.pdf"
   ],
   "caseId": "CASE-ABC123",
-  "use_o1": true,
+  "use_reasoning": true,
   "streamlit": false
 }

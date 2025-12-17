@@ -256,3 +256,8 @@ var connectionString = '${discoveryHost};${subscriptionId};${resourceGroupName};
 output aiFoundryId string = aiFoundry.id
 output aiFoundryPrincipalId string = aiFoundry.identity.principalId
 output aiFoundryConnectionString string = connectionString
+
+output aiFoundryProjectId string = aiFoundryProject.id
+output aiFoundryProjectPrincipalId string = aiFoundryProject.identity.principalId
+output aiFoundryProjectNameOutput string = aiFoundryProject.name
+output aiFoundryProjectEndpoint string = aiFoundryProject.properties.discoveryUrl

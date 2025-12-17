@@ -154,8 +154,20 @@ output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = resources.outputs.AZURE_OPENAI
 @description('Deployment ID for Azure OpenAI chat')
 output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_ID
 
-@description('Deployment name for Azure OpenAI chat model 01')
-output AZURE_OPENAI_CHAT_DEPLOYMENT_01 string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01
+@description('API version for Azure OpenAI chat (v1 for advanced models)')
+output AZURE_OPENAI_CHAT_API_VERSION string = resources.outputs.AZURE_OPENAI_CHAT_API_VERSION
+
+@description('Flag to use v1 API for chat deployment')
+output AZURE_OPENAI_CHAT_DEPLOYMENT_USE_V1 string = resources.outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_USE_V1
+
+@description('Deployment name for Azure OpenAI reasoning model')
+output AZURE_OPENAI_REASONING_DEPLOYMENT_ID string = resources.outputs.AZURE_OPENAI_REASONING_DEPLOYMENT_ID
+
+@description('API version for Azure OpenAI reasoning (v1 for advanced models)')
+output AZURE_OPENAI_REASONING_API_VERSION string = resources.outputs.AZURE_OPENAI_REASONING_API_VERSION
+
+@description('Flag to use v1 API for reasoning deployment')
+output AZURE_OPENAI_REASONING_DEPLOYMENT_USE_V1 string = resources.outputs.AZURE_OPENAI_REASONING_DEPLOYMENT_USE_V1
 
 @description('Deployment openai version for chat model 01')
 output AZURE_OPENAI_API_VERSION_01 string = openAiApiVersion
@@ -219,6 +231,9 @@ output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = resources.outputs.AZURE_AI_SEAR
 
 @description('AI Foundry connection string to connect to AI Foundry')
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = resources.outputs.AZURE_AI_FOUNDRY_CONNECTION_STRING
+
+@description('AI Project endpoint for Azure AI Foundry')
+output AZURE_AI_PROJECT_ENDPOINT string = resources.outputs.AZURE_AI_PROJECT_ENDPOINT
 
 
 // @description('Evaluation Job Name')

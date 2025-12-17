@@ -12525,7 +12525,7 @@
                             "value": "[parameters('chatModel').name]"
                           },
                           {
-                            "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
+                            "name": "AZURE_OPENAI_REASONING_DEPLOYMENT_ID",
                             "value": "[if(or(contains(parameters('reasoningModel').name, 'o1'), contains(parameters('reasoningModel').name, 'o3')), parameters('reasoningModel').name, '')]"
                           },
                           {
@@ -13880,7 +13880,7 @@
                             "value": "[parameters('chatModel').name]"
                           },
                           {
-                            "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
+                            "name": "AZURE_OPENAI_REASONING_DEPLOYMENT_ID",
                             "value": "[if(or(contains(parameters('reasoningModel').name, 'o1'), contains(parameters('reasoningModel').name, 'o3')), parameters('reasoningModel').name, '')]"
                           },
                           {
@@ -15467,7 +15467,7 @@
               "type": "string",
               "value": "[variables('chatCompletionModels')[0].name]"
             },
-            "AZURE_OPENAI_CHAT_DEPLOYMENT_01": {
+            "AZURE_OPENAI_REASONING_DEPLOYMENT_ID": {
               "type": "string",
               "value": "[if(contains(parameters('reasoningModel').name, 'o1'), parameters('reasoningModel').name, '')]"
             },
@@ -15630,12 +15630,12 @@
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'autoauth-resources'), '2022-09-01').outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_ID.value]"
     },
-    "AZURE_OPENAI_CHAT_DEPLOYMENT_01": {
+    "AZURE_OPENAI_REASONING_DEPLOYMENT_ID": {
       "type": "string",
       "metadata": {
         "description": "Deployment name for Azure OpenAI chat model 01"
       },
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'autoauth-resources'), '2022-09-01').outputs.AZURE_OPENAI_CHAT_DEPLOYMENT_01.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'autoauth-resources'), '2022-09-01').outputs.AZURE_OPENAI_REASONING_DEPLOYMENT_ID.value]"
     },
     "AZURE_OPENAI_API_VERSION_01": {
       "type": "string",

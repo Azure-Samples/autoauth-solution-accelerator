@@ -28,6 +28,17 @@ def keyinfo(self: logging.Logger, message, *args, **kws):
 
 logging.Logger.keyinfo = keyinfo
 
+from agent_framework.observability import setup_observability
+
+setup_observability(
+    enable_sensitive_data=True,
+    # otlp_endpoint="http://localhost:4317",
+    applicationinsights_connection_string=os.getenv(
+        "APPLICATIONINSIGHTS_CONNECTION_STRING"
+    ),
+    # vs_code_extension_port=4317
+)
+
 
 class CustomFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:

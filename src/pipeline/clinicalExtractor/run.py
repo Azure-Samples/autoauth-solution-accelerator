@@ -62,7 +62,7 @@ class ClinicalDataExtractor:
             api_key = os.getenv("AZURE_OPENAI_KEY", None)
             if api_key is None:
                 self.logger.warning(
-                    "No AZURE_OPENAI_KEY found. ClinicalDataExtractor may fail."
+                    "No AZURE_OPENAI_KEY found. ClinicalDataExtractor will use EntraID."
                 )
             azure_openai_client = AzureOpenAIManager(api_key=api_key)
         self.azure_openai_client = azure_openai_client
@@ -270,10 +270,13 @@ class ClinicalDataExtractor:
 
     async def run(
         self,
-        image_files: List[str],
-        PatientInformation: Type[BaseModel],
-        PhysicianInformation: Type[BaseModel],
-        ClinicalInformation: Type[BaseModel],
+        image_files: Optional[List[str]] = None,
+        PatientInformation: Optional[Type[BaseModel]] = None,
+        PhysicianInformation: Optional[Type[BaseModel]] = None,
+        ClinicalInformation: Optional[Type[BaseModel]] = None,
+        session_id: Optional[str] = None,
+        clinical_text: Optional[str] = None,
+        **_: Any,
     ) -> Dict[str, Any]:
         """
         Extract patient, physician, and clinical data concurrently.
@@ -283,19 +286,41 @@ class ClinicalDataExtractor:
             PatientInformation: Pydantic model for patient data.
             PhysicianInformation: Pydantic model for physician data.
             ClinicalInformation: Pydantic model for clinical data.
+            session_id: Optional session identifier (used by workflow integration).
+            clinical_text: Optional raw clinical text (not used in current extractor).
 
         Returns:
             A dictionary containing patient, physician, and clinician data along with their conversation histories.
         """
         try:
+            if session_id:
+                self.caseId = session_id
+                self.prefix = f"[caseID: {self.caseId}] "
+
+            # If no models are provided (workflow integration), return empty extraction
+            if not (PatientInformation and PhysicianInformation and ClinicalInformation):
+                self.logger.warning(
+                    "No Pydantic schemas provided; returning empty extraction payload."
+                )
+                return {
+                    "patient_data": {},
+                    "physician_data": {},
+                    "clinician_data": {
+                        "clinical_notes": clinical_text or "",
+                    },
+                    "raw_text": clinical_text or "",
+                }
+
+            safe_image_files: List[str] = image_files or []
+
             patient_data_task = self.extract_patient_data(
-                image_files, PatientInformation
+                safe_image_files, PatientInformation
             )
             physician_data_task = self.extract_physician_data(
-                image_files, PhysicianInformation
+                safe_image_files, PhysicianInformation
             )
             clinician_data_task = self.extract_clinician_data(
-                image_files, ClinicalInformation
+                safe_image_files, ClinicalInformation
             )
 
             (
@@ -310,6 +335,7 @@ class ClinicalDataExtractor:
                 "patient_data": patient_data,
                 "physician_data": physician_data,
                 "clinician_data": clinician_data,
+                "raw_text": clinical_text or "",
             }
         except Exception as e:
             self.logger.error(f"Error extracting all data: {e}")
@@ -317,4 +343,5 @@ class ClinicalDataExtractor:
                 "patient_data": None,
                 "physician_data": None,
                 "clinician_data": None,
+                "raw_text": clinical_text or "",
             }

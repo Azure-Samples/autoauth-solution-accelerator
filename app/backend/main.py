@@ -98,7 +98,7 @@ async def process_pa(request: PAProcessingRequest):
 
     - Accepts file paths or URLs to PDF documents.
     - Optionally takes a case ID to group them.
-    - Optionally sets `use_o1` to True if you want to use the O1 model for final determination.
+    - Optionally sets `use_reasoning` to True if you want to use the O1 model for final determination.
 
     Returns JSON with the pipeline results, including:
       - caseId
@@ -126,7 +126,7 @@ async def process_pa(request: PAProcessingRequest):
             uploaded_files=sanitized_files,
             streamlit=request.streamlit,
             caseId=request.caseId if request.caseId is not None else "",
-            use_o1=request.use_o1,
+            use_reasoning=request.use_reasoning,
         )
 
         results_for_case = pa_pipeline.results.get(pa_pipeline.caseId, {})

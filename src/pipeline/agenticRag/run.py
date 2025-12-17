@@ -55,7 +55,7 @@ class AgenticRAG:
         if azure_openai_client is None:
             api_key = os.getenv("AZURE_OPENAI_KEY", None)
             if api_key is None:
-                self.logger.warning("No AZURE_OPENAI_KEY found. AgenticRAG may fail.")
+                self.logger.warning("No AZURE_OPENAI_KEY found. AgenticRAG will use EntraID.")
             azure_openai_client = AzureOpenAIManager(api_key=api_key)
         self.azure_openai_client = azure_openai_client
 
@@ -320,11 +320,27 @@ class AgenticRAG:
             f"""{self.prefix}/n Evaluation response:
                          {response.get('response', {})}"""
         )
-        return response.get(
-            "response", {"policies": [], "reasoning": [], "retry": True}
-        )
 
-    async def run(self, clinical_info: Any, max_retries: int = 3) -> Dict[str, Any]:
+        # return response.get(
+        #     "response", {"policies": [], "reasoning": [], "retry": True}
+        # )
+        raw = response.get("response", {})
+        if not isinstance(raw, dict):
+            self.logger.warning(
+                "Evaluator returned non-dict; treating as final result."
+            )
+            return {"policies": [], "reasoning": [str(raw)], "retry": False}
+        merged_response = {"policies": [], "reasoning": [], "retry": False}
+        merged_response.update(raw)
+        return merged_response
+
+    async def run(
+        self,
+        clinical_info: Any = None,
+        max_retries: int = 3,
+        session_id: Optional[str] = None,
+        **_: Any,
+    ) -> Dict[str, Any]:
         """
         Orchestrates the complete RAG process:
         1. Query Expansion
@@ -339,6 +355,10 @@ class AgenticRAG:
         Returns:
             Dict[str, Any]: Dictionary containing the query, policies found, and evaluation results.
         """
+
+        if session_id:
+            self.caseId = session_id
+            self.prefix = f"[caseID: {self.caseId}] "
 
         for attempt in range(max_retries):
             self.logger.info(

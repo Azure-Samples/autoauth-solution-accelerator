@@ -649,13 +649,13 @@ class PAProcessingPipeline:
         physician_info: BaseModel,
         clinical_info: BaseModel,
         policy_text: str,
-        use_o1: bool = False,
+        use_reasoning: bool = False,
     ) -> None:
         """
         Generate final determination using AI.
         """
         user_prompt_pa = self.prompt_manager.create_prompt_pa(
-            patient_info, physician_info, clinical_info, policy_text, use_o1
+            patient_info, physician_info, clinical_info, policy_text, use_reasoning
         )
 
         self.logger.info(
@@ -663,7 +663,7 @@ class PAProcessingPipeline:
         )
         self.logger.info(f"Input clinical information: {user_prompt_pa}")
 
-        async def generate_response_with_model(model_client, prompt, use_o1):
+        async def generate_response_with_model(model_client, prompt, use_reasoning):
             try:
                 api_response = await model_client.generate_chat_response_o1(
                     query=prompt,
@@ -677,7 +677,7 @@ class PAProcessingPipeline:
                         physician_info,
                         clinical_info,
                         summarized_policy,
-                        use_o1,
+                        use_reasoning,
                     )
                     api_response = await model_client.generate_chat_response_o1(
                         query=summarized_prompt,
@@ -691,23 +691,23 @@ class PAProcessingPipeline:
                 )
                 raise e
 
-        if use_o1:
+        if use_reasoning:
             self.logger.info(
                 Fore.CYAN
                 + f"Using o1 model for final determination for {self.caseId or None}..."
             )
             try:
                 api_response_determination = await generate_response_with_model(
-                    self.azure_openai_client_o1, user_prompt_pa, use_o1
+                    self.azure_openai_client_o1, user_prompt_pa, use_reasoning
                 )
             except Exception:
                 self.logger.info(
                     Fore.CYAN
                     + f"Retrying with 4o model for final determination for {self.caseId or None}..."
                 )
-                use_o1 = False  # Fallback to 4o model
+                use_reasoning = False  # Fallback to 4o model
 
-        if not use_o1:
+        if not use_reasoning:
             max_retries = 2
             for attempt in range(1, max_retries + 1):
                 try:
@@ -735,7 +735,7 @@ class PAProcessingPipeline:
                             physician_info,
                             clinical_info,
                             summarized_policy,
-                            use_o1,
+                            use_reasoning,
                         )
                         api_response_determination = (
                             await self.azure_openai_client.generate_chat_response(
@@ -778,7 +778,7 @@ class PAProcessingPipeline:
         uploaded_files: List[str],
         streamlit: bool = False,
         caseId: str = None,
-        use_o1: bool = False,
+        use_reasoning: bool = False,
     ) -> None:
         """
         Process documents as per the pipeline flow and store the outputs.
@@ -862,7 +862,7 @@ class PAProcessingPipeline:
                     progress_bar.progress(progress / total_steps)
 
                 await self.generate_final_determination(
-                    patient_info, physician_info, clinical_info, policy_text, use_o1
+                    patient_info, physician_info, clinical_info, policy_text, use_reasoning
                 )
 
                 if streamlit:

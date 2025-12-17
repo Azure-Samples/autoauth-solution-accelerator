@@ -12320,7 +12320,7 @@
                     "value": "[parameters('chatModel').name]"
                   },
                   {
-                    "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
+                    "name": "AZURE_OPENAI_REASONING_DEPLOYMENT_ID",
                     "value": "[if(or(contains(parameters('reasoningModel').name, 'o1'), contains(parameters('reasoningModel').name, 'o3')), parameters('reasoningModel').name, '')]"
                   },
                   {
@@ -13675,7 +13675,7 @@
                     "value": "[parameters('chatModel').name]"
                   },
                   {
-                    "name": "AZURE_OPENAI_CHAT_DEPLOYMENT_01",
+                    "name": "AZURE_OPENAI_REASONING_DEPLOYMENT_ID",
                     "value": "[if(or(contains(parameters('reasoningModel').name, 'o1'), contains(parameters('reasoningModel').name, 'o3')), parameters('reasoningModel').name, '')]"
                   },
                   {
@@ -15262,7 +15262,7 @@
       "type": "string",
       "value": "[variables('chatCompletionModels')[0].name]"
     },
-    "AZURE_OPENAI_CHAT_DEPLOYMENT_01": {
+    "AZURE_OPENAI_REASONING_DEPLOYMENT_ID": {
       "type": "string",
       "value": "[if(contains(parameters('reasoningModel').name, 'o1'), parameters('reasoningModel').name, '')]"
     },

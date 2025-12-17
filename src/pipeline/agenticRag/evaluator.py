@@ -193,8 +193,11 @@ class AgenticRagEvaluator(PipelineEvaluator):
             return "\n".join(policies)
         # Example for "reasoning" scenario.
         elif self.scenario == "reasoning":
-            reasoning = generated_output.get("evaluation", {}).get("reasoning", [])
-            return "\n".join(reasoning)
+            evaluation = generated_output.get("evaluation")
+            if isinstance(evaluation, dict) and evaluation:
+                reasoning = evaluation.get("reasoning", [])
+                return "\n".join(reasoning)
+            return ""
         else:
             msg = f"Scenario not implemented: {self.scenario}"
             self.logger.error(msg)

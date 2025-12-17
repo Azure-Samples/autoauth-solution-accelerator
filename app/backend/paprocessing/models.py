@@ -10,6 +10,6 @@ class PAProcessingRequest(BaseModel):
     """
 
     uploaded_files: List[str]
-    use_o1: bool = False
+    use_reasoning: bool = False
     caseId: Optional[str] = None
     streamlit: bool = False

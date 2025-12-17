@@ -123,5 +123,5 @@ uploaded_files = [
 ]
 
 # Run the pipeline with the uploaded files
-await pa_pipeline.run(uploaded_files=uploaded_files, use_o1=True)
+await pa_pipeline.run(uploaded_files=uploaded_files, use_reasoning=True)
 ```

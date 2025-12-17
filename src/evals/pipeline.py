@@ -9,7 +9,6 @@ from abc import ABC, abstractmethod
 from typing import List, Tuple, final
 
 import yaml
-from azure.ai.evaluation import evaluate
 
 # @TODO: Remove this import when the package fix is available.
 from azure.ai.evaluation._evaluate._eval_run import EvalRun
@@ -130,20 +129,8 @@ class PipelineEvaluator(ABC):
                 # Use inspect to check if __init__ has a "model_config" parameter.
                 sig = inspect.signature(evaluator_class.__init__)
                 if "model_config" in sig.parameters:
-                    # If the caller didn't provide a model_config, then add it.
                     if "model_config" not in args or args["model_config"] is None:
-                        model_config = {
-                            "azure_endpoint": os.environ.get("AZURE_OPENAI_ENDPOINT"),
-                            "api_key": os.environ.get("AZURE_OPENAI_KEY"),
-                            "azure_deployment": os.environ.get(
-                                "AZURE_OPENAI_CHAT_DEPLOYMENT_ID"
-                            ),
-                            "api_version": os.environ.get("AZURE_OPENAI_API_VERSION"),
-                        }
-                        if any(value is None for value in model_config.values()):
-                            raise ValueError(
-                                "model_config has null values, please check your environment variables: AZURE_OPENAI_ENDPOINT, AZURE_OPENAI_KEY, AZURE_OPENAI_CHAT_DEPLOYMENT_ID."
-                            )
+                        model_config = self._build_default_model_config()
                         args["model_config"] = model_config
 
                 # Resolve each argument: if it's a string containing ":", attempt to resolve it.
@@ -165,6 +152,30 @@ class PipelineEvaluator(ABC):
                 raise RuntimeError(msg)
 
         return evaluators
+
+    def _build_default_model_config(self) -> dict:
+        endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+        deployment = os.environ.get("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
+        api_key = os.environ.get("AZURE_OPENAI_KEY")
+        api_version = os.environ.get("AZURE_OPENAI_API_VERSION")
+
+        if not endpoint or not deployment:
+            raise ValueError(
+                "model_config requires AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_CHAT_DEPLOYMENT_ID environment variables."
+            )
+
+        model_config: dict = {
+            "azure_endpoint": endpoint,
+            "azure_deployment": deployment,
+        }
+
+        if api_version:
+            model_config["api_version"] = api_version
+
+        if api_key:
+            model_config["api_key"] = api_key
+
+        return model_config
 
     def _get_git_hash(self) -> str:
         """Retrieve the current Git commit hash (short version)."""
@@ -347,6 +358,7 @@ class PipelineEvaluator(ABC):
           - Stores the Azure evaluation results in each Case object.
         """
         git_hash = self._get_git_hash()
+        log_to_project = self._should_log_to_project()
         for case_id, case_obj in self.cases.items():
             evaluators = getattr(case_obj, "evaluators", None)
             if evaluators is None:
@@ -375,14 +387,21 @@ class PipelineEvaluator(ABC):
                 custom_eval.CUSTOM_TAGS = self._generate_custom_tags(
                     case_id, git_hash, self.__class__.__name__
                 )
-                azure_result = evaluate(
+                azure_result = self.ai_foundry_manager.run_local_evaluation(
                     evaluation_name=f"{case_id}",
                     data=dataset_path,
                     evaluators=evaluators,
                     evaluator_config=evaluator_config,
-                    azure_ai_project=self.ai_foundry_manager.project_config,
+                    log_to_project=log_to_project,
                 )
                 case_obj.azure_eval_result = azure_result
+
+    def _should_log_to_project(self) -> bool:
+        env_value = os.getenv("AZURE_AI_EVALUATION_LOG_TO_PROJECT")
+        if env_value is None:
+            return True
+
+        return env_value.strip().lower() not in {"false", "0", "no"}
 
     def sanitize_args(self, args: dict, sensitive_keys: set = None) -> dict:
         """

@@ -1,109 +1,161 @@
-"""
-`aifoundry_helper.py` is a module for managing interactions with Azure AI Foundry within our application.
-"""
+"""Utility helpers for interacting with Azure AI Foundry projects."""
 
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from azure.ai.inference.tracing import AIInferenceInstrumentor
 from azure.ai.projects import AIProjectClient
+from azure.core.credentials import TokenCredential
 from azure.core.settings import settings
 from azure.identity import DefaultAzureCredential
 from azure.monitor.opentelemetry import configure_azure_monitor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+
+try:
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+except ImportError:  # pragma: no cover - optional dependency
+    HTTPXClientInstrumentor = None
 
 from src.utils.ml_logging import get_logger
 
 
 class AIFoundryManager:
-    """
-    A manager class for interacting with Azure AI Foundry.
+    """Manage Azure AI Foundry project access, telemetry, and evaluations."""
 
-    This class provides methods for initializing the AI Foundry project and setting up telemetry using OpenTelemetry.
-    """
-
-    def __init__(self, project_connection_string: Optional[str] = None):
-        """
-        Initializes the AIFoundryManager with the project connection string.
-
-        Args:
-            project_connection_string (Optional[str]): The connection string for the Azure AI Foundry project.
-                If not provided, it will be fetched from the environment variable
-                "AZURE_AI_FOUNDRY_CONNECTION_STRING".
-
-        Raises:
-            ValueError: If the project connection string is not provided.
-        """
+    def __init__(
+        self,
+        project_connection_string: Optional[str] = None,
+        project_endpoint: Optional[str] = None,
+        credential: Optional[TokenCredential] = None,
+    ) -> None:
         self.logger = get_logger(
             name="AIFoundryManager", level=10, tracing_enabled=False
         )
-        self.project_connection_string: str = project_connection_string or os.getenv(
+        self.project_connection_string = project_connection_string or os.getenv(
             "AZURE_AI_FOUNDRY_CONNECTION_STRING"
         )
+        self.project_endpoint = project_endpoint or os.getenv(
+            "AZURE_AI_PROJECT_ENDPOINT"
+        )
+        self.credential = DefaultAzureCredential()
         self.project_client: Optional[AIProjectClient] = None
-        self.project_config: Optional[dict] = None
+        self.project_config: Optional[Dict[str, str]] = None
+        self.azure_ai_project_scope: Optional[str] = None
         self._validate_configurations()
         self._initialize_project()
 
     def _validate_configurations(self) -> None:
-        """
-        Validates the necessary configurations for the AI Foundry Manager.
-
-        Raises:
-            ValueError: If any required configuration is missing.
-        """
-        if not self.project_connection_string:
-            self.logger.error("AZURE_AI_FOUNDRY_CONNECTION_STRING is not set.")
-            raise ValueError("AZURE_AI_FOUNDRY_CONNECTION_STRING is not set.")
+        if not self.project_connection_string and not self.project_endpoint:
+            message = "Either AZURE_AI_FOUNDRY_CONNECTION_STRING or AZURE_AI_PROJECT_ENDPOINT must be set."
+            self.logger.error(message)
+            raise ValueError(message)
         self.logger.info("Configuration validation successful.")
 
     def _initialize_project(self) -> None:
-        """
-        Initializes the AI Foundry project client and sets the project configuration.
-
-        The connection string is expected to have the format:
-            <endpoint>;<subscription_id>;<resource_group_name>;<project_name>
-        For example:
-            "eastus2.api.azureml.ms;28d2df62-e322-4b25-b581-c43b94bd2607;rg-priorauth-eastus2-hls-autoauth;evaluations"
-
-        This method sets:
-            self.project_config = {
-                "subscription_id": <subscription_id>,
-                "resource_group_name": <resource_group_name>,
-                "project_name": <project_name>
-            }
-
-        Then, it initializes the AIProjectClient using the connection string and DefaultAzureCredential.
-
-        Raises:
-            Exception: If initialization fails or the connection string format is invalid.
-        """
         try:
-            # Parse the connection string.
-            tokens = self.project_connection_string.split(";")
-            if len(tokens) < 4:
-                raise Exception(
-                    "Invalid connection string format: expected at least 4 semicolon-separated tokens."
+            # if self.project_connection_string:
+            #     self._configure_from_connection_string()
+
+            # if self.project_endpoint:
+            #     self.azure_ai_project_scope = self._normalize_project_scope(
+            #         self.project_endpoint
+            #     )
+
+            if self.project_connection_string and not self.project_endpoint:
+                client = AIProjectClient.from_connection_string(
+                    conn_str=self.project_connection_string,
+                    credential=self.credential,
+                )
+                self.project_client = client
+                derived_endpoint = self._extract_endpoint_from_client(client)
+                if derived_endpoint:
+                    self.project_endpoint = derived_endpoint
+                    self.azure_ai_project_scope = derived_endpoint
+            elif self.project_endpoint:
+                self.project_client = AIProjectClient(
+                    endpoint=self.project_endpoint,
+                    credential=self.credential,
                 )
 
-            # tokens[0] is the endpoint (unused here),
-            # tokens[1] is the subscription_id,
-            # tokens[2] is the resource_group_name,
-            # tokens[3] is the project_name.
-            self.project_config = {
-                "subscription_id": tokens[1],
-                "resource_group_name": tokens[2],
-                "project_name": tokens[3],
-            }
+            if not self.project_client:
+                raise RuntimeError("Unable to initialize AIProjectClient.")
 
-            self.project_client = AIProjectClient.from_connection_string(
-                conn_str=self.project_connection_string,
-                credential=DefaultAzureCredential(),
-            )
+            if self.azure_ai_project_scope is None and self.project_endpoint:
+                self.azure_ai_project_scope = self._normalize_project_scope(
+                    self.project_endpoint
+                )
+
+            if self.project_config is None:
+                self.project_config = {}
+
+            if self.project_endpoint:
+                self.project_config.setdefault("endpoint", self.project_endpoint)
+            if self.azure_ai_project_scope:
+                self.project_config.setdefault(
+                    "project_scope", self.azure_ai_project_scope
+                )
+
             self.logger.info("AIProjectClient initialized successfully.")
-        except Exception as e:
-            self.logger.error(f"Failed to initialize AIProjectClient: {e}")
-            raise Exception(f"Failed to initialize AIProjectClient: {e}")
+        except Exception as exc:  # pragma: no cover - defensive logging path
+            self.logger.error(f"Failed to initialize AIProjectClient: {exc}")
+            raise
+
+    def _configure_from_connection_string(self) -> None:
+        tokens = self.project_connection_string.split(";")
+        if len(tokens) < 4:
+            raise ValueError(
+                "Invalid connection string format: expected '<endpoint>;<subscription_id>;<resource_group_name>;<project_name>'."
+            )
+
+        endpoint_hint, subscription_id, resource_group_name, project_name = tokens[:4]
+        self.project_config = {
+            "subscription_id": subscription_id,
+            "resource_group_name": resource_group_name,
+            "project_name": project_name,
+        }
+
+        if not self.project_endpoint:
+            derived_endpoint = self._derive_project_endpoint(
+                endpoint_hint, project_name
+            )
+            if derived_endpoint:
+                self.project_endpoint = derived_endpoint
+
+    def _derive_project_endpoint(
+        self, endpoint_hint: str, project_name: str
+    ) -> Optional[str]:
+        base_endpoint = endpoint_hint.strip().rstrip("/")
+        if not base_endpoint:
+            return None
+
+        if not base_endpoint.startswith("http"):
+            base_endpoint = f"https://{base_endpoint}"
+
+        if "/api/projects" in base_endpoint:
+            if base_endpoint.endswith(project_name):
+                return base_endpoint
+            return f"{base_endpoint.rstrip('/')}/{project_name}"
+
+        return f"{base_endpoint}/api/projects/{project_name}"
+
+    def _normalize_project_scope(self, endpoint: str) -> str:
+        scope = endpoint.rstrip("/")
+        if "/api/projects" not in scope:
+            scope = f"{scope}/api/projects"
+        return scope
+
+    def _extract_endpoint_from_client(self, client: AIProjectClient) -> Optional[str]:
+        for attr in ("endpoint", "_endpoint", "_config"):
+            value = getattr(client, attr, None)
+            if isinstance(value, str) and value:
+                return value.rstrip("/")
+            if attr == "_config" and value is not None:
+                candidate = getattr(value, "endpoint", None)
+                if isinstance(candidate, str) and candidate:
+                    return candidate.rstrip("/")
+        return None
+
+    def get_project_scope(self) -> Optional[str]:
+        return self.azure_ai_project_scope
 
     def initialize_telemetry(self) -> None:
         """
@@ -144,9 +196,91 @@ class AIFoundryManager:
                 )
                 raise Exception("Application Insights is not enabled for this project.")
 
-            HTTPXClientInstrumentor().instrument()
-            self.logger.info("HTTPX instrumented for OpenTelemetry.")
+            if HTTPXClientInstrumentor is not None:
+                HTTPXClientInstrumentor().instrument()
+                self.logger.info("HTTPX instrumented for OpenTelemetry.")
+            else:
+                self.logger.warning(
+                    "HTTPX instrumentation is unavailable. Install 'opentelemetry-instrumentation-httpx' to enable it."
+                )
 
         except Exception as e:
             self.logger.error(f"Failed to initialize telemetry: {e}")
             raise Exception(f"Failed to initialize telemetry: {e}")
+
+    def run_local_evaluation(
+        self,
+        *,
+        evaluation_name: str,
+        data: Any,
+        evaluators: Dict[str, Any],
+        evaluator_config: Optional[Dict[str, Any]] = None,
+        log_to_project: bool = True,
+        **kwargs: Any,
+    ) -> Any:
+        """Execute an evaluation locally with optional Azure AI project logging."""
+        from azure.ai.evaluation import evaluate
+
+        evaluate_kwargs = {
+            "evaluation_name": evaluation_name,
+            "data": data,
+            "evaluators": evaluators,
+        }
+
+        if evaluator_config is not None:
+            evaluate_kwargs["evaluator_config"] = evaluator_config
+
+        if log_to_project:
+            azure_project = self._build_azure_project_payload()
+            if azure_project:
+                evaluate_kwargs["azure_ai_project"] = azure_project
+            else:
+                self.logger.warning(
+                    "Azure AI project logging requested but no project configuration is available."
+                )
+
+        evaluate_kwargs.update(kwargs)
+        return evaluate(**evaluate_kwargs)
+
+    def submit_cloud_evaluation(self, evaluation, **kwargs):
+        """Submit an evaluation job to Azure AI Foundry for remote execution."""
+        if not self.project_client:
+            raise RuntimeError("AIProjectClient is not initialized.")
+
+        evaluations_client = getattr(self.project_client, "evaluations", None)
+        if evaluations_client is None:
+            raise RuntimeError(
+                "Evaluations client is not available on AIProjectClient."
+            )
+
+        for method_name in (
+            "begin_create_or_update",
+            "begin_create",
+            "create",
+        ):
+            create_method = getattr(evaluations_client, method_name, None)
+            if create_method:
+                return create_method(evaluation=evaluation, **kwargs)
+
+        raise RuntimeError("No supported method to submit evaluation jobs was found.")
+
+    def _build_azure_project_payload(self) -> Optional[Dict[str, str]]:
+        if not self.project_config:
+            return None
+
+        required_keys = ("subscription_id", "resource_group_name", "project_name")
+        if all(self.project_config.get(key) for key in required_keys):
+            return {key: self.project_config[key] for key in required_keys}
+
+        payload: Dict[str, str] = {}
+        endpoint = self.project_config.get("endpoint") or self.project_endpoint
+        project_scope = (
+            self.project_config.get("project_scope") or self.azure_ai_project_scope
+        )
+
+        if endpoint:
+            payload["endpoint"] = endpoint
+        if project_scope:
+            payload["project_scope"] = project_scope
+
+        return payload or None

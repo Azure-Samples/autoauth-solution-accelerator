@@ -70,24 +70,30 @@ class OCRHelper:
         try:
             is_url = self._is_url(input_path)
 
+            # When no output_path provided, use a temp dir and clean it up later
+            if output_path is None:
+                temp_dir = tempfile.mkdtemp()
+                output_dir = temp_dir
+            else:
+                output_dir = output_path
+
             if is_url:
                 logger.info(f"Input path is a URL: {input_path}")
                 if self.blob_manager:
-                    temp_dir = tempfile.mkdtemp()
                     blob_name = self._get_blob_name_from_url(input_path)
                     local_file_path = os.path.join(
-                        temp_dir, os.path.basename(blob_name)
+                        output_dir, os.path.basename(blob_name)
                     )
 
                     logger.info(
-                        f"Downloading blob '{blob_name}' to temporary directory '{temp_dir}'."
+                        f"Downloading blob '{blob_name}' to temporary directory '{output_dir}'."
                     )
                     self.blob_manager.download_blob_to_file(
                         remote_blob_path=blob_name, local_file_path=local_file_path
                     )
 
                     extracted_images = self._process_pdf_path(
-                        local_file_path, output_path or temp_dir, dpi
+                        local_file_path, output_dir, dpi
                     )
                     image_paths.extend(extracted_images)
                 else:
@@ -99,7 +105,7 @@ class OCRHelper:
                     )
             else:
                 logger.info(f"Input path is a local file or directory: {input_path}")
-                extracted_images = self._process_pdf_path(input_path, output_path, dpi)
+                extracted_images = self._process_pdf_path(input_path, output_dir, dpi)
                 image_paths.extend(extracted_images)
 
             return image_paths

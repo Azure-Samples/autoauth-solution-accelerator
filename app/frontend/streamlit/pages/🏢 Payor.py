@@ -14,19 +14,11 @@ from azure.search.documents import SearchClient
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.cosmosdb.cosmosmongodb_helper import CosmosDBMongoCoreManager
 from src.entraid.generate_id import generate_unique_id
-from src.pipeline.paprocessing.run import PAProcessingPipeline
+from src.agenticai.streamlit_adapter import create_pa_pipeline
 from src.pipeline.promptEngineering.prompt_manager import PromptManager
 from src.utils.ml_logging import get_logger
 
 logger = get_logger()
-
-# Import MAF adapter for new Agent Framework processing
-try:
-    from src.agenticai.streamlit_adapter import MAFPipelineAdapter, create_pa_pipeline
-    MAF_AVAILABLE = True
-except ImportError:
-    MAF_AVAILABLE = False
-    logger.warning("Microsoft Agent Framework not available. MAF mode disabled.")
 
 dotenv.load_dotenv(".env", override=True)
 
@@ -34,8 +26,8 @@ dotenv.load_dotenv(".env", override=True)
 if "cosmosdb_manager" not in st.session_state:
     st.session_state["cosmosdb_manager"] = CosmosDBMongoCoreManager(
         connection_string=os.getenv("AZURE_COSMOS_CONNECTION_STRING"),
-        database_name=os.getenv("AZURE_COSMOS_DB_DATABASE_NAME"),
-        collection_name=os.getenv("AZURE_COSMOS_DB_COLLECTION_NAME"),
+        database_name=os.getenv("AZURE_COSMOS_DATABASE_NAME"),
+        collection_name=os.getenv("AZURE_COSMOS_COLLECTION_NAME"),
     )
 
 if "azure_openai_client_4o" not in st.session_state:
@@ -375,37 +367,28 @@ async def update_results_with_markdown(pa_result):
     return markdown_response["response"]
 
 
-async def run_pipeline_with_spinner(uploaded_files, use_o1, use_maf=False, use_maf_mock=False):
+async def run_pipeline_with_spinner(uploaded_files, use_reasoning, use_maf):
     caseID = generate_unique_id()
     with st.spinner("Processing... Please wait."):
+        if use_reasoning:
+            st.toast("Using reasoning model for final determination.", icon="🔥")
+
         if use_maf:
-            st.toast("🚀 Using Microsoft Agent Framework workflow", icon="⚡")
-            if use_maf_mock:
-                st.toast("Running in mock mode (no Azure calls)", icon="🧪")
-            pa_processing = MAFPipelineAdapter(
-                use_mock=use_maf_mock,
-                send_cloud_logs=True
-            )
-        else:
-            if use_o1:
-                st.toast("Using the o1 model for final determination.", icon="🔥")
-            pa_processing = PAProcessingPipeline(send_cloud_logs=True)
+            st.toast("Running workflow-based PA pipeline (MAF).", icon="🕸️")
+
+        pa_processing = create_pa_pipeline(use_maf=use_maf, send_cloud_logs=True)
 
         await pa_processing.run(
-            uploaded_files, streamlit=True, caseId=caseID, use_o1=use_o1
+            uploaded_files, streamlit=True, caseId=caseID, use_reasoning=use_reasoning
         )
 
     last_key = next(iter(pa_processing.results.keys()))
 
-    # formatting for o1 markdown (skip for MAF as it's already formatted)
-    if not use_maf:
-        additional_result = await update_results_with_markdown(
-            pa_processing.results[last_key]
-        )
-        pa_processing.results[last_key]["pa_determination_results_md"] = additional_result
-    
-    # Store the processing mode for display
-    pa_processing.results[last_key]["processing_mode"] = "maf" if use_maf else "legacy"
+    # formatting for o1 markdown
+    additional_result = await update_results_with_markdown(
+        pa_processing.results[last_key]
+    )
+    pa_processing.results[last_key]["pa_determination_results_md"] = additional_result
 
     if "case_ids" not in st.session_state:
         st.session_state["case_ids"] = []
@@ -427,13 +410,6 @@ async def run_pipeline_with_spinner(uploaded_files, use_o1, use_maf=False, use_m
 
 def display_case_data(document, results_container):
     with results_container:
-        # Show processing mode badge
-        processing_mode = document.get("processing_mode", "legacy")
-        if processing_mode == "maf":
-            st.success("⚡ Processed with **Microsoft Agent Framework**")
-        else:
-            st.info("🔧 Processed with **Legacy Pipeline**")
-        
         tab1, tab2, tab3, tab4, tab5 = st.tabs(
             [
                 "📋 AI Determination",
@@ -592,43 +568,13 @@ def main() -> None:
         unsafe_allow_html=True,
     )
 
-    USE_O1 = True
+    use_maf = st.sidebar.toggle(
+        "Use workflow (MAF)",
+        value=False,
+        help="Run the Microsoft Agent Framework workflow instead of the legacy pipeline.",
+    )
 
-    # Processing Mode Selection
-    st.sidebar.markdown("### ⚙️ Processing Mode")
-    
-    # MAF toggle - only show if MAF is available
-    if MAF_AVAILABLE:
-        use_maf = st.sidebar.toggle(
-            "🚀 Use Agent Framework",
-            value=False,
-            help="Enable Microsoft Agent Framework for processing. This is the new agentic workflow architecture."
-        )
-        
-        if use_maf:
-            use_maf_mock = st.sidebar.toggle(
-                "🧪 Mock Mode (Testing)",
-                value=True,
-                help="Use mock implementations - no Azure calls. Useful for testing the workflow."
-            )
-            st.sidebar.info(
-                "**Agent Framework Mode**\n\n"
-                "Using the new Microsoft Agent Framework workflow with:\n"
-                "- ClinicalExtractor Executor\n"
-                "- AgenticRAG Executor\n"
-                "- Determination Executor"
-            )
-        else:
-            use_maf_mock = False
-    else:
-        use_maf = False
-        use_maf_mock = False
-        st.sidebar.warning(
-            "⚠️ Agent Framework not available.\n\n"
-            "Install with: `pip install agent-framework-azure-ai --pre`"
-        )
-
-    st.sidebar.markdown("")
+    use_reasoning = True
 
     st.sidebar.markdown(
         '<div class="centered-button-container">', unsafe_allow_html=True
@@ -652,10 +598,7 @@ def main() -> None:
             with results_container:
                 selected_case_id = asyncio.run(
                     run_pipeline_with_spinner(
-                        uploaded_file_paths, 
-                        USE_O1,
-                        use_maf=use_maf,
-                        use_maf_mock=use_maf_mock
+                        uploaded_file_paths, use_reasoning, use_maf
                     )
                 )
         finally:

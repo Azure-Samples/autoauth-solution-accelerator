@@ -50,7 +50,7 @@ class PromptManager:
         physician_info: BaseModel,
         clinical_info: BaseModel,
         policy_text: str,
-        use_o1: bool = False,
+        use_reasoning: bool = False,
     ) -> str:
         """
         Create a prompt for prior authorization based on patient, physician, clinical information, and policy text.
@@ -60,14 +60,14 @@ class PromptManager:
             physician_info (BaseModel): A model instance for physician information.
             clinical_info (BaseModel): A model instance for clinical information.
             policy_text (str): The policy text to include in the prompt.
-            use_o1 (bool): Indicates whether to use the o1 model. Defaults to False.
+            use_reasoning (bool): Indicates whether to use the o1 model. Defaults to False.
 
         Returns:
             str: The rendered prior authorization prompt.
         """
         template_name = (
             "prior_auth_o1_user_prompt.jinja"
-            if use_o1
+            if use_reasoning
             else "prior_auth_user_prompt.jinja"
         )
 
@@ -162,25 +162,57 @@ class PromptManager:
             query=query,
         )
 
-    def create_prompt_formulator_user(self, clinical_info: BaseModel) -> str:
+    def create_prompt_formulator_user(self, clinical_info: Any) -> str:
         """
         Create a user prompt for query formulation (using query expansion).
 
         Args:
-            clinical_info (BaseModel): A model instance containing clinical information.
+            clinical_info (Any): Clinical information (BaseModel or dict).
 
         Returns:
             str: The rendered prompt (formulator_user_prompt.jinja) that guides how to
                  construct an optimized search query with synonyms, related terms, etc.
         """
+        # Handle both dict and BaseModel inputs
+        if isinstance(clinical_info, dict):
+            diagnosis = clinical_info.get("diagnosis", "Not provided")
+            treatment_req = clinical_info.get("treatment_request", {})
+            if isinstance(treatment_req, dict):
+                medication_or_procedure = treatment_req.get("name_of_medication_or_procedure", "Not provided")
+                code = treatment_req.get("code_of_medication_or_procedure", "Not provided")
+                dosage = treatment_req.get("dosage", "Not provided")
+                duration = treatment_req.get("duration", "Not provided")
+                rationale = treatment_req.get("rationale", "Not provided")
+            else:
+                medication_or_procedure = getattr(treatment_req, "name_of_medication_or_procedure", "Not provided")
+                code = getattr(treatment_req, "code_of_medication_or_procedure", "Not provided")
+                dosage = getattr(treatment_req, "dosage", "Not provided")
+                duration = getattr(treatment_req, "duration", "Not provided")
+                rationale = getattr(treatment_req, "rationale", "Not provided")
+        else:
+            diagnosis = getattr(clinical_info, "diagnosis", "Not provided")
+            treatment_req = getattr(clinical_info, "treatment_request", None)
+            if treatment_req:
+                medication_or_procedure = getattr(treatment_req, "name_of_medication_or_procedure", "Not provided")
+                code = getattr(treatment_req, "code_of_medication_or_procedure", "Not provided")
+                dosage = getattr(treatment_req, "dosage", "Not provided")
+                duration = getattr(treatment_req, "duration", "Not provided")
+                rationale = getattr(treatment_req, "rationale", "Not provided")
+            else:
+                medication_or_procedure = "Not provided"
+                code = "Not provided"
+                dosage = "Not provided"
+                duration = "Not provided"
+                rationale = "Not provided"
+
         return self.get_prompt(
             "formulator_user_prompt.jinja",
-            diagnosis=clinical_info.diagnosis,
-            medication_or_procedure=clinical_info.treatment_request.name_of_medication_or_procedure,
-            code=clinical_info.treatment_request.code_of_medication_or_procedure,
-            dosage=clinical_info.treatment_request.dosage,
-            duration=clinical_info.treatment_request.duration,
-            rationale=clinical_info.treatment_request.rationale,
+            diagnosis=diagnosis,
+            medication_or_procedure=medication_or_procedure,
+            code=code,
+            dosage=dosage,
+            duration=duration,
+            rationale=rationale,
         )
 
     def create_prompt_evaluator_user(

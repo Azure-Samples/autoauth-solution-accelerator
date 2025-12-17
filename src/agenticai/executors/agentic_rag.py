@@ -104,6 +104,9 @@ class AgenticRAGExecutor(Executor):
                 "Policies cover medical necessity criteria and documentation requirements."
             ),
             query_expansions=query_expansions,
+            clinical_data=extraction.clinical_data,
+            patient_data=extraction.patient_data,
+            physician_data=extraction.physician_data,
         )
 
     @handler
@@ -134,6 +137,9 @@ class AgenticRAGExecutor(Executor):
                 evaluation_score=raw_result.get("score", 0.0),
                 reasoning=raw_result.get("reasoning", ""),
                 query_expansions=raw_result.get("query_expansions", []),
+                clinical_data=extraction.clinical_data,
+                patient_data=extraction.patient_data,
+                physician_data=extraction.physician_data,
             )
 
         logger.info(

@@ -466,7 +466,7 @@ class PAProcessingPipeline:
         uploaded_files: List[str],
         streamlit: bool = False,
         caseId: str = None,
-        use_o1: bool = False,
+        use_reasoning: bool = False,
     ) -> None:
         """
         Process documents as per the pipeline flow and store the outputs.
@@ -483,7 +483,7 @@ class PAProcessingPipeline:
             uploaded_files: A list of PDF file paths to process.
             streamlit: Whether to update a Streamlit UI during processing.
             caseId: Optional case ID.
-            use_o1: Whether to attempt using O1 model first for final determination.
+            use_reasoning: Whether to attempt using O1 model first for final determination.
         """
         dynamic_logger_name = f"Case_{caseId}" if caseId else "PaProcessing"
 
@@ -603,7 +603,7 @@ class PAProcessingPipeline:
                     clinical_info=clinical_info,
                     policy_text=policy_text,
                     summarize_policy_callback=summarize_policy_callback,
-                    use_o1=use_o1,
+                    use_reasoning=use_reasoning,
                 )
 
                 self.log_output(

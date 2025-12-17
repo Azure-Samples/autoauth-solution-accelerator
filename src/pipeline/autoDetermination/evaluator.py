@@ -261,7 +261,7 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
                 summary = await self._summarize_policy(text)
                 return summary
 
-            use_o1 = bool(os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_01"))
+            use_reasoning = bool(os.getenv("AZURE_OPENAI_REASONING_DEPLOYMENT_ID"))
 
             final_text, _conv_history = await self.auto_determinator.run(
                 patient_info=patient_info,
@@ -269,7 +269,7 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
                 clinical_info=clinical_info,
                 policy_text=policy_text,
                 summarize_policy_callback=summarize_policy_callback,
-                use_o1=use_o1,  # or True if you want to try your O1 path first
+                use_reasoning=use_reasoning,  # or True if you want to try your O1 path first
                 caseId=self.case_id,
             )
             dt_completed = datetime.now().isoformat()

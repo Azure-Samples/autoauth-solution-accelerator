@@ -9,7 +9,6 @@ interface while using the new workflow infrastructure.
 import asyncio
 import os
 import uuid
-from dataclasses import asdict
 from typing import Any, Dict, List, Optional
 
 import dotenv
@@ -71,7 +70,7 @@ class MAFPipelineAdapter:
         uploaded_files: List[str],
         streamlit: bool = False,
         caseId: Optional[str] = None,
-        use_o1: bool = False,
+        use_reasoning: bool = False,
     ) -> str:
         """
         Run the PA processing workflow using Microsoft Agent Framework.
@@ -83,7 +82,7 @@ class MAFPipelineAdapter:
             uploaded_files: List of file paths to process
             streamlit: Whether running in Streamlit context
             caseId: Optional case ID (generated if not provided)
-            use_o1: Whether to use o1 model (passed to determination)
+            use_reasoning: Whether to use reasoning model (passed to determination)
             
         Returns:
             The case ID for this processing run
@@ -94,7 +93,7 @@ class MAFPipelineAdapter:
         
         logger.info(f"[MAF] Starting PA workflow for case {case_id}")
         logger.info(f"[MAF] Processing {len(uploaded_files)} files")
-        logger.info(f"[MAF] Use mock: {self.use_mock}, Use o1: {use_o1}")
+        logger.info(f"[MAF] Use mock: {self.use_mock}, use reasoning: {use_reasoning}")
         
         # Build clinical text from uploaded files
         clinical_text = await self._extract_text_from_files(uploaded_files)
@@ -109,7 +108,7 @@ class MAFPipelineAdapter:
             diagnosis_codes=[],   # Extracted during processing
             metadata={
                 "uploaded_files": [os.path.basename(f) for f in uploaded_files],
-                "use_o1": use_o1,
+                "use_reasoning": use_reasoning,
                 "streamlit": streamlit,
             }
         )
@@ -154,6 +153,8 @@ class MAFPipelineAdapter:
                 AzureDocumentIntelligenceManager,
             )
             from src.extractors.pdfhandler import OCRHelper
+            import tempfile
+            import shutil
             
             doc_intel = AzureDocumentIntelligenceManager()
             ocr_helper = OCRHelper()
@@ -161,12 +162,21 @@ class MAFPipelineAdapter:
             all_text = []
             for file_path in file_paths:
                 if file_path.lower().endswith('.pdf'):
-                    # Extract images from PDF and OCR
-                    images = ocr_helper.extract_images_from_pdf(file_path)
-                    for img_path in images:
-                        result = doc_intel.analyze_document(img_path)
-                        if hasattr(result, 'content') and result.content:
-                            all_text.append(result.content)
+                    temp_dir = tempfile.mkdtemp()
+                    try:
+                        # Extract images from PDF and OCR
+                        images = ocr_helper.extract_images_from_pdf(
+                            file_path, output_path=temp_dir
+                        )
+                        for img_path in images:
+                            result = doc_intel.analyze_document(img_path)
+                            if hasattr(result, 'content') and result.content:
+                                all_text.append(result.content)
+                    finally:
+                        try:
+                            shutil.rmtree(temp_dir)
+                        except Exception:
+                            pass
                 else:
                     # Direct OCR on image
                     result = doc_intel.analyze_document(file_path)
@@ -181,18 +191,30 @@ class MAFPipelineAdapter:
 
     async def _execute_workflow(self, request) -> Dict[str, Any]:
         """Execute the MAF workflow and return results."""
-        from agent_framework import WorkflowOutputEvent
+        from agent_framework import WorkflowOutputEvent, ExecutorCompletedEvent
+        from src.agenticai.messages import ExtractionResult, PolicyRetrievalResult, DeterminationResult
         
-        # Convert request to dict for the workflow input
-        request_dict = asdict(request)
+        # Collect all intermediate results
+        workflow_results = {
+            "extraction": None,
+            "retrieval": None,
+            "determination": None,
+        }
         
         # Run the workflow using streaming API
-        result_data = {}
-        async for event in self._workflow.run_stream(request_dict):
-            if isinstance(event, WorkflowOutputEvent):
-                result_data = event.data
+        async for event in self._workflow.run_stream(request):
+            # Collect intermediate executor outputs
+            if isinstance(event, ExecutorCompletedEvent):
+                if event.executor_id == "clinical_extractor" and isinstance(event.data, ExtractionResult):
+                    workflow_results["extraction"] = event.data
+                elif event.executor_id == "agentic_rag" and isinstance(event.data, PolicyRetrievalResult):
+                    workflow_results["retrieval"] = event.data
+            # Final output
+            elif isinstance(event, WorkflowOutputEvent):
+                if isinstance(event.data, DeterminationResult):
+                    workflow_results["determination"] = event.data
         
-        return result_data if result_data else {}
+        return workflow_results
 
     def _transform_to_legacy_format(
         self, 
@@ -210,20 +232,25 @@ class MAFPipelineAdapter:
         - raw_uploaded_files: Original file names
         """
         # Extract components from MAF result
-        extraction = maf_result.get("extraction", {})
-        retrieval = maf_result.get("retrieval", {})
-        determination = maf_result.get("determination", {})
+        extraction = maf_result.get("extraction")
+        retrieval = maf_result.get("retrieval")
+        determination = maf_result.get("determination")
+        
+        # Handle missing extraction data
+        patient_data = getattr(extraction, "patient_data", {}) if extraction else {}
+        physician_data = getattr(extraction, "physician_data", {}) if extraction else {}
+        clinical_data = getattr(extraction, "clinical_data", {}) if extraction else {}
         
         # Build OCR/NER results in legacy format
         ocr_ner_results = {
-            "patient_info": extraction.get("patient_data", {
+            "patient_info": patient_data or {
                 "patient_name": "Not provided",
                 "patient_date_of_birth": "Not provided",
                 "patient_id": "Not provided",
                 "patient_address": "Not provided",
                 "patient_phone_number": "Not provided",
-            }),
-            "physician_info": extraction.get("physician_data", {
+            },
+            "physician_info": physician_data or {
                 "physician_name": "Not provided",
                 "specialty": "Not provided",
                 "physician_contact": {
@@ -231,8 +258,8 @@ class MAFPipelineAdapter:
                     "fax": "Not provided",
                     "office_address": "Not provided",
                 }
-            }),
-            "clinical_info": extraction.get("clinical_data", {
+            },
+            "clinical_info": clinical_data or {
                 "diagnosis": "Not provided",
                 "icd_10_code": "Not provided",
                 "prior_treatments_and_results": "Not provided",
@@ -242,30 +269,31 @@ class MAFPipelineAdapter:
                 "symptom_severity_and_impact": "Not provided",
                 "prognosis_and_risk_if_not_approved": "Not provided",
                 "clinical_rationale_for_urgency": "Not provided",
-                "treatment_request": extraction.get("treatment_request", {
+                "treatment_request": clinical_data.get("treatment_request", {}) if clinical_data else {
                     "name_of_medication_or_procedure": "Not provided",
                     "code_of_medication_or_procedure": "Not provided",
                     "dosage": "Not provided",
                     "duration": "Not provided",
                     "rationale": "Not provided",
-                })
-            }),
+                }
+            },
         }
         
         # Build agentic RAG results
-        policies = retrieval.get("policies", [])
+        policies = getattr(retrieval, "relevant_policies", []) if retrieval else []
         policy_texts = [p.get("content", "") for p in policies] if isinstance(policies, list) else []
         
         agenticrag_results = {
             "policies": "\n\n".join(policy_texts) if policy_texts else "No policies retrieved",
-            "evaluation_score": retrieval.get("evaluation_score", 0),
-            "query_expansion": retrieval.get("expanded_queries", []),
+            "evaluation_score": getattr(retrieval, "evaluation_score", 0) if retrieval else 0,
+            "query_expansion": getattr(retrieval, "query_expansions", []) if retrieval else [],
         }
         
         # Build determination result
-        decision = determination.get("decision", "pending_review")
-        reasoning = determination.get("reasoning", "No reasoning provided")
-        confidence = determination.get("confidence_score", 0)
+        decision = getattr(determination, "decision", "pending_review") if determination else "pending_review"
+        reasoning = getattr(determination, "reasoning", "No reasoning provided") if determination else "No reasoning provided"
+        confidence = getattr(determination, "confidence_score", 0) if determination else 0
+        supporting_evidence = getattr(determination, "supporting_evidence", []) if determination else []
         
         pa_determination_results = f"""
 ## Prior Authorization Determination
@@ -277,7 +305,7 @@ class MAFPipelineAdapter:
 {reasoning}
 
 ### Supporting Evidence
-{chr(10).join(f'- {e}' for e in determination.get('supporting_evidence', []))}
+{chr(10).join(f'- {e}' for e in supporting_evidence)}
 """
         
         return {
@@ -290,7 +318,7 @@ class MAFPipelineAdapter:
             "maf_metadata": {
                 "decision": decision,
                 "confidence_score": confidence,
-                "requires_human_review": determination.get("requires_human_review", False),
+                "requires_human_review": getattr(determination, "requires_human_review", False) if determination else True,
             }
         }
 

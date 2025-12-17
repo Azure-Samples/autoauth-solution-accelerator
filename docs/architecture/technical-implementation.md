@@ -25,7 +25,7 @@ class PAProcessingPipeline:
     - Final determination generation
     """
 
-    async def run(self, uploaded_files, streamlit=False, caseId=None, use_o1=False):
+    async def run(self, uploaded_files, streamlit=False, caseId=None, use_reasoning=False):
         """
         Main processing workflow:
         1. Process and extract images from uploaded PDF files
@@ -250,26 +250,26 @@ class AutoPADeterminator:
     """
 
     async def run(self, patient_info, physician_info, clinical_info, policy_text,
-                  summarize_policy_callback, use_o1=False, caseId=None):
+                  summarize_policy_callback, use_reasoning=False, caseId=None):
         """
         Generate final determination with O1/GPT-4 fallback and retry logic.
         """
         # Create structured prompt
         user_prompt = self.prompt_manager.create_prompt_pa(
-            patient_info, physician_info, clinical_info, policy_text, use_o1
+            patient_info, physician_info, clinical_info, policy_text, use_reasoning
         )
 
         # Try O1 model first if available
-        if use_o1:
+        if use_reasoning:
             try:
                 return await self._generate_with_o1(user_prompt, policy_text,
                                                   summarize_policy_callback)
             except Exception as e:
                 self.logger.info(f"O1 model failed, falling back to GPT-4: {e}")
-                use_o1 = False
+                use_reasoning = False
 
         # Fallback to GPT-4 with retry logic
-        if not use_o1:
+        if not use_reasoning:
             return await self._generate_with_gpt4(user_prompt, policy_text,
                                                  summarize_policy_callback)
 ```
@@ -535,7 +535,7 @@ async def process_pa(request: PAProcessingRequest):
     {
         "uploaded_files": ["file1.pdf", "file2.pdf"],
         "caseId": "optional-case-id",
-        "use_o1": false,
+        "use_reasoning": false,
         "streamlit": false
     }
 
@@ -558,7 +558,7 @@ async def process_pa(request: PAProcessingRequest):
         await pipeline.run(
             uploaded_files=request.uploaded_files,
             streamlit=request.streamlit,
-            use_o1=request.use_o1
+            use_reasoning=request.use_reasoning
         )
 
         return {
@@ -661,7 +661,7 @@ class TestPAProcessingIntegration(unittest.TestCase):
 
         await pipeline.run(
             uploaded_files=test_files,
-            use_o1=False
+            use_reasoning=False
         )
 
         # Verify results
@@ -727,7 +727,7 @@ class PAProcessingPipeline:
                 "custom_dimensions": {
                     "caseId": self.caseId,
                     "file_count": len(uploaded_files),
-                    "use_o1": kwargs.get("use_o1", False)
+                    "use_reasoning": kwargs.get("use_reasoning", False)
                 }
             }
         )

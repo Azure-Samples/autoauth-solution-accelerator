@@ -102,6 +102,15 @@ class PolicyRetrievalResult:
     query_expansions: list[str] = field(default_factory=list)
     """Query variations used during retrieval."""
 
+    clinical_data: dict[str, Any] = field(default_factory=dict)
+    """Clinical information carried forward from extraction."""
+
+    patient_data: dict[str, Any] = field(default_factory=dict)
+    """Patient information carried forward from extraction."""
+
+    physician_data: dict[str, Any] = field(default_factory=dict)
+    """Physician information carried forward from extraction."""
+
 
 @dataclass
 class DeterminationRequest:

@@ -130,15 +130,34 @@ class DeterminationExecutor(Executor):
             raw_result = await determinator.run(
                 session_id=retrieval.session_id,
                 policies=retrieval.relevant_policies,
+                clinical_data=retrieval.clinical_data,
+                patient_info=retrieval.patient_data,
+                physician_info=retrieval.physician_data,
             )
-            result = DeterminationResult(
-                session_id=retrieval.session_id,
-                decision=raw_result.get("decision", "pending_review"),
-                reasoning=raw_result.get("reasoning", ""),
-                confidence_score=raw_result.get("confidence", 0.0),
-                supporting_evidence=raw_result.get("evidence", []),
-                requires_human_review=raw_result.get("requires_review", True),
-            )
+            
+            # AutoPADeterminator.run() returns (final_response: str, conversation_history: list)
+            if isinstance(raw_result, tuple):
+                final_response, conversation_history = raw_result
+                # Parse the response text to extract decision components
+                # For now, return the full text as reasoning with pending_review
+                result = DeterminationResult(
+                    session_id=retrieval.session_id,
+                    decision="pending_review",  # Default until we parse the response
+                    reasoning=final_response,
+                    confidence_score=0.75,
+                    supporting_evidence=[f"Conversation history: {len(conversation_history)} messages"],
+                    requires_human_review=True,
+                )
+            else:
+                # Fallback for dict format (should not happen with current implementation)
+                result = DeterminationResult(
+                    session_id=retrieval.session_id,
+                    decision=raw_result.get("decision", "pending_review"),
+                    reasoning=raw_result.get("reasoning", ""),
+                    confidence_score=raw_result.get("confidence", 0.0),
+                    supporting_evidence=raw_result.get("evidence", []),
+                    requires_human_review=raw_result.get("requires_review", True),
+                )
 
         logger.info(
             f"[{self.id}] Determination complete. "

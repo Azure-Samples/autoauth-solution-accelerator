@@ -106,7 +106,7 @@ class ClinicalExtractorExecutor(Executor):
             extractor = await self._ensure_extractor()
             # Call the real extractor
             raw_result = await extractor.run(
-                session_id=request.session_id,
+                # session_id=request.session_id,
                 clinical_text=request.clinical_text,
             )
             result = ExtractionResult(

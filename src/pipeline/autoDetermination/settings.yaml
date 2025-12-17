@@ -12,12 +12,12 @@ run:
     presence_penalty: 0.0
     system_prompt: "prior_auth_user_prompt.jinja"
     user_prompt: "prior_auth_user_prompt.jinja"
-    use_o1: False
+    use_reasoning: False
 
   o1_autoDetermination:
     max_completion_tokens: 15000
     user_prompt: "prior_auth_o1_user_prompt.jinja"
-    use_o1: True
+    use_reasoning: True
 
 azure_openai:
   temperature: 0

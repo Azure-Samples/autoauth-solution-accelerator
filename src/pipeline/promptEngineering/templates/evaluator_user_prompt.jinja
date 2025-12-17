@@ -40,6 +40,7 @@ Produce a JSON-like object containing three keys:
      - The search results are insufficient or incomplete.
      - Critical policy details are missing (e.g., no mention of the specific condition or medication).
      - A broader or more detailed search query is required.
+    - **When retry is true, include a final reasoning entry explaining why another attempt is required. Prefix it with `Retry reason:` for clarity.**
    - Otherwise, set **retry** to **false**.
 
 **Example Output:**
@@ -80,5 +81,8 @@ Important:
   "reasoning": [
     // Short statements explaining why each policy was approved (mentioning coverage details, dosage, etc.) or rejected (irrelevant, insufficient info).
   ],
-  "retry": false // Or true if insufficient data, missing coverage specifics, or another search pass is required.
+  "retry": false, // Or true if insufficient data, missing coverage specifics, or another search pass is required.
+  "retry_reasoning": [
+    // If retry is true, add short statements explaining the missing information or next steps.
+  ]
 }

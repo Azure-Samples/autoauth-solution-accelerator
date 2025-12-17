@@ -42,8 +42,8 @@
     },
     "reasoningModel": {
       "value": {
-        "name": "o1",
-        "version": "2024-12-17",
+        "name": "o3-mini",
+        "version": "2025-01-31",
         "skuName": "GlobalStandard",
         "capacity": 50
       }

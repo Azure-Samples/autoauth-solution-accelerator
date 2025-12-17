@@ -53,7 +53,7 @@ class AutoPADeterminator:
             api_key = os.getenv("AZURE_OPENAI_KEY", None)
             if api_key is None:
                 self.logger.warning(
-                    "No AZURE_OPENAI_KEY found. AutoPADeterminator may fail."
+                    "No AZURE_OPENAI_KEY found. AutoPADeterminator will use EntraID."
                 )
             azure_openai_client = AzureOpenAIManager(api_key=api_key)
         self.azure_openai_client = azure_openai_client
@@ -65,15 +65,48 @@ class AutoPADeterminator:
 
         self.prompt_manager = prompt_manager or PromptManager()
 
+    def _get_reasoning_model_settings(self) -> dict:
+        """Return configuration for reasoning model (o1/o3), or empty if not set.
+
+        Checks environment variables for reasoning deployment/model and pairs with
+        configured max tokens. This prevents AttributeError when reasoning is
+        requested but settings are absent.
+        """
+        deployment = os.getenv("AZURE_OPENAI_REASONING_DEPLOYMENT_ID") or os.getenv(
+            "AZURE_OPENAI_REASONING_MODEL_ID"
+        )
+        if not deployment:
+            return {}
+
+        api_version = (
+            os.getenv("AZURE_OPENAI_REASONING_API_VERSION")
+            or os.getenv("AZURE_OPENAI_API_VERSION_01")
+            or os.getenv("AZURE_OPENAI_API_VERSION")
+            or "2025-03-01-preview"
+        )
+
+        return {
+            "deployment": deployment,
+            "alias": deployment,
+            "api_version": api_version,
+            "max_completion_tokens": self.o1_auto_determination_config.get(
+                "max_completion_tokens", 15000
+            ),
+        }
+
     async def run(
         self,
-        patient_info: Any,
-        physician_info: Any,
-        clinical_info: Any,
-        policy_text: str,
-        summarize_policy_callback: Callable[[str], Any],
-        use_o1: bool = False,
+        patient_info: Any = None,
+        physician_info: Any = None,
+        clinical_info: Any = None,
+        policy_text: Optional[str] = None,
+        summarize_policy_callback: Optional[Callable[[str], Any]] = None,
+        use_reasoning: bool = False,
         caseId: Optional[str] = None,
+        session_id: Optional[str] = None,
+        policies: Optional[Any] = None,
+        clinical_data: Optional[Any] = None,
+        **_: Any,
     ) -> Tuple[str, List[str]]:
         """
         Generate the final determination for the PA request. If maximum context length is exceeded,
@@ -86,28 +119,106 @@ class AutoPADeterminator:
             clinical_info: Clinical data model.
             policy_text: The relevant policy text.
             summarize_policy_callback: Callback to summarize the policy if needed.
-            use_o1: Whether to attempt using the O1 model first.
+            use_reasoning: Whether to attempt using the O1 model first.
 
         Returns:
             A tuple containing the final determination text and the conversation history.
         """
-        if caseId:
-            self.caseId = caseId
+        resolved_case_id = caseId or session_id
+        if resolved_case_id:
+            self.caseId = resolved_case_id
             self.prefix = f"[caseID: {self.caseId}] "
 
-        user_prompt_pa = self.prompt_manager.create_prompt_pa(
-            patient_info, physician_info, clinical_info, policy_text, use_o1
+        # Fallbacks when called from MAF workflow
+        if clinical_data and not clinical_info:
+            clinical_info = clinical_data
+        if not patient_info:
+            patient_info = clinical_info.get("patient_info", {}) if isinstance(clinical_info, dict) else {}
+        if not physician_info:
+            physician_info = clinical_info.get("physician_info", {}) if isinstance(clinical_info, dict) else {}
+
+        # Convert dicts to Pydantic models for prompt manager
+        from src.pipeline.promptEngineering.models import (
+            PatientInformation,
+            PhysicianInformation,
+            ClinicalInformation,
         )
+        # Handle None or empty clinical_info
+        if clinical_info is None:
+            clinical_info = {}
+        if isinstance(patient_info, dict):
+            patient_info = PatientInformation(**patient_info)
+        if isinstance(physician_info, dict):
+            physician_info = PhysicianInformation(**physician_info)
+        if isinstance(clinical_info, dict):
+            clinical_info = ClinicalInformation(**clinical_info)
+
+        # Build policy text from policies list if not provided
+        if policy_text is None and policies:
+            try:
+                policy_texts = []
+                if isinstance(policies, list):
+                    for p in policies:
+                        if isinstance(p, dict):
+                            policy_texts.append(p.get("content") or p.get("text") or "")
+                        else:
+                            policy_texts.append(str(p))
+                else:
+                    policy_texts.append(str(policies))
+                policy_text = "\n\n".join([p for p in policy_texts if p]) or ""
+            except Exception:
+                policy_text = ""
+
+        # Default summarizer if not provided
+        if summarize_policy_callback is None:
+            async def summarize_policy_callback(text: str) -> str:
+                return text
+
+        user_prompt_pa = self.prompt_manager.create_prompt_pa(
+            patient_info, physician_info, clinical_info, policy_text, use_reasoning
+        )
+
+        # Normalize flag naming (use_reasoning == use_reasoning) for downstream calls
+        use_reasoning = bool(use_reasoning)
 
         self.logger.info(Fore.CYAN + f"Generating final determination for {caseId}")
         self.logger.info(f"Input clinical information: {user_prompt_pa}")
 
-        async def generate_response_with_model(model_client, prompt, use_o1_flag):
+        reasoning_getter = getattr(self, "_get_reasoning_model_settings", None)
+        if callable(reasoning_getter):
+            reasoning_settings = reasoning_getter()
+        else:
+            reasoning_settings = {}
+            if use_reasoning:
+                self.logger.warning(
+                    "Reasoning model requested but _get_reasoning_model_settings is missing; falling back to GPT-4o."
+                )
+        model_client = self.azure_openai_client_o1
+
+        async def generate_response_with_model(model_client, prompt, use_reasoning_flag):
+            """Invoke the reasoning model with configured max tokens and deployment."""
+            target_model = reasoning_settings.get("deployment")
+            max_tokens_reasoning = reasoning_settings.get("max_completion_tokens", 15000)
+            return await model_client.generate_chat_response_o1(
+                query=prompt,
+                conversation_history=[],
+                max_completion_tokens=max_tokens_reasoning,
+                model=target_model,
+            )
+
+        async def generate_reasoning_response(prompt: str) -> Any:
+            if not reasoning_settings:
+                raise RuntimeError(
+                    "Reasoning model requested but not configured. Set AZURE_OPENAI_REASONING_MODEL_ID or AZURE_OPENAI_REASONING_DEPLOYMENT_ID."
+                )
+
             try:
                 api_response = await model_client.generate_chat_response_o1(
                     query=prompt,
                     conversation_history=[],
-                    max_completion_tokens=15000,
+                    max_completion_tokens=reasoning_settings.get(
+                        "max_completion_tokens", 15000
+                    ),
                 )
                 if api_response == "maximum context length":
                     summarized_policy = await summarize_policy_callback(policy_text)
@@ -116,7 +227,7 @@ class AutoPADeterminator:
                         physician_info,
                         clinical_info,
                         summarized_policy,
-                        use_o1_flag,
+                        use_reasoning,
                     )
                     api_response = await model_client.generate_chat_response_o1(
                         query=summarized_prompt,
@@ -132,22 +243,29 @@ class AutoPADeterminator:
                 )
                 raise e
 
-        if use_o1:
+        reasoning_enabled = use_reasoning
+        if reasoning_enabled and not reasoning_settings:
+            self.logger.warning(
+                "Reasoning model requested but neither AZURE_OPENAI_REASONING_MODEL_ID nor AZURE_OPENAI_REASONING_DEPLOYMENT_ID is configured. Falling back to GPT-4o."
+            )
+            reasoning_enabled = False
+
+        if reasoning_enabled:
             self.logger.info(
                 Fore.CYAN + f"Using o1 model for final determination for {caseId}..."
             )
             try:
                 api_response_determination = await generate_response_with_model(
-                    self.azure_openai_client_o1, user_prompt_pa, use_o1
+                    self.azure_openai_client_o1, user_prompt_pa, use_reasoning
                 )
             except Exception:
                 self.logger.info(
                     Fore.CYAN
                     + f"Retrying with 4o model for final determination for {caseId}..."
                 )
-                use_o1 = False
+                use_reasoning = False
 
-        if not use_o1:
+        if not use_reasoning:
             max_retries = 2
             for attempt in range(1, max_retries + 1):
                 try:
@@ -190,7 +308,7 @@ class AutoPADeterminator:
                             physician_info,
                             clinical_info,
                             summarized_policy,
-                            use_o1,
+                            use_reasoning,
                         )
                         api_response_determination = (
                             await self.azure_openai_client.generate_chat_response(

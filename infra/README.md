@@ -162,7 +162,7 @@ AZURE_OPENAI_ENDPOINT | string | Endpoint for Azure OpenAI
 AZURE_OPENAI_API_VERSION | string | API version for Azure OpenAI
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT | string | Deployment name for Azure OpenAI embedding
 AZURE_OPENAI_CHAT_DEPLOYMENT_ID | string | Deployment ID for Azure OpenAI chat
-AZURE_OPENAI_CHAT_DEPLOYMENT_01 | string | Deployment name for Azure OpenAI chat model 01
+AZURE_OPENAI_REASONING_DEPLOYMENT_ID | string | Deployment name for Azure OpenAI chat model 01
 AZURE_OPENAI_API_VERSION_01 | string | Deployment openai version for chat model 01
 AZURE_OPENAI_EMBEDDING_DIMENSIONS | string | Embedding dimensions for Azure OpenAI
 AZURE_SEARCH_SERVICE_NAME | string | Name of the Azure Search service
@@ -419,7 +419,7 @@ AZURE_OPENAI_ENDPOINT | string |
 AZURE_OPENAI_API_VERSION | string |
 AZURE_OPENAI_EMBEDDING_DEPLOYMENT | string |
 AZURE_OPENAI_CHAT_DEPLOYMENT_ID | string |
-AZURE_OPENAI_CHAT_DEPLOYMENT_01 | string |
+AZURE_OPENAI_REASONING_DEPLOYMENT_ID | string |
 AZURE_OPENAI_API_VERSION_O1 | string |
 AZURE_OPENAI_EMBEDDING_DIMENSIONS | string |
 AZURE_SEARCH_SERVICE_NAME | string |
