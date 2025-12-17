@@ -21,7 +21,7 @@ log_warn() { log "WARN" "$1"; }
 check_dependencies() {
     log_info "Checking required dependencies..."
     local missing=0
-    for cmd in az jq pytest; do
+    for cmd in az jq; do
         if ! command -v "$cmd" &>/dev/null; then
             log_error "Required command not found: $cmd"
             missing=1
@@ -103,11 +103,33 @@ update_and_run_job() {
 
     log_info "Waiting for job to complete..."
     status="Running"
-    while [[ "$status" == "Running" || "$status" == "Pending" ]]; do
+    retry_count=0
+    max_retries=30  # 5 minutes max wait (30 * 10 seconds)
+    
+    while [[ "$status" == "Running" || "$status" == "Pending" || "$status" == "Unknown" ]]; do
         sleep 10
         execution=$(az containerapp job execution list -g "$rg_name" --name "$job_name" --query "[0]" -o json)
         status=$(echo "$execution" | jq -r .properties.status)
         log_info "Status: $status"
+        
+        # Handle Unknown as potentially transient, but with a limit
+        if [[ "$status" == "Unknown" ]]; then
+            retry_count=$((retry_count + 1))
+            if [[ $retry_count -ge 6 ]]; then
+                log_error "Job stuck in Unknown status after 60 seconds. Checking logs..."
+                # Try to get logs for debugging
+                execution_name=$(echo "$execution" | jq -r .name)
+                az containerapp job execution show -g "$rg_name" --name "$job_name" --job-execution-name "$execution_name" 2>/dev/null || true
+                break
+            fi
+        else
+            retry_count=0
+        fi
+        
+        if [[ $((retry_count + 1)) -ge $max_retries ]]; then
+            log_error "Job timed out after 5 minutes"
+            break
+        fi
     done
 
     if [[ "$status" == "Succeeded" ]]; then
@@ -222,7 +244,7 @@ trap cleanup EXIT
 
 # Main execution flow
 main() {
-    check_dependencies || exit 1h
+    check_dependencies || exit 1
     load_environment || exit 1
 
     if ! check_container_job; then

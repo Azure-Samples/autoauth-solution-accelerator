@@ -292,7 +292,8 @@ class PolicyIndexingPipeline:
                             resource_url=self.azure_openai_endpoint,
                             deployment_name=self.azure_openai_embedding_deployment,
                             model_name=self.azure_openai_model_name,
-                            api_key=self.azure_openai_key,
+                            # Use API key if available, otherwise Search Service will use managed identity
+                            api_key=self.azure_openai_key if self.azure_openai_key else None,
                         ),
                     ),
                 ],

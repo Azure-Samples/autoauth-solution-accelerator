@@ -250,6 +250,8 @@ class AutoPADeterminator:
             )
             reasoning_enabled = False
 
+        api_response_determination = None
+
         if reasoning_enabled:
             self.logger.info(
                 Fore.CYAN + f"Using o1 model for final determination for {caseId}..."
@@ -339,7 +341,10 @@ class AutoPADeterminator:
                         )
                         raise e
 
-        final_response = api_response_determination["response"]
+        if api_response_determination is None:
+            raise RuntimeError("Failed to generate determination response")
+
+        final_response = api_response_determination.get("response", "")
         self.logger.info(Fore.MAGENTA + "\nFinal Determination:\n" + final_response)
 
         return final_response, api_response_determination.get(

@@ -16,6 +16,7 @@ import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
 import openai
 import requests
+from httpx import HTTPStatusError
 from azure.core.credentials import TokenCredential
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from dotenv import load_dotenv

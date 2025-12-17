@@ -12553,11 +12553,11 @@
                             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountName.value]"
                           },
                           {
-                            "name": "AZURE_COSMOS_DB_DATABASE_NAME",
+                            "name": "AZURE_COSMOS_DATABASE_NAME",
                             "value": "[parameters('cosmosDbDatabaseName')]"
                           },
                           {
-                            "name": "AZURE_COSMOS_DB_COLLECTION_NAME",
+                            "name": "AZURE_COSMOS_COLLECTION_NAME",
                             "value": "[parameters('cosmosDbCollectionName')]"
                           },
                           {
@@ -13908,11 +13908,11 @@
                             "value": "[reference(resourceId('Microsoft.Resources/deployments', format('storage-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.storageAccountName.value]"
                           },
                           {
-                            "name": "AZURE_COSMOS_DB_DATABASE_NAME",
+                            "name": "AZURE_COSMOS_DATABASE_NAME",
                             "value": "[parameters('cosmosDbDatabaseName')]"
                           },
                           {
-                            "name": "AZURE_COSMOS_DB_COLLECTION_NAME",
+                            "name": "AZURE_COSMOS_COLLECTION_NAME",
                             "value": "[parameters('cosmosDbCollectionName')]"
                           },
                           {
@@ -15515,11 +15515,11 @@
               "type": "string",
               "value": "[reference(resourceId('Microsoft.Resources/deployments', format('multiservice-{0}-{1}-deployment', variables('name'), variables('uniqueSuffix'))), '2022-09-01').outputs.aiServicesPrimaryKey.value]"
             },
-            "AZURE_COSMOS_DB_DATABASE_NAME": {
+            "AZURE_COSMOS_DATABASE_NAME": {
               "type": "string",
               "value": "priorauthsessions"
             },
-            "AZURE_COSMOS_DB_COLLECTION_NAME": {
+            "AZURE_COSMOS_COLLECTION_NAME": {
               "type": "string",
               "value": "temp"
             },
@@ -15707,19 +15707,19 @@
       },
       "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'autoauth-resources'), '2022-09-01').outputs.AZURE_AI_SERVICES_KEY.value]"
     },
-    "AZURE_COSMOS_DB_DATABASE_NAME": {
+    "AZURE_COSMOS_DATABASE_NAME": {
       "type": "string",
       "metadata": {
         "description": "Name of the Azure Cosmos DB database"
       },
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'autoauth-resources'), '2022-09-01').outputs.AZURE_COSMOS_DB_DATABASE_NAME.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'autoauth-resources'), '2022-09-01').outputs.AZURE_COSMOS_DATABASE_NAME.value]"
     },
-    "AZURE_COSMOS_DB_COLLECTION_NAME": {
+    "AZURE_COSMOS_COLLECTION_NAME": {
       "type": "string",
       "metadata": {
         "description": "Name of the Azure Cosmos DB collection"
       },
-      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'autoauth-resources'), '2022-09-01').outputs.AZURE_COSMOS_DB_COLLECTION_NAME.value]"
+      "value": "[reference(extensionResourceId(format('/subscriptions/{0}/resourceGroups/{1}', subscription().subscriptionId, format('rg-{0}-{1}-{2}', parameters('priorAuthName'), parameters('location'), parameters('environmentName'))), 'Microsoft.Resources/deployments', 'autoauth-resources'), '2022-09-01').outputs.AZURE_COSMOS_COLLECTION_NAME.value]"
     },
     "AZURE_COSMOS_CONNECTION_STRING": {
       "type": "string",

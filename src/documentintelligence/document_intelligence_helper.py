@@ -5,6 +5,7 @@ from azure.ai.documentintelligence import DocumentIntelligenceClient, models
 from azure.ai.documentintelligence.models import AnalyzeDocumentRequest, Document
 from azure.core.credentials import AzureKeyCredential
 from azure.core.polling import LROPoller
+from azure.identity import DefaultAzureCredential
 
 # from azure.ai.formrecognizer import DocumentAnalysisClient
 from dotenv import load_dotenv
@@ -23,7 +24,7 @@ class AzureDocumentIntelligenceManager:
 
     Attributes:
         azure_endpoint (str): Endpoint URL for Azure's Document Analysis Client.
-        azure_key (str): API key for Azure's Document Analysis Client.
+        azure_key (str): API key for Azure's Document Analysis Client (optional, uses managed identity if not provided).
         blob_manager (Optional[AzureBlobManager]): Instance of AzureBlobManager for blob operations.
     """
 
@@ -40,7 +41,7 @@ class AzureDocumentIntelligenceManager:
 
         Args:
             azure_endpoint (Optional[str]): Endpoint URL for Azure's Document Analysis Client.
-            azure_key (Optional[str]): API key for Azure's Document Analysis Client.
+            azure_key (Optional[str]): API key for Azure's Document Analysis Client. If not provided, uses managed identity.
             storage_account_name (Optional[str]): Name of the Azure Storage account.
             container_name (Optional[str]): Name of the blob container.
             account_key (Optional[str]): Storage account key for authentication.
@@ -55,16 +56,20 @@ class AzureDocumentIntelligenceManager:
         # Validate required configurations for Document Analysis Client
         if not self.azure_endpoint:
             raise ValueError(
-                "Azure endpoint and key must be provided either as parameters or in environment variables."
+                "Azure endpoint must be provided either as a parameter or in environment variables."
             )
 
-        # credential = DefaultAzureCredential()
-        # if self.azure_key:
-        #   credential = AzureKeyCredential(self.azure_key)
+        # Use API key if provided, otherwise use managed identity (DefaultAzureCredential)
+        if self.azure_key:
+            credential = AzureKeyCredential(self.azure_key)
+            logger.info("Using API key authentication for Document Intelligence")
+        else:
+            credential = DefaultAzureCredential()
+            logger.info("Using managed identity (DefaultAzureCredential) for Document Intelligence")
 
         self.document_analysis_client = DocumentIntelligenceClient(
             endpoint=self.azure_endpoint,
-            credential=AzureKeyCredential(self.azure_key),
+            credential=credential,
             api_version="2024-11-30",
             headers={"x-ms-useragent": "langchain-parser/1.0.0"},
             polling_interval=30,

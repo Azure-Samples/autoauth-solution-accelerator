@@ -95,10 +95,10 @@ class PAProcessingPipeline:
             "AZURE_COSMOS_CONNECTION_STRING"
         )
         azure_cosmos_db_database_name = azure_cosmos_db_database_name or os.getenv(
-            "AZURE_COSMOS_DB_DATABASE_NAME"
+            "AZURE_COSMOS_DATABASE_NAME"
         )
         azure_cosmos_db_collection_name = azure_cosmos_db_collection_name or os.getenv(
-            "AZURE_COSMOS_DB_COLLECTION_NAME"
+            "AZURE_COSMOS_COLLECTION_NAME"
         )
         azure_document_intelligence_endpoint = (
             azure_document_intelligence_endpoint

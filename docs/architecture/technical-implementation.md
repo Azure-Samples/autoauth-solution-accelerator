@@ -389,8 +389,8 @@ AZURE_BLOB_CONTAINER_NAME=policies
 
 # Azure Cosmos DB Configuration
 AZURE_COSMOS_DB_CONNECTION=mongodb://your-cosmos-connection
-AZURE_COSMOS_DB_DATABASE_NAME=autoauth
-AZURE_COSMOS_DB_COLLECTION_NAME=cases
+AZURE_COSMOS_DATABASE_NAME=autoauth
+AZURE_COSMOS_COLLECTION_NAME=cases
 
 # Azure Document Intelligence
 AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT=https://your-di.cognitiveservices.azure.com/

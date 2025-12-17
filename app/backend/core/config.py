@@ -16,7 +16,7 @@ class Config(CustomBaseSettings):
     #
     DATABASE_URL: MongoDsn
     DATABASE_ASYNC_URL: MongoDsn
-    AZURE_COSMOS_DB_DATABASE_NAME: str = ""
+    AZURE_COSMOS_DATABASE_NAME: str = ""
 
     ENVIRONMENT: Environment = Environment.LOCAL
 

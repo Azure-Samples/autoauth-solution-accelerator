@@ -133,15 +133,12 @@ resource aiServicesConnection 'Microsoft.MachineLearningServices/workspaces/conn
   properties: {
     category: 'AzureOpenAI'
     target: aiServicesTarget
-    authType: 'ApiKey'
+    authType: 'AAD'  // Use Entra ID (managed identity) authentication since disableLocalAuth is enforced
     useWorkspaceManagedIdentity: true
     isSharedToAll: true
     sharedUserList: []
     peRequirement: 'NotRequired'
     peStatus: 'NotApplicable'
-    credentials: {
-      key: aiServicesKey
-    }
     metadata: {
       ApiType: 'Azure'
       ResourceId: aiServicesId

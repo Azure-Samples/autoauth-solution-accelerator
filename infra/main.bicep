@@ -59,9 +59,9 @@ param reasoningModel object = {
   capacity: 100
 }
 
-@description('Chat model object to be deployed to the OpenAI account. (i.e gpt-4o, gpt-4o-turbo, gpt-4o-turbo-16k, gpt-4o-turbo-32k)')
+@description('Chat model object to be deployed to the OpenAI account. (i.e gpt-4o, gpt-5.2, etc.)')
 param chatModel object = {
-  name: 'gpt-4o'
+  name: 'gpt-5.2'
   version: '2024-08-06'
   skuName: 'GlobalStandard'
   capacity: 100
@@ -92,6 +92,7 @@ param storageBlobContainerName string = 'default'
 var azd_tags = union(tags,{
   'hidden-title': 'Auto Auth ${environmentName}'
   'azd-env-name': environmentName
+  'SecurityControl': 'Ignore'
 })
 
 
@@ -200,10 +201,10 @@ output AZURE_STORAGE_CONNECTION_STRING string = resources.outputs.AZURE_STORAGE_
 output AZURE_AI_SERVICES_KEY string = resources.outputs.AZURE_AI_SERVICES_KEY
 
 @description('Name of the Azure Cosmos DB database')
-output AZURE_COSMOS_DB_DATABASE_NAME string = resources.outputs.AZURE_COSMOS_DB_DATABASE_NAME
+output AZURE_COSMOS_DATABASE_NAME string = resources.outputs.AZURE_COSMOS_DATABASE_NAME
 
 @description('Name of the Azure Cosmos DB collection')
-output AZURE_COSMOS_DB_COLLECTION_NAME string = resources.outputs.AZURE_COSMOS_DB_COLLECTION_NAME
+output AZURE_COSMOS_COLLECTION_NAME string = resources.outputs.AZURE_COSMOS_COLLECTION_NAME
 
 @description('Connection string for Azure Cosmos DB')
 output AZURE_COSMOS_CONNECTION_STRING string = resources.outputs.AZURE_COSMOS_CONNECTION_STRING

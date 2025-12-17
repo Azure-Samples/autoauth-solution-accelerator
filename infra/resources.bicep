@@ -114,11 +114,25 @@ module searchService 'modules/data/search.bicep' = {
   }
 }
 
+// Role assignment names must be deterministic GUIDs based on scope + principal + role
+var searchStorageBlobReaderGuid = guid(resourceGroup().id, 'search-storage-blob-reader', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1')
 resource searchStorageBlobReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: resourceGroup()
-  name: guid(storageAccount.name, searchService.name, 'Storage Blob Data Reader')
+  name: searchStorageBlobReaderGuid
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1') // Storage Blob Data Reader
+    principalId: searchService.outputs.searchServiceIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Grant Cognitive Services User role on OpenAI Service to AI Search managed identity for integrated vectorization
+var searchOpenAiCogServicesUserGuid = guid(resourceGroup().id, 'search-openai-cogservices-user', 'a97b65f3-24c7-4388-baec-2e87135dc908')
+resource searchOpenAiCogServicesUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: resourceGroup()
+  name: searchOpenAiCogServicesUserGuid
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908') // Cognitive Services User
     principalId: searchService.outputs.searchServiceIdentityPrincipalId
     principalType: 'ServicePrincipal'
   }
@@ -194,9 +208,10 @@ module appIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.
 }
 
 // Grant Role Assignments for the User Assigned App Identity to communicate with the storage account
+var uaiStorageBlobContribGuid = guid(resourceGroup().id, 'uai-storage-blob-contributor', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe')
 resource uaiStorageBlobContrib 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: resourceGroup()
-  name: guid(storageAccount.name, appIdentity.name, 'Storage Blob Data Contributor')
+  name: uaiStorageBlobContribGuid
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'ba92f5b4-2d11-453d-a403-e96b0029c9fe') // Storage Blob Data Contributor
     principalId: appIdentity.outputs.principalId
@@ -204,23 +219,36 @@ resource uaiStorageBlobContrib 'Microsoft.Authorization/roleAssignments@2022-04-
   }
 }
 
-resource uaiStorageBlobReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+// resource uaiStorageBlobReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+//   scope: resourceGroup()
+//   name: guid(storageAccount.name, appIdentity.name, 'Storage Blob Data Reader')
+//   properties: {
+//     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1') // Storage Blob Data Reader
+//     principalId: appIdentity.outputs.principalId
+//     principalType: 'ServicePrincipal'
+//   }
+// }
+
+var aiFoundryWorkspaceReaderGuid = guid(resourceGroup().id, 'uai-aifoundry-developer', '64702f94-c441-49e6-a78b-ef80e0188fee')
+resource aiFoundryWorkspaceReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: aiFoundryWorkspaceReaderGuid
   scope: resourceGroup()
-  name: guid(storageAccount.name, appIdentity.name, 'Storage Blob Data Reader')
   properties: {
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '2a2b9908-6ea1-4ae2-8e65-a410df84e7d1') // Storage Blob Data Reader
     principalId: appIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee') // Azure AI Developer Role ID
   }
 }
 
-resource aiFoundryWorkspaceReader 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  name: guid(aiFoundry.name, appIdentity.name, 'Azure AI Developer')
+// Grant Cognitive Services User role on OpenAI Service for managed identity auth
+var uaiOpenAiServiceUserGuid = guid(resourceGroup().id, 'uai-openai-cogservices-user', 'a97b65f3-24c7-4388-baec-2e87135dc908')
+resource uaiOpenAiServiceUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  name: uaiOpenAiServiceUserGuid
   scope: resourceGroup()
   properties: {
     principalId: appIdentity.outputs.principalId
     principalType: 'ServicePrincipal'
-    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '64702f94-c441-49e6-a78b-ef80e0188fee') // Contributor Role ID
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908') // Cognitive Services User
   }
 }
 
@@ -318,16 +346,16 @@ var containerEnvArray = [
     value: storageAccount.outputs.storageAccountName
   }
   {
-    name: 'AZURE_COSMOS_DB_DATABASE_NAME'
+    name: 'AZURE_COSMOS_DATABASE_NAME'
     value: cosmosDbDatabaseName
   }
   {
-    name: 'AZURE_COSMOS_DB_COLLECTION_NAME'
+    name: 'AZURE_COSMOS_COLLECTION_NAME'
     value: cosmosDbCollectionName
   }
   {
     name: 'AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT'
-    value: docIntelligence.outputs.aiServicesEndpoint
+    value: multiAccountAiServices.outputs.aiServicesEndpoint
   }
   {
     name: 'AZURE_OPENAI_KEY'
@@ -351,7 +379,7 @@ var containerEnvArray = [
   }
   {
     name: 'AZURE_DOCUMENT_INTELLIGENCE_KEY'
-    value: docIntelligence.outputs.aiServicesKey
+    value: multiAccountAiServices.outputs.aiServicesPrimaryKey
   }
   {
     name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
@@ -553,7 +581,7 @@ module feAppUpdate './modules/security/appupdate.bicep' = if (enableEasyAuth) {
   }
 }
 
-output AZURE_OPENAI_ENDPOINT string = aiFoundry.outputs.aiFoundryConnectionString
+output AZURE_OPENAI_ENDPOINT string = openAiService.outputs.aiServicesEndpoint
 output AZURE_OPENAI_API_VERSION string = chatModel.version
 output AZURE_OPENAI_EMBEDDING_DEPLOYMENT string = embeddingModel.name
 output AZURE_OPENAI_CHAT_DEPLOYMENT_ID string = chatCompletionModels[0].name
@@ -572,12 +600,12 @@ output AZURE_BLOB_CONTAINER_NAME string = storageBlobContainerName
 output AZURE_STORAGE_ACCOUNT_NAME string = storageAccount.outputs.storageAccountName
 output AZURE_STORAGE_CONNECTION_STRING string = storageConnString
 output AZURE_AI_SERVICES_KEY string = multiAccountAiServices.outputs.aiServicesPrimaryKey
-output AZURE_COSMOS_DB_DATABASE_NAME string = 'priorauthsessions'
+output AZURE_COSMOS_DATABASE_NAME string = 'priorauthsessions'
 
-output AZURE_COSMOS_DB_COLLECTION_NAME string = 'temp'
+output AZURE_COSMOS_COLLECTION_NAME string = 'temp'
 output AZURE_COSMOS_CONNECTION_STRING string = cosmosDb.outputs.mongoConnectionString
-output AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT string = docIntelligence.outputs.aiServicesEndpoint
-output AZURE_DOCUMENT_INTELLIGENCE_KEY string = docIntelligence.outputs.aiServicesKey
+output AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT string = multiAccountAiServices.outputs.aiServicesEndpoint
+output AZURE_DOCUMENT_INTELLIGENCE_KEY string = multiAccountAiServices.outputs.aiServicesPrimaryKey
 output APPLICATIONINSIGHTS_CONNECTION_STRING string = monitoring.outputs.applicationInsightsConnectionString
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = registry.outputs.loginServer
 output AZURE_CONTAINER_ENVIRONMENT_ID string = containerAppsEnvironment.outputs.resourceId

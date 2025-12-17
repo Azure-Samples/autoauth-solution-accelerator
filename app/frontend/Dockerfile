@@ -18,13 +18,19 @@ COPY ["utils/data/cases/003/a/doctor_notes/003_a (note) .pdf", "/app/utils/data/
 COPY ["utils/data/cases/003/a/labs/003_a (labs).pdf", "/app/utils/data/cases/003/a/labs/003_a (labs).pdf"]
 COPY ["utils/data/cases/003/a/pa_form/003_a (form).pdf", "/app/utils/data/cases/003/a/pa_form/003_a (form).pdf"]
 
-# Build Streamlit
+# Use slim frontend requirements (excludes PyTorch, eval libs, etc.)
+COPY requirements-frontend.txt /app/requirements-frontend.txt
+
+# Build Streamlit - install build deps, pip install, then cleanup
 RUN apt-get update && \
-    apt-get -y install gcc mono-mcs python3-dev && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get -y install --no-install-recommends gcc python3-dev && \
+    pip install --no-cache-dir -r requirements-frontend.txt && \
+    apt-get purge -y gcc python3-dev && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/* /root/.cache/pip
+
 RUN mkdir -p /app/.streamlit
 COPY app/frontend/settings/config.toml /app/.streamlit/config.toml
-RUN pip install --no-cache-dir -r requirements.txt
 ENV STREAMLIT_CONFIG_FILE=/app/.streamlit/config.toml
 
 EXPOSE 8501

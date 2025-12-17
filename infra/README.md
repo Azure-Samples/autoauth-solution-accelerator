@@ -173,8 +173,8 @@ AZURE_STORAGE_ACCOUNT_NAME | string | Name of the Azure Storage account
 AZURE_STORAGE_ACCOUNT_KEY | string | Key for the Azure Storage account
 AZURE_STORAGE_CONNECTION_STRING | string | Connection string for the Azure Storage account
 AZURE_AI_SERVICES_KEY | string | Key for Azure AI services
-AZURE_COSMOS_DB_DATABASE_NAME | string | Name of the Azure Cosmos DB database
-AZURE_COSMOS_DB_COLLECTION_NAME | string | Name of the Azure Cosmos DB collection
+AZURE_COSMOS_DATABASE_NAME | string | Name of the Azure Cosmos DB database
+AZURE_COSMOS_COLLECTION_NAME | string | Name of the Azure Cosmos DB collection
 AZURE_COSMOS_CONNECTION_STRING | string | Connection string for Azure Cosmos DB
 AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT | string | Endpoint for Azure Document Intelligence
 AZURE_DOCUMENT_INTELLIGENCE_KEY | string | Key for Azure Document Intelligence
@@ -431,8 +431,8 @@ AZURE_BLOB_CONTAINER_NAME | string |
 AZURE_STORAGE_ACCOUNT_NAME | string |
 AZURE_STORAGE_CONNECTION_STRING | string |
 AZURE_AI_SERVICES_KEY | string |
-AZURE_COSMOS_DB_DATABASE_NAME | string |
-AZURE_COSMOS_DB_COLLECTION_NAME | string |
+AZURE_COSMOS_DATABASE_NAME | string |
+AZURE_COSMOS_COLLECTION_NAME | string |
 AZURE_COSMOS_CONNECTION_STRING | string |
 AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT | string |
 AZURE_DOCUMENT_INTELLIGENCE_KEY | string |
