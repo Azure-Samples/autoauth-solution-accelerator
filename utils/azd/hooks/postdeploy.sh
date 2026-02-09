@@ -98,25 +98,40 @@ update_and_run_job() {
     az containerapp job update -g "$rg_name" --name "$job_name" --image "$frontend_image" \
         --cpu 2.0 --memory 4.0
 
-    log_info "Starting job $job_name..."
-    az containerapp job start -g "$rg_name" --name "$job_name" --cpu 2.0 --memory 4.0
+    local max_retries=3
+    local attempt=1
+    local backoff=30
 
-    log_info "Waiting for job to complete..."
-    status="Running"
-    while [[ "$status" == "Running" || "$status" == "Pending" ]]; do
-        sleep 10
-        execution=$(az containerapp job execution list -g "$rg_name" --name "$job_name" --query "[0]" -o json)
-        status=$(echo "$execution" | jq -r .properties.status)
-        log_info "Status: $status"
+    while [ $attempt -le $max_retries ]; do
+        log_info "Starting job $job_name (attempt $attempt/$max_retries)..."
+        az containerapp job start -g "$rg_name" --name "$job_name" --cpu 2.0 --memory 4.0
+
+        log_info "Waiting for job to complete..."
+        status="Running"
+        while [[ "$status" == "Running" || "$status" == "Pending" ]]; do
+            sleep 10
+            execution=$(az containerapp job execution list -g "$rg_name" --name "$job_name" --query "[0]" -o json)
+            status=$(echo "$execution" | jq -r .properties.status)
+            log_info "Status: $status"
+        done
+
+        if [[ "$status" == "Succeeded" ]]; then
+            log_info "Job completed successfully on attempt $attempt."
+            return 0
+        fi
+
+        log_warn "Job failed with status: $status (attempt $attempt/$max_retries)"
+
+        if [ $attempt -lt $max_retries ]; then
+            log_info "Retrying in ${backoff}s..."
+            sleep $backoff
+            backoff=$((backoff * 2))
+        fi
+        attempt=$((attempt + 1))
     done
 
-    if [[ "$status" == "Succeeded" ]]; then
-        log_info "Job completed successfully."
-        return 0
-    else
-        log_error "Job failed with status: $status"
-        return 1
-    fi
+    log_error "Job failed after $max_retries attempts. Last status: $status"
+    return 1
 }
 
 # Display a spinner for long-running processes
@@ -131,24 +146,6 @@ show_spinner() {
     printf "\r%s\n" "$(printf ' %.0s' {1..50})"  # Clear the line
 }
 
-# Toggle storage account shared key access
-set_storage_shared_key_access() {
-    local enable=$1  # true/false
-
-    if [ -z "$storage_account" ]; then
-        log_warn "Storage account name not found in environment variables. Skipping key access update."
-        return 0
-    fi
-
-    log_info "$([ "$enable" = true ] && echo "Enabling" || echo "Disabling") key-based access for storage account: $storage_account"
-    if az storage account update --name "$storage_account" --resource-group "$rg_name" --allow-shared-key-access "$enable" &>/dev/null; then
-        log_info "Successfully $([ "$enable" = true ] && echo "enabled" || echo "disabled") key-based access."
-        return 0
-    else
-        log_error "Failed to $([ "$enable" = true ] && echo "enable" || echo "disable") key-based access."
-        return 1
-    fi
-}
 
 run_evaluations() {
 
@@ -162,9 +159,6 @@ run_evaluations() {
         log_error "Tests directory not found! Current directory: $(pwd)"
         return 1
     fi
-
-    # Enable key-based auth for storage account
-    set_storage_shared_key_access true
 
     local test_result=0
 
@@ -197,9 +191,6 @@ run_evaluations() {
         [ $test_result -eq 0 ] && log_info "Tests completed successfully." || log_error "Tests failed."
     fi
 
-    # Disable shared key access
-    set_storage_shared_key_access false
-
     return $test_result
 }
 
@@ -209,11 +200,6 @@ cleanup() {
     if [[ -n "${spinner_pid:-}" ]]; then
         kill $spinner_pid 2>/dev/null
         wait $spinner_pid 2>/dev/null
-    fi
-
-    # Make sure storage account key access is disabled
-    if [[ -n "$storage_account" ]]; then
-        set_storage_shared_key_access false
     fi
 
     log_info "Script finished"

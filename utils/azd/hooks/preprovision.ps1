@@ -1,10 +1,21 @@
 # Get current user ID and git hash
-$currentUserClientId = (& az ad signed-in-user show --query id -o tsv).Trim()
-$gitHash = (& git rev-parse --short HEAD).Trim()
+$currentUserClientId = $null
+try {
+    $currentUserClientId = (& az ad signed-in-user show --query id -o tsv 2>$null)
+    if ($currentUserClientId) { $currentUserClientId = $currentUserClientId.Trim() }
+} catch {
+    $currentUserClientId = $null
+}
+$gitHash = (& git rev-parse --short HEAD 2>$null)
+if ($gitHash) { $gitHash = $gitHash.Trim() } else { $gitHash = "unknown" }
 
 # Set environment variables
-& azd env set PRINCIPAL_ID $currentUserClientId
-& azd env set GIT_HASH $gitHash
+if (-not [string]::IsNullOrEmpty($currentUserClientId)) {
+    & azd env set PRINCIPAL_ID "$currentUserClientId"
+} else {
+    Write-Host "WARNING: Could not retrieve current user ID. PRINCIPAL_ID will not be set."
+}
+& azd env set GIT_HASH "$gitHash"
 
 # Display information
 Write-Host "======================================="

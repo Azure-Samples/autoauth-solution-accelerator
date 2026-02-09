@@ -1,9 +1,14 @@
 #!/bin/bash
 
-CURRENT_USER_CLIENT_ID=$(az ad signed-in-user show --query id -o tsv)
-GIT_HASH=$(git rev-parse --short HEAD)
-azd env set PRINCIPAL_ID $CURRENT_USER_CLIENT_ID
-azd env set GIT_HASH $GIT_HASH
+CURRENT_USER_CLIENT_ID=$(az ad signed-in-user show --query id -o tsv 2>/dev/null || echo "")
+GIT_HASH=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+if [ -n "$CURRENT_USER_CLIENT_ID" ]; then
+    azd env set PRINCIPAL_ID "$CURRENT_USER_CLIENT_ID"
+else
+    echo "WARNING: Could not retrieve current user ID. PRINCIPAL_ID will not be set."
+fi
+azd env set GIT_HASH "$GIT_HASH"
 
 echo "======================================="
 echo " Current User Client ID: $CURRENT_USER_CLIENT_ID"

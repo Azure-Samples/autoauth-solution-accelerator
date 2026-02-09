@@ -31,8 +31,8 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
     minimumTlsVersion: 'TLS1_2'
     publicNetworkAccess: 'Enabled'
     supportsHttpsTrafficOnly: true
-    defaultToOAuthAuthentication: false
-    allowSharedKeyAccess: true
+    defaultToOAuthAuthentication: true
+    allowSharedKeyAccess: false
   }
   tags: tags
 }
@@ -62,11 +62,5 @@ resource preAuthPoliciesContainer 'Microsoft.Storage/storageAccounts/blobService
   properties: {}
 }
 
-var storageKeys = storageAccount.listKeys()
-var primaryKey = storageKeys.keys[0].value
-var storageAccountPrimaryConnectionString = 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};AccountKey=${primaryKey};EndpointSuffix=core.windows.net'
-
 output storageAccountId string = storageAccount.id
 output storageAccountName string = storageAccount.name
-output storageAccountPrimaryKey string = primaryKey
-output storageAccountPrimaryConnectionString string = storageAccountPrimaryConnectionString

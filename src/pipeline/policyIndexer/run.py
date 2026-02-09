@@ -10,11 +10,11 @@ from azure.core.exceptions import HttpResponseError, ResourceNotFoundError
 from azure.identity import DefaultAzureCredential
 from azure.search.documents.indexes import SearchIndexClient, SearchIndexerClient
 from azure.search.documents.indexes.models import (
+    AIServicesAccountIdentity,
     AzureOpenAIEmbeddingSkill,
     AzureOpenAIVectorizer,
     AzureOpenAIVectorizerParameters,
     BlobIndexerImageAction,
-    CognitiveServicesAccountKey,
     HnswAlgorithmConfiguration,
     HnswParameters,
     IndexingParameters,
@@ -86,6 +86,11 @@ class PolicyIndexingPipeline:
         self.index_name: str = config["azure_search"]["index_name"]
 
         self.blob_connection_string: str = os.environ["AZURE_STORAGE_CONNECTION_STRING"]
+        # Ensure the ResourceId connection string has the required trailing /; for Azure AI Search
+        if "ResourceId" in self.blob_connection_string:
+            if not self.blob_connection_string.rstrip().endswith("/;"):
+                conn = self.blob_connection_string.rstrip().rstrip(";").rstrip("/")
+                self.blob_connection_string = f"{conn}/;"
         self.blob_container_name: str = config["azure_search_indexer_settings"][
             "azure_blob_storage_container_name"
         ]
@@ -107,6 +112,7 @@ class PolicyIndexingPipeline:
         )
 
         self.azure_ai_services_key: str = os.getenv("AZURE_AI_SERVICES_KEY", "")
+        self.azure_ai_services_endpoint: str = os.getenv("AZURE_AI_SERVICES_ENDPOINT", "")
         self.use_ocr: bool = config["azure_search_indexer_settings"]["use_ocr"]
         self.add_page_numbers: bool = config["azure_search_indexer_settings"][
             "add_page_numbers"
@@ -292,7 +298,6 @@ class PolicyIndexingPipeline:
                             resource_url=self.azure_openai_endpoint,
                             deployment_name=self.azure_openai_embedding_deployment,
                             model_name=self.azure_openai_model_name,
-                            api_key=self.azure_openai_key,
                         ),
                     ),
                 ],
@@ -383,7 +388,6 @@ class PolicyIndexingPipeline:
                     deployment_name=self.azure_openai_embedding_deployment,
                     model_name=self.azure_openai_model_name,
                     dimensions=self.azure_openai_model_dimensions,
-                    api_key=self.azure_openai_key,
                     inputs=[
                         InputFieldMappingEntry(
                             name=entry["name"], source=entry["source"]
@@ -399,8 +403,8 @@ class PolicyIndexingPipeline:
                 )
                 skills = [ocr_skill, split_skill, embedding_skill]
 
-                cognitive_services_account = CognitiveServicesAccountKey(
-                    key=self.azure_ai_services_key
+                cognitive_services_account = AIServicesAccountIdentity(
+                    subdomain_url=self.azure_ai_services_endpoint,
                 )
 
                 index_projections = SearchIndexerIndexProjection(
@@ -474,7 +478,6 @@ class PolicyIndexingPipeline:
                     ],
                     model_name=self.skills_config["embedding_skill"]["model_name"],
                     dimensions=self.skills_config["embedding_skill"]["dimensions"],
-                    api_key=self.skills_config["embedding_skill"]["api_key"],
                     inputs=[
                         InputFieldMappingEntry(
                             name=entry["name"], source=entry["source"]

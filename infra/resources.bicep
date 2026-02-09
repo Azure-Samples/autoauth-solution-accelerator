@@ -124,6 +124,28 @@ resource searchStorageBlobReader 'Microsoft.Authorization/roleAssignments@2022-0
   }
 }
 
+// Grant Search Service identity Cognitive Services OpenAI User on the OpenAI resource
+resource searchOpenAiUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: resourceGroup()
+  name: guid(openAiService.name, searchService.name, 'Cognitive Services OpenAI User')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd') // Cognitive Services OpenAI User
+    principalId: searchService.outputs.searchServiceIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Grant Search Service identity Cognitive Services User on the multi-account AI services
+resource searchAiServicesUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: resourceGroup()
+  name: guid(multiAccountAiServices.name, searchService.name, 'Cognitive Services User')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908') // Cognitive Services User
+    principalId: searchService.outputs.searchServiceIdentityPrincipalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
 // @TODO: Replace with AVM module
 module storageAccount 'modules/data/storage.bicep' = {
   name: 'storage-${name}-${uniqueSuffix}-deployment'
@@ -245,7 +267,7 @@ module registry 'br/public:avm/res/container-registry/registry:0.1.1' = {
   }
 }
 
-var storageConnString = 'ResourceId=${storageAccount.outputs.storageAccountId}'
+var storageConnString = 'ResourceId=${storageAccount.outputs.storageAccountId}/;'
 
 
 var containerEnvArray = [
@@ -328,6 +350,10 @@ var containerEnvArray = [
   {
     name: 'AZURE_AI_SERVICES_KEY'
     value: multiAccountAiServices.outputs.aiServicesPrimaryKey
+  }
+  {
+    name: 'AZURE_AI_SERVICES_ENDPOINT'
+    value: multiAccountAiServices.outputs.aiServicesEndpoint
   }
   {
     name: 'AZURE_COSMOS_CONNECTION_STRING'
@@ -547,11 +573,12 @@ output AZURE_SEARCH_SERVICE_NAME string = searchService.outputs.searchServiceNam
 output AZURE_SEARCH_INDEX_NAME string = 'ai-policies-index'
 output AZURE_AI_SEARCH_ADMIN_KEY string = searchService.outputs.searchServicePrimaryKey
 output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = searchService.outputs.searchServiceEndpoint
-output AZURE_STORAGE_ACCOUNT_KEY string = ''
+
 output AZURE_BLOB_CONTAINER_NAME string = storageBlobContainerName
 output AZURE_STORAGE_ACCOUNT_NAME string = storageAccount.outputs.storageAccountName
 output AZURE_STORAGE_CONNECTION_STRING string = storageConnString
 output AZURE_AI_SERVICES_KEY string = multiAccountAiServices.outputs.aiServicesPrimaryKey
+output AZURE_AI_SERVICES_ENDPOINT string = multiAccountAiServices.outputs.aiServicesEndpoint
 output AZURE_COSMOS_DB_DATABASE_NAME string = 'priorauthsessions'
 
 output AZURE_COSMOS_DB_COLLECTION_NAME string = 'temp'

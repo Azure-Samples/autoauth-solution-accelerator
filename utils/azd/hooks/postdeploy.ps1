@@ -97,12 +97,6 @@ if (-not (Test-Path -Path "tests" -PathType Container)) {
     exit 1
 }
 
-# Enable key-based auth for storage account
-if (-not [string]::IsNullOrEmpty($storage_account)) {
-    Write-Info "Enabling key-based access for storage account: $storage_account"
-    az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access true | Out-Null
-}
-
 # Run tests
 Write-Info "Starting pytest..."
 try {
@@ -117,12 +111,6 @@ try {
 catch {
     Write-Error "Error running tests: $_"
     $test_result = 1
-}
-
-# Disable key-based auth for storage account
-if (-not [string]::IsNullOrEmpty($storage_account)) {
-    Write-Info "Disabling key-based access for storage account: $storage_account"
-    az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access false | Out-Null
 }
 
 exit $test_result

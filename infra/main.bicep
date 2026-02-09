@@ -28,7 +28,7 @@ param environmentName string
   'uksouth'
   'westus3'
 ])
-param location string
+param location string = 'eastus2'
 
 @description('Flag to indicate if Frontend app image exists. This is managed by AZD')
 param frontendExists bool = false
@@ -178,14 +178,14 @@ output AZURE_BLOB_CONTAINER_NAME string = resources.outputs.AZURE_BLOB_CONTAINER
 @description('Name of the Azure Storage account')
 output AZURE_STORAGE_ACCOUNT_NAME string = resources.outputs.AZURE_STORAGE_ACCOUNT_NAME
 
-@description('Key for the Azure Storage account')
-output AZURE_STORAGE_ACCOUNT_KEY string = resources.outputs.AZURE_STORAGE_ACCOUNT_KEY
-
 @description('Connection string for the Azure Storage account')
 output AZURE_STORAGE_CONNECTION_STRING string = resources.outputs.AZURE_STORAGE_CONNECTION_STRING
 
 @description('Key for Azure AI services')
 output AZURE_AI_SERVICES_KEY string = resources.outputs.AZURE_AI_SERVICES_KEY
+
+@description('Endpoint for Azure AI services')
+output AZURE_AI_SERVICES_ENDPOINT string = resources.outputs.AZURE_AI_SERVICES_ENDPOINT
 
 @description('Name of the Azure Cosmos DB database')
 output AZURE_COSMOS_DB_DATABASE_NAME string = resources.outputs.AZURE_COSMOS_DB_DATABASE_NAME
