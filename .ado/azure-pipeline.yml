@@ -1,0 +1,272 @@
+# =============================================================================
+# Azure DevOps Pipeline - AutoAuth Solution Accelerator
+# =============================================================================
+# Stages:
+#   CodeQuality - runs linters on PRs
+#   Deploy      - provisions infra + deploys app (push to main or manual)
+#   Destroy     - tears down environment (manual only)
+# =============================================================================
+
+trigger:
+  branches:
+    include: [main]
+  paths:
+    include: ['src/**', 'app/**', 'infra/**']
+
+pr:
+  branches:
+    include: [main]
+
+# -----------------------------------------------------------------------------
+# Parameters (shown in the "Run pipeline" UI)
+# -----------------------------------------------------------------------------
+parameters:
+  - name: action
+    displayName: 'Action'
+    type: string
+    default: 'all'
+    values: [all, provision, deploy, destroy]
+
+  - name: poolType
+    displayName: 'Agent Pool Type'
+    type: string
+    default: 'self-hosted'
+    values: [hosted, self-hosted]
+
+  - name: poolName
+    displayName: 'Self-Hosted Agent Pool Name'
+    type: string
+    default: 'Managed-AAuth-Pool'
+
+  - name: vmImage
+    displayName: 'Hosted Pool VM Image'
+    type: string
+    default: 'ubuntu-latest'
+
+  - name: debug
+    displayName: 'Enable AZD Debug Logging'
+    type: boolean
+    default: false
+
+  - name: runEvals
+    displayName: 'Run Post-Deploy Evaluations'
+    type: boolean
+    default: false
+
+  - name: azureServiceConnection
+    displayName: 'Azure Service Connection Name'
+    type: string
+    default: 'autoauth'
+
+  - name: azureEnvName
+    displayName: 'Azure Environment Name'
+    type: string
+    default: 'nonprod'
+
+  - name: azureLocation
+    displayName: 'Azure Location'
+    type: string
+    default: 'eastus2'
+
+  - name: enableEasyAuth
+    displayName: 'Enable Easy Auth'
+    type: string
+    default: 'false'
+    values: ['true', 'false']
+
+  - name: pythonVersion
+    displayName: 'Python Version'
+    type: string
+    default: '3.10'
+
+# -----------------------------------------------------------------------------
+# Variables — derived from parameters
+# -----------------------------------------------------------------------------
+variables:
+  azureServiceConnection: ${{ parameters.azureServiceConnection }}
+  azureEnvName: ${{ parameters.azureEnvName }}
+  azureLocation: ${{ parameters.azureLocation }}
+  enableEasyAuth: ${{ parameters.enableEasyAuth }}
+  pythonVersion: ${{ parameters.pythonVersion }}
+
+# =============================================================================
+# Stages
+# =============================================================================
+stages:
+  # ---------------------------------------------------------------------------
+  # Code Quality (PRs only)
+  # ---------------------------------------------------------------------------
+  - stage: CodeQuality
+    displayName: 'Code Quality'
+    condition: eq(variables['Build.Reason'], 'PullRequest')
+    jobs:
+      - job: Checks
+        pool:
+          ${{ if eq(parameters.poolType, 'hosted') }}:
+            vmImage: ${{ parameters.vmImage }}
+          ${{ if eq(parameters.poolType, 'self-hosted') }}:
+            name: ${{ parameters.poolName }}
+        steps:
+          - checkout: self
+
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: '$(pythonVersion)'
+            condition: eq('${{ parameters.poolType }}', 'hosted')
+
+          - script: |
+              command -v python3 &>/dev/null || sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv
+              pip install -r requirements-codequality.txt
+            displayName: 'Install Dependencies'
+
+          - script: |
+              isort --check-only --profile black .
+              black --check --config pyproject.toml .
+              flake8 . --extend-ignore E501 --config pyproject.toml --max-line-length=124
+              interrogate src -v -i --fail-under=60 -e '**/__init__.py'
+              bandit -c pyproject.toml -r .
+            displayName: 'Run Code Quality Checks'
+
+  # ---------------------------------------------------------------------------
+  # Deploy (push to main or manual trigger)
+  # ---------------------------------------------------------------------------
+  - stage: Deploy
+    displayName: 'Deploy'
+    dependsOn: []
+    condition: and(ne(variables['Build.Reason'], 'PullRequest'), ne('${{ parameters.action }}', 'destroy'))
+    jobs:
+      - job: ProvisionAndDeploy
+        pool:
+          ${{ if eq(parameters.poolType, 'hosted') }}:
+            vmImage: ${{ parameters.vmImage }}
+          ${{ if eq(parameters.poolType, 'self-hosted') }}:
+            name: ${{ parameters.poolName }}
+        steps:
+          - checkout: self
+
+          # -- Tool installation (self-hosted agents may not have these) ------
+          - script: |
+              command -v az &>/dev/null && { echo "Azure CLI $(az version -o tsv 2>/dev/null | head -1)"; } \
+                || { curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash; }
+            displayName: 'Ensure Azure CLI'
+
+          - script: |
+              curl -fsSL https://aka.ms/install-azd.sh | bash
+              echo "##vso[task.prependpath]$HOME/.azd/bin"
+            displayName: 'Install AZD'
+
+          - script: |
+              # Install Python/pip if missing
+              if ! command -v python3 &>/dev/null; then
+                sudo apt-get update && sudo apt-get install -y python3 python3-pip python3-venv
+              elif ! python3 -m pip --version &>/dev/null; then
+                sudo apt-get update && sudo apt-get install -y python3-pip python3-venv
+              fi
+
+              # Install project dependencies (--break-system-packages for PEP 668 on Python 3.12+)
+              python3 -m pip install --upgrade pip --break-system-packages 2>/dev/null || python3 -m pip install --upgrade pip
+              python3 -m pip install -r requirements.txt --break-system-packages 2>/dev/null || python3 -m pip install -r requirements.txt
+
+              # Add pip script dirs to PATH so azd hooks can find pytest, etc.
+              PIP_BIN=$(python3 -c "import sysconfig; print(sysconfig.get_path('scripts'))")
+              [[ -d "$PIP_BIN" ]]       && echo "##vso[task.prependpath]$PIP_BIN"
+              [[ -d "$HOME/.local/bin" ]] && echo "##vso[task.prependpath]$HOME/.local/bin"
+            displayName: 'Setup Python & Dependencies'
+
+          # -- Main azd workflow ----------------------------------------------
+          - task: AzureCLI@2
+            displayName: 'Run AZD (${{ parameters.action }})'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              keepAzSessionActive: true
+              addSpnToEnvironment: true
+              useGlobalConfig: true
+              failOnStandardError: false
+              inlineScript: |
+                set -e
+
+                # Derive subscription & tenant from the service connection
+                AZURE_SUB_ID=$(az account show --query id -o tsv)
+                AZURE_TENANT=$(az account show --query tenantId -o tsv)
+                echo "Subscription: $AZURE_SUB_ID  Tenant: $AZURE_TENANT"
+
+                # --- Configure azd environment ---
+                azd config set auth.useAzCliAuth true
+
+                if ! azd env select "$AZURE_ENV_NAME" 2>/dev/null; then
+                  azd env new "$AZURE_ENV_NAME" --no-prompt
+                fi
+
+                azd env set AZURE_SUBSCRIPTION_ID   "$AZURE_SUB_ID"
+                azd env set AZURE_LOCATION          "$AZURE_LOCATION"
+                azd env set AZURE_TENANT_ID         "$AZURE_TENANT"
+                azd env set ENABLE_EASY_AUTH        "$ENABLE_EASY_AUTH"
+                azd env set DISABLE_INGRESS         false
+                azd env set GIT_HASH                "$(git rev-parse --short HEAD)"
+                azd env set PRINCIPAL_ID            "$servicePrincipalId"
+                azd env set RUN_EVALS               "${{ parameters.runEvals }}"
+
+                # Pull Bicep outputs from last deployment (e.g. container registry endpoint)
+                azd env refresh --no-prompt 2>&1 \
+                  || echo "##vso[task.logissue type=warning]env refresh failed (expected on first provision)"
+
+                # --- Execute the requested action ---
+                AZD_FLAGS="--no-prompt"
+                if [ "${{ parameters.debug }}" = "True" ]; then
+                  AZD_FLAGS="$AZD_FLAGS --debug"
+                fi
+                case "${{ parameters.action }}" in
+                  provision) azd provision $AZD_FLAGS ;;
+                  deploy)    azd deploy    $AZD_FLAGS ;;
+                  *)         azd up        $AZD_FLAGS ;;
+                esac
+            env:
+              AZURE_ENV_NAME: $(azureEnvName)
+              AZURE_LOCATION: $(azureLocation)
+              ENABLE_EASY_AUTH: $(enableEasyAuth)
+              CI: 'true'
+              AZURE_CLI_DISABLE_CONNECTION_VERIFICATION: '1'
+
+  # ---------------------------------------------------------------------------
+  # Destroy (manual trigger only)
+  # ---------------------------------------------------------------------------
+  - stage: Destroy
+    displayName: 'Destroy'
+    condition: and(succeeded(), eq('${{ parameters.action }}', 'destroy'))
+    jobs:
+      - job: DestroyResources
+        pool:
+          ${{ if eq(parameters.poolType, 'hosted') }}:
+            vmImage: ${{ parameters.vmImage }}
+          ${{ if eq(parameters.poolType, 'self-hosted') }}:
+            name: ${{ parameters.poolName }}
+        steps:
+          - checkout: self
+
+          - script: |
+              command -v az &>/dev/null || { curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash; }
+            displayName: 'Ensure Azure CLI'
+
+          - script: |
+              curl -fsSL https://aka.ms/install-azd.sh | bash
+              echo "##vso[task.prependpath]$HOME/.azd/bin"
+            displayName: 'Install AZD'
+
+          - task: AzureCLI@2
+            displayName: 'Destroy Resources'
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: 'bash'
+              scriptLocation: 'inlineScript'
+              keepAzSessionActive: true
+              inlineScript: |
+                set -e
+                azd config set auth.useAzCliAuth true
+                azd env select "$AZURE_ENV_NAME"
+                azd down --force --no-prompt --purge
+            env:
+              AZURE_ENV_NAME: $(azureEnvName)
+              AZURE_LOCATION: $(azureLocation)
+              CI: 'true'
