@@ -4,7 +4,10 @@ node_modules
 # Ignore Python virtual environments
 venv
 env
+.venv
+**/.venv
 __pycache__
+**/__pycache__
 paprocessing_env
 
 # Ignore Git files
@@ -14,6 +17,25 @@ paprocessing_env
 # Ignore Docker files
 .dockerignore
 Dockerfile
+
+# Ignore Azurite local storage emulator files
+__azurite_db_*
+__blobstorage__
+__queuestorage__
+
+# Ignore infra/deployment files
+infra
+.azure
+
+# Ignore notebooks and docs
+notebooks
+docs
+*.ipynb
+
+# Ignore test/eval artifacts
+tests
+evals
+
 # Ignore other unnecessary files and directories
 *.log
 *.tmp

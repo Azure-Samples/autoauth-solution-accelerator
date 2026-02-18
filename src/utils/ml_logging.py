@@ -5,11 +5,27 @@ import time
 from threading import Lock
 from typing import Callable, Optional
 
-from azure.monitor.opentelemetry import configure_azure_monitor
-from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
+# OpenTelemetry imports are optional — if they fail, tracing is disabled
+# but the application continues to function normally.
+_OTEL_AVAILABLE = False
+try:
+    from azure.monitor.opentelemetry import configure_azure_monitor
+    from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+
+    _OTEL_AVAILABLE = True
+except ImportError as e:
+    logging.getLogger(__name__).warning(
+        "OpenTelemetry dependencies not available. "
+        "Tracing/monitoring will be disabled. Error: %s", e
+    )
+except Exception as e:
+    logging.getLogger(__name__).warning(
+        "Failed to load OpenTelemetry dependencies. "
+        "Tracing/monitoring will be disabled. Error: %s", e
+    )
 
 # Globals
 _cloud_logging_configured = False
@@ -38,9 +54,27 @@ class CustomFormatter(logging.Formatter):
 
 def initialize_azure_monitor():
     global _cloud_logging_configured
-    if not _cloud_logging_configured:
+    if _cloud_logging_configured:
+        return
+
+    if not _OTEL_AVAILABLE:
+        logging.getLogger(__name__).warning(
+            "Skipping Azure Monitor initialization — OpenTelemetry dependencies are not available."
+        )
+        _cloud_logging_configured = True  # Don't retry
+        return
+
+    try:
+        connection_string = os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+        if not connection_string:
+            logging.getLogger(__name__).warning(
+                "APPLICATIONINSIGHTS_CONNECTION_STRING not set. Skipping Azure Monitor initialization."
+            )
+            _cloud_logging_configured = True
+            return
+
         configure_azure_monitor(
-            connection_string=os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING"),
+            connection_string=connection_string,
             logging_exporter_enabled=True,
             tracing_exporter_enabled=True,
             metrics_exporter_enabled=True,
@@ -49,11 +83,16 @@ def initialize_azure_monitor():
             tracer_provider = TracerProvider()
             trace.set_tracer_provider(tracer_provider)
             exporter = AzureMonitorTraceExporter(
-                connection_string=os.getenv("APPLICATIONINSIGHTS_CONNECTION_STRING")
+                connection_string=connection_string
             )
             span_processor = BatchSpanProcessor(exporter)
             tracer_provider.add_span_processor(span_processor)
         _cloud_logging_configured = True
+    except Exception as e:
+        logging.getLogger(__name__).warning(
+            "Failed to initialize Azure Monitor. Tracing/monitoring will be disabled. Error: %s", e
+        )
+        _cloud_logging_configured = True  # Don't retry on every logger call
 
 
 def get_logger(

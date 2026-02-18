@@ -1,128 +1,90 @@
 # Simple logging functions
 function Write-Info { param([string]$Message) Write-Host "[INFO] $Message" }
 function Write-Error { param([string]$Message) Write-Host "[ERROR] $Message" -ForegroundColor Red }
-function Write-Warning { param([string]$Message) Write-Host "[WARN] $Message" -ForegroundColor Yellow }
 
-# Get environment variables
+# Load environment variables
 Write-Info "Loading environment variables..."
-$job_name = (azd env get-value CONTAINER_JOB_NAME).Trim()
-$rg_name = (azd env get-value AZURE_RESOURCE_GROUP).Trim()
-$frontend_image = (azd env get-value SERVICE_FRONTEND_IMAGE_NAME).Trim()
-$acr_endpoint = (azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT).Trim()
-$storage_account = (azd env get-value AZURE_STORAGE_ACCOUNT_NAME).Trim()
+$indexer_hostname = (azd env get-value INDEXER_FUNCTION_APP_HOSTNAME 2>$null) | Select-Object -Last 1
+$indexer_app_name = (azd env get-value INDEXER_FUNCTION_APP_NAME 2>$null) | Select-Object -Last 1
+$rg_name = (azd env get-value AZURE_RESOURCE_GROUP 2>$null) | Select-Object -Last 1
 
-# Check if Container App Job exists
-Write-Info "Checking if Container App Job exists and has successful executions..."
-try {
-    $null = az containerapp job show -g $rg_name --name $job_name 2>$null
-    $successful_count = az containerapp job execution list -g $rg_name --name $job_name --query "length([?properties.status=='Succeeded'])" -o tsv
-
-    if ([int]$successful_count -gt 0) {
-        Write-Info "Container App Job already has $successful_count successful execution(s). Skipping..."
-        $jobExists = $true
-    } else {
-        Write-Info "Container App Job exists but has no successful executions. Continuing..."
-        $jobExists = $false
-    }
-} catch {
-    Write-Info "Container App Job does not exist or could not be accessed. Continuing with deployment..."
-    $jobExists = $false
+if ([string]::IsNullOrWhiteSpace($indexer_hostname)) {
+    Write-Error "INDEXER_FUNCTION_APP_HOSTNAME is not set. Ensure the indexer function app was deployed."
+    exit 1
 }
-
-# Update and run job if needed
-if (-not $jobExists) {
-    if ([string]::IsNullOrEmpty($frontend_image)) {
-        Write-Error "SERVICE_FRONTEND_IMAGE_NAME is null. Ensure your azd deployment succeeded. Exiting..."
-        exit 1
-    }
-
-    Write-Info "Logging into Azure Container Registry..."
-    az acr login --name $acr_endpoint
-
-    Write-Info "Updating container app job image..."
-    $null = & az containerapp job update -g $rg_name --name $job_name --image $frontend_image --cpu 2 --memory 4Gi 2>&1
-
-    Write-Info "Starting job $job_name..."
-    az containerapp job start -g $rg_name --name $job_name --cpu 2 --memory 4Gi
-
-    Write-Info "Waiting for job to complete..."
-    $status = "Running"
-    while ($status -eq "Running" -or $status -eq "Pending" -or $status -eq "Unknown") {
-        Start-Sleep -Seconds 10
-        $execution = az containerapp job execution list -g $rg_name --name $job_name --query "[0]" -o json | ConvertFrom-Json
-        $status = $execution.properties.status
-        Write-Info "Status: $status"
-    }
-
-    if ($status -ne "Succeeded") {
-        Write-Error "Job failed with status: $status"
-        exit 1
-    }
-    Write-Info "Job completed successfully."
-}
-
-# Run evaluations
-if ([string]::IsNullOrEmpty($env:RUN_EVALS)) {
-    $response = Read-Host "Would you like to run model evaluations through AI Foundry? (y/n)"
-    if ($response -notmatch '^[Yy]') {
-        Write-Info "Model evaluations will be skipped."
-        exit 0
-    }
-    Write-Info "Model evaluations will be run."
-} elseif ($env:RUN_EVALS -match '^[Ff][Aa][Ll][Ss][Ee]$') {
-    Write-Info "RUN_EVALS is set to false. Skipping evaluations."
-    exit 0
-}
-
-# Find project root
-$current_dir = Get-Location
-while ($true) {
-    if (Test-Path -Path (Join-Path -Path $current_dir -ChildPath ".git") -PathType Container) {
-        $project_root = $current_dir
-        break
-    }
-    $parent_dir = Split-Path -Path $current_dir -Parent
-    if ($parent_dir -eq $current_dir) {
-        Write-Error ".git directory not found in any parent directory"
-        exit 1
-    }
-    $current_dir = $parent_dir
-}
-
-Write-Info "Changing directory to project root: $project_root"
-Set-Location -Path $project_root
-
-if (-not (Test-Path -Path "tests" -PathType Container)) {
-    Write-Error "Tests directory not found!"
+if ([string]::IsNullOrWhiteSpace($indexer_app_name) -or [string]::IsNullOrWhiteSpace($rg_name)) {
+    Write-Error "INDEXER_FUNCTION_APP_NAME or AZURE_RESOURCE_GROUP is not set."
     exit 1
 }
 
-# Enable key-based auth for storage account
-if (-not [string]::IsNullOrEmpty($storage_account)) {
-    Write-Info "Enabling key-based access for storage account: $storage_account"
-    az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access true | Out-Null
+# Fetch function host key
+Write-Info "Fetching function host key for $($indexer_app_name.Trim())..."
+$func_key = $null
+try {
+    # Use Select-Object -Last 1 to strip any spurious warnings the az CLI may print to stdout
+    $func_key = (az functionapp keys list --name $indexer_app_name.Trim() --resource-group $rg_name.Trim() --query "functionKeys.default" -o tsv 2>$null) | Select-Object -Last 1
+} catch { }
+if ([string]::IsNullOrWhiteSpace($func_key)) {
+    try {
+        $func_key = (az functionapp keys list --name $indexer_app_name.Trim() --resource-group $rg_name.Trim() --query "masterKey" -o tsv 2>$null) | Select-Object -Last 1
+    } catch { }
+}
+if ([string]::IsNullOrWhiteSpace($func_key)) {
+    Write-Error "Could not retrieve function key. Check your permissions on the function app."
+    exit 1
 }
 
-# Run tests
-Write-Info "Starting pytest..."
-try {
-    pytest tests
-    $test_result = $LASTEXITCODE
-    if ($test_result -ne 0) {
-        Write-Error "Tests failed."
-    } else {
-        Write-Info "Tests completed successfully."
+# Wait for the function app to become reachable
+$baseUrl = "https://$($indexer_hostname.Trim())"
+Write-Info "Waiting for function app to become available (up to 180s)..."
+$maxAttempts = 12
+$delay = 15
+for ($attempt = 1; $attempt -le $maxAttempts; $attempt++) {
+    try {
+        $probe = Invoke-WebRequest -Uri $baseUrl -Method Get -TimeoutSec 10 -ErrorAction SilentlyContinue
+        Write-Info "Function app is responding (HTTP $($probe.StatusCode))."
+        break
+    } catch {
+        $probeStatus = $_.Exception.Response.StatusCode.value__
+        if ($probeStatus) {
+            Write-Info "Function app is responding (HTTP $probeStatus)."
+            break
+        }
+        Write-Info "Attempt $attempt/$maxAttempts - not ready yet, retrying in ${delay}s..."
+        Start-Sleep -Seconds $delay
+        if ($attempt -eq $maxAttempts) {
+            Write-Error "Function app did not become available in time."
+            exit 1
+        }
     }
 }
-catch {
-    Write-Error "Error running tests: $_"
-    $test_result = 1
+
+$url = "https://$($indexer_hostname.Trim())/api/reindex_all"
+Write-Info "Invoking reindex_all at: $url"
+
+$headers = @{
+    "Content-Type"    = "application/json"
+    "x-functions-key" = $func_key
+}
+$maxRetries = 3
+$retryDelay = 20
+
+for ($retry = 1; $retry -le $maxRetries; $retry++) {
+    try {
+        $response = Invoke-RestMethod -Uri $url -Method Post -Headers $headers -Body '{}' -TimeoutSec 600
+        Write-Info "reindex_all completed successfully."
+        Write-Info "Response: $($response | ConvertTo-Json -Depth 5 -Compress)"
+        Write-Info "Post-deploy finished."
+        exit 0
+    } catch {
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        Write-Info "Attempt $retry/$maxRetries failed (HTTP $statusCode): $($_.Exception.Message)"
+        if ($retry -lt $maxRetries) {
+            Write-Info "Retrying in ${retryDelay}s..."
+            Start-Sleep -Seconds $retryDelay
+        }
+    }
 }
 
-# Disable key-based auth for storage account
-if (-not [string]::IsNullOrEmpty($storage_account)) {
-    Write-Info "Disabling key-based access for storage account: $storage_account"
-    az storage account update --name $storage_account --resource-group $rg_name --allow-shared-key-access false | Out-Null
-}
-
-exit $test_result
+Write-Error "reindex_all failed after $maxRetries attempts."
+exit 1

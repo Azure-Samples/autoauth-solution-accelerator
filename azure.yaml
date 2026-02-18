@@ -12,19 +12,11 @@ services:
       path: Dockerfile
       context: ../../
       remoteBuild: true
-    hooks:
-      postdeploy:
-        posix:
-          shell: sh
-          interactive: true
-          continueOnError: false
-          run: ../../utils/azd/hooks/postdeploy.sh
 
-        windows:
-          shell: pwsh
-          interactive: true
-          continueOnError: false
-          run: ..\..\utils\azd\hooks\postdeploy.ps1
+  indexer:
+    project: app/indexer
+    host: function
+    language: python
 
   # backend: # <-- This is the name of your service (tag:azdServiceName in bicep config)
   #   project: app/backend
@@ -65,3 +57,16 @@ hooks:
       interactive: true
       continueOnError: false
       run: utils\azd\hooks\postprovision.ps1
+
+  postdeploy:
+    posix:
+      shell: sh
+      interactive: true
+      continueOnError: false
+      run: utils/azd/hooks/postdeploy.sh
+
+    windows:
+      shell: pwsh
+      interactive: true
+      continueOnError: false
+      run: utils\azd\hooks\postdeploy.ps1

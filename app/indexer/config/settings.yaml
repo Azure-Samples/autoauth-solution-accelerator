@@ -1,0 +1,43 @@
+azure_search:
+  index_name: "ai-policies-index"
+
+# Index schema settings — no skillset/indexer/data-source config needed
+# (processing is handled entirely by the Function App)
+index_settings:
+  add_page_numbers: true
+
+# Blob storage settings
+blob_storage:
+  container_name: "pre-auth-policies"
+  blob_prefix: "policies_ocr"
+
+# Chunking configuration — matches former SplitSkill parameters
+chunking:
+  max_chunk_length: 3000
+  overlap_length: 500
+  split_mode: "pages"  # character-based splitting
+
+# Embedding configuration
+embedding:
+  batch_size: 16       # Azure OpenAI max texts per request
+  max_retries: 5
+  base_retry_delay: 2.0  # seconds
+
+# OCR configuration
+ocr:
+  model_id: "prebuilt-layout"
+  output_format: "text"
+
+vector_search:
+  algorithms:
+    - name: "myHnsw"
+      parameters:
+        m: 4
+        ef_construction: 400
+        ef_search: 500
+  profiles:
+    - name: "myHnswProfile"
+      algorithm_configuration_name: "myHnsw"
+      vectorizer_name: "myOpenAI"
+  vectorizers:
+    - vectorizer_name: "myOpenAI"

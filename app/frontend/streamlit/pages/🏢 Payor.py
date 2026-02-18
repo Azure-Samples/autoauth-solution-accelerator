@@ -204,7 +204,7 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         final_determination = document.get("pa_determination_results", "N/A")
         attachments_info = document.get("raw_uploaded_files", [])
         # TODO add policy text
-        policy_text = document["agenticrag_results"]["policies"]
+        policy_text = document.get("agenticrag_results", {}).get("policies", "N/A")
 
         summary = f"""
         Final Determination: {final_determination}

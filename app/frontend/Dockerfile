@@ -5,8 +5,8 @@ WORKDIR /app
 ENV PYTHONPATH "${PYTHONPATH}:/app"
 
 COPY src /app/src
-COPY app /app/app
-COPY evals /app/evals
+COPY app/__init__.py /app/app/__init__.py
+COPY app/frontend /app/app/frontend
 COPY utils/images/ /app/utils/images/
 COPY utils/data/cases/policies /app/utils/data/cases/policies
 COPY requirements.txt /app/requirements.txt

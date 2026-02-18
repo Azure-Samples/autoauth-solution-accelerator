@@ -27,6 +27,11 @@ resource searchService 'Microsoft.Search/searchServices@2024-06-01-preview' = {
   properties: {
     publicNetworkAccess: 'Enabled'
     hostingMode: 'default'
+    authOptions: {
+      aadOrApiKey: {
+        aadAuthFailureMode: 'http403'
+      }
+    }
   }
   tags: tags
 }

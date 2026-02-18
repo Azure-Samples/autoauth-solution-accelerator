@@ -8,8 +8,9 @@ from azure.search.documents.models import (
     QueryAnswerType,
     QueryCaptionType,
     QueryType,
-    VectorizableTextQuery,
+    VectorizedQuery,
 )
+from openai import AzureOpenAI
 from semantic_kernel.functions import kernel_function
 from semantic_kernel.utils.logging import setup_logging
 
@@ -28,11 +29,15 @@ class AzureSearchPlugin:
     1. Keyword Search
     2. Semantic Search
     3. Hybrid Search
+
+    Query vectors are pre-computed using Azure OpenAI embeddings rather than
+    relying on AI Search's built-in vectorizer, which avoids outbound networking
+    requirements on the search service (important for private networking).
     """
 
     def __init__(self) -> None:
         """
-        Initialize the AzureSearchPlugin with the necessary client configurations.
+        Initialize the AzureSearchPlugin with search and embedding client configurations.
         """
         self.logger = get_logger(
             name="AgenticRAG - Plugin AzureSearchPlugin",
@@ -41,6 +46,7 @@ class AzureSearchPlugin:
         )
 
         try:
+            # --- Search client ---
             endpoint = os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT")
             index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
             api_key = os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")
@@ -56,9 +62,46 @@ class AzureSearchPlugin:
                 endpoint=endpoint, index_name=index_name, credential=credential
             )
             self.logger.info("SearchClient initialized successfully.")
+
+            # --- Embedding client (pre-vectorize queries) ---
+            aoai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
+            aoai_key = os.getenv("AZURE_OPENAI_KEY")
+            if not all([aoai_endpoint, aoai_key]):
+                raise ValueError(
+                    "AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY are required for query vectorization."
+                )
+            self.embedding_client = AzureOpenAI(
+                azure_endpoint=aoai_endpoint,
+                api_key=aoai_key,
+                api_version="2024-06-01",
+            )
+            self.embedding_deployment = os.getenv(
+                "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-large"
+            )
+            self.embedding_dimensions = int(
+                os.getenv("AZURE_OPENAI_EMBEDDING_DIMENSIONS", "3072")
+            )
+            self.logger.info(
+                f"Embedding client initialized: deployment={self.embedding_deployment}, "
+                f"dimensions={self.embedding_dimensions}"
+            )
         except Exception as e:
             self.logger.error(f"Initialization error: {e}")
             raise e
+
+    def _embed_query(self, text: str) -> List[float]:
+        """
+        Pre-compute the embedding vector for a search query using Azure OpenAI.
+
+        :param text: The query text to embed.
+        :return: A list of floats representing the embedding vector.
+        """
+        response = self.embedding_client.embeddings.create(
+            input=text,
+            model=self.embedding_deployment,
+            dimensions=self.embedding_dimensions,
+        )
+        return response.data[0].embedding
 
     @kernel_function(
         name="keyword_search",
@@ -168,8 +211,9 @@ class AzureSearchPlugin:
         function_id = "semantic_search"
         self.logger.info(f"Function {function_id} called.")
         try:
-            vector_query = VectorizableTextQuery(
-                text=search_text, k_nearest_neighbors=5, fields="vector", weight=0.5
+            query_vector = self._embed_query(search_text)
+            vector_query = VectorizedQuery(
+                vector=query_vector, k_nearest_neighbors=5, fields="vector", weight=0.5
             )
             results = self.search_client.search(
                 search_text=search_text,
@@ -205,10 +249,11 @@ class AzureSearchPlugin:
         """
         function_id = "hybrid_search"
         self.logger.info(f"Function {function_id} called.")
-        vector_query = VectorizableTextQuery(
-            text=search_text, k_nearest_neighbors=5, fields="vector", weight=0.5
-        )
         try:
+            query_vector = self._embed_query(search_text)
+            vector_query = VectorizedQuery(
+                vector=query_vector, k_nearest_neighbors=5, fields="vector", weight=0.5
+            )
             results = self.search_client.search(
                 vector_queries=[vector_query],
                 search_text=search_text,

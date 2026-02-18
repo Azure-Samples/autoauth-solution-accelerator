@@ -1,0 +1,13 @@
+# Evaluation-only dependencies — NOT included in deployed containers.
+# Install locally with: pip install -r requirements-evals.txt
+
+-r requirements.txt
+
+# Hugging Face Transformers + PyTorch (used by SemanticSimilarityEvaluator)
+transformers[torch]==4.48.0
+
+# Azure AI Evaluation SDK
+azure-ai-evaluation==1.2.0
+
+# LLM Metrics
+ragas==0.2.3

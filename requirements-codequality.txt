@@ -15,8 +15,10 @@ types-PyYAML
 # For Evals
 jq
 semantic_kernel
-azure-monitor-opentelemetry
+azure-monitor-opentelemetry>=1.6.7,<2.0.0
 azure-ai-inference[opentelemetry]
 opentelemetry-exporter-otlp
 azure-ai-projects
 opentelemetry-instrumentation-httpx
+opentelemetry-api>=1.27.0
+opentelemetry-sdk>=1.27.0

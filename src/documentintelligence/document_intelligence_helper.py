@@ -2,7 +2,7 @@ import os
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient, models
-from azure.ai.documentintelligence.models import AnalyzeDocumentRequest, Document
+from azure.ai.documentintelligence.models import AnalyzeDocumentRequest, AnalyzedDocument
 from azure.core.credentials import AzureKeyCredential
 from azure.core.polling import LROPoller
 
@@ -92,7 +92,7 @@ class AzureDocumentIntelligenceManager:
         string_index_type: Optional[Union[str, models.StringIndexType]] = None,
         features: Optional[List[str]] = None,
         query_fields: Optional[List[str]] = None,
-        output_format: Optional[Union[str, models.ContentFormat]] = None,
+        output_format: Optional[Union[str, models.DocumentContentFormat]] = None,
         content_type: str = "application/json",
         **kwargs: Any,
     ) -> LROPoller:
@@ -144,7 +144,7 @@ class AzureDocumentIntelligenceManager:
         if isinstance(document_input, bytes):
             poller = self.document_analysis_client.begin_analyze_document(
                 model_id=model_type,
-                analyze_request=AnalyzeDocumentRequest(bytes_source=document_input),
+                body=AnalyzeDocumentRequest(bytes_source=document_input),
                 pages=pages,
                 locale=locale,
                 string_index_type=string_index_type,
@@ -166,7 +166,7 @@ class AzureDocumentIntelligenceManager:
                     analyze_request = AnalyzeDocumentRequest(bytes_source=content_bytes)
                     poller = self.document_analysis_client.begin_analyze_document(
                         model_id=model_type,
-                        analyze_request=analyze_request,
+                        body=analyze_request,
                         pages=pages,
                         locale=locale,
                         string_index_type=string_index_type,
@@ -184,7 +184,7 @@ class AzureDocumentIntelligenceManager:
             else:
                 poller = self.document_analysis_client.begin_analyze_document(
                     model_id=model_type,
-                    analyze_request=AnalyzeDocumentRequest(url_source=document_input),
+                    body=AnalyzeDocumentRequest(url_source=document_input),
                     pages=pages,
                     locale=locale,
                     string_index_type=string_index_type,
@@ -199,7 +199,7 @@ class AzureDocumentIntelligenceManager:
                 file_content = f.read()
                 poller = self.document_analysis_client.begin_analyze_document(
                     model_id=model_type,
-                    analyze_request=AnalyzeDocumentRequest(bytes_source=file_content),
+                    body=AnalyzeDocumentRequest(bytes_source=file_content),
                     pages=pages,
                     locale=locale,
                     string_index_type=string_index_type,
@@ -211,7 +211,7 @@ class AzureDocumentIntelligenceManager:
                 )
         return poller.result()
 
-    def process_invoice(self, invoice: Document) -> Dict:
+    def process_invoice(self, invoice: AnalyzedDocument) -> Dict:
         """
         Processes a single invoice and returns a dictionary with the data.
 

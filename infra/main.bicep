@@ -139,8 +139,11 @@ module resources 'resources.bicep' = {
 @description('Name of the resource group')
 output AZURE_RESOURCE_GROUP string = rg.name
 
-@description('Name of the container job')
-output CONTAINER_JOB_NAME string = resources.outputs.CONTAINER_JOB_NAME
+@description('Name of the indexer Function App')
+output INDEXER_FUNCTION_APP_NAME string = resources.outputs.INDEXER_FUNCTION_APP_NAME
+
+@description('Hostname of the indexer Function App')
+output INDEXER_FUNCTION_APP_HOSTNAME string = resources.outputs.INDEXER_FUNCTION_APP_HOSTNAME
 
 @description('Endpoint for Azure OpenAI')
 output AZURE_OPENAI_ENDPOINT string = resources.outputs.AZURE_OPENAI_ENDPOINT

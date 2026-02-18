@@ -1,6 +1,15 @@
 main.parameters.json
 cleanup.sh
 
+# Azurite local storage emulator
+__azurite_db*.json
+__blobstorage__/
+__queuestorage__/
+
+# Azure Functions
+local.settings.json
+.python_packages/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

@@ -12,7 +12,7 @@
       "value": "${AZURE_ENV_NAME:-defaultEnv}"
     },
     "location": {
-      "value": "${AZURE_LOCATION:-eastus2}"
+      "value": "${AZURE_LOCATION}"
     },
     "priorAuthName": {
       "value": "${PRIOR_AUTH_NAME:-autoauth}"
@@ -22,6 +22,9 @@
     },
     "backendExists": {
       "value": "${SERVICE_BACKEND_RESOURCE_EXISTS:-false}"
+    },
+    "indexerExists": {
+      "value": "${SERVICE_INDEXER_RESOURCE_EXISTS:-false}"
     },
     "acrContainerImage": {
       "value": "${ACR_CONTAINER_IMAGE:-}"

@@ -17,6 +17,7 @@
 // Managed by AZD - Flag for handling of mapping the deployed image to the container app:
 param frontendExists bool = false
 param backendExists bool = false
+
 // ----------------------------------------------------------------------------------------
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
 param enableEasyAuth bool
@@ -245,7 +246,7 @@ module registry 'br/public:avm/res/container-registry/registry:0.1.1' = {
   }
 }
 
-var storageConnString = 'ResourceId=${storageAccount.outputs.storageAccountId}'
+var storageConnString = 'ResourceId=${storageAccount.outputs.storageAccountId}/;'
 
 
 var containerEnvArray = [
@@ -430,13 +431,18 @@ var frontendContainer = {
 }
 
 
-var jobAppContainer = {
-  name: '${backendContainerName}-job'
-  image: frontendImage
-  command: ['/bin/bash']
-  args: ['-c', 'python /app/src/pipeline/policyIndexer/indexerSetup.py --target \'/app\'']
-  env: containerEnvArray
-}
+// Indexer Function App settings — scoped to only what the indexer needs
+var indexerAppSettings = [
+  { name: 'AZURE_OPENAI_ENDPOINT', value: openAiService.outputs.aiServicesEndpoint }
+  { name: 'AZURE_OPENAI_EMBEDDING_DEPLOYMENT', value: embeddingModel.name }
+  { name: 'AZURE_OPENAI_EMBEDDING_MODEL_NAME', value: embeddingModel.name }
+  { name: 'AZURE_OPENAI_EMBEDDING_DIMENSIONS', value: embeddingModelDimension }
+  { name: 'AZURE_AI_SEARCH_SERVICE_ENDPOINT', value: searchService.outputs.searchServiceEndpoint }
+  { name: 'AZURE_SEARCH_INDEX_NAME', value: 'ai-policies-index' }
+  { name: 'AZURE_STORAGE_ACCOUNT_NAME', value: storageAccount.outputs.storageAccountName }
+  { name: 'AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT', value: docIntelligence.outputs.aiServicesEndpoint }
+  { name: 'AZURE_BLOB_CONTAINER_NAME', value: 'pre-auth-policies' }
+]
 
 module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
   name: frontendContainerName
@@ -474,39 +480,66 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
   }
 }
 
-module indexInitializationJob 'br/public:avm/res/app/job:0.5.1' = {
-  name: '${backendContainerName}-job'
-  params: {
-    // Required parameters
-    containers: [
-      jobAppContainer
-    ]
-    environmentResourceId: containerAppsEnvironment.outputs.resourceId
-    name: '${backendContainerName}-job'
-    triggerType: 'Manual'
+// Policy Indexer Function App — replaces the Container App Job
+var indexerFunctionAppName = toLower('func-indexer-${name}-${uniqueSuffix}')
 
-    // Non-required parameters
-    registries: registries
-    manualTriggerConfig: {
-      parallelism: 1
-      replicaCompletionCount: 1
-    }
-    replicaTimeout: 1000
-    replicaRetryLimit: 3
-    managedIdentities: {
-      userAssignedResourceIds:[
-        appIdentity.outputs.resourceId
-      ]
-    }
-    roleAssignments: [
-      {
-        name: guid('${backendContainerName}-job', 'Container App Jobs Operator')
-        principalId: appIdentity.outputs.principalId
-        principalType: 'ServicePrincipal'
-        roleDefinitionIdOrName: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b9a307c4-5aa3-4b52-ba60-2b17c136cd7b') // Container App Job Contributor
-      }
-    ]
+module indexerFunctionApp 'modules/compute/functionapp.bicep' = {
+  name: 'func-indexer-${name}-${uniqueSuffix}-deployment'
+  params: {
+    functionAppName: indexerFunctionAppName
     location: location
+    tags: union(tags, { 'azd-service-name': 'indexer' })
+    applicationInsightsConnectionString: monitoring.outputs.applicationInsightsConnectionString
+    userAssignedIdentityResourceId: appIdentity.outputs.resourceId
+    userAssignedIdentityClientId: appIdentity.outputs.clientId
+    storageAccountName: storageAccount.outputs.storageAccountName
+    storageAccountResourceId: storageAccount.outputs.storageAccountId
+    appSettings: indexerAppSettings
+  }
+}
+
+// Grant the Function App identity "Cognitive Services User" on the resource group
+// so it can call Document Intelligence for OCR processing
+resource uaiCognitiveServicesUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: resourceGroup()
+  name: guid(docIntelligence.name, appIdentity.name, 'Cognitive Services User')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'a97b65f3-24c7-4388-baec-2e87135dc908') // Cognitive Services User
+    principalId: appIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Grant the Function App identity "Cognitive Services OpenAI User" so it can call Azure OpenAI for embeddings
+resource uaiCognitiveServicesOpenAIUser 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: resourceGroup()
+  name: guid(openAiService.name, appIdentity.name, 'Cognitive Services OpenAI User')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '5e0bd9bd-7b93-4f28-af87-19fc36ad61bd') // Cognitive Services OpenAI User
+    principalId: appIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Grant the Function App identity "Search Index Data Contributor" so it can push documents to AI Search
+resource uaiSearchIndexDataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: resourceGroup()
+  name: guid(searchService.name, appIdentity.name, 'Search Index Data Contributor')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '8ebe5a00-799e-43f5-93ac-243d3dce84a7') // Search Index Data Contributor
+    principalId: appIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Grant the Function App identity "Search Service Contributor" so it can manage index schemas
+resource uaiSearchServiceContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: resourceGroup()
+  name: guid(searchService.name, appIdentity.name, 'Search Service Contributor')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7ca78c08-252a-4471-8644-bb5ff32d4ba0') // Search Service Contributor
+    principalId: appIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
   }
 }
 
@@ -564,7 +597,8 @@ output AZURE_CONTAINER_ENVIRONMENT_ID string = containerAppsEnvironment.outputs.
 output AZURE_CONTAINER_ENVIRONMENT_NAME string = containerAppsEnvironment.outputs.name
 output AZURE_OPENAI_KEY string = openAiService.outputs.aiServicesKey
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = aiFoundry.outputs.aiFoundryConnectionString
-output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
+output INDEXER_FUNCTION_APP_NAME string = indexerFunctionApp.outputs.functionAppName
+output INDEXER_FUNCTION_APP_HOSTNAME string = indexerFunctionApp.outputs.functionAppHostname
 
 output FRONTEND_CONTAINER_URL string = frontendContainerApp.outputs.fqdn
 output FRONTEND_CONTAINER_NAME string = frontendContainerApp.outputs.name

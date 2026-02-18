@@ -1,0 +1,19 @@
+# Azure Functions
+azure-functions
+
+# Azure SDKs — document processing pipeline
+azure-identity==1.19.0
+azure-search-documents==11.6.0b5    # Push documents to index + index management
+azure-storage-blob==12.23.1          # Download/upload blobs
+azure-core
+azure-ai-documentintelligence>=1.0.0 # OCR via Document Intelligence (prebuilt-layout)
+
+# Azure OpenAI — embedding generation
+openai>=1.60.0
+
+# Configuration
+python-dotenv==1.0.1
+pyyaml
+
+# Logging / Monitoring
+azure-monitor-opentelemetry==1.6.7

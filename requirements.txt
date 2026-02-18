@@ -16,21 +16,15 @@ tiktoken==0.8.0
 langchain==0.3.1
 langchain-community==0.3.1
 langchain-core==0.3.40
-transformers[torch]==4.48.0
 
 # Azure SDKs
 azure-identity==1.19.0
 azure-mgmt-resource==23.1.1
-azure-ai-documentintelligence==1.0.0b4
-azure-ai-evaluation==1.2.0
-
+azure-ai-documentintelligence>=1.0.0
 azure-cosmos==4.7.0
 azure-search-documents==11.6.0b5
 azure-storage-blob==12.23.1
-azure-monitor-opentelemetry==1.6.7
-
-# LLM Metrics
-ragas==0.2.3
+azure-monitor-opentelemetry>=1.6.7,<2.0.0
 
 # General utilities
 requests==2.32.3
@@ -61,3 +55,5 @@ azure-ai-inference[opentelemetry]
 opentelemetry-exporter-otlp
 azure-ai-projects
 opentelemetry-instrumentation-httpx
+opentelemetry-api>=1.27.0
+opentelemetry-sdk>=1.27.0
