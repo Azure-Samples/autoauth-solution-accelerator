@@ -7,7 +7,7 @@ with configurable overlap) without any dependency on AI Search skillsets.
 
 import hashlib
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 logger = logging.getLogger("policy-indexer")

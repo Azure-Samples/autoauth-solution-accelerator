@@ -180,9 +180,7 @@ class SessionTracker:
     def get_sessions_by_blob(self, blob_name: str) -> List[ProcessingSession]:
         """Retrieve all sessions for a given blob name."""
         with self._lock:
-            return [
-                s for s in self._sessions.values() if s.blob_name == blob_name
-            ]
+            return [s for s in self._sessions.values() if s.blob_name == blob_name]
 
     def list_recent(self, limit: int = 50) -> List[ProcessingSession]:
         """List the most recent sessions."""
@@ -193,9 +191,7 @@ class SessionTracker:
     def list_failed(self, limit: int = 50) -> List[ProcessingSession]:
         """List the most recent failed sessions."""
         with self._lock:
-            failed = [
-                s for s in self._sessions.values() if s.status == "failed"
-            ]
+            failed = [s for s in self._sessions.values() if s.status == "failed"]
         return failed[-limit:]
 
     def get_summary(self) -> Dict[str, Any]:
@@ -213,9 +209,9 @@ class SessionTracker:
             "running": running,
             "completed": completed,
             "failed": failed,
-            "recent_failures": [
-                s.to_dict() for s in sessions if s.status == "failed"
-            ][-5:],
+            "recent_failures": [s.to_dict() for s in sessions if s.status == "failed"][
+                -5:
+            ],
         }
 
     def _evict_old(self) -> None:

@@ -1,7 +1,7 @@
 # Spec: Blob-Triggered Policy Indexer — Offloading AI Search Skillsets to Azure Functions
 
-> **Status:** Approved — implementing  
-> **Date:** 2026-02-17  
+> **Status:** Approved — implementing
+> **Date:** 2026-02-17
 > **Supersedes:** [policy-indexer-function-app.md](policy-indexer-function-app.md)
 
 ## Decisions
@@ -70,7 +70,7 @@ PDF upload → Blob Storage (pre-auth-policies/policies_ocr/)
 ### Skillset Chain Detail (from `settings.yaml`)
 
 1. **OcrSkill**: Context `/document/normalized_images/*` — extracts text from page images using Cognitive Services OCR, outputs `text` and `layoutText`
-2. **SplitSkill**: Context `/document/normalized_images/*` — splits OCR text into 3000-char pages with 500-char overlap, outputs `pages`  
+2. **SplitSkill**: Context `/document/normalized_images/*` — splits OCR text into 3000-char pages with 500-char overlap, outputs `pages`
 3. **AzureOpenAIEmbeddingSkill**: Context `/document/normalized_images/*/pages/*` — generates embeddings via `text-embedding-3-large` (3072 dims)
 
 ### Index Schema
@@ -79,7 +79,7 @@ PDF upload → Blob Storage (pre-auth-policies/policies_ocr/)
 |---|---|---|---|---|
 | `chunk_id` | String | ✅ (keyword analyzer) | | ✅ |
 | `chunk` | String | | ✅ | |
-| `vector` | Collection(Single) | | | | 
+| `vector` | Collection(Single) | | | |
 | `parent_id` | String | | | ✅ |
 | `title` | String | | | |
 | `parent_path` | String | | | |
@@ -281,7 +281,7 @@ def process_blob(event: func.EventGridEvent):
     """Triggered when a PDF is uploaded to the policies blob container."""
     blob_url = event.get_json()["url"]
     blob_name = extract_blob_name(blob_url)
-    
+
     processor = DocumentProcessor()
     result = processor.process(blob_url, blob_name)
     logger.info("Processed %s: %d chunks indexed", blob_name, result.chunk_count)
@@ -411,7 +411,7 @@ Key implementation notes from the decisions:
 - [ ] Remove `create_data_source()`, `create_skillset()`, `create_indexer()`, `run_indexer()` from `pipeline.py`
 - [ ] Remove `runner.py` (IndexerRunner — no longer needed)
 - [ ] Remove AI Search data source, skillset, indexer via a cleanup script or manual deletion
-- [ ] Update notebooks to reflect new architecture  
+- [ ] Update notebooks to reflect new architecture
 - [ ] Update existing spec doc
 
 ### Phase 5: Validation

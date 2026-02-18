@@ -2,7 +2,10 @@ import os
 from typing import Any, Dict, Iterator, List, Optional, Union
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient, models
-from azure.ai.documentintelligence.models import AnalyzeDocumentRequest, AnalyzedDocument
+from azure.ai.documentintelligence.models import (
+    AnalyzeDocumentRequest,
+    AnalyzedDocument,
+)
 from azure.core.credentials import AzureKeyCredential
 from azure.core.polling import LROPoller
 

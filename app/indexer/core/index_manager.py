@@ -250,7 +250,9 @@ class IndexManager:
             stats = self.index_client.get_service_statistics()
             return {
                 "index_name": self.index_name,
-                "service_counters": str(stats.counters) if hasattr(stats, "counters") else "N/A",
+                "service_counters": (
+                    str(stats.counters) if hasattr(stats, "counters") else "N/A"
+                ),
             }
         except Exception as exc:
             return {"index_name": self.index_name, "error": str(exc)}

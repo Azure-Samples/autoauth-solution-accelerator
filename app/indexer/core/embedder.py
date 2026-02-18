@@ -8,7 +8,7 @@ configurable batch sizes, and rate-limit awareness.
 import logging
 import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List, Optional
 
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
@@ -109,9 +109,7 @@ class Embedder:
                 all_embeddings[batch_start + i] = emb
 
             if batch_end < len(texts):
-                logger.info(
-                    "Embedded %d/%d texts", batch_end, len(texts)
-                )
+                logger.info("Embedded %d/%d texts", batch_end, len(texts))
 
         return all_embeddings
 

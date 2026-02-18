@@ -12,7 +12,7 @@ networking scenarios.
 import logging
 import os
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from azure.ai.documentintelligence import DocumentIntelligenceClient
@@ -24,7 +24,7 @@ from azure.storage.blob import BlobServiceClient
 
 from .chunker import Chunk, ChunkerConfig, TextChunker
 from .embedder import Embedder, EmbedderConfig
-from .session_tracker import ProcessingSession, SessionTracker, StepStatus
+from .session_tracker import SessionTracker, StepStatus
 
 logger = logging.getLogger("policy-indexer")
 
@@ -79,10 +79,15 @@ class DocumentProcessor:
             self.blob_service_client = BlobServiceClient(
                 account_url=account_url, credential=_get_azure_credential()
             )
-            logger.info("BlobServiceClient using managed-identity auth for '%s'", storage_account)
+            logger.info(
+                "BlobServiceClient using managed-identity auth for '%s'",
+                storage_account,
+            )
         elif storage_conn:
             # Fallback: connection string (local development)
-            self.blob_service_client = BlobServiceClient.from_connection_string(storage_conn)
+            self.blob_service_client = BlobServiceClient.from_connection_string(
+                storage_conn
+            )
             logger.info("BlobServiceClient using connection-string auth")
         else:
             raise EnvironmentError(
@@ -142,7 +147,9 @@ class DocumentProcessor:
     # ------------------------------------------------------------------
     # Main entry point
     # ------------------------------------------------------------------
-    def process(self, blob_name: str, blob_url: Optional[str] = None) -> ProcessingResult:
+    def process(
+        self, blob_name: str, blob_url: Optional[str] = None
+    ) -> ProcessingResult:
         """
         Process a single PDF blob end-to-end.
 
@@ -160,21 +167,29 @@ class DocumentProcessor:
             # Step 1: Download PDF
             session.update_step("download", StepStatus.RUNNING)
             pdf_bytes = self._download_blob(blob_name)
-            session.update_step("download", StepStatus.COMPLETED, detail=f"{len(pdf_bytes)} bytes")
+            session.update_step(
+                "download", StepStatus.COMPLETED, detail=f"{len(pdf_bytes)} bytes"
+            )
 
             # Step 2: OCR via Document Intelligence
             session.update_step("ocr", StepStatus.RUNNING)
             pages = self._run_ocr(pdf_bytes)
-            session.update_step("ocr", StepStatus.COMPLETED, detail=f"{len(pages)} pages")
+            session.update_step(
+                "ocr", StepStatus.COMPLETED, detail=f"{len(pages)} pages"
+            )
 
             # Step 3: Chunk
             session.update_step("chunking", StepStatus.RUNNING)
             chunks = self.chunker.chunk_pages(pages)
-            session.update_step("chunking", StepStatus.COMPLETED, detail=f"{len(chunks)} chunks")
+            session.update_step(
+                "chunking", StepStatus.COMPLETED, detail=f"{len(chunks)} chunks"
+            )
 
             if not chunks:
                 logger.warning("No chunks produced for %s — empty document?", blob_name)
-                session.complete(success=True, detail="No chunks produced (empty document)")
+                session.complete(
+                    success=True, detail="No chunks produced (empty document)"
+                )
                 return ProcessingResult(
                     session_id=session.session_id,
                     blob_name=blob_name,
@@ -187,20 +202,27 @@ class DocumentProcessor:
             session.update_step("embedding", StepStatus.RUNNING)
             chunk_texts = [c.text for c in chunks]
             embeddings = self.embedder.embed_texts(chunk_texts)
-            session.update_step("embedding", StepStatus.COMPLETED, detail=f"{len(embeddings)} vectors")
+            session.update_step(
+                "embedding", StepStatus.COMPLETED, detail=f"{len(embeddings)} vectors"
+            )
 
             # Step 5: Build index documents and push
             session.update_step("indexing", StepStatus.RUNNING)
             documents = self._build_index_documents(chunks, embeddings, blob_name)
             self._push_to_index(documents)
-            session.update_step("indexing", StepStatus.COMPLETED, detail=f"{len(documents)} docs pushed")
+            session.update_step(
+                "indexing", StepStatus.COMPLETED, detail=f"{len(documents)} docs pushed"
+            )
 
             duration = time.time() - start_time
             session.complete(success=True, detail=f"Completed in {duration:.1f}s")
 
             logger.info(
                 "Processed %s: %d pages, %d chunks, %.1fs",
-                blob_name, len(pages), len(chunks), duration,
+                blob_name,
+                len(pages),
+                len(chunks),
+                duration,
             )
 
             return ProcessingResult(
@@ -256,7 +278,9 @@ class DocumentProcessor:
 
         if result.pages:
             for page in result.pages:
-                page_num = page.page_number if hasattr(page, "page_number") else len(pages) + 1
+                page_num = (
+                    page.page_number if hasattr(page, "page_number") else len(pages) + 1
+                )
 
                 # Collect text from lines on this page
                 page_lines = []
@@ -266,10 +290,12 @@ class DocumentProcessor:
 
                 page_text = "\n".join(page_lines) if page_lines else ""
 
-                pages.append({
-                    "text": page_text,
-                    "page_number": page_num,
-                })
+                pages.append(
+                    {
+                        "text": page_text,
+                        "page_number": page_num,
+                    }
+                )
         elif result.content:
             # Fallback: if pages aren't structured, use full content
             pages.append({"text": result.content, "page_number": 1})
@@ -316,17 +342,15 @@ class DocumentProcessor:
 
             if failed:
                 errors = [
-                    f"{r.key}: {r.error_message}"
-                    for r in result
-                    if not r.succeeded
+                    f"{r.key}: {r.error_message}" for r in result if not r.succeeded
                 ]
                 logger.error(
                     "Index push: %d succeeded, %d failed. Errors: %s",
-                    succeeded, failed, errors[:5],
+                    succeeded,
+                    failed,
+                    errors[:5],
                 )
-                raise RuntimeError(
-                    f"Failed to index {failed} documents: {errors[:3]}"
-                )
+                raise RuntimeError(f"Failed to index {failed} documents: {errors[:3]}")
 
             logger.info("Pushed %d documents to index", succeeded)
 
@@ -339,8 +363,4 @@ class DocumentProcessor:
             self.blob_container_name
         )
         blobs = container_client.list_blobs(name_starts_with=prefix)
-        return [
-            b.name
-            for b in blobs
-            if b.name.lower().endswith(".pdf")
-        ]
+        return [b.name for b in blobs if b.name.lower().endswith(".pdf")]

@@ -467,8 +467,7 @@ def health(req: func.HttpRequest) -> func.HttpResponse:
         checks["session_tracker"] = f"error: {exc}"
 
     all_ok = all(
-        v == "ok" or v == "configured" or isinstance(v, dict)
-        for v in checks.values()
+        v == "ok" or v == "configured" or isinstance(v, dict) for v in checks.values()
     )
     return _json_response(
         {"status": "healthy" if all_ok else "degraded", "checks": checks},
