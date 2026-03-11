@@ -77,7 +77,9 @@ class AzureDocumentIntelligenceManager:
             credential = AzureKeyCredential(self.azure_key)
             logger.info("DocumentIntelligence using API key auth")
         else:
-            credential = DefaultAzureCredential()
+            credential = DefaultAzureCredential(
+                managed_identity_client_id=os.environ.get("AZURE_CLIENT_ID")
+            )
             logger.info("DocumentIntelligence using managed-identity / Entra ID auth")
 
         self.document_analysis_client = DocumentIntelligenceClient(
@@ -88,15 +90,13 @@ class AzureDocumentIntelligenceManager:
             polling_interval=30,
         )
 
-        # Initialize AzureBlobManager only if all required parameters are provided
-        if storage_account_name and container_name and account_key:
+        # Initialize AzureBlobManager — always uses RBAC internally
+        if storage_account_name and container_name:
             self.blob_manager = AzureBlobManager(
                 storage_account_name=storage_account_name,
                 container_name=container_name,
-                account_key=account_key,
             )
         else:
-            # self.blob_manager = None
             self.blob_manager = AzureBlobManager(
                 storage_account_name=storage_account_name, container_name=container_name
             )

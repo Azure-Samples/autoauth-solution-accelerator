@@ -2,7 +2,6 @@ import os
 from typing import Dict, List, Optional
 from urllib.parse import urlparse
 
-from azure.core.credentials import AzureNamedKeyCredential
 from azure.identity import DefaultAzureCredential
 from azure.storage.blob import BlobClient, BlobServiceClient
 from dotenv import load_dotenv
@@ -26,7 +25,7 @@ class AzureBlobManager:
         self,
         storage_account_name: Optional[str] = None,
         container_name: Optional[str] = None,
-        account_key: Optional[str] = None,
+        account_key: Optional[str] = None,  # kept for caller compat; ignored
     ):
         """
         Initialize the AzureBlobManager.
@@ -34,7 +33,7 @@ class AzureBlobManager:
         Args:
             storage_account_name (Optional[str]): Name of the Azure Storage account.
             container_name (Optional[str]): Name of the blob container.
-            account_key (Optional[str]): Storage account key for authentication.
+            account_key: Deprecated / ignored. RBAC is always used.
         """
         try:
             load_dotenv()
@@ -44,7 +43,6 @@ class AzureBlobManager:
             self.container_name = container_name or os.getenv(
                 "AZURE_BLOB_CONTAINER_NAME"
             )
-            self.account_key = account_key or os.getenv("AZURE_STORAGE_ACCOUNT_KEY")
 
             if not self.storage_account_name:
                 raise ValueError(
@@ -54,16 +52,9 @@ class AzureBlobManager:
                 raise ValueError(
                     "Container name must be provided either as a parameter or in the .env file."
                 )
-            credential = DefaultAzureCredential()
-            storage_conn_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
-            if "ResourceId=" not in storage_conn_string:
-                if not self.account_key:
-                    raise ValueError(
-                        "Storage account key must be provided either as a parameter or in the .env file."
-                    )
-                credential = AzureNamedKeyCredential(
-                    self.storage_account_name, self.account_key
-                )
+            credential = DefaultAzureCredential(
+                managed_identity_client_id=os.environ.get("AZURE_CLIENT_ID")
+            )
             self.blob_service_client = BlobServiceClient(
                 account_url=f"https://{self.storage_account_name}.blob.core.windows.net",
                 credential=credential,
@@ -80,6 +71,10 @@ class AzureBlobManager:
     def _create_container_if_not_exists(self) -> None:
         """
         Creates the blob container if it does not already exist.
+        Best-effort: if the identity lacks permission to check/create, log a
+        warning and continue — the container may already exist (e.g. created by
+        IaC), and actual blob operations will fail later with a clear error if
+        there really is a permissions problem.
         """
         try:
             if self.container_client and not self.container_client.exists():
@@ -88,10 +83,10 @@ class AzureBlobManager:
             else:
                 logger.info(f"Container '{self.container_name}' already exists.")
         except Exception as e:
-            logger.error(
-                f"Failed to create or access container '{self.container_name}': {e}"
+            logger.warning(
+                f"Could not verify/create container '{self.container_name}' "
+                f"(may already exist via IaC): {e}"
             )
-            raise
 
     def change_container(self, new_container_name: str) -> None:
         """
