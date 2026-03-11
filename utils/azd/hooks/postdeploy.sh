@@ -32,25 +32,37 @@ load_environment() {
     return 0
 }
 
-# Fetch the default function host key
+# Fetch the default function host key (with retries — keys may not be
+# available immediately after the app starts responding).
 get_function_key() {
-    # NOTE: Do not use log_info here — stdout is captured by the caller
-    local key
-    # Use tail -1 to strip any spurious warnings the az CLI may print to stdout
-    key=$(az functionapp keys list \
-        --name "$indexer_app_name" \
-        --resource-group "$rg_name" \
-        --query "functionKeys.default" -o tsv 2>/dev/null | tail -1 || true)
+    local max_attempts=6
+    local delay=10
+    local key=""
 
-    if [[ -z "$key" ]]; then
-        # Fall back to master key if no function key is available
+    for (( attempt=1; attempt<=max_attempts; attempt++ )); do
         key=$(az functionapp keys list \
             --name "$indexer_app_name" \
             --resource-group "$rg_name" \
-            --query "masterKey" -o tsv 2>/dev/null | tail -1 || true)
-    fi
+            --query "functionKeys.default" -o tsv 2>/dev/null | tail -1 || true)
 
-    echo "$key"
+        if [[ -z "$key" ]]; then
+            key=$(az functionapp keys list \
+                --name "$indexer_app_name" \
+                --resource-group "$rg_name" \
+                --query "masterKey" -o tsv 2>/dev/null | tail -1 || true)
+        fi
+
+        if [[ -n "$key" ]]; then
+            echo "$key"
+            return 0
+        fi
+
+        # Print to stderr so it doesn't pollute the captured stdout
+        echo "Key not ready yet (attempt $attempt/$max_attempts), retrying in ${delay}s..." >&2
+        sleep "$delay"
+    done
+
+    echo ""
 }
 
 # Wait for the function app to become reachable
