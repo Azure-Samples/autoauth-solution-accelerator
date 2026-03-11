@@ -239,10 +239,12 @@ def setup_index(req: func.HttpRequest) -> func.HttpResponse:
 @app.route(route="upload_policies", methods=["POST"])
 def upload_policies(req: func.HttpRequest) -> func.HttpResponse:
     """
-    Upload PDF policy documents to blob storage.
+    Upload PDF policy documents to blob storage and optionally process them
+    synchronously (OCR → chunk → embed → push to index).
 
-    With Event Grid configured, uploaded blobs will automatically trigger
-    processing via the ``process_blob`` function.
+    Query parameters:
+      - process: Set to ``true`` to process immediately after upload rather
+        than waiting for the Event Grid trigger.  Defaults to ``false``.
 
     Accepts either:
       - multipart/form-data with one or more PDF file fields
@@ -278,6 +280,44 @@ def upload_policies(req: func.HttpRequest) -> func.HttpResponse:
             blob_client = container_client.get_blob_client(blob_path)
             blob_client.upload_blob(body, overwrite=True)
             uploaded.append(blob_path)
+
+        # Synchronous processing when ?process=true
+        process_now = req.params.get("process", "false").lower() == "true"
+        processing_results = []
+
+        if process_now and uploaded:
+            for blob_path in uploaded:
+                result = processor.process(blob_name=blob_path)
+                processing_results.append(
+                    {
+                        "blob_name": result.blob_name,
+                        "session_id": result.session_id,
+                        "success": result.success,
+                        "page_count": result.page_count,
+                        "chunk_count": result.chunk_count,
+                        "duration_seconds": round(result.duration_seconds, 2),
+                        "error": result.error,
+                    }
+                )
+
+            total = len(processing_results)
+            succeeded = sum(1 for r in processing_results if r["success"])
+            failed = total - succeeded
+
+            return _json_response(
+                {
+                    "status": "ok" if failed == 0 else "partial",
+                    "uploaded_count": len(uploaded),
+                    "blobs": uploaded,
+                    "processing": {
+                        "total": total,
+                        "succeeded": succeeded,
+                        "failed": failed,
+                        "results": processing_results,
+                    },
+                },
+                200 if failed == 0 else 207,
+            )
 
         return _json_response(
             {

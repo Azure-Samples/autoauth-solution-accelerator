@@ -59,12 +59,7 @@ class ClinicalDataExtractor:
             raise
 
         if azure_openai_client is None:
-            api_key = os.getenv("AZURE_OPENAI_KEY", None)
-            if api_key is None:
-                self.logger.warning(
-                    "No AZURE_OPENAI_KEY found. ClinicalDataExtractor may fail."
-                )
-            azure_openai_client = AzureOpenAIManager(api_key=api_key)
+            azure_openai_client = AzureOpenAIManager(api_key=None)
         self.azure_openai_client = azure_openai_client
 
         self.prompt_manager = prompt_manager or PromptManager()
@@ -97,7 +92,7 @@ class ClinicalDataExtractor:
                 elif model_field.default_factory is not None:
                     default_value = model_field.default_factory()
                 else:
-                    field_type = model_field.outer_type_
+                    field_type = model_field.annotation
                     if field_type == str:
                         default_value = "Not provided"
                     elif field_type == int:

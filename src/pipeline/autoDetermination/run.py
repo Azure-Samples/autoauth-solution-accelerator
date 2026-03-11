@@ -50,12 +50,7 @@ class AutoPADeterminator:
         )
 
         if azure_openai_client is None:
-            api_key = os.getenv("AZURE_OPENAI_KEY", None)
-            if api_key is None:
-                self.logger.warning(
-                    "No AZURE_OPENAI_KEY found. AutoPADeterminator may fail."
-                )
-            azure_openai_client = AzureOpenAIManager(api_key=api_key)
+            azure_openai_client = AzureOpenAIManager(api_key=None)
         self.azure_openai_client = azure_openai_client
 
         if azure_openai_client_o1 is None:

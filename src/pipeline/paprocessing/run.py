@@ -114,9 +114,10 @@ class PAProcessingPipeline:
             )
         self.azure_openai_client = AzureOpenAIManager(
             completion_model_name=azure_openai_chat_deployment_id,
-            api_key=azure_openai_key,
+            api_key=None,
         )
         self.azure_openai_client_o1 = AzureOpenAIManager(
+            api_key=None,
             api_version=os.getenv("AZURE_OPENAI_API_VERSION_01") or "2024-09-01-preview"
         )
 
@@ -142,10 +143,9 @@ class PAProcessingPipeline:
 
         self.document_intelligence_client = AzureDocumentIntelligenceManager(
             azure_endpoint=azure_document_intelligence_endpoint,
-            azure_key=azure_document_intelligence_key,
+            azure_key=None,  # Use RBAC auth — key auth may be disabled on the resource
             storage_account_name=azure_blob_storage_account_name,
             container_name=self.container_name,
-            account_key=azure_blob_storage_account_key,
         )
         self.blob_manager = AzureBlobManager(
             storage_account_name=self.azure_blob_storage_account_name,
@@ -318,22 +318,24 @@ class PAProcessingPipeline:
 
     def get_policy_text_from_blob(self, blob_url: str) -> str:
         """
-        Retrieve policy text from the specified blob URL using Document Intelligence.
+        Retrieve policy text from the specified blob URL or blob path using Document Intelligence.
 
         Args:
-            blob_url: The URL to the policy blob.
+            blob_url: A full blob URL (https://...) or a relative blob path
+                      within the container (e.g. ``policies_ocr/003.pdf``).
 
         Returns:
             The text content of the downloaded policy document.
         """
         try:
-            # blob_content = self.blob_manager.download_blob_to_bytes(blob_url)
-            # if blob_content is None:
-            #     raise Exception(f"Failed to download blob from URL: {blob_url}")
-            # self.logger.info(f"Blob content downloaded successfully from {blob_url}")
+            # If it's a relative blob path (not a URL), build the full URL
+            if not blob_url.startswith(("http://", "https://")):
+                blob_url = (
+                    f"https://{self.azure_blob_storage_account_name}"
+                    f".blob.core.windows.net/{self.container_name}/{blob_url}"
+                )
 
             policy_text = self.document_intelligence_client.analyze_document(
-                # document_input=blob_content,
                 document_input=blob_url,
                 model_type="prebuilt-layout",
                 output_format="markdown",
@@ -530,6 +532,20 @@ class PAProcessingPipeline:
                 patient_info = api_response_ner.get("patient_data")
                 physician_info = api_response_ner.get("physician_data")
 
+                if not all([clinical_info, patient_info, physician_info]):
+                    missing = [
+                        name
+                        for name, val in [
+                            ("clinical_info", clinical_info),
+                            ("patient_info", patient_info),
+                            ("physician_info", physician_info),
+                        ]
+                        if val is None
+                    ]
+                    raise ValueError(
+                        f"Clinical data extraction failed — missing: {', '.join(missing)}"
+                    )
+
                 self.log_output(
                     data={
                         "ocr_ner_results": {
@@ -562,7 +578,17 @@ class PAProcessingPipeline:
                 policy_texts = []
                 policy_text = None
                 if policies:
-                    policy = policies[0]
+                    # The evaluator returns chunk references like "policies_ocr/003.pdf#chunk_0".
+                    # Strip the "#chunk_*" fragment to get the actual blob path and deduplicate.
+                    seen_blobs = set()
+                    blob_paths = []
+                    for p in policies:
+                        blob_path = p.split("#")[0] if "#" in p else p
+                        if blob_path not in seen_blobs:
+                            seen_blobs.add(blob_path)
+                            blob_paths.append(blob_path)
+
+                    policy = blob_paths[0]
                     policy_text = self.get_policy_text_from_blob(policy)
                     if policy_text is None:
                         raise ValueError(
@@ -577,6 +603,7 @@ class PAProcessingPipeline:
                 self.log_output(
                     data={
                         "agenticrag_results": agenticrag_results,
+                        "policy_location": blob_paths,
                     },
                     step="policy_search",
                 )

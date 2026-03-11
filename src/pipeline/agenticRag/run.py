@@ -2,13 +2,15 @@ import os
 from typing import Any, Dict, List, Optional
 
 from azure.core.credentials import AzureKeyCredential
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
 from azure.search.documents.models import (
     QueryAnswerType,
     QueryCaptionType,
     QueryType,
-    VectorizableTextQuery,
+    VectorizedQuery,
 )
+from openai import AzureOpenAI
 
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.documentintelligence.document_intelligence_helper import (
@@ -53,10 +55,7 @@ class AgenticRAG:
         )
 
         if azure_openai_client is None:
-            api_key = os.getenv("AZURE_OPENAI_KEY", None)
-            if api_key is None:
-                self.logger.warning("No AZURE_OPENAI_KEY found. AgenticRAG may fail.")
-            azure_openai_client = AzureOpenAIManager(api_key=api_key)
+            azure_openai_client = AzureOpenAIManager(api_key=None)
         self.azure_openai_client = azure_openai_client
 
         self.prompt_manager = prompt_manager or PromptManager()
@@ -82,8 +81,37 @@ class AgenticRAG:
             document_intelligence_client
             or AzureDocumentIntelligenceManager(
                 azure_endpoint=os.getenv("AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"),
-                azure_key=os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY"),
+                azure_key=None,  # Use RBAC auth — key auth may be disabled
             )
+        )
+
+        # --- Embedding client (pre-vectorize queries instead of relying on
+        #     AI Search's built-in vectorizer, which requires outbound access
+        #     from the search service to Azure OpenAI) ---
+        aoai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT", "")
+        aoai_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
+        self._embedding_deployment = os.getenv(
+            "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-large"
+        )
+        self._embedding_dimensions = int(
+            os.getenv("AZURE_OPENAI_EMBEDDING_DIMENSIONS", "3072")
+        )
+
+        # Always use RBAC for the embedding client — key auth may be disabled.
+        client_id = os.getenv("AZURE_CLIENT_ID")
+        credential = (
+            DefaultAzureCredential(managed_identity_client_id=client_id)
+            if client_id
+            else DefaultAzureCredential()
+        )
+        token_provider = get_bearer_token_provider(
+            credential,
+            "https://cognitiveservices.azure.com/.default",
+        )
+        self._embedding_client = AzureOpenAI(
+            azure_ad_token_provider=token_provider,
+            api_version=aoai_api_version,
+            azure_endpoint=aoai_endpoint,
         )
 
     async def expand_query(
@@ -204,6 +232,15 @@ class AgenticRAG:
         # Join all the formatted results into a single string
         return "\n\n".join(formatted_results)
 
+    def _embed_query(self, text: str) -> List[float]:
+        """Pre-compute the embedding vector for a search query using Azure OpenAI."""
+        response = self._embedding_client.embeddings.create(
+            input=text,
+            model=self._embedding_deployment,
+            dimensions=self._embedding_dimensions,
+        )
+        return response.data[0].embedding
+
     def retrieve_policies(
         self,
         query: str,
@@ -215,6 +252,10 @@ class AgenticRAG:
     ) -> List[Dict[str, Any]]:
         """
         Retrieves policies based on the expanded query.
+
+        Uses pre-computed embeddings (VectorizedQuery) rather than
+        VectorizableTextQuery so AI Search does not need outbound access
+        to Azure OpenAI.
 
         Args:
             query (str): Expanded query.
@@ -239,8 +280,9 @@ class AgenticRAG:
         weight = self.policy_retrieval_config["weight"] or weight
         top = self.policy_retrieval_config["top"] or top
 
-        vector_query = VectorizableTextQuery(
-            text=query,
+        query_vector = self._embed_query(query)
+        vector_query = VectorizedQuery(
+            vector=query_vector,
             k_nearest_neighbors=k_nearest_neighbors,
             fields=vector_field,
             weight=weight,

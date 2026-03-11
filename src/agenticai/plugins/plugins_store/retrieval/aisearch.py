@@ -3,6 +3,7 @@ import os
 from typing import Annotated, Any, Dict, List
 
 from azure.core.credentials import AzureKeyCredential
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 from azure.search.documents import SearchClient
 from azure.search.documents.models import (
     QueryAnswerType,
@@ -46,35 +47,65 @@ class AzureSearchPlugin:
         )
 
         try:
-            # --- Search client ---
+            # --- Search client (RBAC-first, fallback to API key) ---
             endpoint = os.getenv("AZURE_AI_SEARCH_SERVICE_ENDPOINT")
             index_name = os.getenv("AZURE_SEARCH_INDEX_NAME")
             api_key = os.getenv("AZURE_AI_SEARCH_ADMIN_KEY")
-            if not all([endpoint, index_name, api_key]):
+            if not endpoint or not index_name:
                 raise ValueError(
-                    "One or more environment variables for Azure Search are missing."
+                    "AZURE_AI_SEARCH_SERVICE_ENDPOINT and AZURE_SEARCH_INDEX_NAME are required."
                 )
             self.logger.info(
                 f"Initializing SearchClient with endpoint: {endpoint}, index_name: {index_name}"
             )
-            credential = AzureKeyCredential(api_key)
+            if api_key:
+                search_credential = AzureKeyCredential(api_key)
+                self.logger.info("SearchClient using admin key auth")
+            else:
+                client_id = os.getenv("AZURE_CLIENT_ID")
+                search_credential = (
+                    DefaultAzureCredential(managed_identity_client_id=client_id)
+                    if client_id
+                    else DefaultAzureCredential()
+                )
+                self.logger.info("SearchClient using managed-identity auth")
             self.search_client = SearchClient(
-                endpoint=endpoint, index_name=index_name, credential=credential
+                endpoint=endpoint, index_name=index_name, credential=search_credential
             )
             self.logger.info("SearchClient initialized successfully.")
 
-            # --- Embedding client (pre-vectorize queries) ---
+            # --- Embedding client (RBAC-first, fallback to API key) ---
             aoai_endpoint = os.getenv("AZURE_OPENAI_ENDPOINT")
             aoai_key = os.getenv("AZURE_OPENAI_KEY")
-            if not all([aoai_endpoint, aoai_key]):
+            aoai_api_version = os.getenv("AZURE_OPENAI_API_VERSION", "2024-06-01")
+            if not aoai_endpoint:
                 raise ValueError(
-                    "AZURE_OPENAI_ENDPOINT and AZURE_OPENAI_KEY are required for query vectorization."
+                    "AZURE_OPENAI_ENDPOINT is required for query vectorization."
                 )
-            self.embedding_client = AzureOpenAI(
-                azure_endpoint=aoai_endpoint,
-                api_key=aoai_key,
-                api_version="2024-06-01",
-            )
+            if aoai_key:
+                self.embedding_client = AzureOpenAI(
+                    azure_endpoint=aoai_endpoint,
+                    api_key=aoai_key,
+                    api_version=aoai_api_version,
+                )
+                self.logger.info("Embedding client using API key auth")
+            else:
+                client_id = os.getenv("AZURE_CLIENT_ID")
+                credential = (
+                    DefaultAzureCredential(managed_identity_client_id=client_id)
+                    if client_id
+                    else DefaultAzureCredential()
+                )
+                token_provider = get_bearer_token_provider(
+                    credential,
+                    "https://cognitiveservices.azure.com/.default",
+                )
+                self.embedding_client = AzureOpenAI(
+                    azure_ad_token_provider=token_provider,
+                    api_version=aoai_api_version,
+                    azure_endpoint=aoai_endpoint,
+                )
+                self.logger.info("Embedding client using managed-identity auth")
             self.embedding_deployment = os.getenv(
                 "AZURE_OPENAI_EMBEDDING_DEPLOYMENT", "text-embedding-3-large"
             )

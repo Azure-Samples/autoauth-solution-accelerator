@@ -197,10 +197,11 @@ def initialize_chatbot(case_id=None, document=None) -> None:
         st.session_state["messages"] = []
         st.session_state["current_case_id"] = case_id
 
-        plan_info = document["ocr_ner_results"]["clinical_info"]["treatment_request"]
-        patient_info = document["ocr_ner_results"]["patient_info"]
-        physician_info = document["ocr_ner_results"]["physician_info"]
-        clinical_info = document["ocr_ner_results"]["clinical_info"]
+        ocr_ner = document.get("ocr_ner_results", {})
+        plan_info = ocr_ner.get("clinical_info", {}).get("treatment_request", {})
+        patient_info = ocr_ner.get("patient_info", {})
+        physician_info = ocr_ner.get("physician_info", {})
+        clinical_info = ocr_ner.get("clinical_info", {})
         final_determination = document.get("pa_determination_results", "N/A")
         attachments_info = document.get("raw_uploaded_files", [])
         # TODO add policy text
@@ -353,6 +354,8 @@ async def generate_ai_response(
 
 async def update_results_with_markdown(pa_result):
     autodetermination_text = pa_result.get("pa_determination_results")
+    if not autodetermination_text:
+        return "No determination results available."
     user_pa = prompt_manager.create_prompt_transform_determination_markdown_user(
         autodetermination_text=autodetermination_text
     )
@@ -364,7 +367,7 @@ async def update_results_with_markdown(pa_result):
         stream=False,
         response_format="text",  # Requesting plain text (markdown formatted) output.
     )
-    return markdown_response["response"]
+    return markdown_response.get("response", "Failed to generate markdown.")
 
 
 async def run_pipeline_with_spinner(uploaded_files, use_o1):
@@ -379,7 +382,11 @@ async def run_pipeline_with_spinner(uploaded_files, use_o1):
             uploaded_files, streamlit=True, caseId=caseID, use_o1=use_o1
         )
 
-    last_key = next(iter(pa_processing.results.keys()))
+    last_key = next(iter(pa_processing.results.keys()), None)
+
+    if not last_key or not pa_processing.results.get(last_key):
+        st.error("Pipeline produced no results. Check logs for details.")
+        return None
 
     # formatting for o1 markdown
     additional_result = await update_results_with_markdown(

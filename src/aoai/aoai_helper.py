@@ -30,6 +30,9 @@ load_dotenv()
 logger = get_logger()
 
 
+_NOT_SET = object()  # sentinel to distinguish "not passed" from explicit None
+
+
 class AzureOpenAIManager:
     """
     A manager class for interacting with the Azure OpenAI API.
@@ -40,7 +43,7 @@ class AzureOpenAIManager:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
+        api_key: Optional[str] = _NOT_SET,
         api_version: Optional[str] = None,
         azure_endpoint: Optional[str] = None,
         completion_model_name: Optional[str] = None,
@@ -52,8 +55,11 @@ class AzureOpenAIManager:
         """
         Initializes the Azure OpenAI Manager with necessary configurations.
 
-        :param api_key: The Azure OpenAI Key. If not provided, it will be fetched from the environment variable "AZURE_OPENAI_KEY".
-        :param api_version: The Azure OpenAI API Version. If not provided, it will be fetched from the environment variable "AZURE_OPENAI_API_VERSION" or default to "2023-05-15".
+        :param api_key: The Azure OpenAI Key.  Omit (or leave as default) to
+            fall back to the ``AZURE_OPENAI_KEY`` env var.  Pass ``None``
+            explicitly to force RBAC / managed-identity auth even when the
+            env var is set.
+        :param api_version: The Azure OpenAI API Version. If not provided, it will be fetched from the environment variable "AZURE_OPENAI_API_VERSION" or default to "2024-02-01".
         :param azure_endpoint: The Azure OpenAI API Endpoint. If not provided, it will be fetched from the environment variable "AZURE_OPENAI_ENDPOINT".
         :param completion_model_name: The Completion Model Deployment ID. If not provided, it will be fetched from the environment variable "AZURE_AOAI_COMPLETION_MODEL_DEPLOYMENT_ID".
         :param chat_model_name: The Chat Model Name. If not provided, it will be fetched from the environment variable "AZURE_AOAI_CHAT_MODEL_NAME".
@@ -61,7 +67,12 @@ class AzureOpenAIManager:
         :param dalle_model_name: The DALL-E Model Deployment ID. If not provided, it will be fetched from the environment variable "AZURE_AOAI_DALLE_MODEL_DEPLOYMENT_ID".
 
         """
-        self.api_key = api_key or os.getenv("AZURE_OPENAI_KEY")
+        # Only fall back to env var when caller omitted the parameter.
+        # Passing api_key=None explicitly means "use RBAC, not a key".
+        if api_key is _NOT_SET:
+            self.api_key = os.getenv("AZURE_OPENAI_KEY") or None
+        else:
+            self.api_key = api_key
 
         self.api_version = (
             api_version or os.getenv("AZURE_OPENAI_API_VERSION") or "2024-02-01"

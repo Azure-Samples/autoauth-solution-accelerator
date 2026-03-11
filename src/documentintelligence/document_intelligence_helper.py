@@ -8,6 +8,7 @@ from azure.ai.documentintelligence.models import (
 )
 from azure.core.credentials import AzureKeyCredential
 from azure.core.polling import LROPoller
+from azure.identity import DefaultAzureCredential
 
 # from azure.ai.formrecognizer import DocumentAnalysisClient
 from dotenv import load_dotenv
@@ -18,6 +19,9 @@ from src.utils.ml_logging import get_logger
 
 # Initialize logging
 logger = get_logger()
+
+
+_NOT_SET = object()  # sentinel to distinguish "not passed" from explicit None
 
 
 class AzureDocumentIntelligenceManager:
@@ -33,7 +37,7 @@ class AzureDocumentIntelligenceManager:
     def __init__(
         self,
         azure_endpoint: Optional[str] = None,
-        azure_key: Optional[str] = None,
+        azure_key: Optional[str] = _NOT_SET,
         storage_account_name: Optional[str] = None,
         container_name: Optional[str] = None,
         account_key: Optional[str] = None,
@@ -44,6 +48,8 @@ class AzureDocumentIntelligenceManager:
         Args:
             azure_endpoint (Optional[str]): Endpoint URL for Azure's Document Analysis Client.
             azure_key (Optional[str]): API key for Azure's Document Analysis Client.
+                Pass ``None`` explicitly to force RBAC/managed-identity auth
+                even when the env var is set.
             storage_account_name (Optional[str]): Name of the Azure Storage account.
             container_name (Optional[str]): Name of the blob container.
             account_key (Optional[str]): Storage account key for authentication.
@@ -53,7 +59,12 @@ class AzureDocumentIntelligenceManager:
         self.azure_endpoint = azure_endpoint or os.getenv(
             "AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT"
         )
-        self.azure_key = azure_key or os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY")
+        # Only fall back to the env var when the caller omitted the parameter.
+        # Passing azure_key=None explicitly means "use RBAC, not a key".
+        if azure_key is _NOT_SET:
+            self.azure_key = os.getenv("AZURE_DOCUMENT_INTELLIGENCE_KEY") or None
+        else:
+            self.azure_key = azure_key
 
         # Validate required configurations for Document Analysis Client
         if not self.azure_endpoint:
@@ -61,13 +72,17 @@ class AzureDocumentIntelligenceManager:
                 "Azure endpoint and key must be provided either as parameters or in environment variables."
             )
 
-        # credential = DefaultAzureCredential()
-        # if self.azure_key:
-        #   credential = AzureKeyCredential(self.azure_key)
+        # RBAC-first: use DefaultAzureCredential when no API key is provided
+        if self.azure_key:
+            credential = AzureKeyCredential(self.azure_key)
+            logger.info("DocumentIntelligence using API key auth")
+        else:
+            credential = DefaultAzureCredential()
+            logger.info("DocumentIntelligence using managed-identity / Entra ID auth")
 
         self.document_analysis_client = DocumentIntelligenceClient(
             endpoint=self.azure_endpoint,
-            credential=AzureKeyCredential(self.azure_key),
+            credential=credential,
             api_version="2024-11-30",
             headers={"x-ms-useragent": "langchain-parser/1.0.0"},
             polling_interval=30,
