@@ -247,6 +247,7 @@ module registry 'br/public:avm/res/container-registry/registry:0.1.1' = {
 }
 
 var storageConnString = 'ResourceId=${storageAccount.outputs.storageAccountId}/;'
+var indexerFunctionAppHostname = '${indexerFunctionAppName}.azurewebsites.net'
 
 
 var containerEnvArray = [
@@ -313,6 +314,18 @@ var containerEnvArray = [
   {
     name: 'AZURE_DOCUMENT_INTELLIGENCE_ENDPOINT'
     value: docIntelligence.outputs.aiServicesEndpoint
+  }
+  {
+    name: 'INDEXER_FUNCTION_BASE_URL'
+    value: 'https://${indexerFunctionAppHostname}'
+  }
+  {
+    name: 'INDEXER_FUNCTION_APP_HOSTNAME'
+    value: indexerFunctionAppHostname
+  }
+  {
+    name: 'INDEXER_FUNCTION_APP_RESOURCE_ID'
+    value: indexerFunctionApp.outputs.functionAppResourceId
   }
   {
     name: 'AZURE_OPENAI_KEY'
@@ -465,6 +478,11 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
     // Non-required parameters
     scaleMinReplicas: 1
     scaleMaxReplicas: 3
+    corsPolicy: {
+      allowedOrigins: [
+        'https://portal.azure.com'
+      ]
+    }
 
     ingressTargetPort: 8501 // See Dockerfile
 
@@ -493,8 +511,22 @@ module indexerFunctionApp 'modules/compute/functionapp.bicep' = {
     userAssignedIdentityResourceId: appIdentity.outputs.resourceId
     userAssignedIdentityClientId: appIdentity.outputs.clientId
     storageAccountName: storageAccount.outputs.storageAccountName
-    storageAccountResourceId: storageAccount.outputs.storageAccountId
+    storageAccountConnectionString: storageAccount.outputs.storageAccountPrimaryConnectionString
     appSettings: indexerAppSettings
+  }
+}
+
+resource indexerFunctionAppResource 'Microsoft.Web/sites@2024-04-01' existing = {
+  name: indexerFunctionAppName
+}
+
+resource uaiIndexerFunctionContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: indexerFunctionAppResource
+  name: guid(resourceId('Microsoft.Web/sites', indexerFunctionAppName), appIdentity.name, 'Contributor')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', 'b24988ac-6180-42a0-ab88-20f7382dd24c')
+    principalId: appIdentity.outputs.principalId
+    principalType: 'ServicePrincipal'
   }
 }
 

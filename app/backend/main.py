@@ -13,6 +13,7 @@ from app.backend.core.config import app_configs, settings
 from src.pipeline.paprocessing.run import PAProcessingPipeline
 
 #
+from .api.indexer import router as indexer_router
 from .core.database import User, db
 from .paprocessing.models import PAProcessingRequest
 from .users.manager import auth_backend, current_active_user, fastapi_users
@@ -78,6 +79,8 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+
+app.include_router(indexer_router)
 
 
 @app.get("/authenticated-route")

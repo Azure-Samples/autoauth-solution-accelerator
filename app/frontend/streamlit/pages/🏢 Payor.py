@@ -32,6 +32,7 @@ if "cosmosdb_manager" not in st.session_state:
 
 if "azure_openai_client_4o" not in st.session_state:
     st.session_state["azure_openai_client_4o"] = AzureOpenAIManager(
+        api_key=None,
         completion_model_name=os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT_ID")
     )
 
@@ -345,7 +346,7 @@ async def generate_ai_response(
         )
 
         logger.info("AI response generated successfully.")
-        return response
+        return response or {}
 
     except Exception as e:
         logger.error(f"Error generating AI response: {e}")
@@ -367,7 +368,20 @@ async def update_results_with_markdown(pa_result):
         stream=False,
         response_format="text",  # Requesting plain text (markdown formatted) output.
     )
-    return markdown_response.get("response", "Failed to generate markdown.")
+    if not markdown_response:
+        logger.warning(
+            "Markdown transformation failed; falling back to plain determination text."
+        )
+        return autodetermination_text
+
+    markdown_text = markdown_response.get("response")
+    if not markdown_text:
+        logger.warning(
+            "Markdown transformation returned an empty response; falling back to plain determination text."
+        )
+        return autodetermination_text
+
+    return markdown_text
 
 
 async def run_pipeline_with_spinner(uploaded_files, use_o1):

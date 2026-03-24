@@ -34,10 +34,8 @@ resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {
     defaultToOAuthAuthentication: false
     allowSharedKeyAccess: true
   }
-  tags: tags
+  tags: union(tags, { SecurityControl: 'Ignore' })
 }
-
-// Blob service resource under the storage account
 resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-01-01' = {
   parent: storageAccount
   name: 'default'

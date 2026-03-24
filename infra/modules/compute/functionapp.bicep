@@ -1,5 +1,5 @@
 /*  Module: functionapp.bicep
-    Deploys an Azure Function App (Python, Flex Consumption)
+    Deploys an Azure Function App (Python, Elastic Premium)
     for the policy indexer service.
 */
 
@@ -27,37 +27,50 @@ param appSettings array = []
 @description('Storage account name for the Function App runtime')
 param storageAccountName string
 
-@description('Storage account resource ID for Function App runtime')
-param storageAccountResourceId string
+@secure()
+@description('Storage account connection string for the content share (required by Elastic Premium ARM provider)')
+param storageAccountConnectionString string
 
-// AzureWebJobsStorage via managed identity (no connection string needed for Flex Consumption)
-var storageAccountResourceIdForBlobService = '${storageAccountResourceId}'
+@description('Additional CORS origins to allow for the Function App')
+param allowedCorsOrigins array = [
+  'https://portal.azure.com'
+]
 
-// App Service Plan — Flex Consumption (FC1)
+// App Service Plan — Elastic Premium (EP1)
 resource hostingPlan 'Microsoft.Web/serverfarms@2024-04-01' = {
   name: '${functionAppName}-plan'
   location: location
   tags: tags
   sku: {
-    name: 'FC1'
-    tier: 'FlexConsumption'
+    name: 'EP1'
+    tier: 'ElasticPremium'
   }
   properties: {
     reserved: true // Linux
+    maximumElasticWorkerCount: 20
   }
 }
 
 // Build the combined app settings array
+// AzureWebJobsStorage uses connection string (required by EP ARM provider for storage validation).
+// WEBSITE_CONTENTAZUREFILECONNECTIONSTRING is required by EP for the Azure Files content share.
+// Application-level operations (blob triggers, search, doc intelligence) use managed identity via AZURE_CLIENT_ID.
 var baseSettings = [
-  { name: 'AzureWebJobsStorage__accountName', value: storageAccountName }
+  { name: 'AzureWebJobsStorage', value: storageAccountConnectionString }
+  { name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING', value: storageAccountConnectionString }
+  { name: 'WEBSITE_CONTENTSHARE', value: functionAppName }
   { name: 'FUNCTIONS_EXTENSION_VERSION', value: '~4' }
+  { name: 'FUNCTIONS_WORKER_RUNTIME', value: 'python' }
+  { name: 'SCM_DO_BUILD_DURING_DEPLOYMENT', value: 'true' }
+  { name: 'ENABLE_ORYX_BUILD', value: 'true' }
+  { name: 'PYTHON_ISOLATE_WORKER_DEPENDENCIES', value: '1' }
   { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: applicationInsightsConnectionString }
   { name: 'AZURE_CLIENT_ID', value: userAssignedIdentityClientId }
 ]
 
 var allSettings = concat(baseSettings, appSettings)
 
-// Function App — Flex Consumption
+// Function App — Elastic Premium
 resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
   name: functionAppName
   location: location
@@ -74,49 +87,19 @@ resource functionApp 'Microsoft.Web/sites@2024-04-01' = {
     reserved: true
     siteConfig: {
       appSettings: allSettings
+      cors: {
+        allowedOrigins: allowedCorsOrigins
+      }
+      linuxFxVersion: 'PYTHON|3.11'
       ftpsState: 'Disabled'
       minTlsVersion: '1.2'
-    }
-    functionAppConfig: {
-      deployment: {
-        storage: {
-          type: 'blobContainer'
-          value: '${reference(storageAccountResourceIdForBlobService, '2023-05-01').primaryEndpoints.blob}deploymentpackages'
-          authentication: {
-            type: 'UserAssignedIdentity'
-            userAssignedIdentityResourceId: userAssignedIdentityResourceId
-          }
-        }
-      }
-      runtime: {
-        name: 'python'
-        version: '3.11'
-      }
-      scaleAndConcurrency: {
-        maximumInstanceCount: 100
-        instanceMemoryMB: 2048
-      }
     }
     httpsOnly: true
   }
 }
 
-// Deployment package blob container
 resource storageAccountRef 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
   name: storageAccountName
-}
-
-resource blobService 'Microsoft.Storage/storageAccounts/blobServices@2023-05-01' existing = {
-  parent: storageAccountRef
-  name: 'default'
-}
-
-resource deploymentContainer 'Microsoft.Storage/storageAccounts/blobServices/containers@2023-05-01' = {
-  parent: blobService
-  name: 'deploymentpackages'
-  properties: {
-    publicAccess: 'None'
-  }
 }
 
 // Grant the managed identity Storage Blob Data Contributor on the storage account
@@ -142,7 +125,7 @@ resource storageAccountContributor 'Microsoft.Authorization/roleAssignments@2022
   }
 }
 
-// Grant Storage Queue Data Contributor for AzureWebJobsStorage queue operations (required for Flex Consumption)
+// Grant Storage Queue Data Contributor for AzureWebJobsStorage queue operations
 resource storageQueueDataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: storageAccountRef
   name: guid(storageAccountRef.id, functionAppName, 'Storage Queue Data Contributor')
@@ -153,12 +136,23 @@ resource storageQueueDataContributor 'Microsoft.Authorization/roleAssignments@20
   }
 }
 
-// Grant Storage Table Data Contributor for AzureWebJobsStorage table operations (required for Flex Consumption)
+// Grant Storage Table Data Contributor for AzureWebJobsStorage table operations
 resource storageTableDataContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: storageAccountRef
   name: guid(storageAccountRef.id, functionAppName, 'Storage Table Data Contributor')
   properties: {
     roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '0a9a7e1f-b9d0-4cc4-a60d-0319b160aaa3')
+    principalId: reference(userAssignedIdentityResourceId, '2023-01-31').principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+// Grant Storage File Data Privileged Contributor for Azure Files content share (required for Elastic Premium with RBAC)
+resource storageFileDataPrivilegedContributor 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: storageAccountRef
+  name: guid(storageAccountRef.id, functionAppName, 'Storage File Data Privileged Contributor')
+  properties: {
+    roleDefinitionId: subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '69566ab7-960f-475b-8e7c-b3118f30c6bd')
     principalId: reference(userAssignedIdentityResourceId, '2023-01-31').principalId
     principalType: 'ServicePrincipal'
   }

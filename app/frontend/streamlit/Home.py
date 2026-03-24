@@ -230,6 +230,18 @@ def main() -> None:
 
     display_support_center()
 
+    # Developer mode toggle in sidebar
+    st.sidebar.markdown("---")
+    st.sidebar.markdown("## Settings")
+    dev_mode = st.sidebar.toggle(
+        "🔧 Developer Mode",
+        value=st.session_state.get("developer_mode", False),
+        help="Enable developer mode to access indexer operations and diagnostics.",
+    )
+    st.session_state["developer_mode"] = dev_mode
+    if dev_mode:
+        st.sidebar.info("Developer Tools page is now visible in the sidebar navigation.")
+
     st.write(get_main_content(), unsafe_allow_html=True)
     st.markdown(get_markdown_content(), unsafe_allow_html=True)
     st.write(get_footer_content(), unsafe_allow_html=True)

@@ -11,40 +11,40 @@ uvicorn
 pydantic-settings
 
 # AI and OpenAI e2e
-openai==1.52.0
-tiktoken==0.8.0
-langchain==0.3.1
-langchain-community==0.3.1
-langchain-core==0.3.40
+openai>=1.108.0,<2.0.0
+tiktoken>=0.8.0
+langchain>=0.3.1
+langchain-community>=0.3.1
+langchain-core>=0.3.40
 
 # Azure SDKs
 azure-identity==1.19.0
 azure-mgmt-resource==23.1.1
 azure-ai-documentintelligence>=1.0.0
 azure-cosmos==4.7.0
-azure-search-documents==11.6.0b5
+azure-search-documents==11.7.0b2
 azure-storage-blob==12.23.1
 azure-monitor-opentelemetry>=1.6.7,<2.0.0
 
 # General utilities
 requests==2.32.3
-python-dotenv==1.0.1
+python-dotenv>=1.1.1
 pandas==2.2.3
-pydantic==2.9.2
-pyarrow==17.0.0
-aiohttp==3.10.10
-backoff==2.2.1
-PyPDF2==3.0.1
-Jinja2==3.1.4
-pymongo==4.10.1
+pydantic>=2.11.0
+pyarrow>=17.0.0
+aiohttp>=3.10.10
+backoff>=2.2.1
+PyPDF2>=3.0.1
+Jinja2>=3.1.6
+pymongo>=4.10.1
 colorama
 PyMuPDF
 rapidfuzz
 pytest==8.3.4
 jq==1.8.0
 
-# HTTPX fix for OpenAI
-httpx==0.27.2
+# HTTPX
+httpx>=0.28.1
 
 # Async and event loop tools
 asyncio==3.4.3
