@@ -223,6 +223,11 @@ output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = resources.outputs.AZURE_AI_SEAR
 @description('AI Foundry connection string to connect to AI Foundry')
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = resources.outputs.AZURE_AI_FOUNDRY_CONNECTION_STRING
 
+@description('Name of the frontend container app')
+output FRONTEND_CONTAINER_NAME string = resources.outputs.FRONTEND_CONTAINER_NAME
+
+@description('URL of the frontend container app')
+output FRONTEND_CONTAINER_URL string = resources.outputs.FRONTEND_CONTAINER_URL
 
 // @description('Evaluation Job Name')
 // output CONTAINER_EVALUATION_NAME string = resources.outputs.CONTAINER_EVALUATION_NAME

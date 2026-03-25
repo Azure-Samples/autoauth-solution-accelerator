@@ -1,14 +1,11 @@
-# Get current user ID and git hash
-$currentUserClientId = (& az ad signed-in-user show --query id -o tsv).Trim()
+# Get git hash
 $gitHash = (& git rev-parse --short HEAD).Trim()
 
 # Set environment variables
-& azd env set PRINCIPAL_ID $currentUserClientId
 & azd env set GIT_HASH $gitHash
 
 # Display information
 Write-Host "======================================="
-Write-Host " Current User Client ID: $currentUserClientId"
 Write-Host " Git Commit Hash:        $gitHash"
 Write-Host "======================================="
 # Capture just the actual values from azd, ignoring warnings
