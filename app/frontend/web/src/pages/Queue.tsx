@@ -100,8 +100,8 @@ export function QueuePage() {
     <>
       <BladeHeader
         icon={<TaskListSquareLtrRegular />}
-        title="Reviewer queue"
-        subtitle="Prior authorization · Contoso Health Plan"
+        title="Review queue"
+        subtitle="Cases your agents have prepared, soonest deadline first · Contoso Health Plan"
       />
       <CommandBar>
         <Button appearance="subtle" icon={<ArrowClockwiseRegular />} onClick={load}>

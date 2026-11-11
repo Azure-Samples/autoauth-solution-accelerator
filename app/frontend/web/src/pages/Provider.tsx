@@ -48,6 +48,11 @@ function precheck(f: Form, files: string[]): string[] {
   return out;
 }
 
+function greeting(): string {
+  const h = new Date().getHours();
+  return h < 12 ? "Good morning" : h < 18 ? "Good afternoon" : "Good evening";
+}
+
 export function ProviderPage() {
   const [form, setForm] = useState<Form>(EMPTY);
   const [files, setFiles] = useState<string[]>(FILES);
@@ -110,8 +115,11 @@ export function ProviderPage() {
 
   return (
     <>
-      <BladeHeader icon={<BuildingRegular />} title="Provider portal" subtitle={`${ORG} · upload a claim packet and watch the agents work it`} />
-      <div className="commandbar" />
+      <BladeHeader
+        icon={<BuildingRegular />}
+        title={`${greeting()}, ${ORG.replace(/ Assoc\.$/, "")} 👋`}
+        subtitle="Drop in a claim packet and your AI review crew will take it from here."
+      />
       <ErrorBar error={error} />
       {uploaded ? (
         <MessageBar intent="success" style={{ marginBottom: 10 }} data-testid="uploaded">

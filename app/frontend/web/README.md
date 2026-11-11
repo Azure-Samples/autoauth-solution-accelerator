@@ -4,14 +4,15 @@ This is the role-based UI from [the agentic 2026 design](../../../docs/architect
 
 | Route | Page | What it does |
 |---|---|---|
-| `#/queue` | Reviewer queue | Cases are sorted by SLA. You can filter by status, urgency, and data freshness, and each row has a freshness badge. |
+| `#/queue` | Review queue | Cases are sorted by SLA. You can filter by status, urgency, and data freshness, and each row has a freshness badge. |
 | `#/case/:id` | Case workspace | Evidence and criteria are shown with citations. Each field can be accepted, edited, or rejected. You can re-verify stale inputs, ask grounded questions in chat, and approve, pend, or deny. **Save as eval case** turns reviewer corrections into YAML for `evals/cases/`. |
 | `#/case/:id/trace` | Agent trace | Shows the span per agent step, with timing and status. |
-| `#/provider` | Provider portal | A pre-check runs before you submit. After submit, live agent progress streams over SSE. |
+| `#/provider` | Send a request | Pick a demo claim or upload a PDF. A pre-check runs before you submit. After submit, live agent progress streams over SSE. |
+| `#/indexes/...` | Policy library | A guided walkthrough of what is indexed ahead of time, what is indexed at run time, and what persists. |
 | `#/quality` | Quality | Shows override and freshness KPIs plus the existing eval families and suites. |
 | `#/parity` | Prototype parity | Compares the 10 prototype cases (`utils/data/cases`) for each runner against the MD ground truth, and flags PDF label conflicts. Each row links to the case. |
 
-The shell follows the Azure portal look: a dark masthead, a collapsible side nav, blade headers with command bars, and essentials panels. The theme is in `src/theme.ts` and `src/styles.css`.
+The shell uses a friendly, modern look: a light top bar with pill tabs, soft rounded cards, tinted status chips, gradient primary buttons, and a step tracker on each case. Breadcrumbs appear only on case and trace pages. The theme is in `src/theme.ts` and `src/styles.css`. Alternative directions are compared in [`docs/architecture/wireframes/ui-themes.html`](../../../docs/architecture/wireframes/ui-themes.html).
 
 ## Run it locally (no Azure needed)
 

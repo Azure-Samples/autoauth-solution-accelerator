@@ -136,7 +136,7 @@ export function IndexesPage({ step, caseId }: { step: IndexStep; caseId?: string
     <div className="stack" style={{ gap: 16 }}>
       <BladeHeader
         icon={<LibraryRegular />}
-        title="Indexed documents"
+        title="Policy library"
         subtitle="How AutoAuth finds the right policy for a claim, and what it keeps afterwards"
         badges={
           cat ? (

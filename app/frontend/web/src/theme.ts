@@ -22,10 +22,12 @@ const azure: BrandVariants = {
 
 export const azureTheme: Theme = {
   ...createLightTheme(azure),
-  // The portal uses near-square controls.
-  borderRadiusSmall: "2px",
-  borderRadiusMedium: "2px",
-  borderRadiusLarge: "4px",
-  colorNeutralBackground2: "#faf9f8",
-  colorNeutralStroke2: "#edebe9",
+  // Friendly modern: soft, rounded controls on a cool light canvas.
+  borderRadiusSmall: "6px",
+  borderRadiusMedium: "10px",
+  borderRadiusLarge: "14px",
+  borderRadiusXLarge: "18px",
+  colorNeutralBackground2: "#f6f8fc",
+  colorNeutralStroke2: "#e8edf5",
+  colorNeutralStroke1: "#d9e0ec",
 };

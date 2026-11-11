@@ -17,6 +17,18 @@ import { DataBarVerticalRegular } from "@fluentui/react-icons";
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 const label = (k: string) => k.replace(/_/g, " ");
+/** Lets dotted module paths wrap at segment boundaries instead of mid-word. */
+const dotted = (p: string) =>
+  p.split(".").map((seg, i, all) => (
+    <span key={i}>
+      {seg}
+      {i < all.length - 1 ? (
+        <>
+          .<wbr />
+        </>
+      ) : null}
+    </span>
+  ));
 
 export function QualityPage() {
   const [q, setQ] = useState<Quality | null>(null);
@@ -30,8 +42,11 @@ export function QualityPage() {
 
   return (
     <>
-      <BladeHeader icon={<DataBarVerticalRegular />} title="Quality" subtitle="Offline evals from evals/cases plus live reviewer signals" />
-      <div className="commandbar" />
+      <BladeHeader
+        icon={<DataBarVerticalRegular />}
+        title="Quality"
+        subtitle="How well the agents are doing: offline evals from evals/cases plus live reviewer signals"
+      />
       <MessageBar intent="info" style={{ marginBottom: 10 }}>
         <MessageBarBody>
           {q.illustrative_scores.note.split("`").map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part))}
@@ -113,7 +128,7 @@ export function QualityPage() {
                 </TableCell>
                 <TableCell>{s.family}</TableCell>
                 <TableCell>
-                  <code>{s.pipeline}</code>
+                  <code>{dotted(s.pipeline)}</code>
                 </TableCell>
                 <TableCell>
                   <div className="badge-wrap">

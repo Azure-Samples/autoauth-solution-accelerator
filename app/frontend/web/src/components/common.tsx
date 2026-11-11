@@ -62,7 +62,7 @@ const STATUS: Record<Status, { label: string; color: "brand" | "informative" | "
 export function StatusBadge({ status }: { status: Status }) {
   const s = STATUS[status];
   return (
-    <Badge appearance="filled" color={s.color}>
+    <Badge appearance="tint" shape="circular" color={s.color} className="soft-chip">
       {s.label}
     </Badge>
   );
@@ -165,7 +165,7 @@ const DECISION_COLOR: Record<string, "success" | "danger" | "warning" | "informa
 export function DecisionBadge({ decision, label }: { decision: string; label?: string }) {
   const color = DECISION_COLOR[decision.toLowerCase()] ?? "informative";
   return (
-    <Badge appearance="filled" color={color} data-decision={decision}>
+    <Badge appearance="tint" shape="circular" color={color} data-decision={decision} className="soft-chip">
       {label ?? decision}
     </Badge>
   );

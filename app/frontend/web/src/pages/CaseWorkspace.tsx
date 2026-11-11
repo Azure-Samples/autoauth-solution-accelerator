@@ -102,7 +102,9 @@ function Stepper({ steps }: { steps: CaseDetail["workflow"] }) {
     <div className="stepper" aria-label="Workflow">
       {steps.map((s, i) => (
         <div key={s.name} className={`step ${s.state}`} data-state={s.state}>
-          {s.state === "done" ? "✓ " : `${i + 1}. `}
+          <span className="step-dot" aria-hidden>
+            {s.state === "done" ? "✓" : i + 1}
+          </span>
           {s.name}
         </div>
       ))}
