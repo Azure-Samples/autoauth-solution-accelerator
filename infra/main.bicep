@@ -36,6 +36,9 @@ param frontendExists bool = false
 @description('Flag to indicate if Backend app image exists. This is managed by AZD')
 param backendExists bool = false
 
+@description('Flag to indicate if Reviewer app image exists. This is managed by AZD')
+param reviewerExists bool = false
+
 @minLength(2)
 @maxLength(12)
 @description('Name for the PriorAuth resource and used to derive the name of dependent resources.')
@@ -127,6 +130,7 @@ module resources 'resources.bicep' = {
     gitHash: GIT_HASH
     frontendExists: frontendExists
     backendExists: backendExists
+    reviewerExists: reviewerExists
   }
 }
 
@@ -219,6 +223,12 @@ output AZURE_AI_SEARCH_SERVICE_ENDPOINT string = resources.outputs.AZURE_AI_SEAR
 
 @description('AI Foundry connection string to connect to AI Foundry')
 output AZURE_AI_FOUNDRY_CONNECTION_STRING string = resources.outputs.AZURE_AI_FOUNDRY_CONNECTION_STRING
+
+@description('FQDN of the reviewer UI container app')
+output REVIEWER_CONTAINER_URL string = resources.outputs.REVIEWER_CONTAINER_URL
+
+@description('Name of the reviewer UI container app')
+output REVIEWER_CONTAINER_NAME string = resources.outputs.REVIEWER_CONTAINER_NAME
 
 
 // @description('Evaluation Job Name')

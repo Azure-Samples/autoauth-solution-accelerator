@@ -66,7 +66,8 @@ resource modelDeployments 'Microsoft.CognitiveServices/accounts/deployments@2024
   properties: {
     model: {
       format: 'OpenAI'
-      name: model.name
+      // Optional modelName lets a deployment keep its name while running a newer model.
+      name: model.?modelName ?? model.name
       version: model.version
     }
     currentCapacity: model.capacity
