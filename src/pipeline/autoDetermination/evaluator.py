@@ -12,7 +12,7 @@ from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.evals.case import Case, Evaluation
 from src.evals.pipeline import PipelineEvaluator
-from src.pipeline.autoDetermination.run import AutoPADeterminator
+from src.evals.adapters.runners import get_runner
 from src.pipeline.promptEngineering.prompt_manager import PromptManager
 from src.pipeline.utils import load_config
 from src.utils.ml_logging import get_logger
@@ -120,8 +120,8 @@ class AutoDeterminationEvaluator(PipelineEvaluator):
             # Store pipeline-specific info
             self.case_id = pipeline_config.get("case_id")
 
-            # Instantiate the AutoPADeterminator (similar to AgenticRAG in the ideal version)
-            self.auto_determinator = AutoPADeterminator(caseId=self.case_id)
+            # AUTOAUTH_RUNNER picks legacy AutoPADeterminator (default) or the new agents.
+            self.auto_determinator = get_runner("determine", caseId=self.case_id)
 
             # Retrieve the list of test cases
             case_list = root_obj.get("cases", [])

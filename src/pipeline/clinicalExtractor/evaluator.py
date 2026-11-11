@@ -10,7 +10,7 @@ from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.evals.case import Case, Evaluation
 from src.evals.pipeline import PipelineEvaluator
 from src.extractors.pdfhandler import OCRHelper
-from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
+from src.evals.adapters.runners import get_runner
 from src.pipeline.promptEngineering.models import (
     ClinicalInformation,
     PatientInformation,
@@ -39,7 +39,7 @@ class ClinicalExtractorEvaluator(PipelineEvaluator):
         self.global_evaluators = {}  # Evaluators from the pipeline-level configuration.
         self.ai_foundry_manager = AIFoundryManager()
         self.temp_dir = temp_dir
-        self.data_extractor = ClinicalDataExtractor()
+        self.data_extractor = get_runner("extract")
         self.uploaded_files = None  # Will be set from the YAML pipeline configuration.
 
         self.load_default_environment()

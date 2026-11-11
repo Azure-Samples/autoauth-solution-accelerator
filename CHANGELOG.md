@@ -63,3 +63,13 @@ Refactored the code for microservices to follow a decoupled architecture and sep
 
 ### OCR and Extraction Reliability
 - 🔜 Enhanced document extraction methods to improve the reliability of OCR and information retrieval processes.
+
+## [Unreleased]
+
+### Added
+- ✔️ Agentic runtime behind a runner factory (`AUTOAUTH_RUNNER=legacy|agents|agents-af`; default `legacy`). There are policy, criteria, and determination agents on a typed `CaseState` (`src/agents/`), with optional Microsoft Agent Framework binding (`requirements-agents.txt`).
+- ✔️ Evaluator adapters (`src/evals/adapters/`). Legacy-signature runners plus `TraceToEvaluation` keep the existing evaluators and YAML cases as the source of truth.
+- ✔️ Data-freshness indicators for policy, clinical evidence, provider affiliation, and member eligibility, shown as badges on the Payor page. They are advisory only and never change the decision.
+- ✔️ `progress.py` decouples the PA pipeline from Streamlit (`progress_callback`).
+- ✔️ Offline unit tests (`tests/agents`, `tests/adapters`) that use fake clients, with no Azure calls.
+- ✔️ Design doc: `docs/architecture/agentic-2026.md`.

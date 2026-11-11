@@ -303,6 +303,25 @@ The existing Pydantic models stay as they are. Citations live **beside** them (`
 | Auth | API keys from env | Managed identity everywhere (some tenants enforce `disableLocalAuth`) |
 | UI | Streamlit, in-process with the engine | FastAPI backend (`app/backend`) exposing the workflow + an event stream. The UI can be Streamlit (kept as a dev harness) or a React/Fluent app. |
 
+### 4.6 Data freshness
+
+People change roles, clinics, and health plans, and policies are revised. A determination built on a physician's old affiliation or a lapsed eligibility record can be wrong even when the reasoning is sound. `CaseState.freshness` records how old each input is, so the reviewer can see it.
+
+| Kind | Default max age | Source today | Why it goes stale |
+|---|---|---|---|
+| `policy` | 365 days | Search index `last_modified` field, if mapped | Payers revise coverage criteria every year or more often |
+| `clinical_evidence` | 90 days | Not captured. Shows as **unknown**. | Labs and imaging older than a quarter rarely support current medical necessity |
+| `provider_affiliation` | 180 days | Not captured. Shows as **unknown**. | Physicians move practices and networks, and NPI affiliations change |
+| `member_eligibility` | 30 days | Not captured. Shows as **unknown**. | Coverage changes at open enrollment, on job changes, and on plan switches |
+
+- **Status:** `fresh`; `aging` at ≥75% of the max age; `stale` past it; `unknown` when no date is recorded. `unknown` is reported, never assumed fresh.
+- **Advisory only:** The determination agent adds `Determination.warnings` for stale or unknown inputs. It **never changes the decision**, and the warnings are not in the legacy JSON, so eval scores don't move.
+- **UI:** The Payor page shows a banner when any check needs attention, plus badges (🟢 Fresh, 🟡 Aging, 🔴 Stale, ⚪ Unknown) on the Clinical, Physician, Patient, and Policy tabs. These appear only when the pipeline runs with an agent runner.
+- **Next data sources:**
+  - Map the blob `metadata_storage_last_modified` to a `last_modified` index field in `src/pipeline/policyIndexer/settings.yaml`. The policy agent already reads it.
+  - Take the document date from Document Intelligence for `clinical_evidence`.
+  - Look up provider affiliation (NPPES / provider directory) and member eligibility (X12 270/271 or FHIR `Coverage`) as tools that append `Freshness.from_value(kind, source, date, origin)` to `CaseState.freshness`. A real date replaces the **unknown** default.
+
 ## 5. Evaluator adapters (preserving the source of truth)
 
 ### 5.1 What stays frozen
@@ -411,7 +430,7 @@ class TraceToEvaluation:
 
 An agent replaces a legacy stage only when, on the same commit:
 
-1. `pytest -m evaluation tests/evals` passes with `AUTOAUTH_RUNNER=agent`, and
+1. `pytest -m evaluation tests/evals` passes with `AUTOAUTH_RUNNER=agents` (or `agents-af`), and
 2. no YAML suite's mean score drops by more than an agreed tolerance compared with `AUTOAUTH_RUNNER=legacy`. The Quality page (3.6) shows this delta.
 
 ## 6. Phased migration
@@ -425,6 +444,18 @@ An agent replaces a legacy stage only when, on the same commit:
 | **4 · Workspace UI** | Backend API + event stream. Work Queue, Case Workspace, and Trace tab. Persist `ReviewerAction`s. | A reviewer can complete a case end to end with citations and an audit record. |
 | **5 · Quality loop** | Online sampling of traces into `TraceToEvaluation`. Overrides become proposed YAML. Quality page. | First override-derived case merged into `evals/cases`. |
 | **6 · Interop (optional)** | Provider pre-check. FHIR / Da Vinci PAS request and response mapping behind `fhir.*` tools. | A sample PAS bundle round-trips through the workflow. |
+
+### 6.1 Status on this branch
+
+| Phase | Status | Where |
+|---|---|---|
+| 0 | Not run. It needs the deployed Azure resources. | — |
+| 1 | Done | `src/pipeline/paprocessing/progress.py`; `run.py` takes `progress_callback` and `streamlit=`; `src/evals/adapters/runners.py` (default `legacy`) |
+| 2 | Partial: `CaseState`, `Citation`, freshness. The extractor doesn't emit citations yet. | `src/agents/state.py` |
+| 3 | Code done. The parity gate hasn't run yet. | `src/agents/{policy,criteria,determination}_agent.py`; optional AF binding in `src/agents/af_binding.py` (`requirements-agents.txt`) |
+| 4–6 | Not started | — |
+
+Unit tests use fake LLM and search clients, with no Azure calls: `pytest tests/agents tests/adapters`. To compare runners: `AUTOAUTH_RUNNER=agents pytest -m evaluation tests/evals` against the default.
 
 ## 7. Open decisions
 
