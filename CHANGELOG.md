@@ -72,4 +72,6 @@ Refactored the code for microservices to follow a decoupled architecture and sep
 - ✔️ Data-freshness indicators for policy, clinical evidence, provider affiliation, and member eligibility, shown as badges on the Payor page. They are advisory only and never change the decision.
 - ✔️ `progress.py` decouples the PA pipeline from Streamlit (`progress_callback`).
 - ✔️ Offline unit tests (`tests/agents`, `tests/adapters`) that use fake clients, with no Azure calls.
-- ✔️ Design doc: `docs/architecture/agentic-2026.md`.
+- ✔️ Design doc: `docs/architecture/agentic-2026.md`, with a clickable wireframe in `docs/architecture/wireframes/agentic-2026.html`.
+- ✔️ Reviewer UI (React + Fluent UI v9, `app/frontend/web/`) with these pages: reviewer queue, case workspace with citations and field-level review, agent trace, provider portal with SSE progress, and quality. Reviewer corrections export as eval-case YAML.
+- ✔️ Offline reviewer API (`app/backend/api/`, `uvicorn app.backend.api.app:app`) on fictional demo data, with tests in `tests/api`. Set `AUTOAUTH_REVIEWER_DEMO=1` to mount it on the main backend.

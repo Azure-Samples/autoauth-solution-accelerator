@@ -1,0 +1,328 @@
+:root {
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #242424;
+  background: #f5f5f5;
+}
+body {
+  margin: 0;
+}
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 6px 20px;
+  background: #fff;
+  border-bottom: 1px solid #e0e0e0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.spacer {
+  flex: 1;
+}
+.muted {
+  color: #616161;
+}
+main {
+  padding: 16px 20px 40px;
+}
+.card {
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.page-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.page-head h1 {
+  font-size: 20px;
+  margin: 0;
+}
+.section-title {
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #616161;
+  margin: 0 0 6px;
+}
+
+/* queue */
+.queue-table tr {
+  cursor: pointer;
+}
+.queue-table tr.running td {
+  color: #616161;
+}
+.meter {
+  width: 70px;
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.meter > span {
+  display: block;
+  height: 100%;
+  background: #0f6cbd;
+}
+.sla-late {
+  color: #c50f1f;
+  font-weight: 600;
+}
+
+/* workspace */
+.stepper {
+  display: flex;
+  gap: 4px;
+  margin: 8px 0 12px;
+}
+.step {
+  flex: 1;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: #ebebeb;
+  color: #616161;
+  text-align: center;
+}
+.step.done {
+  background: #dff6dd;
+  color: #0e700e;
+}
+.step.current {
+  background: #0f6cbd;
+  color: #fff;
+  font-weight: 600;
+}
+.fresh-strip {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.fresh-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+.panes {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.25fr) minmax(300px, 1fr) minmax(260px, 0.85fr);
+  gap: 12px;
+  align-items: start;
+}
+@media (max-width: 1200px) {
+  .panes {
+    grid-template-columns: 1fr 1fr;
+  }
+  .panes > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+.doc {
+  font-family: Consolas, "Cascadia Mono", monospace;
+  font-size: 12px;
+  background: #fafafa;
+  border: 1px solid #ebebeb;
+  border-radius: 4px;
+  padding: 8px;
+  max-height: 260px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+.doc .page-break {
+  color: #9e9e9e;
+  border-top: 1px dashed #d1d1d1;
+  margin: 6px 0;
+  font-size: 11px;
+}
+mark {
+  background: #fff4ce;
+  outline: 1px solid #f7d36b;
+}
+mark.active {
+  background: #ffe066;
+  outline: 2px solid #c19c00;
+}
+.fact {
+  display: grid;
+  grid-template-columns: 130px 1fr auto;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #f0f0f0;
+  font-size: 13px;
+}
+.fact .key {
+  color: #616161;
+}
+.fact.edited .val {
+  color: #0f6cbd;
+  font-weight: 600;
+}
+.fact.rejected .val {
+  text-decoration: line-through;
+  color: #c50f1f;
+}
+.criterion {
+  border: 1px solid #ebebeb;
+  border-left-width: 4px;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.criterion.met {
+  border-left-color: #107c10;
+}
+.criterion.partial {
+  border-left-color: #eaa300;
+}
+.criterion.notmet {
+  border-left-color: #c50f1f;
+}
+.cite {
+  font-size: 12px;
+  color: #0f6cbd;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+}
+.cite:hover {
+  text-decoration: underline;
+}
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 340px;
+  overflow: auto;
+  margin-bottom: 8px;
+}
+.bubble {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  max-width: 92%;
+}
+.bubble.user {
+  background: #0f6cbd;
+  color: #fff;
+  align-self: flex-end;
+}
+.bubble.assistant {
+  background: #f0f0f0;
+  align-self: flex-start;
+}
+.recbar {
+  position: sticky;
+  bottom: 0;
+  margin-top: 12px;
+  background: #fff;
+  border: 1px solid #c7c7c7;
+  border-radius: 8px;
+  padding: 10px 14px;
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
+}
+
+/* trace */
+.waterfall {
+  font-size: 13px;
+}
+.span-row {
+  display: grid;
+  grid-template-columns: 260px 1fr 70px 200px;
+  gap: 8px;
+  align-items: center;
+  padding: 4px 0;
+  border-bottom: 1px solid #f3f3f3;
+}
+.bar-track {
+  position: relative;
+  height: 12px;
+  background: #f5f5f5;
+  border-radius: 3px;
+}
+.bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: #0f6cbd;
+}
+.bar.run {
+  background: repeating-linear-gradient(45deg, #479ef5, #479ef5 6px, #96c6fa 6px, #96c6fa 12px);
+}
+.bar.todo {
+  background: #d1d1d1;
+}
+.yaml {
+  font-family: Consolas, monospace;
+  font-size: 12px;
+  background: #1f1f1f;
+  color: #e6e6e6;
+  padding: 10px;
+  border-radius: 6px;
+  max-height: 360px;
+  overflow: auto;
+}
+
+/* quality */
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 1000px) {
+  .grid2 {
+    grid-template-columns: 1fr;
+  }
+}
+.delta-up {
+  color: #107c10;
+  font-weight: 600;
+}
+.delta-down {
+  color: #c50f1f;
+  font-weight: 600;
+}
+.kpi {
+  font-size: 28px;
+  font-weight: 600;
+}
+
+/* Long freshness labels ("1 stale · 1 unknown · 1 aging") wrap cleanly instead of overflowing the pill. */
+.fui-Badge[data-fresh] {
+  height: auto;
+  min-height: 20px;
+  line-height: 16px;
+  padding-block: 1px;
+}

@@ -59,6 +59,8 @@ flowchart LR
 
 ## 3. UI wireframes
 
+> Clickable wireframe: [`wireframes/agentic-2026.html`](wireframes/agentic-2026.html). Built UI: [`app/frontend/web/`](../../app/frontend/web/README.md).
+
 ### 3.1 Navigation model
 
 The current app is one page that does upload, results, and chat. The target has **role-based workspaces**, with the case as the central object.
@@ -453,13 +455,15 @@ An agent replaces a legacy stage only when, on the same commit:
 | 1 | Done | `src/pipeline/paprocessing/progress.py`; `run.py` takes `progress_callback` and `streamlit=`; `src/evals/adapters/runners.py` (default `legacy`) |
 | 2 | Partial: `CaseState`, `Citation`, freshness. The extractor doesn't emit citations yet. | `src/agents/state.py` |
 | 3 | Code done. The parity gate hasn't run yet. | `src/agents/{policy,criteria,determination}_agent.py`; optional AF binding in `src/agents/af_binding.py` (`requirements-agents.txt`) |
-| 4–6 | Not started | — |
+| 4 | UI and API done on demo data. Not yet wired to the agent runtime or persistent storage. | `app/frontend/web/` (React + Fluent UI v9; see its README); `app/backend/api/` (offline FastAPI + SSE; `tests/api`) |
+| 5 | Partial. Reviewer corrections export as eval-case YAML; the Quality page uses demo metrics. | `POST /api/cases/{id}/eval-case` → `TraceToEvaluation.from_reviewer_actions` |
+| 6 | Not started | — |
 
 Unit tests use fake LLM and search clients, with no Azure calls: `pytest tests/agents tests/adapters`. To compare runners: `AUTOAUTH_RUNNER=agents pytest -m evaluation tests/evals` against the default.
 
 ## 7. Open decisions
 
-1. **UI stack:** Keep Streamlit (fastest; it limits the three-pane layout and streaming) or move to React/Fluent on FastAPI (better fit for 3.3; more work).
+1. **UI stack:** ~~Keep Streamlit or move to React/Fluent on FastAPI.~~ **Chosen: React + Fluent UI v9 on FastAPI** (`app/frontend/web/`). Streamlit stays in place until the new UI reaches parity.
 2. **Agent runtime:** Self-hosted Agent Framework workflows in ACA, or Foundry Agent Service hosted agents.
 3. **Criteria extraction timing:** Precompute policy → criteria at index time (cheaper and reviewable) or extract per case (simpler, but less stable).
 4. **Score tolerance** for the parity gate, per suite.
