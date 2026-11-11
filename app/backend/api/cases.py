@@ -154,6 +154,8 @@ def _summary(record: CaseRecord, now: datetime) -> Dict[str, Any]:
         "recommendation": _recommendation(record),
         "freshness": _freshness_summary(record, now),
         "human_decision": record.human_decision,
+        "runner": record.runner,
+        "prototype": record.prototype,
     }
 
 
@@ -232,7 +234,9 @@ def _trace(record: CaseRecord, now: datetime) -> Dict[str, Any]:
 
 def _refresh_warnings(state: CaseState, now: datetime) -> None:
     if state.determination is not None:
-        state.determination.warnings = freshness_warnings(state, now)
+        # Keep non-freshness advisories (e.g. ground-truth label conflicts) across re-verification.
+        kept = [w for w in state.determination.warnings if w.startswith("label conflict")]
+        state.determination.warnings = kept + freshness_warnings(state, now)
 
 
 # --------------------------------------------------------------------------- #
@@ -566,6 +570,18 @@ def quality() -> Dict[str, Any]:
         },
         "sla_hours": SLA_HOURS,
     }
+
+
+@router.get("/parity")
+def parity() -> Dict[str, Any]:
+    """MD ground truth vs. recorded legacy/agents runs on the prototype cases."""
+    from src.evals.adapters.parity import parity_report
+
+    report = parity_report()
+    ids = {r.prototype["case_key"]: r.state.case_id for r in store.all() if r.prototype}
+    for row in report["cases"]:
+        row["ui_case_id"] = ids.get(row["case_id"])
+    return report
 
 
 @router.post("/demo/reset")

@@ -134,7 +134,7 @@ pytest
 
 ### Reviewer UI (preview)
 
-An offline React + Fluent UI reviewer UI is available. It covers the queue, the case workspace, the agent trace, the provider portal, and quality, and runs on fictional demo data, so no Azure is needed. To start it, run `uvicorn app.backend.api.app:app --port 8000` and `npm run dev` in `app/frontend/web/`. See [app/frontend/web/README.md](app/frontend/web/README.md) and the [agentic 2026 design](docs/architecture/agentic-2026.md).
+An offline React + Fluent UI reviewer UI with an Azure portal-style theme is available. It covers the queue, the case workspace, the agent trace, the provider portal, quality, and prototype parity. It runs without Azure, using fictional demo data plus the 10 prototype cases in `utils/data/cases`. To start it, run `uvicorn app.backend.api.app:app --port 8000` and `npm run dev` in `app/frontend/web/`. See [app/frontend/web/README.md](app/frontend/web/README.md) and the [agentic 2026 design](docs/architecture/agentic-2026.md).
 
 ## Responsible AI
 

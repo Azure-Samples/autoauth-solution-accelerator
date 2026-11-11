@@ -17,6 +17,9 @@ import {
 import {
   ArrowLeftRegular,
   CheckmarkRegular,
+  DocumentBulletListRegular,
+  PersonAddRegular,
+  TimelineRegular,
   DismissRegular,
   EditRegular,
   SendRegular,
@@ -33,7 +36,19 @@ import {
   type FieldAction,
   type FreshnessEntry,
 } from "../api";
-import { ErrorBar, EvalCaseDialog, FreshBadge, freshnessShort, freshnessTitle, StatusBadge } from "../components/common";
+import {
+  BladeHeader,
+  CommandBar,
+  DecisionBadge,
+  ErrorBar,
+  Essentials,
+  EvalCaseDialog,
+  FreshBadge,
+  freshnessShort,
+  freshnessTitle,
+  PrototypeBadge,
+  StatusBadge,
+} from "../components/common";
 import { go } from "../App";
 
 export const REVIEWER = "J. Reviewer";
@@ -161,6 +176,7 @@ function EvidencePane(props: {
       <p className="section-title">Evidence</p>
       {docs.length ? (
         <>
+          <div className="tab-scroll">
           <TabList size="small" selectedValue={props.doc} onTabSelect={(_, d) => props.setDoc(String(d.value))}>
             {docs.map((d) => (
               <Tab key={d} value={d}>
@@ -168,6 +184,7 @@ function EvidencePane(props: {
               </Tab>
             ))}
           </TabList>
+          </div>
           <div className="doc" data-doc={props.doc}>
             {pages.map((lines, p) => (
               <div key={p}>
@@ -423,11 +440,15 @@ function RecommendationBar(props: { c: CaseDetail; onDecide: (d: Decision, note?
         <Text weight="semibold">AI recommendation:</Text>
         {rec ? (
           <>
-            <Badge appearance="filled" color={rec.decision === "approve" ? "success" : "warning"}>
-              {rec.label}
-            </Badge>
+            <DecisionBadge decision={rec.decision} label={rec.label} />
             <span className="muted">
-              {Math.round(rec.confidence * 100)}% · {rec.criteria_met}/{rec.criteria_total} criteria · {rec.model}
+              {[
+                rec.confidence === null ? null : `${Math.round(rec.confidence * 100)}% confidence`,
+                rec.criteria_total ? `${rec.criteria_met}/${rec.criteria_total} criteria` : null,
+                rec.model,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
             </span>
           </>
         ) : (
@@ -531,32 +552,58 @@ export function CasePage({ id }: { id: string }) {
 
   if (!c) return error ? <ErrorBar error={error} /> : <Spinner label="Loading case…" />;
 
-  const warnings = c.recommendation?.warnings ?? [];
+  const allWarnings = c.recommendation?.warnings ?? [];
+  const conflicts = allWarnings.filter((w) => w.toLowerCase().startsWith("label conflict"));
+  const warnings = allWarnings.filter((w) => !conflicts.includes(w));
   return (
     <>
-      <div className="page-head">
-        <Button icon={<ArrowLeftRegular />} appearance="subtle" onClick={() => go("/queue")} aria-label="Back to queue" />
-        <h1>
-          {c.case_id} · {c.patient_name}
-        </h1>
-        <span className="muted">
-          {c.request} · {c.line_of_business} · {c.provider_org}
-        </span>
-        <Badge appearance="outline" color={c.urgency === "expedited" ? "danger" : "informative"}>
-          {c.urgency}
-        </Badge>
-        <StatusBadge status={c.status} />
-        <span className="spacer" />
-        <span>
-          SLA <b>{slaText(c.sla_left_hours, c.sla_hours)}</b>
-        </span>
-        <span data-testid="owner">{c.owner ? `Owner: ${c.owner}` : <span className="muted">Unassigned</span>}</span>
+      <BladeHeader
+        icon={<DocumentBulletListRegular />}
+        title={`${c.case_id} · ${c.patient_name}`}
+        subtitle={`Prior authorization request · ${c.request}`}
+        badges={
+          <>
+            <StatusBadge status={c.status} />
+            {c.prototype ? <PrototypeBadge conflict={c.prototype.label_conflict} /> : null}
+          </>
+        }
+      />
+      <CommandBar>
+        <Button appearance="subtle" icon={<ArrowLeftRegular />} onClick={() => go("/queue")}>
+          Back to queue
+        </Button>
+        <span className="cmd-sep" />
         {c.owner !== REVIEWER ? (
-          <Button size="small" onClick={() => guard(() => api.assign(id, REVIEWER))}>
+          <Button appearance="subtle" icon={<PersonAddRegular />} onClick={() => guard(() => api.assign(id, REVIEWER))}>
             Assign to me
           </Button>
         ) : null}
-      </div>
+        <Button appearance="subtle" icon={<TimelineRegular />} onClick={() => go(`/case/${c.case_id}/trace`)}>
+          View trace
+        </Button>
+      </CommandBar>
+      <Essentials
+        items={[
+          ["Member", `${c.patient_name} · ${c.member_id}`],
+          ["Line of business", c.line_of_business],
+          ["Provider", c.provider_org],
+          [
+            "Urgency",
+            <Badge key="u" appearance="outline" color={c.urgency === "expedited" ? "danger" : "informative"}>
+              {c.urgency}
+            </Badge>,
+          ],
+          ["SLA remaining", <b key="s">{slaText(c.sla_left_hours, c.sla_hours)}</b>],
+          ["Owner", <span key="o" data-testid="owner">{c.owner ?? "Unassigned"}</span>],
+          ["Runner", c.runner === "ground_truth" ? "MD ground truth (prototype)" : c.runner],
+          [
+            "Source",
+            c.prototype
+              ? `${c.prototype.folder}${c.prototype.pdf_label ? ` · PDF says ${c.prototype.pdf_label}` : ""}`
+              : "Demo data",
+          ],
+        ]}
+      />
       <ErrorBar error={error} />
       <Stepper steps={c.workflow} />
       <FreshnessStrip
@@ -567,6 +614,14 @@ export function CasePage({ id }: { id: string }) {
           guard(() => api.reverify(id, f.kind)).finally(() => setBusy(null));
         }}
       />
+      {conflicts.length ? (
+        <MessageBar intent="error" style={{ marginBottom: 10 }} data-testid="label-conflict">
+          <MessageBarBody>
+            <MessageBarTitle>Ground-truth label conflict</MessageBarTitle>
+            {conflicts.map((w) => w.replace(/^label conflict:\s*/i, "").replace(/\.?$/, ".")).join(" ")} Confirm the label with the medical director before you use this case for parity.
+          </MessageBarBody>
+        </MessageBar>
+      ) : null}
       {warnings.length ? (
         <MessageBar intent="warning" style={{ marginBottom: 10 }} data-testid="advisory">
           <MessageBarBody>

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, Spinner, Text } from "@fluentui/react-components";
-import { ArrowLeftRegular } from "@fluentui/react-icons";
+import { ArrowLeftRegular, TimelineRegular } from "@fluentui/react-icons";
 import { api, followCase, type Trace } from "../api";
-import { ErrorBar, EvalCaseDialog } from "../components/common";
+import { BladeHeader, CommandBar, ErrorBar, EvalCaseDialog } from "../components/common";
 import { go } from "../App";
 
 export function TracePage({ id }: { id: string }) {
@@ -40,22 +40,30 @@ export function TracePage({ id }: { id: string }) {
 
   return (
     <>
-      <div className="page-head">
-        <Button icon={<ArrowLeftRegular />} appearance="subtle" onClick={() => go(`/case/${id}`)} aria-label="Back to case" />
-        <h1>Trace · {id}</h1>
-        <span className="muted">{t.trace_id}</span>
-        <Badge appearance="outline">runner: {t.runner}</Badge>
-        <span className="spacer" />
-        <span>
-          Total <b data-testid="trace-total">{t.total_seconds === null ? "running…" : `${t.total_seconds.toFixed(1)}s`}</b>
-        </span>
-        {t.estimated_cost_usd !== null ? (
-          <span>
-            Est. cost <b>${t.estimated_cost_usd.toFixed(2)}</b>
+      <BladeHeader
+        icon={<TimelineRegular />}
+        title={`Trace · ${id}`}
+        subtitle={t.trace_id}
+        badges={<Badge appearance="outline">runner: {t.runner}</Badge>}
+        actions={
+          <span className="row" style={{ gap: 16 }}>
+            <span>
+              Total <b data-testid="trace-total">{t.total_seconds === null ? "running…" : `${t.total_seconds.toFixed(1)}s`}</b>
+            </span>
+            {t.estimated_cost_usd !== null ? (
+              <span>
+                Est. cost <b>${t.estimated_cost_usd.toFixed(2)}</b>
+              </span>
+            ) : null}
           </span>
-        ) : null}
-        <EvalCaseDialog caseId={id} trigger={<Button disabled={running}>Save as eval case</Button>} />
-      </div>
+        }
+      />
+      <CommandBar>
+        <Button appearance="subtle" icon={<ArrowLeftRegular />} onClick={() => go(`/case/${id}`)}>
+          Back to case
+        </Button>
+        <EvalCaseDialog caseId={id} trigger={<Button appearance="subtle" disabled={running}>Save as eval case</Button>} />
+      </CommandBar>
       <ErrorBar error={error} />
       <div className="card">
         <div className="waterfall" aria-label="Span waterfall">

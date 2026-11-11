@@ -21,7 +21,8 @@ export interface Citation {
 export interface Recommendation {
   decision: string;
   label: string;
-  confidence: number;
+  /** null for prototype cases, whose label is MD ground truth rather than a model score. */
+  confidence: number | null;
   criteria_met: number;
   criteria_total: number;
   model: string;
@@ -52,6 +53,55 @@ export interface CaseSummary {
   recommendation: Recommendation | null;
   freshness: FreshnessSummary;
   human_decision: { decision: Decision; reviewer: string; note?: string | null } | null;
+  runner: string;
+  prototype: Prototype | null;
+}
+
+/** Provenance for the real prototype cases in utils/data/cases (see app/backend/api/real_cases.py). */
+export interface Prototype {
+  case_key: string;
+  folder: string;
+  ground_truth: string;
+  pdf_label: string | null;
+  label_conflict: boolean;
+  fact_sources: string[];
+  policy: string | null;
+  notes: string[];
+}
+
+export type ParityStatus = "not_run" | "ok" | "error";
+
+export interface ParityResult {
+  status: ParityStatus;
+  decision: string | null;
+  match: boolean | null;
+  error?: string | null;
+  seconds?: number | null;
+  recorded_at?: string | null;
+}
+
+export interface ParityRow {
+  case_id: string;
+  number: string;
+  variant: string;
+  files: Record<string, string[]>;
+  policy: string | null;
+  ground_truth: string;
+  ground_truth_note: string | null;
+  pdf_label: string | null;
+  label_conflict: boolean;
+  notes: string[];
+  results: Record<string, ParityResult>;
+  ui_case_id: string;
+}
+
+export interface Parity {
+  cases: ParityRow[];
+  runners: string[];
+  summary: Record<string, { run: number; scored: number; matched: number; rate: number | null }>;
+  label_conflicts: string[];
+  source: string;
+  command: string;
 }
 
 export interface FreshnessEntry {
@@ -232,6 +282,7 @@ export const api = {
       message,
     }),
   quality: () => call<Quality>("/quality"),
+  parity: () => call<Parity>("/parity"),
   reset: () => post<unknown>("/demo/reset"),
 };
 
@@ -264,6 +315,8 @@ export const REVERIFY_ACTION: Record<ReverifyKind, string> = {
   clinical_evidence: "Request updated notes",
   policy: "Re-check policy version",
 };
+
+export const pct = (v: number | null | undefined) => (v === null || v === undefined ? null : Math.round(v * 100));
 
 export function slaText(left: number, total: number): string {
   const fmt = (h: number) => (h >= 48 ? `${Math.round(h / 24)}d` : `${Math.max(0, Math.round(h))}h`);

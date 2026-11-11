@@ -9,6 +9,9 @@ This is the role-based UI from [the agentic 2026 design](../../../docs/architect
 | `#/case/:id/trace` | Agent trace | Shows the span per agent step, with timing and status. |
 | `#/provider` | Provider portal | A pre-check runs before you submit. After submit, live agent progress streams over SSE. |
 | `#/quality` | Quality | Shows override and freshness KPIs plus the existing eval families and suites. |
+| `#/parity` | Prototype parity | Compares the 10 prototype cases (`utils/data/cases`) for each runner against the MD ground truth, and flags PDF label conflicts. Each row links to the case. |
+
+The shell follows the Azure portal look: a dark masthead, a collapsible side nav, blade headers with command bars, and essentials panels. The theme is in `src/theme.ts` and `src/styles.css`.
 
 ## Run it locally (no Azure needed)
 
@@ -32,5 +35,7 @@ npm run build          # writes dist/; open http://localhost:8000
 - `AUTOAUTH_UI_ORIGINS` sets the CORS allow-list on the API. It's a comma-separated list.
 - To mount the same endpoints on the main backend (`app/backend/main.py`), set `AUTOAUTH_REVIEWER_DEMO=1`.
 - **Reset demo** in the header, or `POST /api/demo/reset`, restores the seed data.
+- The queue also loads the 10 prototype cases from `utils/data/cases`, marked with a **Prototype** badge. Set `AUTOAUTH_PROTOTYPE_CASES=0` to hide them.
+- The parity page reads recorded runs from `utils/data/cases/parity_runs/` (or `AUTOAUTH_PARITY_RUNS`). To record runs, deploy the infrastructure (`azd up`), then run `python -m src.evals.adapters.parity --run legacy agents`.
 
-The demo store is in-memory and holds only fictional patients. Wiring it to the agent runtime (`src/agents/`) and to persistent storage is the next step. See §6.1 of the design doc.
+The demo store is in-memory. Its demo patients are fictional. The prototype cases are the sample files already in the repository. Wiring it to the agent runtime (`src/agents/`) and to persistent storage is the next step. See §6.1 of the design doc.

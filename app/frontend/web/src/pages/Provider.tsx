@@ -17,7 +17,8 @@ import {
   TableRow,
 } from "@fluentui/react-components";
 import { api, followCase, type CaseSummary, type SubmitIn } from "../api";
-import { ErrorBar, StatusBadge } from "../components/common";
+import { BladeHeader, ErrorBar, StatusBadge } from "../components/common";
+import { BuildingRegular } from "@fluentui/react-icons";
 import { go } from "../App";
 
 const ORG = "Lakeside GI Assoc.";
@@ -105,10 +106,8 @@ export function ProviderPage() {
 
   return (
     <>
-      <div className="page-head">
-        <h1>Provider portal</h1>
-        <span className="muted">{ORG} · submit a prior authorization and watch it move</span>
-      </div>
+      <BladeHeader icon={<BuildingRegular />} title="Provider portal" subtitle={`${ORG} · submit a prior authorization and watch it move`} />
+      <div className="commandbar" />
       <ErrorBar error={error} />
       <div className="grid2">
         <section className="card stack" aria-label="New request">

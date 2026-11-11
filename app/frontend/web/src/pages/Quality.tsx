@@ -12,7 +12,8 @@ import {
   TableRow,
 } from "@fluentui/react-components";
 import { api, type Quality } from "../api";
-import { ErrorBar } from "../components/common";
+import { BladeHeader, ErrorBar } from "../components/common";
+import { DataBarVerticalRegular } from "@fluentui/react-icons";
 
 const pct = (n: number) => `${Math.round(n * 100)}%`;
 const label = (k: string) => k.replace(/_/g, " ");
@@ -29,12 +30,12 @@ export function QualityPage() {
 
   return (
     <>
-      <div className="page-head">
-        <h1>Quality</h1>
-        <span className="muted">Offline evals from evals/cases plus live reviewer signals</span>
-      </div>
+      <BladeHeader icon={<DataBarVerticalRegular />} title="Quality" subtitle="Offline evals from evals/cases plus live reviewer signals" />
+      <div className="commandbar" />
       <MessageBar intent="info" style={{ marginBottom: 10 }}>
-        <MessageBarBody>{q.illustrative_scores.note}</MessageBarBody>
+        <MessageBarBody>
+          {q.illustrative_scores.note.split("`").map((part, i) => (i % 2 ? <code key={i}>{part}</code> : part))}
+        </MessageBarBody>
       </MessageBar>
 
       <div className="grid2">
@@ -69,17 +70,21 @@ export function QualityPage() {
 
         <section className="card stack" aria-label="Live signals">
           <p className="section-title">Live signals</p>
-          <div className="row">
+          <div className="kpis kpis-compact">
             {Object.entries(q.illustrative_scores.online).map(([k, v]) => (
-              <div className="kpi" key={k}>
-                <b>{pct(v)}</b>
-                <span className="muted">{label(k)} (illustrative)</span>
+              <div className="kpi-tile illustrative" key={k}>
+                <span className="kpi-label">{label(k)}</span>
+                <span className="kpi-value">{pct(v)}</span>
+                <span className="muted">illustrative</span>
               </div>
             ))}
             {Object.entries(q.live).map(([k, v]) => (
-              <div className="kpi" key={k} data-kpi={k}>
-                <b>{v === null ? "—" : typeof v === "number" && k.endsWith("rate") ? pct(v) : String(v)}</b>
-                <span className="muted">{label(k)}</span>
+              <div className="kpi-tile" key={k} data-kpi={k}>
+                <span className="kpi-label">{label(k)}</span>
+                <span className="kpi-value">
+                  {v === null ? "—" : typeof v === "number" && k.endsWith("rate") ? pct(v) : String(v)}
+                </span>
+                <span className="muted">live</span>
               </div>
             ))}
           </div>
@@ -89,15 +94,15 @@ export function QualityPage() {
 
       <section className="card stack" aria-label="Eval suites" style={{ marginTop: 12 }}>
         <p className="section-title">Eval suites (evals/cases, unchanged)</p>
-        <Table size="small" aria-label="Eval suites">
+        <Table size="small" aria-label="Eval suites" className="suites-table">
           <TableHeader>
             <TableRow>
-              <TableHeaderCell>Suite</TableHeaderCell>
-              <TableHeaderCell>Family</TableHeaderCell>
-              <TableHeaderCell>Pipeline</TableHeaderCell>
-              <TableHeaderCell>Evaluators</TableHeaderCell>
-              <TableHeaderCell>Cases</TableHeaderCell>
-              <TableHeaderCell>Evaluations</TableHeaderCell>
+              <TableHeaderCell style={{ width: "20%" }}>Suite</TableHeaderCell>
+              <TableHeaderCell style={{ width: "17%" }}>Family</TableHeaderCell>
+              <TableHeaderCell style={{ width: "23%" }}>Pipeline</TableHeaderCell>
+              <TableHeaderCell style={{ width: "26%" }}>Evaluators</TableHeaderCell>
+              <TableHeaderCell style={{ width: "6%" }}>Cases</TableHeaderCell>
+              <TableHeaderCell style={{ width: "8%" }}>Evaluations</TableHeaderCell>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -111,11 +116,13 @@ export function QualityPage() {
                   <code>{s.pipeline}</code>
                 </TableCell>
                 <TableCell>
-                  {s.evaluators.map((e) => (
-                    <Badge key={e} size="small" appearance="tint" style={{ marginRight: 4 }}>
-                      {e}
-                    </Badge>
-                  ))}
+                  <div className="badge-wrap">
+                    {s.evaluators.map((e) => (
+                      <Badge key={e} size="small" appearance="tint">
+                        {e}
+                      </Badge>
+                    ))}
+                  </div>
                 </TableCell>
                 <TableCell>{s.cases}</TableCell>
                 <TableCell>{s.evaluations}</TableCell>

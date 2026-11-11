@@ -126,6 +126,29 @@ def test_quality_reads_existing_eval_yaml(client):
     assert body["illustrative_scores"]["note"].startswith("Illustrative")
 
 
+def test_prototype_cases_load_from_case_pdfs(client):
+    cases = {c["case_id"]: c for c in client.get("/api/cases").json()["cases"]}
+    proto = {k: v for k, v in cases.items() if v["prototype"]}
+    assert len(proto) == 10
+    assert cases["CASE-001A"]["recommendation"]["decision"] == "Rejected"
+    assert cases["CASE-001A"]["recommendation"]["confidence"] is None
+
+    detail = client.get("/api/cases/CASE-001A").json()
+    assert detail["patient_information"]["patient_name"] == "Sarah Sample"
+    assert any("label conflict" in w for w in detail["determination"]["warnings"])
+    page_text = [line for doc in detail["documents"].values() for page in doc for line in page]
+    for cites in detail["field_citations"].values():
+        assert all(c["quote"] in page_text for c in cites)
+
+
+def test_parity_scores_against_md_ground_truth(client):
+    body = client.get("/api/parity").json()
+    assert len(body["cases"]) == 10
+    assert set(body["label_conflicts"]) == {"001_a", "001_b", "002_b"}
+    assert {"legacy", "agents"} <= set(body["runners"])
+    assert all(r["ui_case_id"] for r in body["cases"])
+
+
 def test_reset_restores_seed(client):
     client.post("/api/cases/PA-1042/decision", json={"decision": "approve"})
     client.post("/api/demo/reset")

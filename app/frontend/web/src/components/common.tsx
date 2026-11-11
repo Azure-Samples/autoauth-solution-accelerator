@@ -11,9 +11,12 @@ import {
   DialogTrigger,
   MessageBar,
   MessageBarBody,
+  Skeleton,
+  SkeletonItem,
   Spinner,
   Tooltip,
 } from "@fluentui/react-components";
+import { WarningFilled } from "@fluentui/react-icons";
 import { api, type FreshStatus, type FreshnessEntry, type Status } from "../api";
 
 const FRESH_COLOR: Record<FreshStatus, "success" | "warning" | "danger" | "subtle" | "informative"> = {
@@ -71,6 +74,131 @@ export function ErrorBar({ error }: { error: string | null }) {
     <MessageBar intent="error">
       <MessageBarBody>{error}</MessageBarBody>
     </MessageBar>
+  );
+}
+
+/** Azure-portal blade header: icon tile, title, resource-type subtitle and a right-hand slot. */
+export function BladeHeader(props: {
+  icon: ReactElement;
+  title: ReactNode;
+  subtitle?: ReactNode;
+  badges?: ReactNode;
+  actions?: ReactNode;
+}) {
+  return (
+    <div className="blade-head">
+      <span className="blade-icon" aria-hidden>
+        {props.icon}
+      </span>
+      <div className="blade-titles">
+        <div className="row" style={{ gap: 10 }}>
+          <h1>{props.title}</h1>
+          {props.badges}
+        </div>
+        {props.subtitle ? <div className="blade-sub">{props.subtitle}</div> : null}
+      </div>
+      <span className="spacer" />
+      {props.actions}
+    </div>
+  );
+}
+
+/** Command bar under a blade header. */
+export function CommandBar({ children }: { children: ReactNode }) {
+  return (
+    <div className="commandbar" role="toolbar">
+      {children}
+    </div>
+  );
+}
+
+/** Two-column key/value "Essentials" panel. */
+export function Essentials({ items }: { items: [string, ReactNode][] }) {
+  return (
+    <dl className="essentials" aria-label="Essentials">
+      {items.map(([k, v]) => (
+        <div key={k} className="ess-item">
+          <dt>{k}</dt>
+          <dd>{v ?? "—"}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** Marks a real case from utils/data/cases whose label is an MD ground truth, not a model output. */
+export function PrototypeBadge({ conflict }: { conflict?: boolean }) {
+  return (
+    <Tooltip
+      content={
+        conflict
+          ? "Real prototype case. The PDF header disagrees with ground_truth.json; the ground truth is shown."
+          : "Real prototype case from utils/data/cases. The label is the MD ground truth from ground_truth.json."
+      }
+      relationship="description"
+    >
+      <Badge
+        appearance="tint"
+        color={conflict ? "warning" : "brand"}
+        shape="rounded"
+        icon={conflict ? <WarningFilled /> : undefined}
+        aria-label={conflict ? "Prototype, label conflict" : "Prototype"}
+        data-prototype
+        className="nowrap"
+      >
+        Prototype
+      </Badge>
+    </Tooltip>
+  );
+}
+
+const DECISION_COLOR: Record<string, "success" | "danger" | "warning" | "informative"> = {
+  approved: "success",
+  approve: "success",
+  rejected: "danger",
+  denied: "danger",
+  deny: "danger",
+  "needs more information": "warning",
+  pend: "warning",
+};
+
+export function DecisionBadge({ decision, label }: { decision: string; label?: string }) {
+  const color = DECISION_COLOR[decision.toLowerCase()] ?? "informative";
+  return (
+    <Badge appearance="filled" color={color} data-decision={decision}>
+      {label ?? decision}
+    </Badge>
+  );
+}
+
+/** Confidence meter. Ground-truth (prototype) cases have no model score, so they show the source instead. */
+export function Confidence({ value, runner }: { value: number | null; runner?: string }) {
+  if (value === null) {
+    return <span className="muted" title="Label comes from MD review, not a model">{runner === "ground_truth" ? "MD ground truth" : "—"}</span>;
+  }
+  const p = Math.round(value * 100);
+  return (
+    <div className="row" title={`${p}%`} style={{ flexWrap: "nowrap" }}>
+      <div className={`meter${p < 60 ? " low" : p < 80 ? " mid" : ""}`}>
+        <span style={{ width: `${p}%` }} />
+      </div>
+      <span className="muted">{p}%</span>
+    </div>
+  );
+}
+
+export function TableSkeleton({ rows = 6 }: { rows?: number }) {
+  return (
+    <Skeleton aria-label="Loading" className="card">
+      {Array.from({ length: rows }, (_, i) => (
+        <div key={i} className="row" style={{ padding: "8px 0", flexWrap: "nowrap" }}>
+          <SkeletonItem size={16} style={{ width: "18%" }} />
+          <SkeletonItem size={16} style={{ width: "30%" }} />
+          <SkeletonItem size={16} style={{ width: "22%" }} />
+          <SkeletonItem size={16} style={{ width: "15%" }} />
+        </div>
+      ))}
+    </Skeleton>
   );
 }
 

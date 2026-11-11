@@ -435,6 +435,8 @@ An agent replaces a legacy stage only when, on the same commit:
 1. `pytest -m evaluation tests/evals` passes with `AUTOAUTH_RUNNER=agents` (or `agents-af`), and
 2. no YAML suite's mean score drops by more than an agreed tolerance compared with `AUTOAUTH_RUNNER=legacy`. The Quality page (3.6) shows this delta.
 
+The prototype cases in `utils/data/cases` (001–005, variants a/b) get a decision-level check too. `python -m src.evals.adapters.parity --run legacy agents` runs each case through each runner. It records the results in `utils/data/cases/parity_runs/<runner>.json` (or `$AUTOAUTH_PARITY_RUNS`) and scores them against `ground_truth.json`. The reviewer UI's **Prototype parity** page (`#/parity`) shows the same report. Cases whose PDF header label (APPROVAL/DENIAL) disagrees with the ground truth are flagged as label conflicts. Parity still scores against the ground truth file.
+
 ## 6. Phased migration
 
 | Phase | Scope | Exit criteria |
@@ -454,8 +456,8 @@ An agent replaces a legacy stage only when, on the same commit:
 | 0 | Not run. It needs the deployed Azure resources. | — |
 | 1 | Done | `src/pipeline/paprocessing/progress.py`; `run.py` takes `progress_callback` and `streamlit=`; `src/evals/adapters/runners.py` (default `legacy`) |
 | 2 | Partial: `CaseState`, `Citation`, freshness. The extractor doesn't emit citations yet. | `src/agents/state.py` |
-| 3 | Code done. The parity gate hasn't run yet. | `src/agents/{policy,criteria,determination}_agent.py`; optional AF binding in `src/agents/af_binding.py` (`requirements-agents.txt`) |
-| 4 | UI and API done on demo data. Not yet wired to the agent runtime or persistent storage. | `app/frontend/web/` (React + Fluent UI v9; see its README); `app/backend/api/` (offline FastAPI + SSE; `tests/api`) |
+| 3 | Code done. The parity gate hasn't run yet. The harness and UI are ready (5.5), and no runs are recorded. | `src/agents/{policy,criteria,determination}_agent.py`; optional AF binding in `src/agents/af_binding.py` (`requirements-agents.txt`); `src/evals/adapters/parity.py` |
+| 4 | UI and API done on demo data plus the 10 prototype cases. Not yet wired to the agent runtime or persistent storage. | `app/frontend/web/` (React + Fluent UI v9, Azure portal theme; see its README); `app/backend/api/` (offline FastAPI + SSE; `tests/api`) |
 | 5 | Partial. Reviewer corrections export as eval-case YAML; the Quality page uses demo metrics. | `POST /api/cases/{id}/eval-case` → `TraceToEvaluation.from_reviewer_actions` |
 | 6 | Not started | — |
 

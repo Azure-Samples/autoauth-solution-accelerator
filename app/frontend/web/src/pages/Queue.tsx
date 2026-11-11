@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   Badge,
+  Button,
   Dropdown,
   Input,
   Option,
@@ -13,9 +14,18 @@ import {
   TableRow,
   Text,
 } from "@fluentui/react-components";
-import { FlagFilled, SearchRegular } from "@fluentui/react-icons";
+import { ArrowClockwiseRegular, FlagFilled, SearchRegular, TaskListSquareLtrRegular } from "@fluentui/react-icons";
 import { api, slaText, type CaseFilters, type CaseSummary } from "../api";
-import { ErrorBar, FreshBadge, StatusBadge } from "../components/common";
+import {
+  BladeHeader,
+  CommandBar,
+  Confidence,
+  ErrorBar,
+  FreshBadge,
+  PrototypeBadge,
+  StatusBadge,
+  TableSkeleton,
+} from "../components/common";
 import { go } from "../App";
 
 const STATUS_OPTS = [
@@ -83,44 +93,54 @@ export function QueuePage() {
 
   const set = (k: keyof CaseFilters) => (v: string) => setFilters((f) => ({ ...f, [k]: v || undefined }));
   const flagged = rows?.filter((r) => ["stale", "unknown"].includes(r.freshness.overall)).length ?? 0;
+  const prototypes = rows?.filter((r) => r.prototype).length ?? 0;
 
   return (
     <>
-      <div className="page-head">
-        <h1>Reviewer queue</h1>
-        {rows ? (
-          <Text className="muted">
-            {rows.length} case(s) · sorted by SLA · {flagged} need re-verification
-          </Text>
-        ) : null}
-        <span className="spacer" />
+      <BladeHeader
+        icon={<TaskListSquareLtrRegular />}
+        title="Reviewer queue"
+        subtitle="Prior authorization · Contoso Health Plan"
+      />
+      <CommandBar>
+        <Button appearance="subtle" icon={<ArrowClockwiseRegular />} onClick={load}>
+          Refresh
+        </Button>
+        <span className="cmd-sep" />
         <Input
           contentBefore={<SearchRegular />}
-          placeholder="Case, patient or drug"
+          placeholder="Filter by case, patient or drug"
           aria-label="Search cases"
           onChange={(_, d) => set("q")(d.value)}
+          style={{ minWidth: 260 }}
         />
         <Filter label="Status" opts={STATUS_OPTS} value={filters.status} onChange={set("status")} />
         <Filter label="Urgency" opts={URGENCY_OPTS} value={filters.urgency} onChange={set("urgency")} />
         <Filter label="Freshness" opts={FRESH_OPTS} value={filters.freshness} onChange={set("freshness")} />
-      </div>
+        <span className="spacer" />
+        {rows ? (
+          <Text className="muted" size={200}>
+            Showing {rows.length} case(s) · {prototypes} prototype · sorted by SLA · {flagged} need re-verification
+          </Text>
+        ) : null}
+      </CommandBar>
       <ErrorBar error={error} />
       {rows === null ? (
-        <Spinner label="Loading queue…" />
+        <TableSkeleton />
       ) : (
         <div className="card">
           <Table className="queue-table" aria-label="Prior authorization queue" size="small">
             <TableHeader>
               <TableRow>
                 <TableHeaderCell style={{ width: 28 }} />
-                <TableHeaderCell>Case · patient</TableHeaderCell>
-                <TableHeaderCell>Requested</TableHeaderCell>
-                <TableHeaderCell>Urgency</TableHeaderCell>
-                <TableHeaderCell>AI recommendation</TableHeaderCell>
-                <TableHeaderCell>Confidence</TableHeaderCell>
-                <TableHeaderCell>Data freshness</TableHeaderCell>
-                <TableHeaderCell>SLA left</TableHeaderCell>
-                <TableHeaderCell>Owner</TableHeaderCell>
+                <TableHeaderCell style={{ width: "21%" }}>Case · patient</TableHeaderCell>
+                <TableHeaderCell style={{ width: "14%" }}>Requested</TableHeaderCell>
+                <TableHeaderCell style={{ width: "9%" }}>Urgency</TableHeaderCell>
+                <TableHeaderCell style={{ width: "15%" }}>AI recommendation</TableHeaderCell>
+                <TableHeaderCell style={{ width: "12%" }}>Confidence</TableHeaderCell>
+                <TableHeaderCell style={{ width: "13%" }}>Data freshness</TableHeaderCell>
+                <TableHeaderCell style={{ width: "8%" }}>SLA left</TableHeaderCell>
+                <TableHeaderCell style={{ width: "8%" }}>Owner</TableHeaderCell>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -138,8 +158,13 @@ export function QueuePage() {
                     <TableCell>{flag ? <FlagFilled color="#c50f1f" aria-label="Flagged" /> : null}</TableCell>
                     <TableCell>
                       <div className="stack" style={{ gap: 0 }}>
-                        <b>{r.case_id}</b>
-                        <span className="muted">
+                        <span className="row" style={{ gap: 6 }}>
+                          <a className="cell-link" href={`#/case/${r.case_id}`} onClick={(e) => e.stopPropagation()}>
+                            {r.case_id}
+                          </a>
+                          {r.prototype ? <PrototypeBadge conflict={r.prototype.label_conflict} /> : null}
+                        </span>
+                        <span className="muted cell-sub">
                           {r.patient_name} · {r.line_of_business}
                         </span>
                       </div>
@@ -160,24 +185,20 @@ export function QueuePage() {
                         <StatusBadge status={r.status} />
                       ) : rec ? (
                         <span>
-                          {rec.label}{" "}
-                          <span className="muted">
-                            ({rec.criteria_met}/{rec.criteria_total} criteria)
-                          </span>
+                          {rec.label}
+                          {rec.criteria_total ? (
+                            <span className="muted">
+                              {" "}
+                              ({rec.criteria_met}/{rec.criteria_total} criteria)
+                            </span>
+                          ) : null}
                         </span>
                       ) : (
                         "—"
                       )}
                     </TableCell>
                     <TableCell>
-                      {rec ? (
-                        <div className="row" title={`${Math.round(rec.confidence * 100)}%`}>
-                          <div className="meter">
-                            <span style={{ width: `${rec.confidence * 100}%` }} />
-                          </div>
-                          <span className="muted">{Math.round(rec.confidence * 100)}%</span>
-                        </div>
-                      ) : null}
+                      {rec ? <Confidence value={rec.confidence} runner={r.runner} /> : null}
                     </TableCell>
                     <TableCell>
                       <FreshBadge status={r.freshness.overall}>{r.freshness.label}</FreshBadge>

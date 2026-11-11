@@ -11,6 +11,7 @@ from src.evals.adapters.runners import (
     resolve_stage,
     runner_mode,
 )
+from src.evals.adapters.parity import PrototypeCase, normalize_decision, parity_report, record_run
 from src.evals.adapters.traces import TraceToEvaluation
 from src.pipeline.paprocessing.progress import CallbackReporter, NullReporter, make_reporter
 
@@ -183,3 +184,27 @@ def test_af_binding_round_trip():
     assert out == {"decision": "Approved"}
     assert "reviewer" in inner.calls[0]["system"]
     assert "Decide." in inner.calls[0]["user"]
+
+
+@pytest.mark.parametrize(
+    "raw, expected",
+    [
+        ('{"Determination": "Approved", "Rationale": "..."}', "Approved"),
+        ("## Final Determination: Denied", "Denied"),
+        ("Needs More Information", "Needs More Information"),
+        ({"decision": "Rejected"}, "Denied"),
+        ("no verdict here", None),
+    ],
+)
+def test_parity_normalize_decision(raw, expected):
+    assert normalize_decision(raw) == expected
+
+
+def test_parity_report_scores_recorded_runs(tmp_path):
+    case = PrototypeCase(case_id="009_a", number="009", variant="a", files={}, policy=None, ground_truth="Approved")
+    record_run(tmp_path, "legacy", "009_a", {"decision": "Approved"})
+    record_run(tmp_path, "agents", "009_a", {"decision": "Denied"})
+    report = parity_report(directory=tmp_path, cases=[case])
+    assert report["summary"]["legacy"] == {"run": 1, "scored": 1, "matched": 1, "rate": 1.0}
+    assert report["summary"]["agents"]["rate"] == 0.0
+    assert report["cases"][0]["results"]["agents"]["match"] is False

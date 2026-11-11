@@ -53,11 +53,13 @@ def stage_seconds_default() -> float:
 
 
 def freshness_warnings(state: CaseState, now: Optional[datetime] = None) -> List[str]:
-    """Same advisory format the determination agent writes."""
-    return [
-        f"{f.kind} ({f.status(now)}): {f.action()}"
-        for f in state.stale_signals(now, include_unknown=True)
-    ]
+    """Same advisory format the determination agent writes, one line per kind/status."""
+    return list(
+        dict.fromkeys(
+            f"{f.kind} ({f.status(now)}): {f.action()}"
+            for f in state.stale_signals(now, include_unknown=True)
+        )
+    )
 
 
 @dataclass
@@ -83,6 +85,8 @@ class CaseRecord:
     stage_seconds: float = 2.0
     stage_offset: int = 0
     template: str = "generic"
+    # Set for cases loaded from utils/data/cases (see real_cases.py).
+    prototype: Optional[Dict[str, Any]] = None
 
     def sla_hours(self) -> int:
         return SLA_HOURS.get(self.urgency, SLA_HOURS["standard"])
@@ -703,7 +707,12 @@ def seed_cases(now: datetime) -> List[CaseRecord]:
     pa1037.stage_offset = 3
     pa1037.runner = "agents"
 
-    return [pa1042, pa1039, pa1037, pa1031]
+    seeded = [pa1042, pa1039, pa1037, pa1031]
+    if os.getenv("AUTOAUTH_PROTOTYPE_CASES", "1") != "0":
+        from app.backend.api import real_cases
+
+        seeded += real_cases.load(now)
+    return seeded
 
 
 store = CaseStore()

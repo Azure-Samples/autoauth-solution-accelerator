@@ -75,3 +75,6 @@ Refactored the code for microservices to follow a decoupled architecture and sep
 - ✔️ Design doc: `docs/architecture/agentic-2026.md`, with a clickable wireframe in `docs/architecture/wireframes/agentic-2026.html`.
 - ✔️ Reviewer UI (React + Fluent UI v9, `app/frontend/web/`) with these pages: reviewer queue, case workspace with citations and field-level review, agent trace, provider portal with SSE progress, and quality. Reviewer corrections export as eval-case YAML.
 - ✔️ Offline reviewer API (`app/backend/api/`, `uvicorn app.backend.api.app:app`) on fictional demo data, with tests in `tests/api`. Set `AUTOAUTH_REVIEWER_DEMO=1` to mount it on the main backend.
+- ✔️ Azure portal-style theme for the reviewer UI: masthead, collapsible side nav, blade headers, command bars, essentials panels, and KPI tiles.
+- ✔️ The 10 prototype cases from `utils/data/cases` (001–005, variants a/b) load into the reviewer queue next to the demo cases. Each card is built from its real files and MD ground truth. Set `AUTOAUTH_PROTOTYPE_CASES=0` to hide them.
+- ✔️ Parity harness (`python -m src.evals.adapters.parity [--run legacy agents]`) and a **Prototype parity** page (`#/parity`, `GET /api/parity`). They compare each runner with `ground_truth.json` and flag cases where the PDF's own APPROVAL/DENIAL label disagrees with the ground truth.
