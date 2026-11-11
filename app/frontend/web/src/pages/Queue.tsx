@@ -14,7 +14,7 @@ import {
   TableRow,
   Text,
 } from "@fluentui/react-components";
-import { ArrowClockwiseRegular, FlagFilled, SearchRegular, TaskListSquareLtrRegular } from "@fluentui/react-icons";
+import { ArrowClockwiseRegular, ArrowUploadRegular, FlagFilled, SearchRegular, TaskListSquareLtrRegular } from "@fluentui/react-icons";
 import { api, slaText, type CaseFilters, type CaseSummary } from "../api";
 import {
   BladeHeader,
@@ -93,7 +93,8 @@ export function QueuePage() {
 
   const set = (k: keyof CaseFilters) => (v: string) => setFilters((f) => ({ ...f, [k]: v || undefined }));
   const flagged = rows?.filter((r) => ["stale", "unknown"].includes(r.freshness.overall)).length ?? 0;
-  const prototypes = rows?.filter((r) => r.prototype).length ?? 0;
+  const prototypes = rows?.filter((r) => r.prototype && !r.upload).length ?? 0;
+  const uploads = rows?.filter((r) => r.upload).length ?? 0;
 
   return (
     <>
@@ -105,6 +106,9 @@ export function QueuePage() {
       <CommandBar>
         <Button appearance="subtle" icon={<ArrowClockwiseRegular />} onClick={load}>
           Refresh
+        </Button>
+        <Button appearance="subtle" icon={<ArrowUploadRegular />} onClick={() => go("/provider")} data-testid="upload-claim">
+          Upload claim
         </Button>
         <span className="cmd-sep" />
         <Input
@@ -120,7 +124,7 @@ export function QueuePage() {
         <span className="spacer" />
         {rows ? (
           <Text className="muted" size={200}>
-            Showing {rows.length} case(s) · {prototypes} prototype · sorted by SLA · {flagged} need re-verification
+            Showing {rows.length} case(s) · {prototypes} prototype{uploads ? ` · ${uploads} uploaded` : ""} · sorted by SLA · {flagged} need re-verification
           </Text>
         ) : null}
       </CommandBar>

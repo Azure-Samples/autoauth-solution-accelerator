@@ -87,7 +87,8 @@ class CaseRecord:
     template: str = "generic"
     # Set for cases loaded from utils/data/cases (see real_cases.py).
     prototype: Optional[Dict[str, Any]] = None
-
+    # Set for claim uploads: per-file scenario matches (see real_cases.match_upload).
+    upload: Optional[Dict[str, Any]] = None
     def sla_hours(self) -> int:
         return SLA_HOURS.get(self.urgency, SLA_HOURS["standard"])
 
@@ -497,7 +498,21 @@ def finalize_run(record: CaseRecord, now: datetime) -> None:
     """Fill a running case with results once its simulated stages finish."""
     s = record.state
     files = s.documents.files or ["request.pdf"]
-    if record.template == "humira":
+    if record.template == "upload":
+        from app.backend.api import real_cases
+
+        if (record.upload or {}).get("case_key"):
+            built = real_cases.build_for_upload(record, now)
+            for name in ("state", "documents", "spans", "patient_name", "request", "prototype",
+                         "line_of_business", "runner", "confidence"):
+                setattr(record, name, getattr(built, name))
+        else:
+            real_cases.build_unmatched(record, now)
+            record.patient_name = "Unidentified member"
+            record.request = "Unclassified request"
+            record.spans = _generic_spans(0.0)
+            record.spans[-2]["signal"] = "no match"
+    elif record.template == "humira":
         fresh = _humira_state(s.case_id, now)
         fresh.trace_id, fresh.created_at = s.trace_id, s.created_at
         fresh.patient_information["patient_name"] = record.patient_name

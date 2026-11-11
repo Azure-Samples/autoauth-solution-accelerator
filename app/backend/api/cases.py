@@ -20,13 +20,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 import yaml
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from src.agents.state import CaseState, ReviewerAction
 from src.evals.adapters.traces import TraceToEvaluation
 
+from . import real_cases
 from .demo_data import (
     FRESHNESS_RANK,
     SLA_HOURS,
@@ -156,6 +157,7 @@ def _summary(record: CaseRecord, now: datetime) -> Dict[str, Any]:
         "human_decision": record.human_decision,
         "runner": record.runner,
         "prototype": record.prototype,
+        "upload": record.upload,
     }
 
 
@@ -235,7 +237,7 @@ def _trace(record: CaseRecord, now: datetime) -> Dict[str, Any]:
 def _refresh_warnings(state: CaseState, now: datetime) -> None:
     if state.determination is not None:
         # Keep non-freshness advisories (e.g. ground-truth label conflicts) across re-verification.
-        kept = [w for w in state.determination.warnings if w.startswith("label conflict")]
+        kept = [w for w in state.determination.warnings if w.startswith(("label conflict", "partial upload"))]
         state.determination.warnings = kept + freshness_warnings(state, now)
 
 
@@ -284,6 +286,77 @@ def submit_case(body: SubmitIn) -> Dict[str, Any]:
         body.provider_org,
         body.files or ["request.pdf"],
     )
+    store.add(record)
+    return _summary(record, now)
+
+
+MAX_UPLOAD_BYTES = 25 * 1024 * 1024
+
+
+@router.get("/samples")
+def list_samples() -> Dict[str, Any]:
+    """Demo claim packets from utils/data/cases that the upload flow recognizes."""
+    seeded = {r.prototype["case_key"]: r for r in store.all() if r.template == "prototype"}
+    out = []
+    for key, case in sorted(real_cases.scenarios().items()):
+        rec = seeded.get(key)
+        out.append(
+            {
+                "key": key,
+                "label": f"{case.number}{case.variant.upper()}",
+                "ground_truth": case.ground_truth,
+                "patient_name": rec.patient_name if rec else None,
+                "request": rec.request if rec else None,
+                "files": [
+                    {"kind": kind, "name": real_cases._doc_name(p), "size": p.stat().st_size}
+                    for kind, paths in sorted(case.files.items())
+                    for p in paths
+                ],
+            }
+        )
+    return {"samples": out}
+
+
+@router.get("/samples/{key}/files/{name}")
+def sample_file(key: str, name: str) -> FileResponse:
+    path = real_cases.sample_file(key, name)
+    if path is None:
+        raise HTTPException(status_code=404, detail=f"No sample file {name!r} in {key}.")
+    return FileResponse(path, media_type="application/pdf", filename=name)
+
+
+@router.post("/cases/upload", status_code=201)
+async def upload_case(
+    files: List[UploadFile] = File(...),
+    urgency: Literal["standard", "expedited"] = Form("standard"),
+    provider_org: str = Form("My practice"),
+) -> Dict[str, Any]:
+    """Accept a claim packet. The run is simulated: the PDFs are matched to a demo
+    scenario and the case finishes with that scenario's MD ground truth."""
+    now = utcnow()
+    matches, documents = [], {}
+    for f in files:
+        name = Path(f.filename or "upload.pdf").name
+        data = await f.read()
+        if len(data) > MAX_UPLOAD_BYTES:
+            raise HTTPException(status_code=413, detail=f"{name} is over 25 MB.")
+        try:
+            pages = real_cases.extract_pages(data)
+        except Exception:
+            raise HTTPException(status_code=400, detail=f"{name} is not a readable PDF.")
+        documents[name] = pages
+        matches.append(real_cases.match_upload(name, data, pages))
+    key = real_cases.pick_scenario(matches)
+    names = list(documents)
+    record = submitted_case(
+        store.new_case_id(), now, "Pending extraction", "", "Uploaded claim", urgency,
+        "", "", provider_org, names,
+    )
+    record.template = "upload"
+    record.line_of_business = "Uploaded claim"
+    record.documents = documents
+    record.state.documents.pages = {n: len(p) for n, p in documents.items()}
+    record.upload = {"case_key": key, "files": matches}
     store.add(record)
     return _summary(record, now)
 
@@ -578,7 +651,7 @@ def parity() -> Dict[str, Any]:
     from src.evals.adapters.parity import parity_report
 
     report = parity_report()
-    ids = {r.prototype["case_key"]: r.state.case_id for r in store.all() if r.prototype}
+    ids = {r.prototype["case_key"]: r.state.case_id for r in store.all() if r.template == "prototype"}
     for row in report["cases"]:
         row["ui_case_id"] = ids.get(row["case_id"])
     return report

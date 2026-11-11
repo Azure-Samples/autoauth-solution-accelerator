@@ -55,6 +55,30 @@ export interface CaseSummary {
   human_decision: { decision: Decision; reviewer: string; note?: string | null } | null;
   runner: string;
   prototype: Prototype | null;
+  upload: UploadInfo | null;
+}
+
+/** How an uploaded packet was matched to a demo scenario (see real_cases.match_upload). */
+export interface UploadMatch {
+  name: string;
+  case_key: string | null;
+  kind: string | null;
+  matched_by: "sha256" | "file name" | "text" | null;
+  score: number | null;
+}
+
+export interface UploadInfo {
+  case_key: string | null;
+  files: UploadMatch[];
+}
+
+export interface Sample {
+  key: string;
+  label: string;
+  ground_truth: string;
+  patient_name: string | null;
+  request: string | null;
+  files: { kind: string; name: string; size: number }[];
 }
 
 /** Provenance for the real prototype cases in utils/data/cases (see app/backend/api/real_cases.py). */
@@ -233,6 +257,10 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     headers: { "Content-Type": "application/json" },
     ...init,
   });
+  return parse<T>(res);
+}
+
+async function parse<T>(res: Response): Promise<T> {
   if (!res.ok) {
     let msg = res.statusText;
     try {
@@ -284,6 +312,24 @@ export const api = {
   quality: () => call<Quality>("/quality"),
   parity: () => call<Parity>("/parity"),
   reset: () => post<unknown>("/demo/reset"),
+  samples: () => call<{ samples: Sample[] }>("/samples"),
+  /** Fetches a demo scenario's PDFs as File objects so they go through the same upload path as a real drop. */
+  async sampleFiles(s: Sample): Promise<File[]> {
+    return Promise.all(
+      s.files.map(async (f) => {
+        const res = await fetch(`/api/samples/${s.key}/files/${encodeURIComponent(f.name)}`);
+        if (!res.ok) throw new ApiError(res.status, `Could not load ${f.name}`);
+        return new File([await res.blob()], f.name, { type: "application/pdf" });
+      }),
+    );
+  },
+  async uploadClaim(files: File[], opts: { urgency?: "standard" | "expedited"; provider_org?: string } = {}) {
+    const body = new FormData();
+    files.forEach((f) => body.append("files", f, f.name));
+    if (opts.urgency) body.append("urgency", opts.urgency);
+    if (opts.provider_org) body.append("provider_org", opts.provider_org);
+    return parse<CaseSummary>(await fetch("/api/cases/upload", { method: "POST", body }));
+  },
 };
 
 /** Follows a running case over SSE; returns an unsubscribe function. */

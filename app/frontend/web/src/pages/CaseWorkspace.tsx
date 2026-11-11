@@ -16,6 +16,7 @@ import {
 } from "@fluentui/react-components";
 import {
   ArrowLeftRegular,
+  ArrowUploadRegular,
   CheckmarkRegular,
   DocumentBulletListRegular,
   PersonAddRegular,
@@ -49,6 +50,7 @@ import {
   PrototypeBadge,
   StatusBadge,
 } from "../components/common";
+import { matchText } from "../components/UploadClaim";
 import { go } from "../App";
 
 export const REVIEWER = "J. Reviewer";
@@ -554,7 +556,8 @@ export function CasePage({ id }: { id: string }) {
 
   const allWarnings = c.recommendation?.warnings ?? [];
   const conflicts = allWarnings.filter((w) => w.toLowerCase().startsWith("label conflict"));
-  const warnings = allWarnings.filter((w) => !conflicts.includes(w));
+  const partial = allWarnings.filter((w) => w.toLowerCase().startsWith("partial upload"));
+  const warnings = allWarnings.filter((w) => !conflicts.includes(w) && !partial.includes(w));
   return (
     <>
       <BladeHeader
@@ -565,6 +568,11 @@ export function CasePage({ id }: { id: string }) {
           <>
             <StatusBadge status={c.status} />
             {c.prototype ? <PrototypeBadge conflict={c.prototype.label_conflict} /> : null}
+            {c.upload ? (
+              <Badge appearance="tint" color="brand" icon={<ArrowUploadRegular />} data-testid="uploaded-badge">
+                Uploaded
+              </Badge>
+            ) : null}
           </>
         }
       />
@@ -598,7 +606,9 @@ export function CasePage({ id }: { id: string }) {
           ["Runner", c.runner === "ground_truth" ? "MD ground truth (prototype)" : c.runner],
           [
             "Source",
-            c.prototype
+            c.upload
+              ? `Uploaded packet · ${matchText(c)}`
+              : c.prototype
               ? `${c.prototype.folder}${c.prototype.pdf_label ? ` · PDF says ${c.prototype.pdf_label}` : ""}`
               : "Demo data",
           ],
@@ -619,6 +629,14 @@ export function CasePage({ id }: { id: string }) {
           <MessageBarBody>
             <MessageBarTitle>Ground-truth label conflict</MessageBarTitle>
             {conflicts.map((w) => w.replace(/^label conflict:\s*/i, "").replace(/\.?$/, ".")).join(" ")} Confirm the label with the medical director before you use this case for parity.
+          </MessageBarBody>
+        </MessageBar>
+      ) : null}
+      {partial.length ? (
+        <MessageBar intent="info" style={{ marginBottom: 10 }} data-testid="partial-upload">
+          <MessageBarBody>
+            <MessageBarTitle>Partial packet</MessageBarTitle>
+            {partial.map((w) => w.replace(/^partial upload:\s*/i, "").replace(/\.?$/, ".")).join(" ")}
           </MessageBarBody>
         </MessageBar>
       ) : null}

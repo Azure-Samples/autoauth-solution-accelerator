@@ -155,5 +155,77 @@ def test_reset_restores_seed(client):
     assert client.get("/api/cases/PA-1042").json()["status"] == "ready"
 
 
+def _pdf(lines):
+    import pymupdf
+
+    doc = pymupdf.open()
+    for page_lines in lines:
+        page = doc.new_page()
+        page.insert_textbox(page.rect + (36, 36, -36, -36), "\n".join(page_lines), fontsize=6)
+    data = doc.tobytes()
+    doc.close()
+    return data
+
+
+def _upload(client, files, **form):
+    parts = [("files", (name, data, "application/pdf")) for name, data in files]
+    created = client.post("/api/cases/upload", files=parts, data=form)
+    assert created.status_code == 201, created.text
+    return client.get(f"/api/cases/{created.json()['case_id']}").json()
+
+
+@pytest.fixture()
+def sample(client):
+    samples = client.get("/api/samples").json()["samples"]
+    assert len(samples) == 10
+    s = next(s for s in samples if s["key"] == "003_a")
+    s["blobs"] = {f["name"]: client.get(f"/api/samples/003_a/files/{f['name']}").content for f in s["files"]}
+    return s
+
+
+def test_uploaded_scenario_packet_finishes_with_md_ground_truth(client, sample, monkeypatch):
+    monkeypatch.setenv("AUTOAUTH_DEMO_STAGE_SECONDS", "0")
+    case = _upload(client, list(sample["blobs"].items()), urgency="expedited")
+    assert case["status"] == "ready" and case["urgency"] == "expedited"
+    assert case["runner"] == "ground_truth"
+    assert case["patient_name"] == sample["patient_name"]
+    assert case["prototype"]["case_key"] == "003_a"
+    assert {f["matched_by"] for f in case["upload"]["files"]} == {"sha256"}
+    expected = {"Approved": "Approved", "Denied": "Rejected"}.get(sample["ground_truth"], sample["ground_truth"])
+    assert case["determination"]["decision"] == expected
+    assert not any(w.startswith("partial upload") for w in case["determination"]["warnings"])
+    assert len(client.get("/api/parity").json()["cases"]) == 10
+
+
+def test_rescanned_partial_upload_matches_by_text(client, sample, monkeypatch):
+    monkeypatch.setenv("AUTOAUTH_DEMO_STAGE_SECONDS", "0")
+    from app.backend.api.real_cases import extract_pages
+
+    name, data = next(iter(sample["blobs"].items()))
+    case = _upload(client, [("scan_0001.pdf", _pdf(extract_pages(data)))])
+    assert case["upload"]["files"][0]["matched_by"] == "text"
+    assert case["prototype"]["case_key"] == "003_a"
+    if len(sample["files"]) > 1:
+        assert case["determination"]["warnings"][0].startswith("partial upload")
+
+
+def test_unknown_upload_needs_more_information(client, monkeypatch):
+    monkeypatch.setenv("AUTOAUTH_DEMO_STAGE_SECONDS", "0")
+    case = _upload(client, [("lunch-menu.pdf", _pdf([["Soup of the day", "Grilled cheese sandwich"]]))])
+    assert case["upload"]["case_key"] is None
+    assert case["determination"]["decision"] == "Needs More Information"
+    assert case["documents"]["lunch-menu.pdf"][0][0] == "Soup of the day"
+    bad = client.post("/api/cases/upload", files=[("files", ("x.pdf", b"not a pdf", "application/pdf"))])
+    assert bad.status_code == 400
+
+
+def test_sample_download_rejects_foreign_names(client):
+    samples = {s["key"]: s for s in client.get("/api/samples").json()["samples"]}
+    foreign = {f["name"] for f in samples["001_a"]["files"]} - {f["name"] for f in samples["003_a"]["files"]}
+    assert client.get(f"/api/samples/003_a/files/{foreign.pop()}").status_code == 404
+    assert client.get("/api/samples/003_a/files/..%2F..%2Fground_truth.json").status_code == 404
+    assert client.get("/api/samples/999_z/files/a.pdf").status_code == 404
+
+
 def test_api_does_not_load_azure_sdks():
     assert not [m for m in sys.modules if m.split(".")[0] in ("azure", "openai", "streamlit")]

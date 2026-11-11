@@ -17,6 +17,7 @@ Recorded parity runs (``utils/data/cases/parity_runs``) appear in the trace.
 from __future__ import annotations
 
 import functools
+import hashlib
 import logging
 import re
 from datetime import datetime, timedelta, timezone
@@ -34,6 +35,7 @@ from src.agents.state import (
     Determination,
     DocumentSet,
     Freshness,
+    MissingInformation,
     PolicyMatch,
 )
 from src.evals.adapters.parity import (
@@ -392,3 +394,142 @@ def load(now: Optional[datetime] = None, root: Path = CASES_ROOT) -> List["CaseR
     except Exception as e:  # the demo cases still load
         logger.warning("Prototype cases skipped: %s", e)
         return []
+
+
+# --------------------------------------------------------------------------- #
+# Uploads: a claim upload is matched to a prototype scenario, so the simulated
+# run finishes with that scenario's MD ground truth. No model is called.
+# --------------------------------------------------------------------------- #
+
+TEXT_MATCH_MIN = 0.5
+
+
+@functools.lru_cache(maxsize=4)
+def scenarios(root: str = str(CASES_ROOT)) -> Dict[str, PrototypeCase]:
+    path = Path(root)
+    if not path.is_dir():
+        return {}
+    return {c.case_id: c for c in discover_cases(path)}
+
+
+@functools.lru_cache(maxsize=4)
+def _file_index(root: str = str(CASES_ROOT)) -> Tuple[Dict[str, Tuple[str, str]], Dict[str, Tuple[str, str]]]:
+    """sha256 -> (case_key, kind) and lowercased file name -> (case_key, kind)."""
+    by_hash: Dict[str, Tuple[str, str]] = {}
+    names: Dict[str, List[Tuple[str, str]]] = {}
+    for key, case in scenarios(root).items():
+        for kind, paths in case.files.items():
+            for p in paths:
+                by_hash[hashlib.sha256(p.read_bytes()).hexdigest()] = (key, kind)
+                names.setdefault(_doc_name(p).lower(), []).append((key, kind))
+    by_name = {n: hits[0] for n, hits in names.items() if len(hits) == 1}
+    return by_hash, by_name
+
+
+@functools.lru_cache(maxsize=4)
+def _text_index(root: str = str(CASES_ROOT)) -> List[Tuple[str, str, frozenset]]:
+    out = []
+    for key, case in scenarios(root).items():
+        for kind, paths in case.files.items():
+            for p in paths:
+                words = _words(" ".join(ln for page in pdf_pages(p) for ln in page if ln != SCANNED))
+                if words:
+                    out.append((key, kind, frozenset(words)))
+    return out
+
+
+def sample_file(case_key: str, name: str, root: Path = CASES_ROOT) -> Optional[Path]:
+    """Path of a scenario PDF by display name; ``None`` unless it belongs to that scenario."""
+    case = scenarios(str(root)).get(case_key)
+    if case is None:
+        return None
+    return next((p for p in case.all_files if _doc_name(p) == name), None)
+
+
+def extract_pages(data: bytes) -> List[List[str]]:
+    import pymupdf
+
+    pages = []
+    with pymupdf.open(stream=data, filetype="pdf") as doc:
+        for page in doc:
+            lines = [ln.strip() for ln in page.get_text().splitlines() if ln.strip()]
+            pages.append(lines or [SCANNED])
+    return pages
+
+
+def match_upload(name: str, data: bytes, pages: List[List[str]], root: Path = CASES_ROOT) -> Dict[str, Any]:
+    """Match one uploaded PDF to a scenario: exact bytes, then file name, then text overlap."""
+    by_hash, by_name = _file_index(str(root))
+    hit = by_hash.get(hashlib.sha256(data).hexdigest())
+    if hit:
+        return {"name": name, "case_key": hit[0], "kind": hit[1], "matched_by": "sha256", "score": 1.0}
+    hit = by_name.get(re.sub(r"\s+\.pdf$", ".pdf", name.strip()).lower())
+    if hit:
+        return {"name": name, "case_key": hit[0], "kind": hit[1], "matched_by": "file name", "score": None}
+    words = _words(" ".join(ln for page in pages for ln in page if ln != SCANNED))
+    best: Tuple[float, Optional[Tuple[str, str]]] = (0.0, None)
+    if words:
+        for key, kind, ref in _text_index(str(root)):
+            score = len(words & ref) / len(words | ref)
+            if score > best[0]:
+                best = (score, (key, kind))
+    if best[1] and best[0] >= TEXT_MATCH_MIN:
+        return {"name": name, "case_key": best[1][0], "kind": best[1][1], "matched_by": "text", "score": round(best[0], 2)}
+    return {"name": name, "case_key": None, "kind": None, "matched_by": None, "score": round(best[0], 2)}
+
+
+def pick_scenario(matches: List[Dict[str, Any]]) -> Optional[str]:
+    keys = [m["case_key"] for m in matches if m["case_key"]]
+    return max(set(keys), key=lambda k: (keys.count(k), k)) if keys else None
+
+
+def build_for_upload(record: "CaseRecord", now: datetime, root: Path = CASES_ROOT) -> "CaseRecord":
+    """Finished record for an upload matched to a scenario; keeps the run's ids."""
+    upload = record.upload or {}
+    case = scenarios(str(root))[upload["case_key"]]
+    built = build_case(case, now, 0, load_runs(runs_dir(root)))
+    built.state.case_id = record.state.case_id
+    built.state.trace_id = record.state.trace_id
+    built.state.created_at = record.state.created_at
+    built.received_at = record.received_at
+    built.urgency = record.urgency
+    built.provider_org = record.provider_org
+    built.line_of_business = "Uploaded claim"
+    built.runner = "ground_truth"
+    expected = {_doc_name(p) for p in case.all_files}
+    got = {m["name"] for m in upload.get("files", []) if m.get("case_key") == case.case_id}
+    if len(got) < len(expected) and built.state.determination is not None:
+        built.state.determination.warnings.insert(
+            0,
+            f"partial upload: {len(got)} of {len(expected)} scenario documents received;"
+            " the result reflects the full scenario packet",
+        )
+    return built
+
+
+def build_unmatched(record: "CaseRecord", now: datetime) -> None:
+    """An upload with no scenario match: show its pages and ask for a reviewer."""
+    s = record.state
+    files = list(record.documents) or ["upload.pdf"]
+    s.documents = DocumentSet(files=files, pages={n: len(record.documents.get(n, [])) for n in files})
+    s.freshness = [Freshness(kind="clinical_evidence", subject=n, source="unverified") for n in files]
+    s.determination = Determination(
+        decision="Needs More Information",
+        rationale=(
+            "This upload does not match any prototype scenario, so the simulated run has no"
+            " ground truth for it. A live run would extract the request and match a policy."
+        ),
+        missing_information=[
+            MissingInformation(
+                information_needed="Reviewer extraction",
+                reason="No prototype scenario matched by bytes, file name or text.",
+            )
+        ],
+        model="simulated (no scenario match)",
+    )
+    s.ensure_freshness_defaults()
+    from app.backend.api.demo_data import freshness_warnings
+
+    s.determination.warnings = freshness_warnings(s, now)
+    record.confidence = None
+    record.runner = "demo"

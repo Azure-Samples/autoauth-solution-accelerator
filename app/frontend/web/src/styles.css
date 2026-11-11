@@ -519,6 +519,108 @@ mark.active {
     grid-template-columns: 1fr;
   }
 }
+
+/* claim upload */
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 22px 16px;
+  border: 2px dashed #c8c6c4;
+  border-radius: 6px;
+  background: #faf9f8;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone:hover,
+.dropzone:focus-visible,
+.dropzone.over {
+  border-color: var(--az-blue);
+  background: #eff6fc;
+  outline: none;
+}
+.dropzone svg {
+  font-size: 32px;
+  color: var(--az-blue);
+}
+.link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--az-blue);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}
+.link:hover {
+  color: var(--az-blue-dark);
+}
+.staged {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  border: 1px solid var(--az-border);
+  border-radius: 4px;
+}
+.staged-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--az-border);
+}
+.staged-file:last-child {
+  border-bottom: 0;
+}
+.pdf-icon {
+  color: #d13438;
+  font-size: 18px;
+  flex: none;
+}
+.staged-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sample-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+.sample-tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 10px;
+  border: 1px solid var(--az-border);
+  border-top: 3px solid transparent;
+  border-radius: 4px;
+  background: #fff;
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.sample-tile:hover,
+.sample-tile:focus-visible {
+  border-top-color: var(--az-blue);
+  box-shadow: 0 1.6px 3.6px rgba(0, 0, 0, 0.13);
+  outline: none;
+}
+.sample-label {
+  font-weight: 600;
+}
+.sample-req {
+  font-size: 12px;
+  color: #605e5c;
+}
 .delta-up {
   color: #107c10;
   font-weight: 600;

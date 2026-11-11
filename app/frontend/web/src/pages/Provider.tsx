@@ -4,8 +4,10 @@ import {
   Dropdown,
   Field,
   Input,
+  Link,
   MessageBar,
   MessageBarBody,
+  MessageBarTitle,
   Option,
   ProgressBar,
   Spinner,
@@ -18,6 +20,7 @@ import {
 } from "@fluentui/react-components";
 import { api, followCase, type CaseSummary, type SubmitIn } from "../api";
 import { BladeHeader, ErrorBar, StatusBadge } from "../components/common";
+import { UploadClaim, matchText } from "../components/UploadClaim";
 import { BuildingRegular } from "@fluentui/react-icons";
 import { go } from "../App";
 
@@ -51,6 +54,7 @@ export function ProviderPage() {
   const [mine, setMine] = useState<CaseSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [uploaded, setUploaded] = useState<CaseSummary | null>(null);
   const subs = useRef<Record<string, () => void>>({});
 
   const refresh = async () => {
@@ -106,12 +110,30 @@ export function ProviderPage() {
 
   return (
     <>
-      <BladeHeader icon={<BuildingRegular />} title="Provider portal" subtitle={`${ORG} · submit a prior authorization and watch it move`} />
+      <BladeHeader icon={<BuildingRegular />} title="Provider portal" subtitle={`${ORG} · upload a claim packet and watch the agents work it`} />
       <div className="commandbar" />
       <ErrorBar error={error} />
+      {uploaded ? (
+        <MessageBar intent="success" style={{ marginBottom: 10 }} data-testid="uploaded">
+          <MessageBarBody>
+            <MessageBarTitle>Uploaded as {uploaded.case_id}</MessageBarTitle> {matchText(uploaded)}{" "}
+            <Link onClick={() => go(`/case/${uploaded.case_id}`)}>Open case</Link>
+          </MessageBarBody>
+        </MessageBar>
+      ) : null}
       <div className="grid2">
+        <div className="stack">
+        <UploadClaim
+          providerOrg={ORG}
+          onError={setError}
+          onCreated={(c) => {
+            setMine((cur) => [c, ...cur.filter((x) => x.case_id !== c.case_id)]);
+            setUploaded(c);
+            follow(c.case_id);
+          }}
+        />
         <section className="card stack" aria-label="New request">
-          <p className="section-title">New request</p>
+          <p className="section-title">Or enter the request by hand</p>
           <Field label="Patient name" required>
             <Input value={form.patient_name} onChange={set("patient_name")} name="patient_name" />
           </Field>
@@ -170,8 +192,9 @@ export function ProviderPage() {
             </Button>
           </div>
         </section>
+        </div>
 
-        <section className="card stack" aria-label="My requests">
+        <section className="card stack" aria-label="My requests" style={{ alignSelf: "start" }}>
           <p className="section-title">My requests</p>
           <Table size="small" aria-label="My requests">
             <TableHeader>
