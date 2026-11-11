@@ -128,6 +128,81 @@ export interface Parity {
   command: string;
 }
 
+export type IndexTier = "prior" | "runtime" | "persists";
+
+export interface IndexedPolicy {
+  name: string;
+  title: string;
+  payer: string | null;
+  size: number;
+  pages: number;
+  chunks: number;
+  chars: number;
+  effective: string | null;
+  scenarios: string[];
+  blob_path: string;
+}
+
+export interface PolicyChunk {
+  chunk_id: string;
+  page_number: number;
+  chars: number;
+  overlap_chars: number;
+  text: string;
+}
+
+export interface RuntimeCase {
+  case_id: string;
+  patient_name: string;
+  source: "prototype" | "generic" | "upload" | string;
+  status: Status;
+  received_at: string;
+  request: string;
+  policy: string | null;
+  cited_policy: string | null;
+  query: string;
+  blob_prefix: string;
+  documents: { name: string; pages: number; raw_blob: string }[];
+}
+
+export interface IndexCatalog {
+  index: {
+    name: string;
+    indexer: string;
+    skillset: string;
+    data_source: string;
+    container: string;
+    prefix: string;
+    semantic_config: string;
+    fields: { name: string; type: string; role: string; note: string }[];
+    vector: { algorithm: string; m: number; ef_construction: number; ef_search: number; vectorizer: string; dimensions: number };
+    pipeline: { step: string; detail: string }[];
+    chunking: { size: number; overlap: number };
+    retrieval: { mode: string; top: number; k_nearest_neighbors: number; vector_weight: number };
+    deploy_job: string;
+  };
+  prior: { documents: IndexedPolicy[]; expected_chunks: number };
+  runtime: { steps: { step: string; detail: string; writes: string }[]; cases: RuntimeCase[] };
+  persistence: { artifact: string; tier: IndexTier; where: string; lifetime: string; offline: string }[];
+  live: {
+    as_of: string;
+    environment: string;
+    service: string;
+    status: "healthy" | "degraded" | string;
+    summary: string;
+    findings: string[];
+    fix: string;
+  };
+}
+
+export interface IndexSearch {
+  query: string;
+  terms: string[];
+  mode: string;
+  note: string;
+  results: { policy: string; chunk_id: string; page_number: number; score: number; matched: string[]; snippet: string }[];
+}
+
 export interface FreshnessEntry {
   kind: ReverifyKind;
   subject: string;
@@ -311,6 +386,15 @@ export const api = {
     }),
   quality: () => call<Quality>("/quality"),
   parity: () => call<Parity>("/parity"),
+  indexes: () => call<IndexCatalog>("/indexes"),
+  policy: (name: string) =>
+    call<IndexedPolicy & { chunk_list: PolicyChunk[]; preview_chars: number }>(
+      `/indexes/policies/${encodeURIComponent(name)}`,
+    ),
+  policyUrl: (name: string, page?: number) =>
+    `/api/indexes/policies/${encodeURIComponent(name)}/file${page ? `#page=${page}` : ""}`,
+  searchIndex: (q: string, top = 5) =>
+    call<IndexSearch>(`/indexes/search?${new URLSearchParams({ q, top: String(top) })}`),
   reset: () => post<unknown>("/demo/reset"),
   samples: () => call<{ samples: Sample[] }>("/samples"),
   /** Fetches a demo scenario's PDFs as File objects so they go through the same upload path as a real drop. */

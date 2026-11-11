@@ -325,6 +325,15 @@ function CriteriaPane({ c, onOpen }: { c: CaseDetail; onOpen: (c: Citation) => v
               policy {freshnessShort(policy.freshness)}
             </FreshBadge>
           ) : null}
+          <a
+            href={`#/indexes/runtime/${encodeURIComponent(c.case_id)}`}
+            onClick={(e) => {
+              e.preventDefault();
+              go(`/indexes/runtime/${encodeURIComponent(c.case_id)}`);
+            }}
+          >
+            How was this policy found?
+          </a>
         </div>
       ) : null}
       {c.assessments.length === 0 ? <Text className="muted">Criteria appear once the criteria agent finishes.</Text> : null}

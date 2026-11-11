@@ -20,6 +20,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from .cases import router as cases_router
+from .indexes import router as indexes_router
 
 WEB_DIST = Path(__file__).resolve().parents[2] / "frontend" / "web" / "dist"
 
@@ -31,6 +32,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(cases_router)
+app.include_router(indexes_router)
 
 
 @app.get("/healthz")

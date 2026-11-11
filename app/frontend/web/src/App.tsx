@@ -12,6 +12,7 @@ import {
   ArrowResetRegular,
   BranchCompareRegular,
   DataBarVerticalRegular,
+  LibraryRegular,
   NavigationRegular,
   PeopleRegular,
   QuestionCircleRegular,
@@ -25,6 +26,7 @@ import { TracePage } from "./pages/Trace";
 import { ProviderPage } from "./pages/Provider";
 import { QualityPage } from "./pages/Quality";
 import { ParityPage } from "./pages/Parity";
+import { IndexesPage } from "./pages/Indexes";
 
 export type Route =
   | { page: "queue" }
@@ -32,7 +34,11 @@ export type Route =
   | { page: "trace"; id: string }
   | { page: "provider" }
   | { page: "quality" }
-  | { page: "parity" };
+  | { page: "parity" }
+  | { page: "indexes"; step: IndexStep; caseId?: string };
+
+export type IndexStep = "prior" | "runtime" | "kept";
+const INDEX_STEPS: IndexStep[] = ["prior", "runtime", "kept"];
 
 export function parseRoute(hash: string): Route {
   const parts = hash.replace(/^#\/?/, "").split("/").filter(Boolean);
@@ -42,6 +48,10 @@ export function parseRoute(hash: string): Route {
   if (parts[0] === "provider") return { page: "provider" };
   if (parts[0] === "quality") return { page: "quality" };
   if (parts[0] === "parity") return { page: "parity" };
+  if (parts[0] === "indexes") {
+    const step = INDEX_STEPS.includes(parts[1] as IndexStep) ? (parts[1] as IndexStep) : "prior";
+    return { page: "indexes", step, caseId: step === "runtime" ? parts[2] : undefined };
+  }
   return { page: "queue" };
 }
 
@@ -66,6 +76,7 @@ const NAV: NavItem[] = [
   { value: "provider", label: "Provider portal", path: "/provider", icon: <PeopleRegular /> },
   { value: "quality", label: "Quality", path: "/quality", icon: <DataBarVerticalRegular /> },
   { value: "parity", label: "Prototype parity", path: "/parity", icon: <BranchCompareRegular /> },
+  { value: "indexes", label: "Indexed documents", path: "/indexes", icon: <LibraryRegular /> },
 ];
 
 function crumbs(route: Route): { label: string; path?: string }[] {
@@ -171,6 +182,7 @@ export function App() {
           {route.page === "provider" && <ProviderPage />}
           {route.page === "quality" && <QualityPage />}
           {route.page === "parity" && <ParityPage />}
+          {route.page === "indexes" && <IndexesPage step={route.step} caseId={route.caseId} />}
         </main>
       </div>
     </div>
