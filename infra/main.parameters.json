@@ -23,6 +23,9 @@
     "backendExists": {
       "value": "${SERVICE_BACKEND_RESOURCE_EXISTS:-false}"
     },
+    "reviewerExists": {
+      "value": "${SERVICE_REVIEWER_RESOURCE_EXISTS:-false}"
+    },
     "acrContainerImage": {
       "value": "${ACR_CONTAINER_IMAGE:-}"
     },
@@ -35,7 +38,8 @@
     "chatModel": {
       "value": {
         "name": "gpt-4o",
-        "version": "2024-08-06",
+        "modelName": "${AZURE_OPENAI_CHAT_MODEL_NAME:-gpt-4o}",
+        "version": "${AZURE_OPENAI_CHAT_MODEL_VERSION:-2024-08-06}",
         "skuName": "Standard",
         "capacity": 50
       }

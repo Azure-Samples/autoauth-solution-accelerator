@@ -17,6 +17,7 @@
 // Managed by AZD - Flag for handling of mapping the deployed image to the container app:
 param frontendExists bool = false
 param backendExists bool = false
+param reviewerExists bool = false
 // ----------------------------------------------------------------------------------------
 @description('Flag to indicate if EasyAuth should be enabled for the Container Apps (Defaults to true)')
 param enableEasyAuth bool
@@ -385,6 +386,7 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.8.1
 
 var frontendContainerName = toLower('pe-fe-${name}-${uniqueSuffix}')
 var backendContainerName = toLower('pe-be-${name}-${uniqueSuffix}')
+var reviewerContainerName = toLower('pe-rv-${name}-${uniqueSuffix}')
 
 var registries = [
   {
@@ -408,6 +410,14 @@ module backendFetchLatestImage './modules/compute/fetch-container-image.bicep' =
   params: {
     exists: backendExists
     name: backendContainerName
+  }
+}
+
+module reviewerFetchLatestImage './modules/compute/fetch-container-image.bicep' = {
+  name: 'reviewer-fetch-image'
+  params: {
+    exists: reviewerExists
+    name: reviewerContainerName
   }
 }
 
@@ -471,6 +481,49 @@ module frontendContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
     workloadProfileName: 'Consumption'
     location: location
     tags: union(tags, { 'azd-service-name': 'frontend' })
+  }
+}
+
+// Reviewer UI: FastAPI case API + React/Fluent SPA (app/backend/api/Dockerfile).
+var reviewerImage = reviewerExists
+                    ? reviewerFetchLatestImage.outputs.containers[0].image
+                    : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+
+module reviewerContainerApp 'br/public:avm/res/app/container-app:0.13.0' = {
+  name: reviewerContainerName
+  params: {
+    name: reviewerContainerName
+    environmentResourceId: containerAppsEnvironment.outputs.resourceId
+    containers: [
+      {
+        name: reviewerContainerName
+        image: reviewerImage
+        resources: {
+          cpu: json('1.0')
+          memory: '2Gi'
+        }
+        // The reviewer API serves offline case data, so it gets no service keys.
+        env: [
+          {
+            name: 'AZURE_CLIENT_ID'
+            value: appIdentity.outputs.clientId
+          }
+        ]
+      }
+    ]
+    disableIngress: disableIngress
+    scaleMinReplicas: 1
+    scaleMaxReplicas: 3
+    ingressTargetPort: 8000 // See app/backend/api/Dockerfile
+    registries: registries
+    managedIdentities: {
+      userAssignedResourceIds: [
+        appIdentity.outputs.resourceId
+      ]
+    }
+    workloadProfileName: 'Consumption'
+    location: location
+    tags: union(tags, { 'azd-service-name': 'reviewer' })
   }
 }
 
@@ -568,6 +621,8 @@ output CONTAINER_JOB_NAME string = indexInitializationJob.outputs.name
 
 output FRONTEND_CONTAINER_URL string = frontendContainerApp.outputs.fqdn
 output FRONTEND_CONTAINER_NAME string = frontendContainerApp.outputs.name
+output REVIEWER_CONTAINER_URL string = reviewerContainerApp.outputs.fqdn
+output REVIEWER_CONTAINER_NAME string = reviewerContainerApp.outputs.name
 // output BACKEND_CONTAINER_URL string = backendContainerApp.outputs.fqdn
 // output BACKEND_CONTAINER_NAME string = backendContainerApp.outputs.name
 output APP_IDENTITY_CLIENT_ID string = appIdentity.outputs.clientId

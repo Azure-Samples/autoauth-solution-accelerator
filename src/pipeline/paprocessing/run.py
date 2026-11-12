@@ -7,7 +7,6 @@ import time
 from typing import Any, Dict, List, Optional, Union
 
 import dotenv
-import streamlit as st
 import yaml
 from azure.core.credentials import AzureKeyCredential
 from azure.identity import DefaultAzureCredential
@@ -22,9 +21,8 @@ from src.documentintelligence.document_intelligence_helper import (
 )
 from src.entraid.generate_id import generate_unique_id
 from src.extractors.pdfhandler import OCRHelper
-from src.pipeline.agenticRag.run import AgenticRAG
-from src.pipeline.autoDetermination.run import AutoPADeterminator
-from src.pipeline.clinicalExtractor.run import ClinicalDataExtractor
+from src.evals.adapters.runners import get_runner
+from src.pipeline.paprocessing.progress import ProgressCallback, make_reporter
 from src.pipeline.paprocessing.utils import find_all_files
 from src.pipeline.promptEngineering.models import (
     ClinicalInformation,
@@ -198,14 +196,16 @@ class PAProcessingPipeline:
             name="PAProcessing", level=10, tracing_enabled=self.local
         )
 
-        # Initialize helper classes with all parameters exactly as before
-        self.clinical_data_extractor = ClinicalDataExtractor(
+        # AUTOAUTH_RUNNER picks legacy (default) or the new agents; same kwargs as before.
+        self.clinical_data_extractor = get_runner(
+            "extract",
             azure_openai_client=self.azure_openai_client,
             prompt_manager=self.prompt_manager,
             caseId=self.caseId,
         )
 
-        self.agentic_rag = AgenticRAG(
+        self.agentic_rag = get_runner(
+            "policy",
             azure_openai_client=self.azure_openai_client,
             prompt_manager=self.prompt_manager,
             search_client=self.search_client,
@@ -214,7 +214,8 @@ class PAProcessingPipeline:
             caseId=self.caseId,
         )
 
-        self.auto_pa_determinator = AutoPADeterminator(
+        self.auto_pa_determinator = get_runner(
+            "determine",
             azure_openai_client=self.azure_openai_client,
             azure_openai_client_o1=self.azure_openai_client_o1,
             prompt_manager=self.prompt_manager,
@@ -365,6 +366,24 @@ class PAProcessingPipeline:
                 self.logger.error("CosmosDBManager is not initialized.")
                 return {}
 
+    def _freshness_report(self) -> List[Dict[str, Any]]:
+        """Freshness signals from agent runners; empty in legacy mode."""
+        try:
+            report: List[Dict[str, Any]] = []
+            determined = getattr(self.auto_pa_determinator, "last_state", None)
+            if determined is not None:
+                determined.ensure_freshness_defaults()
+                report.extend(f.report() for f in determined.freshness)
+            retrieved = getattr(self.agentic_rag, "last_state", None)
+            if retrieved is not None:
+                report.extend(
+                    p.freshness.report() for p in retrieved.policies if p.freshness
+                )
+            return report
+        except Exception as e:
+            self.logger.warning(f"Freshness report skipped for {self.caseId}: {e}")
+            return []
+
     def log_output(
         self,
         data: Dict[str, Any],
@@ -467,6 +486,7 @@ class PAProcessingPipeline:
         streamlit: bool = False,
         caseId: str = None,
         use_o1: bool = False,
+        progress_callback: Optional[ProgressCallback] = None,
     ) -> None:
         """
         Process documents as per the pipeline flow and store the outputs.
@@ -484,13 +504,16 @@ class PAProcessingPipeline:
             streamlit: Whether to update a Streamlit UI during processing.
             caseId: Optional case ID.
             use_o1: Whether to attempt using O1 model first for final determination.
+            progress_callback: Optional ``callback(kind, message, fraction)`` for
+                non-Streamlit hosts; takes precedence over ``streamlit``.
         """
         dynamic_logger_name = f"Case_{caseId}" if caseId else "PaProcessing"
+        reporter = make_reporter(streamlit, progress_callback)
+        total_steps = 4
 
         if not uploaded_files:
             self.logger.info("No files provided for processing.")
-            if streamlit:
-                st.error("No files provided for processing.")
+            reporter.error("No files provided for processing.")
             return
 
         if caseId:
@@ -509,15 +532,7 @@ class PAProcessingPipeline:
                 temp_dir, image_files = self.process_uploaded_files(uploaded_files)
                 image_files = find_all_files(temp_dir, ["png"])
 
-                if streamlit:
-                    progress_bar = st.progress(0)
-                    status_text = st.empty()
-                    progress = 0
-                    total_steps = 4
-
-                    status_text.write("🔍 **Analyzing clinical information...**")
-                    progress += 1
-                    progress_bar.progress(progress / total_steps)
+                reporter.step("🔍 **Analyzing clinical information...**", 1 / total_steps)
 
                 api_response_ner = await self.clinical_data_extractor.run(
                     image_files,
@@ -541,12 +556,9 @@ class PAProcessingPipeline:
                     step="ocr_ner_extraction",
                 )
 
-                if streamlit:
-                    status_text.write(
-                        "🔎 **Expanding query and searching for policy...**"
-                    )
-                    progress += 1
-                    progress_bar.progress(progress / total_steps)
+                reporter.step(
+                    "🔎 **Expanding query and searching for policy...**", 2 / total_steps
+                )
 
                 agenticrag_results = await self.agentic_rag.run(
                     clinical_info, max_retries=3
@@ -588,10 +600,7 @@ class PAProcessingPipeline:
                     )
                     return summary
 
-                if streamlit:
-                    status_text.write("📝 **Generating final determination...**")
-                    progress += 1
-                    progress_bar.progress(progress / total_steps)
+                reporter.step("📝 **Generating final determination...**", 3 / total_steps)
 
                 (
                     final_determination,
@@ -611,22 +620,21 @@ class PAProcessingPipeline:
                     final_conv_history,
                     step="llm_determination",
                 )
+                freshness = self._freshness_report()
+                if freshness:
+                    self.log_output({"freshness": freshness}, step="freshness")
 
-                if streamlit:
-                    end_time = time.time()
-                    execution_time = end_time - start_time
-                    status_text.success(
-                        f"✅ **PA {self.caseId} Processing completed in {execution_time:.2f} seconds!**"
-                    )
-                    progress_bar.progress(1.0)
+                execution_time = time.time() - start_time
+                reporter.success(
+                    f"✅ **PA {self.caseId} Processing completed in {execution_time:.2f} seconds!**"
+                )
 
             except Exception as e:
                 self.logger.error(
                     f"PAprocessing failed for {self.caseId}: {e}",
                     extra={"custom_dimensions": json.dumps({"caseId": self.caseId})},
                 )
-                if streamlit:
-                    st.error(f"PAprocessing failed for {self.caseId}: {e}")
+                reporter.error(f"PAprocessing failed for {self.caseId}: {e}")
             finally:
                 self.cleanup_temp_dir()
                 self.store_output()

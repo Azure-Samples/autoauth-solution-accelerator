@@ -63,3 +63,18 @@ Refactored the code for microservices to follow a decoupled architecture and sep
 
 ### OCR and Extraction Reliability
 - 🔜 Enhanced document extraction methods to improve the reliability of OCR and information retrieval processes.
+
+## [Unreleased]
+
+### Added
+- ✔️ Agentic runtime behind a runner factory (`AUTOAUTH_RUNNER=legacy|agents|agents-af`; default `legacy`). There are policy, criteria, and determination agents on a typed `CaseState` (`src/agents/`), with optional Microsoft Agent Framework binding (`requirements-agents.txt`).
+- ✔️ Evaluator adapters (`src/evals/adapters/`). Legacy-signature runners plus `TraceToEvaluation` keep the existing evaluators and YAML cases as the source of truth.
+- ✔️ Data-freshness indicators for policy, clinical evidence, provider affiliation, and member eligibility, shown as badges on the Payor page. They are advisory only and never change the decision.
+- ✔️ `progress.py` decouples the PA pipeline from Streamlit (`progress_callback`).
+- ✔️ Offline unit tests (`tests/agents`, `tests/adapters`) that use fake clients, with no Azure calls.
+- ✔️ Design doc: `docs/architecture/agentic-2026.md`, with a clickable wireframe in `docs/architecture/wireframes/agentic-2026.html`.
+- ✔️ Reviewer UI (React + Fluent UI v9, `app/frontend/web/`) with these pages: reviewer queue, case workspace with citations and field-level review, agent trace, provider portal with SSE progress, and quality. Reviewer corrections export as eval-case YAML.
+- ✔️ Offline reviewer API (`app/backend/api/`, `uvicorn app.backend.api.app:app`) on fictional demo data, with tests in `tests/api`. Set `AUTOAUTH_REVIEWER_DEMO=1` to mount it on the main backend.
+- ✔️ Friendly, modern theme for the reviewer UI: a top bar with pill tabs (Review queue, Send a request, Policy library, Quality, Parity), soft cards, tinted status chips, gradient primary buttons, and a case step tracker. Theme options are compared in `docs/architecture/wireframes/ui-themes.html`.
+- ✔️ The 10 prototype cases from `utils/data/cases` (001–005, variants a/b) load into the reviewer queue next to the demo cases. Each card is built from its real files and MD ground truth. Set `AUTOAUTH_PROTOTYPE_CASES=0` to hide them.
+- ✔️ Parity harness (`python -m src.evals.adapters.parity [--run legacy agents]`) and a **Prototype parity** page (`#/parity`, `GET /api/parity`). They compare each runner with `ground_truth.json` and flag cases where the PDF's own APPROVAL/DENIAL label disagrees with the ground truth.

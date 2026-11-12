@@ -1,4 +1,5 @@
 import logging
+import os
 import time
 from contextlib import asynccontextmanager
 from typing import AsyncGenerator
@@ -78,6 +79,12 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+
+# Reviewer UI endpoints backed by the in-memory demo store. Opt-in only.
+if os.getenv("AUTOAUTH_REVIEWER_DEMO", "").lower() in ("1", "true", "yes"):
+    from .api.cases import router as reviewer_router
+
+    app.include_router(reviewer_router)
 
 
 @app.get("/authenticated-route")

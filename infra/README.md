@@ -24,6 +24,7 @@ environmentName | Yes      | Name of the environment that can be used as part of
 location       | Yes      | Primary location for all resources. Not all regions are supported due to OpenAI limitations
 frontendExists | No       | Flag to indicate if Frontend app image exists. This is managed by AZD
 backendExists  | No       | Flag to indicate if Backend app image exists. This is managed by AZD
+reviewerExists | No       | Flag to indicate if Reviewer app image exists. This is managed by AZD
 priorAuthName  | No       | Name for the PriorAuth resource and used to derive the name of dependent resources.
 tags           | No       | Tags to be applied to all resources
 openAiApiVersion | No       | API Version of the OpenAI API
@@ -119,6 +120,7 @@ Reasoning model object to be deployed to the OpenAI account. (i.e o1, o1-preview
 Chat model object to be deployed to the OpenAI account. (i.e gpt-4o, gpt-4o-turbo, gpt-4o-turbo-16k, gpt-4o-turbo-32k)
 
 - Default value: `@{name=gpt-4o; version=2024-08-06; skuName=GlobalStandard; capacity=100}`
+- Optional `modelName` sets the underlying model when it differs from the deployment `name`. In `main.parameters.json` it comes from `AZURE_OPENAI_CHAT_MODEL_NAME` (default `gpt-4o`), and the version comes from `AZURE_OPENAI_CHAT_MODEL_VERSION` (default `2024-08-06`). Set both to match an existing deployment before running `azd provision`, so the deployment isn't downgraded.
 
 ### embeddingModel
 

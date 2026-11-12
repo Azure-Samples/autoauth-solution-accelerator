@@ -1,0 +1,4 @@
+# Optional: Microsoft Agent Framework binding for AUTOAUTH_RUNNER=agents-af.
+# Not needed for the default (legacy) or plain "agents" runner.
+# Requires Python >= 3.11 (environment.yaml pins 3.10; use a separate env).
+agent-framework-core>=1.25

@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>AutoAuth · Agentic 2026 · UI Wireframe</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  :root {
+    --ink: #1f2328; --mute: #6e7781; --line: #c9d1d9; --fill: #f6f8fa; --paper: #fff;
+    --accent: #0969da; --note: #fff8c5; --note-line: #d4a72c;
+    --ok: #1a7f37; --warn: #9a6700; --bad: #cf222e; --unk: #8c959f;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 "Segoe UI", system-ui, sans-serif; color: var(--ink); background: #eaeef2; }
+  header.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 16px;
+    padding: 10px 20px; background: var(--ink); color: #fff; flex-wrap: wrap; }
+  header.top b { font-size: 15px; }
+  header.top .tag { font-size: 11px; padding: 2px 8px; border: 1px dashed #8c959f; border-radius: 10px; color: #d0d7de; }
+  nav { display: flex; gap: 4px; margin-left: auto; flex-wrap: wrap; }
+  nav button { background: transparent; color: #d0d7de; border: 1px solid transparent; border-radius: 6px; padding: 6px 12px; cursor: pointer; font: inherit; }
+  nav button.on { background: #fff; color: var(--ink); }
+  nav button:hover:not(.on) { border-color: #57606a; }
+  main { max-width: 1320px; margin: 20px auto; padding: 0 20px; }
+  .screen { display: none; }
+  .screen.on { display: block; }
+  .frame { background: var(--paper); border: 2px solid var(--ink); border-radius: 10px; overflow: hidden; box-shadow: 4px 4px 0 rgba(31,35,40,.15); }
+  .bar { display: flex; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 1px solid var(--line); background: var(--fill); flex-wrap: wrap; }
+  .crumb { color: var(--mute); }
+  .crumb b { color: var(--ink); }
+  .spacer { flex: 1; }
+  .ctl { border: 1px solid var(--line); background: #fff; border-radius: 6px; padding: 4px 10px; font: inherit; color: var(--ink); cursor: pointer; }
+  .ctl.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .ctl.danger { border-color: var(--bad); color: var(--bad); }
+  .pill { display: inline-block; font-size: 12px; padding: 1px 8px; border-radius: 10px; border: 1px solid var(--line); background: #fff; white-space: nowrap; }
+  .notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 14px 0 28px; }
+  .note { background: var(--note); border: 1px solid var(--note-line); border-radius: 6px; padding: 10px 12px; font-size: 13px; }
+  .note b { display: block; margin-bottom: 2px; }
+  h2 { margin: 6px 0 12px; font-size: 18px; }
+  h2 small { color: var(--mute); font-weight: 400; font-size: 13px; margin-left: 8px; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: .03em; color: var(--mute); background: var(--fill); }
+  tr.row { cursor: pointer; }
+  tr.row:hover td { background: #f0f6ff; }
+  .flag { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+  .meter { display: inline-block; width: 70px; height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; vertical-align: middle; }
+  .meter i { display: block; height: 100%; background: var(--ink); }
+  .sla { font-variant-numeric: tabular-nums; }
+  .sla.hot { color: var(--bad); font-weight: 600; }
+  .running { color: var(--mute); font-style: italic; }
+
+  .fb { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 2px 8px; border-radius: 10px; border: 1px solid; background: #fff; white-space: nowrap; }
+  .fb::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .fb.fresh { color: var(--ok); } .fb.aging { color: var(--warn); } .fb.stale { color: var(--bad); } .fb.unknown { color: var(--unk); }
+  .fb.sm { font-size: 10px; padding: 0 5px; }
+
+  .stepper { display: flex; padding: 10px 16px; border-bottom: 1px solid var(--line); font-size: 13px; overflow-x: auto; }
+  .step { display: flex; align-items: center; gap: 6px; white-space: nowrap; color: var(--mute); }
+  .step + .step::before { content: ""; width: 28px; height: 2px; background: var(--line); margin: 0 8px; }
+  .step.done { color: var(--ok); } .step.now { color: var(--accent); font-weight: 600; }
+  .freshstrip { display: flex; gap: 10px; align-items: center; padding: 8px 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; font-size: 13px; }
+  .freshstrip .lbl { font-size: 12px; color: var(--mute); text-transform: uppercase; letter-spacing: .04em; font-weight: 600; }
+  .banner { margin: 0; padding: 8px 16px; background: #fff1e5; border-bottom: 1px solid #ffc680; font-size: 13px; color: #6f3a00; }
+  .panes { display: grid; grid-template-columns: 1.05fr 1.15fr .9fr; min-height: 470px; }
+  .pane { padding: 14px 16px; border-right: 1px solid var(--line); }
+  .pane:last-child { border-right: 0; background: #fbfcfd; }
+  .pane h3, .qh { margin: 0 0 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .04em; color: var(--mute); }
+  .doctabs { display: flex; gap: 4px; margin-bottom: 8px; }
+  .doctabs span { font-size: 12px; padding: 3px 8px; border: 1px solid var(--line); border-radius: 4px 4px 0 0; background: var(--fill); }
+  .doctabs span.on { background: #fff; font-weight: 600; }
+  .doc { border: 1px dashed var(--mute); border-radius: 4px; padding: 12px; height: 210px; overflow: auto; font: 12px/1.6 Consolas, monospace; color: #57606a; }
+  .doc .span { transition: background .2s; border-radius: 2px; }
+  .doc .span.hi { background: #fff08a; outline: 2px solid var(--note-line); color: var(--ink); }
+  .facts { margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; font-size: 13px; }
+  .facts label { color: var(--mute); font-size: 11px; display: block; }
+  .facts .f { border-bottom: 1px dashed var(--line); padding-bottom: 3px; cursor: pointer; }
+  .facts .f:hover { background: #f0f6ff; }
+  .policy { font-size: 13px; padding: 6px 10px; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .crit { border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; cursor: pointer; }
+  .crit:hover, .crit.sel { border-color: var(--accent); background: #f6faff; }
+  .crit .head { display: flex; gap: 8px; align-items: baseline; }
+  .crit .ico { width: 18px; text-align: center; font-weight: 700; }
+  .crit .ico.met { color: var(--ok); } .crit .ico.part { color: var(--warn); } .crit .ico.miss { color: var(--bad); }
+  .crit .sub { font-size: 12px; color: var(--mute); margin: 2px 0 0 26px; }
+  .crit .acts { margin: 6px 0 0 26px; display: flex; gap: 6px; }
+  .crit .acts .ctl { font-size: 12px; padding: 2px 8px; }
+  .chat { display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+  .msg { padding: 8px 10px; border-radius: 8px; max-width: 95%; }
+  .msg.u { align-self: flex-end; background: var(--ink); color: #fff; }
+  .msg.a { background: #fff; border: 1px solid var(--line); }
+  .cite { font-size: 11px; color: var(--accent); cursor: pointer; text-decoration: underline dotted; }
+  .sugg { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .sugg .ctl { text-align: left; font-size: 12px; }
+  .input { margin-top: 10px; border: 1px solid var(--line); border-radius: 6px; padding: 8px; color: var(--mute); background: #fff; font-size: 13px; }
+  .rec { border-top: 2px solid var(--ink); padding: 12px 16px; display: grid; grid-template-columns: 1fr auto; gap: 8px 16px; align-items: center; background: var(--fill); }
+  .rec .verdict b { font-size: 18px; }
+  .rec .why { grid-column: 1 / -1; font-size: 13px; color: #57606a; }
+  .rec .why summary { cursor: pointer; color: var(--ink); }
+  .rec .why ol { margin: 6px 0 0; padding-left: 20px; }
+  .rec .btns { display: flex; gap: 8px; flex-wrap: wrap; }
+  .advisory { font-size: 12px; color: var(--warn); }
+
+  .trace { font: 13px/1.9 Consolas, monospace; padding: 14px 18px; }
+  .tr { display: grid; grid-template-columns: 1fr 300px 70px 80px 30px; gap: 8px; border-bottom: 1px dotted var(--line); }
+  .tr .n { white-space: pre; }
+  .tr .ok { color: var(--ok); } .tr .wait { color: var(--accent); }
+  .tr.head { color: var(--mute); font-size: 11px; text-transform: uppercase; }
+  .tr.sel { background: #f6faff; }
+
+  .form { padding: 16px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  .field label { font-size: 11px; color: var(--mute); display: block; margin-bottom: 3px; }
+  .field .box { border: 1px solid var(--line); border-radius: 6px; padding: 6px 10px; background: #fff; }
+  .precheck { margin: 0 16px 12px; border: 2px dashed var(--accent); border-radius: 8px; padding: 10px 14px; line-height: 1.9; }
+  .precheck h4 { margin: 0 0 4px; font-size: 13px; color: var(--accent); }
+  .drop { margin: 0 16px 12px; border: 2px dashed var(--line); border-radius: 8px; padding: 14px; color: var(--mute); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  .qgrid { display: grid; grid-template-columns: 1.4fr 1fr; }
+  .qgrid > div { padding: 14px 16px; }
+  .qgrid > div + div { border-left: 1px solid var(--line); }
+  .delta.up { color: var(--ok); }
+  .kpi { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--line); gap: 8px; }
+  .ovr { padding: 12px 16px; border-top: 1px solid var(--line); display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  @media (max-width: 1000px) { .panes, .qgrid, .form { grid-template-columns: 1fr; } .pane { border-right: 0; border-bottom: 1px solid var(--line); } .tr { grid-template-columns: 1fr 1fr; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <b>AutoAuth</b><span class="tag">wireframe · agentic 2026 · not production UI</span>
+  <nav id="nav">
+    <button data-s="queue" class="on">① Work Queue</button>
+    <button data-s="ws">② Case Workspace</button>
+    <button data-s="trace">③ Agent Trace</button>
+    <button data-s="prov">④ Provider</button>
+    <button data-s="qual">⑤ Quality</button>
+  </nav>
+</header>
+
+<main>
+
+<!-- WORK QUEUE -->
+<section class="screen on" id="queue">
+  <h2>Payor · Work Queue <small>new landing page for UM reviewers · replaces the Case ID dropdown</small></h2>
+  <div class="frame">
+    <div class="bar">
+      <span class="crumb">AutoAuth ▸ <b>Work Queue</b></span>
+      <span class="spacer"></span>
+      <button class="ctl">Role: UM Nurse ▾</button>
+      <button class="ctl">🔔 3</button>
+    </div>
+    <div class="bar">
+      <button class="ctl">Status: Ready for review ▾</button>
+      <button class="ctl">Urgency: All ▾</button>
+      <button class="ctl">Line of business ▾</button>
+      <button class="ctl">Data freshness: Any ▾</button>
+      <span class="spacer"></span>
+      <span class="ctl" style="min-width:220px;color:var(--mute)">🔍 Search case, member, drug…</span>
+    </div>
+    <table>
+      <thead><tr><th></th><th>Case</th><th>Requested</th><th>Urgency</th><th>AI recommendation</th><th>Conf.</th><th>Data freshness</th><th>SLA left</th><th>Owner</th></tr></thead>
+      <tbody>
+        <tr class="row" data-go="ws">
+          <td><span class="flag" style="background:var(--bad)"></span></td>
+          <td><b>PA-1042</b><br><small style="color:var(--mute)">Sarah Sample</small></td>
+          <td>Adalimumab</td><td>Expedited</td><td>Approve <span class="pill">recommendation</span></td>
+          <td><span class="meter"><i style="width:86%"></i></span></td>
+          <td><span class="fb stale" title="Provider affiliation verified 212 days ago">1 stale · 1 unknown</span></td>
+          <td class="sla hot">14h / 72h</td><td>–</td>
+        </tr>
+        <tr class="row" data-go="ws">
+          <td><span class="flag" style="background:var(--warn)"></span></td>
+          <td><b>PA-1039</b><br><small style="color:var(--mute)">Juan Example</small></td>
+          <td>MRI L-spine</td><td>Standard</td><td>Need more info</td>
+          <td><span class="meter"><i style="width:45%"></i></span></td>
+          <td><span class="fb aging">1 aging</span></td>
+          <td class="sla">4d / 7d</td><td>JL</td>
+        </tr>
+        <tr class="row" data-go="trace">
+          <td><span class="flag" style="background:var(--line)"></span></td>
+          <td><b>PA-1037</b><br><small style="color:var(--mute)">Ana Placeholder</small></td>
+          <td>Semaglutide</td><td>Standard</td><td colspan="2" class="running">⏳ Agents running (3/5) · criteria_agent…</td>
+          <td><span class="fb unknown">pending</span></td>
+          <td class="sla">6d / 7d</td><td>–</td>
+        </tr>
+        <tr class="row" data-go="ws">
+          <td><span class="flag" style="background:var(--ok)"></span></td>
+          <td><b>PA-1031</b><br><small style="color:var(--mute)">Lee Fictional</small></td>
+          <td>Dupilumab</td><td>Standard</td><td>Approve</td>
+          <td><span class="meter"><i style="width:94%"></i></span></td>
+          <td><span class="fb fresh">all fresh</span></td>
+          <td class="sla">5d / 7d</td><td>MK</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Live rows</b>Status streams from workflow events, so the queue updates without a page refresh. Click a row to open it.</div>
+    <div class="note"><b>Never final</b>The AI column is labeled a recommendation. Only a human sets Approved, Pended, or Denied.</div>
+    <div class="note"><b>SLA timers</b>Shows the CMS-0057-F clocks: 72h for expedited, 7 days for standard.</div>
+    <div class="note"><b>Freshness at a glance</b>Reviewers can filter or sort by stale inputs before opening the case.</div>
+  </div>
+</section>
+
+<!-- CASE WORKSPACE -->
+<section class="screen" id="ws">
+  <h2>Payor · Case Workspace <small>core screen · every claim links back to its source</small></h2>
+  <div class="frame">
+    <div class="bar">
+      <button class="ctl" data-go="queue">◂ Queue</button>
+      <span><b>PA-1042</b> · Sarah Sample · Adalimumab · Expedited</span>
+      <span class="spacer"></span>
+      <span class="sla hot">SLA 14h</span>
+      <button class="ctl">Assign ▾</button>
+    </div>
+    <div class="stepper">
+      <span class="step done">✔ Intake</span><span class="step done">✔ Extract</span><span class="step done">✔ Policy</span>
+      <span class="step done">✔ Criteria</span><span class="step done">✔ Recommend</span><span class="step now">● Human review</span><span class="step">○ Decision letter</span>
+    </div>
+    <div class="freshstrip">
+      <span class="lbl">Data freshness</span>
+      <span class="fb fresh" title="Policy last modified 41 days ago · limit 365d">Policy · 41d</span>
+      <span class="fb aging" title="Most recent clinical note 71 days old · limit 90d">Clinical evidence · 71d</span>
+      <span class="fb stale" title="NPI affiliation last verified 212 days ago · limit 180d">Provider affiliation · 212d</span>
+      <span class="fb unknown" title="No eligibility check recorded">Member eligibility · unknown</span>
+      <span class="spacer"></span>
+      <button class="ctl" style="font-size:12px">↻ Re-verify provider (NPPES)</button>
+      <button class="ctl" style="font-size:12px">↻ Check eligibility (270/271)</button>
+    </div>
+    <p class="banner">⚠ 2 inputs need attention: provider affiliation is <b>stale</b> (Dr. Gomez may have changed practice), and member eligibility has <b>no date</b>. This is advisory only and does not change the recommendation.</p>
+
+    <div class="panes">
+      <div class="pane">
+        <h3>① Evidence · source docs</h3>
+        <div class="doctabs"><span>form.pdf</span><span class="on">note.pdf</span><span>labs.pdf</span></div>
+        <div class="doc" id="doc">
+          <div>CLINICAL NOTE · page 1 of 3 · 2026-09-01</div>
+          <div>Pt: Sarah Sample  DOB 2004-03-12</div>
+          <div>&nbsp;</div>
+          <div><span class="span" data-k="dx">Assessment: Crohn's disease, ileocolonic (K50.90).</span></div>
+          <div>&nbsp;</div>
+          <div><span class="span" data-k="tx">Methylprednisolone 40mg daily x 8 wks, inadequate response; flare on taper.</span></div>
+          <div>Azathioprine not trialed; patient declined.</div>
+          <div>&nbsp;</div>
+          <div><span class="span" data-k="md">Signed: R. Gomez MD, Gastroenterology, Lakeside GI Assoc.</span></div>
+          <div>&nbsp;</div>
+          <div>Plan: start adalimumab 160/80/40 induction.</div>
+        </div>
+        <div class="facts">
+          <div class="f" data-k="dx"><label>Diagnosis</label>Crohn's K50.90 ⇢</div>
+          <div class="f"><label>Patient age</label>22 ⇢</div>
+          <div class="f" data-k="tx"><label>Prior therapy</label>Methylprednisolone ⇢</div>
+          <div class="f" data-k="md"><label>Prescriber <span class="fb stale sm">212d</span></label>R. Gomez MD · GI ⇢</div>
+          <div class="f"><label>Drug / dose</label>Adalimumab 40mg q2w ⇢</div>
+          <div class="f"><label>Member ID <span class="fb unknown sm">?</span></label>W12345678 ⇢</div>
+        </div>
+        <p style="font-size:11px;color:var(--mute);margin:8px 0 0">Fields are editable. Each edit is saved as a ReviewerAction.</p>
+      </div>
+
+      <div class="pane">
+        <h3>② Criteria checklist</h3>
+        <div class="policy">📄 <b>Humira_Crohns_v3.pdf</b> p2 <span class="fb fresh sm">41d</span><span class="spacer"></span><span class="cite">open clause ↗</span></div>
+        <div class="crit" data-k="dx"><div class="head"><span class="ico met">✔</span><span>1 · Diagnosis of Crohn's disease</span></div><div class="sub">evidence: note.pdf p1 ¶3</div></div>
+        <div class="crit"><div class="head"><span class="ico met">✔</span><span>2 · Age ≥ 6</span></div><div class="sub">evidence: form.pdf · DOB</div></div>
+        <div class="crit" data-k="tx"><div class="head"><span class="ico part">◐</span><span>3 · Failed ≥ 1 conventional therapy</span></div><div class="sub">steroid ✔ · immunomodulator ✖ (policy says OR, so this passes)</div>
+          <div class="acts"><button class="ctl">Accept</button><button class="ctl">Override ▾</button><button class="ctl">📝 Note</button></div></div>
+        <div class="crit" data-k="md"><div class="head"><span class="ico met">✔</span><span>4 · Prescriber is a GI specialist</span></div><div class="sub">evidence: note.pdf signature · <span class="fb stale sm">affiliation 212d</span></div></div>
+        <div class="crit"><div class="head"><span class="ico miss">✖</span><span>5 · TB screening documented</span></div><div class="sub">no matching evidence found in 3 documents</div>
+          <div class="acts"><button class="ctl">Request info</button><button class="ctl">Override ▾</button></div></div>
+      </div>
+
+      <div class="pane">
+        <h3>③ Copilot · scoped to this case</h3>
+        <div class="chat">
+          <div class="msg u">Why is criterion 3 only partial?</div>
+          <div class="msg a">The policy requires failure of a steroid <b>OR</b> an immunomodulator. Steroid failure is documented <span class="cite" data-k="tx">[note.pdf p1]</span>, so the criterion is met. It shows as partial only because azathioprine was declined, not failed. <span class="cite">[policy p2 §B]</span></div>
+          <div class="msg u">Is Dr. Gomez still in network?</div>
+          <div class="msg a">The last affiliation check was 212 days ago, past the 180-day limit. I can run an NPPES lookup now. <span class="cite" data-k="md">[tool: provider_directory]</span></div>
+        </div>
+        <div class="sugg">
+          <b style="font-size:12px;color:var(--mute)">Suggested actions</b>
+          <button class="ctl">✉ Draft info request (TB screen)</button>
+          <button class="ctl">↻ Re-verify prescriber affiliation</button>
+          <button class="ctl">≈ Compare to similar approved cases</button>
+        </div>
+        <div class="input">Ask about this case… (tools: case_state, policy_search, similar_cases)</div>
+      </div>
+    </div>
+
+    <div class="rec">
+      <div class="verdict">④ Recommendation: <b>Approve</b> · conf 0.86 · 4/5 met, 1 missing · <span class="pill">model: &lt;reasoning-model&gt;</span><br>
+        <span class="advisory">⚠ 2 freshness warnings attached. They are advisory and do not change the recommendation.</span></div>
+      <div class="btns">
+        <button class="ctl primary">Approve</button>
+        <button class="ctl">Pend: request info</button>
+        <button class="ctl danger">Deny → MD review</button>
+        <button class="ctl" data-go="trace">View trace</button>
+      </div>
+      <div class="why"><details open><summary>Rationale (structured, each sentence cited)</summary><ol>
+        <li>Diagnosis of Crohn's disease is documented. <span class="cite" data-k="dx">[C1 · note.pdf p1]</span></li>
+        <li>Inadequate response to systemic steroids satisfies the conventional-therapy requirement. <span class="cite" data-k="tx">[C3 · note.pdf p1]</span></li>
+        <li>TB screening is not documented; pend for info if policy requires it before the first dose. <span class="cite">[C5 · policy p2 §D]</span></li>
+      </ol></details></div>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Try it</b>Click a criterion, an extracted fact, or a citation to highlight its source span in pane ①.</div>
+    <div class="note"><b>Freshness strip (new)</b>Shows the age of Policy, Clinical, Provider, and Eligibility data against limits of 365, 90, 180, and 30 days. Re-verify buttons call tools that write a dated <code>Freshness</code> entry back to the case state.</div>
+    <div class="note"><b>Deny is gated</b>An adverse recommendation goes to a physician reviewer, who must give a reason mapped to a criterion.</div>
+    <div class="note"><b>Overrides are data</b>Accept and Override clicks are stored as ReviewerActions. Quality can promote them into eval cases.</div>
+  </div>
+</section>
+
+<!-- TRACE -->
+<section class="screen" id="trace">
+  <h2>Agent Trace <small>tab inside the workspace · the same spans feed the evaluator adapters</small></h2>
+  <div class="frame">
+    <div class="bar"><button class="ctl" data-go="ws">◂ PA-1042</button><span>Agent Trace · run <code>7f3a…</code> · runner <span class="pill">agents</span></span><span class="spacer"></span><span>41.2s · $0.38 · ✔</span></div>
+    <div class="trace">
+      <div class="tr head"><span>span</span><span>detail</span><span>time</span><span>signal</span><span></span></div>
+      <div class="tr"><span class="n">▸ workflow.pa_case</span><span></span><span>41.2s</span><span></span><span class="ok">✔</span></div>
+      <div class="tr"><span class="n">  ├─ intake_agent</span><span>ocr.analyze(3 docs)</span><span>6.1s</span><span></span><span class="ok">✔</span></div>
+      <div class="tr"><span class="n">  ├─ clinical_extractor</span><span>extract(Patient, Physician, Clin) · legacy</span><span>9.8s</span><span>conf .92</span><span class="ok">✔</span></div>
+      <div class="tr sel"><span class="n">  ├─ policy_agent</span><span>search ×2 · judge ×2 (1 retry)</span><span>8.4s</span><span>top-3</span><span class="ok">✔</span></div>
+      <div class="tr"><span class="n">  │   └─ freshness</span><span>policy last_modified 41d → fresh</span><span>–</span><span><span class="fb fresh sm">fresh</span></span><span></span></div>
+      <div class="tr"><span class="n">  ├─ criteria_agent</span><span>policy → 5 criteria</span><span>5.0s</span><span></span><span class="ok">✔</span></div>
+      <div class="tr"><span class="n">  ├─ determination_agent</span><span>reasoning model · 2 advisory warnings</span><span>11.9s</span><span>0.86</span><span class="ok">✔</span></div>
+      <div class="tr"><span class="n">  └─ ⏸ human_review</span><span>waiting on UM Nurse</span><span>–</span><span></span><span class="wait">●</span></div>
+    </div>
+    <div class="ovr">
+      <button class="ctl">Open in Foundry tracing ↗</button>
+      <button class="ctl">Run evals on this trace</button>
+      <button class="ctl primary">Save as eval case → evals/cases/*.yaml</button>
+    </div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Adapter seam</b><code>src/evals/adapters/traces.py</code> maps these spans to the inputs the existing evaluators expect, so scoring logic is unchanged.</div>
+    <div class="note"><b>Runner switch</b>Set <code>AUTOAUTH_RUNNER=legacy | agents | agents-af</code>. Extraction always uses the legacy path.</div>
+  </div>
+</section>
+
+<!-- PROVIDER -->
+<section class="screen" id="prov">
+  <h2>Provider · Submit &amp; Track <small>finishes the WIP Provider.py · the same criteria agent runs before submission</small></h2>
+  <div class="frame">
+    <div class="bar"><span class="crumb">Provider Portal ▸ <b>New request</b></span><span class="spacer"></span><span class="pill">Lakeside GI Assoc.</span></div>
+    <div class="form">
+      <div class="field"><label>Patient</label><div class="box">Sarah Sample · W12345678 <span class="fb unknown sm">eligibility ?</span></div></div>
+      <div class="field"><label>Service / drug</label><div class="box">Adalimumab 40mg</div></div>
+      <div class="field"><label>Urgency</label><div class="box">(•) Expedited &nbsp; ( ) Standard</div></div>
+    </div>
+    <div class="precheck">
+      <h4>Pre-check (runs as you attach files)</h4>
+      Policy matched: <b>Humira – Crohn's v3</b> <span class="fb fresh sm">41d</span><br>
+      <span style="color:var(--ok)">✔ Diagnosis</span> · <span style="color:var(--ok)">✔ Prior therapy</span> · <span style="color:var(--bad)">✖ TB screening not found</span> <button class="ctl" style="font-size:12px">attach</button><br>
+      <span class="advisory">⚠ Your NPI affiliation on file is 212 days old. Confirm your practice to avoid a pend.</span> <button class="ctl" style="font-size:12px">Confirm</button>
+    </div>
+    <div class="drop">Documents: drop files here · <span class="pill">form.pdf ✔</span><span class="pill">note.pdf ✔</span><span class="pill">labs.pdf ✔</span><span class="spacer"></span><button class="ctl primary">Submit request</button></div>
+    <table>
+      <thead><tr><th>My requests</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>PA-1042 · Adalimumab</td><td>Pended – info requested (TB screen)</td><td><button class="ctl">Respond</button></td></tr>
+        <tr><td>PA-1018 · Infliximab</td><td>Approved</td><td><button class="ctl">Letter</button></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Biggest lever</b>Running the criteria agent before submission (Da Vinci CRD/DTR style) prevents pends, which means faster care.</div>
+  </div>
+</section>
+
+<!-- QUALITY -->
+<section class="screen" id="qual">
+  <h2>Quality · Evals &amp; Traces <small>evaluators and YAML cases stay the source of truth</small></h2>
+  <div class="frame">
+    <div class="qgrid">
+      <div>
+        <h3 class="qh">Regression gate (offline · evals/cases)</h3>
+        <table>
+          <thead><tr><th>Suite</th><th>main (legacy)</th><th>branch (agents)</th><th>Δ</th></tr></thead>
+          <tbody>
+            <tr><td>ocr-ner-*</td><td>0.88</td><td>0.88</td><td>0</td></tr>
+            <tr><td>agentic-rag-*</td><td>0.75</td><td>0.81</td><td class="delta up">+.06</td></tr>
+            <tr><td>autodetermination-*</td><td>0.93</td><td>0.93</td><td>0</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:12px;color:var(--mute)">Illustrative numbers. The parity gate (§5.5) blocks switching the default runner if any suite regresses.</p>
+      </div>
+      <div>
+        <h3 class="qh">Online (sampled prod traces)</h3>
+        <div class="kpi"><span>Groundedness</span><span>0.91 <span class="delta up">▲</span></span></div>
+        <div class="kpi"><span>Task adherence</span><span>0.87 ─</span></div>
+        <div class="kpi"><span>Reviewer override rate</span><span>7% <span class="delta up">▼</span></span></div>
+        <div class="kpi"><span>Pend rate</span><span>18% <span class="delta up">▼</span></span></div>
+        <div class="kpi"><span>Cases with a stale input</span><span>11% <span class="fb stale sm">provider 8% · elig 3%</span></span></div>
+      </div>
+    </div>
+    <div class="ovr">Reviewer overrides this week: <b>12</b><button class="ctl primary">Review → promote to eval case</button><span class="spacer"></span><button class="ctl">Freshness limits ⚙ 365 · 90 · 180 · 30 days</button></div>
+  </div>
+  <div class="notes">
+    <div class="note"><b>Closing the loop</b>Overrides and saved traces become new YAML cases, scored by the same frozen evaluators.</div>
+  </div>
+</section>
+
+</main>
+
+<script>
+  const show = id => {
+    document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+    document.querySelectorAll('#nav button').forEach(b => b.classList.toggle('on', b.dataset.s === id));
+    window.scrollTo({ top: 0 });
+  };
+  document.querySelectorAll('#nav button').forEach(b => b.onclick = () => show(b.dataset.s));
+  document.querySelectorAll('[data-go]').forEach(el => el.addEventListener('click', e => { e.stopPropagation(); show(el.dataset.go); }));
+
+  const highlight = k => {
+    document.querySelectorAll('#doc .span').forEach(s => s.classList.toggle('hi', s.dataset.k === k));
+    document.querySelectorAll('.crit').forEach(c => c.classList.toggle('sel', c.dataset.k === k));
+    const hit = document.querySelector(`#doc .span[data-k="${k}"]`);
+    if (hit) hit.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  };
+  document.querySelectorAll('#ws [data-k]').forEach(el => {
+    if (el.classList.contains('span')) return;
+    el.addEventListener('click', () => highlight(el.dataset.k));
+  });
+  highlight('tx');
+</script>
+</body>
+</html>

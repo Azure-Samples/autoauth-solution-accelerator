@@ -9,7 +9,7 @@ from src.aifoundry.aifoundry_helper import AIFoundryManager
 from src.aoai.aoai_helper import AzureOpenAIManager
 from src.evals.case import Case, Evaluation
 from src.evals.pipeline import PipelineEvaluator
-from src.pipeline.agenticRag.run import AgenticRAG
+from src.evals.adapters.runners import get_runner
 from src.pipeline.utils import load_config
 from src.utils.ml_logging import get_logger
 
@@ -68,7 +68,8 @@ class AgenticRagEvaluator(PipelineEvaluator):
 
             self.case_id = pipeline_config.get("case_id")
             self.scenario = pipeline_config.get("scenario")
-            self.agentic_rag = AgenticRAG(caseId=self.case_id)
+            # AUTOAUTH_RUNNER picks legacy (default) or the new agents.
+            self.agentic_rag = get_runner("policy", caseId=self.case_id)
 
             cases_list = root_obj.get("cases", [])
             if not cases_list:

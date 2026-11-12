@@ -405,6 +405,35 @@ async def run_pipeline_with_spinner(uploaded_files, use_o1):
     return last_key
 
 
+FRESHNESS_BADGES = {
+    "fresh": "🟢 Fresh",
+    "aging": "🟡 Aging",
+    "stale": "🔴 Stale",
+    "unknown": "⚪ Unverified",
+}
+
+
+def render_freshness(document, kinds):
+    """Show data-freshness badges for the given kinds; silent when none recorded."""
+    signals = [
+        s for s in document.get("freshness") or [] if s.get("kind") in kinds
+    ]
+    for s in signals:
+        badge = FRESHNESS_BADGES.get(s.get("status"), "⚪ Unverified")
+        age = s.get("age_days")
+        age_text = (
+            f"{age} days old (limit {s.get('max_age_days')})"
+            if age is not None
+            else "no verification date"
+        )
+        label = s.get("kind", "").replace("_", " ")
+        line = f"{badge} · **{label}** · {age_text}"
+        if s.get("status") == "fresh":
+            st.caption(line)
+        else:
+            st.warning(f"{line}\n\n{s.get('note') or ''} **Next:** {s.get('action')}")
+
+
 def display_case_data(document, results_container):
     with results_container:
         tab1, tab2, tab3, tab4, tab5 = st.tabs(
@@ -429,23 +458,35 @@ def display_case_data(document, results_container):
             else:
                 final_determination = document.get("pa_determination_results", "N/A")
             st.markdown(final_determination)
+            flagged = [
+                s for s in document.get("freshness") or [] if s.get("status") != "fresh"
+            ]
+            if flagged:
+                st.info(
+                    f"⏱️ {len(flagged)} data-freshness check(s) need reviewer attention. "
+                    "See the badges on each tab."
+                )
         with tab2:
             st.header("🩺 Clinical Information")
+            render_freshness(document, {"clinical_evidence"})
             data_clinical = format_clinical_info(document.get("ocr_ner_results", {}))
             st.markdown(data_clinical)
 
         with tab3:
             st.header("👨‍⚕️ Physician Information")
+            render_freshness(document, {"provider_affiliation"})
             data_physician = format_physician_info(document.get("ocr_ner_results", {}))
             st.markdown(data_physician)
 
         with tab4:
             st.header("👤 Patient Information")
+            render_freshness(document, {"member_eligibility"})
             data_patient = format_patient_info(document.get("ocr_ner_results", {}))
             st.markdown(data_patient)
 
         with tab5:
             st.header("📑 Supporting Documentation")
+            render_freshness(document, {"policy"})
             policy_retrieval = document.get("policy_location", [])
             raw_uploaded_files = document.get("raw_uploaded_files", [])
             if policy_retrieval:
