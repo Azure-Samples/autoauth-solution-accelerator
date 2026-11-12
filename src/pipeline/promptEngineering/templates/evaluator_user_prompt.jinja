@@ -6,8 +6,8 @@ Evaluate the list of search results below—each representing a retrieved policy
 ## Tasks:
 - Compare each policy’s content against the user’s query to verify relevance.
 - Cross-reference policy details to avoid duplicates and select the highest-quality information.
-- Determine if there is enough information to produce a definitive conclusion.
-- Set retry to true if the search results are incomplete or insufficient.
+- Identify the policy document(s) that govern the requested medication and condition. A downstream step reads the full document and decides coverage.
+- Set retry to true only if no result mentions the requested medication or condition.
 
 **Search Query (Example):**
 “What is the prior authorization policy for Epidiolex in treating Lennox-Gastaut Syndrome?”
@@ -36,11 +36,8 @@ Produce a JSON-like object containing three keys:
 
 3. **retry**
    - A boolean (true or false) indicating whether more data or additional clarification is needed.
-   - Set **retry** to **true** if:
-     - The search results are insufficient or incomplete.
-     - Critical policy details are missing (e.g., no mention of the specific condition or medication).
-     - A broader or more detailed search query is required.
-   - Otherwise, set **retry** to **false**.
+   - Set **retry** to **true** only if no result mentions the specific medication (or its brand/generic equivalents) or condition, so a different search is required.
+   - If you approved at least one relevant policy, set **retry** to **false**, even when the excerpts do not show every criterion, dose, or quantity limit.
 
 **Example Output:**
 ```json
@@ -61,7 +58,7 @@ Important:
 - Do not add any extra fields beyond **policies**, **reasoning**, and **retry**.
 - Base each decision on how closely the policy content addresses the user’s query.
 - Use step-by-step reasoning to ensure accuracy, completeness, and freedom from duplication.
-- If there isn’t enough information to confirm or deny coverage, or if the results are insufficient, set `"retry": true`.
+- Excerpts are partial pages of a longer policy. Do not retry because an excerpt lacks coverage specifics; retry only when no relevant policy document was found.
 
 
 ## Output: Please generate a JSON output based on:
@@ -80,5 +77,5 @@ Important:
   "reasoning": [
     // Short statements explaining why each policy was approved (mentioning coverage details, dosage, etc.) or rejected (irrelevant, insufficient info).
   ],
-  "retry": false // Or true if insufficient data, missing coverage specifics, or another search pass is required.
+  "retry": false // Or true only if no relevant policy document was found.
 }

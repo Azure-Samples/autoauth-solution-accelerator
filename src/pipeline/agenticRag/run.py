@@ -290,19 +290,15 @@ class AgenticRAG:
         # Use provided values or default to self attributes
         system_message_content = (
             system_message_content
-            or self.prompt_manager.get_prompt(
-                self.query_expansion_config["system_prompt"]
-            )
+            or self.prompt_manager.get_prompt(self.evaluation_config["system_prompt"])
         )
-        max_tokens = max_tokens or self.query_expansion_config["max_tokens"]
-        top_p = top_p or self.query_expansion_config["top_p"]
-        temperature = temperature or self.query_expansion_config["temperature"]
+        max_tokens = max_tokens or self.evaluation_config["max_tokens"]
+        top_p = top_p or self.evaluation_config["top_p"]
+        temperature = temperature or self.evaluation_config["temperature"]
         frequency_penalty = (
-            frequency_penalty or self.query_expansion_config["frequency_penalty"]
+            frequency_penalty or self.evaluation_config["frequency_penalty"]
         )
-        presence_penalty = (
-            presence_penalty or self.query_expansion_config["presence_penalty"]
-        )
+        presence_penalty = presence_penalty or self.evaluation_config["presence_penalty"]
 
         prompt = self.prompt_manager.create_prompt_evaluator_user(query, search_results)
         response = await self.azure_openai_client.generate_chat_response(
@@ -340,6 +336,7 @@ class AgenticRAG:
             Dict[str, Any]: Dictionary containing the query, policies found, and evaluation results.
         """
 
+        best: Optional[Dict[str, Any]] = None
         for attempt in range(max_retries):
             self.logger.info(
                 f"{self.prefix}Starting AgenticRAG attempt {attempt + 1} of {max_retries}"
@@ -377,6 +374,13 @@ class AgenticRAG:
                         "evaluation": evaluation,
                     }
 
+                if evaluation.get("policies") and best is None:
+                    best = {
+                        "query": expanded_query,
+                        "policies": evaluation.get("policies", []),
+                        "evaluation": evaluation,
+                    }
+
                 self.logger.info(
                     f"{self.prefix}Evaluation retry flag set to true. Retrying..."
                 )
@@ -385,6 +389,12 @@ class AgenticRAG:
                     f"{self.prefix}An unexpected error occurred on attempt {attempt + 1} of {max_retries}: {e}. Retrying..."
                 )
                 continue
+
+        if best is not None:
+            self.logger.warning(
+                f"{self.prefix}Max retries reached. Returning policies approved on an earlier attempt: {best['policies']}"
+            )
+            return best
 
         self.logger.error(
             f"{self.prefix}Max retries reached. Returning empty list of policies."
